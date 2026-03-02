@@ -8,18 +8,19 @@ import com.chefkix.culinary.features.report.dto.request.ReportRequest;
 import com.chefkix.culinary.features.report.dto.response.ReportResponse;
 import com.chefkix.culinary.features.report.entity.Report;
 import com.chefkix.culinary.features.report.repository.AppealRepository;
-import com.chefkix.culinary.features.report.repository.ReportRepository;
+import com.chefkix.culinary.features.report.repository.RecipeReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-@Service
+// Dead code — all methods commented out. @Service removed to prevent bean name conflict.
+// @Service
 @RequiredArgsConstructor
 public class ReportService {
 
-    private final ReportRepository reportRepository;
+    private final RecipeReportRepository reportRepository;
     private final AppealRepository appealRepository;
 
     // Configs

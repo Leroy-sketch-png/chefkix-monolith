@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @Slf4j
-@Configuration
+@Configuration("notificationKafkaConsumerConfig")
 public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers:localhost:9094}")

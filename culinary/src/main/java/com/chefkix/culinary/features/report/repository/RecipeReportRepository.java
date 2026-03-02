@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 
 @Repository
-public interface ReportRepository extends MongoRepository<Report, String> {
+public interface RecipeReportRepository extends MongoRepository<Report, String> {
 
     // Đếm số report của 1 user trong khoảng thời gian (để chống spam)
     long countByReporterIdAndCreatedAtAfter(String reporterId, LocalDateTime date);

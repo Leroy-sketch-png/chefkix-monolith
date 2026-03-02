@@ -12,7 +12,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-@Configuration
+@Configuration("identityKafkaConsumerConfig")
 public class KafkaConsumerConfig {
 
   @Value("${spring.kafka.bootstrap-servers:localhost:9094}")
