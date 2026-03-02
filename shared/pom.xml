@@ -19,22 +19,41 @@
          NO Spring Boot starters. NO heavy frameworks.
          ────────────────────────────────────────────── -->
     <dependencies>
-        <!-- Jackson annotations for @JsonProperty, @JsonInclude on DTOs -->
+        <!-- Jackson annotations for @JsonProperty, @JsonInclude, @JsonTypeInfo on DTOs/events -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
 
-        <!-- Spring Web for HttpStatus in ErrorCode (lightweight, no server) -->
+        <!-- Spring Web: HttpStatus, ResponseEntity, @ControllerAdvice, MultipartFile -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
         </dependency>
 
-        <!-- Validation annotations (@NotBlank, @Size) on shared DTOs -->
+        <!-- Spring Data Commons: Page, Pageable for ApiResponse pagination helpers -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+        </dependency>
+
+        <!-- Spring Security Core: AccessDeniedException in GlobalExceptionHandler -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+
+        <!-- Validation annotations (@NotBlank, @Size) + ConstraintViolation in handler -->
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        <!-- Lombok: @Data, @Builder, @Getter, @Slf4j on all shared classes -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
