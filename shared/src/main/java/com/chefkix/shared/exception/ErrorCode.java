@@ -38,8 +38,10 @@ public enum ErrorCode {
 
     USER_EXISTED(409, "User already exists", HttpStatus.CONFLICT),
     USER_NOT_FOUND(404, "User not found", HttpStatus.NOT_FOUND),
+    USER_NOT_EXISTED(404, "User not exists", HttpStatus.NOT_FOUND),
     EMAIL_EXISTED(409, "Email already exists", HttpStatus.CONFLICT),
     EMAIL_NOT_FOUND(404, "Email not found", HttpStatus.NOT_FOUND),
+    INVALID_EMAIL(400, "Invalid email", HttpStatus.BAD_REQUEST),
     USERNAME_NOT_FOUND(404, "Username not found", HttpStatus.NOT_FOUND),
     USERNAME_IS_MISSING(400, "Please enter username", HttpStatus.BAD_REQUEST),
     INVALID_USERNAME(400, "Username must be at least {min} characters", HttpStatus.BAD_REQUEST),
@@ -48,13 +50,22 @@ public enum ErrorCode {
     PROFILE_ALREADY_EXISTS(409, "Profile already exists", HttpStatus.CONFLICT),
     PROFILE_NOT_FOUND(404, "Profile not found", HttpStatus.NOT_FOUND),
     ROLE_NOT_FOUND(404, "Role not found", HttpStatus.NOT_FOUND),
+    INVALID_CREDENTIALS(401, "Invalid email/username or password. Please try again.", HttpStatus.UNAUTHORIZED),
+    ACCOUNT_DISABLED(403, "This account has been disabled. Please contact support.", HttpStatus.FORBIDDEN),
+    ACCOUNT_NOT_VERIFIED(403, "Please verify your email before signing in.", HttpStatus.FORBIDDEN),
+    SIGNUP_REQUEST_NOT_FOUND(404, "No pending registration found. Please sign up again.", HttpStatus.NOT_FOUND),
+    RESET_PASSWORD_REQUEST_NOT_FOUND(404, "No pending password reset request. Please request again.", HttpStatus.NOT_FOUND),
 
     // ─── OTP ────────────────────────────────────────────────────────
 
-    OTP_EXPIRED(400, "OTP has expired", HttpStatus.BAD_REQUEST),
-    OTP_INVALID(400, "Invalid OTP", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(400, "OTP has expired. Please request a new code.", HttpStatus.BAD_REQUEST),
+    OTP_INVALID(400, "Invalid OTP. Please check the code and try again.", HttpStatus.BAD_REQUEST),
     OTP_NOT_FOUND(404, "OTP not found", HttpStatus.NOT_FOUND),
     OTP_MAX_ATTEMPTS(429, "Too many OTP attempts", HttpStatus.TOO_MANY_REQUESTS),
+    OTP_MAX_ATTEMPTS_EXCEEDED(429, "Too many failed OTP attempts. Please sign up again.", HttpStatus.TOO_MANY_REQUESTS),
+    OTP_RATE_LIMIT(400, "Please wait 60 seconds before re-sending a new OTP code", HttpStatus.BAD_REQUEST),
+    OTP_HOURLY_LIMIT_EXCEEDED(400, "Too many OTP requests this hour. Please try again later.", HttpStatus.BAD_REQUEST),
+    OTP_DAILY_LIMIT_EXCEEDED(400, "Too many OTP requests today. Please try again tomorrow.", HttpStatus.BAD_REQUEST),
     OTP_RESEND_TOO_FAST(429, "Please wait before requesting a new OTP", HttpStatus.TOO_MANY_REQUESTS),
 
     // ─── SOCIAL / FOLLOWING ─────────────────────────────────────────
@@ -65,6 +76,11 @@ public enum ErrorCode {
     NOT_BLOCKED(400, "User is not blocked", HttpStatus.BAD_REQUEST),
     CANNOT_FOLLOW_SELF(400, "Cannot follow yourself", HttpStatus.BAD_REQUEST),
     CANNOT_BLOCK_SELF(400, "Cannot block yourself", HttpStatus.BAD_REQUEST),
+    BLOCK_NOT_FOUND(404, "Block not found", HttpStatus.NOT_FOUND),
+    REQUEST_NOT_FOUND(404, "Friend request not found", HttpStatus.NOT_FOUND),
+    DO_NOT_HAVE_PERMISSION(403, "You do not have this permission", HttpStatus.FORBIDDEN),
+    INVALID_OPERATION(400, "Invalid operation", HttpStatus.BAD_REQUEST),
+    TOO_MANY_REQUESTS_FROM_IP(429, "Too many requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
 
     // ─── RECIPE / COOKING SESSION ───────────────────────────────────
 

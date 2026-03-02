@@ -43,6 +43,16 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    /** 200 OK with data and message. */
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .statusCode(200)
+                .data(data)
+                .message(message)
+                .build();
+    }
+
     /** 201 Created with data. */
     public static <T> ApiResponse<T> created(T data) {
         return ApiResponse.<T>builder()

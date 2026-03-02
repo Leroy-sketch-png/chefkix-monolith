@@ -1,0 +1,35 @@
+package com.chefkix.identity.api.dto;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+import java.util.List;
+
+/**
+ * Request to award XP and badges after a cooking session completion.
+ * <p>
+ * Unifies the duplicated DTOs:
+ * <ul>
+ *   <li>{@code chefkix-be} → InternalCompletionRequest ({@code Integer xpAmount})</li>
+ *   <li>{@code chefkix-recipe-service} → InternalCompletionRequest ({@code int xpAmount})</li>
+ * </ul>
+ * <p>
+ * FIXED: Uses {@code int} (not Integer) for xpAmount — XP is always required, never null.
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class CompletionRequest {
+
+    String userId;
+
+    int xpAmount;
+
+    List<String> newBadges;
+}

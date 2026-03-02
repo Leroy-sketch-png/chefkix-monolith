@@ -1,0 +1,550 @@
+package com.chefkix.identity.service;
+
+// Vẫn import, nhưng không dùng trực tiếp
+import com.chefkix.identity.dto.identity.Credential;
+import com.chefkix.identity.dto.identity.ResetPasswordParam;
+import com.chefkix.identity.dto.identity.TokenExchangeParam;
+import com.chefkix.identity.dto.identity.UserCreationParam;
+import com.chefkix.identity.dto.request.ProfileUpdateRequest;
+import com.chefkix.identity.dto.response.ProfileResponse;
+import com.chefkix.identity.dto.response.ProfileWithPostsResponse;
+import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
+import com.chefkix.identity.entity.ResetPasswordRequest;
+import com.chefkix.identity.entity.SignupRequest;
+import com.chefkix.identity.entity.Statistics;
+import com.chefkix.identity.entity.UserProfile;
+import com.chefkix.identity.enums.RelationshipStatus;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.identity.exception.ErrorNormalizer;
+import com.chefkix.identity.mapper.ProfileMapper;
+import com.chefkix.identity.repository.*;
+import com.chefkix.identity.client.KeycloakAdminClient;
+import com.chefkix.social.api.PostProvider;
+import com.chefkix.social.api.dto.PostSummary;
+import com.chefkix.identity.utils.SecurityUtils;
+import com.chefkix.identity.utils.SocialUtils;
+// Feign removed in monolith
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class ProfileService {
+
+  // === Repositories & Mappers ===
+  UserProfileRepository profileRepository;
+  ProfileMapper profileMapper;
+  SignupRequestRepository signupRequestRepository;
+  ResetPasswordRepository resetPasswordRepository;
+  FollowRepository followRepository;
+
+  // === Feign Clients ===
+  KeycloakAdminClient keycloakAdminClient;
+  PostProvider postProvider;
+
+  // === Utilities & Services ===
+  ErrorNormalizer errorNormalizer;
+  EmailService emailService;
+  BlockService blockService;
+  SecurityUtils securityUtils;
+  SocialUtils socialUtils;
+
+  // === Configuration ===
+  @Qualifier("taskExecutor")
+  Executor taskExecutor;
+
+  @Value("${idp.client-id}")
+  @NonFinal
+  String clientId;
+
+  @Value("${idp.client-secret}")
+  @NonFinal
+  String clientSecret;
+
+  @NonFinal
+  @Value("${app.otp.ttl-seconds:300}")
+  private long otpTtlSeconds;
+
+  @NonFinal
+  @Value("${app.otp.max-attempts:5}")
+  private int maxOtpAttempts;
+
+  // ===================================================================
+  // === PUBLIC API (Dành cho Controller) ===
+  // ===================================================================
+
+  public List<ProfileResponse> getAllProfiles() {
+    var profiles = profileRepository.findAll();
+    return profiles.stream().map(profileMapper::toProfileResponse).toList();
+  }
+
+  /**
+   * Get profiles with pagination and optional search.
+   * 
+   * @param pageable Spring Data pagination (page, size, sort)
+   * @param search Optional search term for displayName/username
+   * @return Paginated profiles
+   */
+  public org.springframework.data.domain.Page<ProfileResponse> getProfilesPaginated(
+      org.springframework.data.domain.Pageable pageable, String search) {
+    org.springframework.data.domain.Page<UserProfile> profilePage;
+    
+    if (search != null && !search.isBlank()) {
+      // Search by displayName or username (case-insensitive)
+      String searchLower = search.toLowerCase();
+      profilePage = profileRepository.findByDisplayNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(
+          searchLower, searchLower, pageable);
+    } else {
+      profilePage = profileRepository.findAll(pageable);
+    }
+    
+    return profilePage.map(profileMapper::toProfileResponse);
+  }
+
+  /** [HÀM PUBLIC] Lấy profile VÀ posts của user HIỆN TẠI (cho endpoint /me) */
+  public ProfileWithPostsResponse getCurrentProfileWithPosts(
+      Authentication authentication, Pageable pageable) {
+    String currentUserId = securityUtils.getCurrentUserId(authentication);
+    // Khi xem "tôi", targetUserId và currentUserId là MỘT
+    return buildProfileWithPosts(currentUserId, currentUserId, pageable);
+  }
+
+  /** [HÀM PUBLIC] Lấy profile VÀ posts của một user BẤT KỲ (cho endpoint /{userId}) */
+  public ProfileWithPostsResponse getProfileWithPostsByUserId(
+      String targetUserId, Authentication authentication, Pageable pageable) {
+    String currentUserId = securityUtils.getCurrentUserId(authentication);
+    // Khi xem "người khác", targetUserId (từ URL) và currentUserId (từ token) khác nhau
+    return buildProfileWithPosts(targetUserId, currentUserId, pageable);
+  }
+
+  /** Lấy profile của user hiện tại (chỉ profile, không kèm posts) */
+  public ProfileResponse getCurrentProfile(Authentication authentication) {
+    String userId = securityUtils.getCurrentUserId(authentication);
+    UserProfile userProfile =
+        profileRepository
+            .findByUserId(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    ProfileResponse response = profileMapper.toProfileResponse(userProfile);
+    response.setRelationshipStatus(RelationshipStatus.SELF);
+    response.setFollowing(false);
+    response.setIsBlocked(false); // Can't block yourself
+    if (response.getFriends() == null) {
+      response.setFriends(Collections.emptyList());
+    }
+    return response;
+  }
+
+  /** Lấy profile của một user BẤT KỲ (chỉ profile, không kèm posts) */
+  public ProfileResponse getProfileByUserId(String targetUserId, Authentication authentication) {
+    log.info("[PROFILE_GET] Bắt đầu xử lý getProfileByUserId cho target: {}", targetUserId);
+    String currentUserId = securityUtils.getCurrentUserId(authentication);
+
+    var targetProfile =
+        profileRepository
+            .findByUserId(targetUserId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    log.info("[PROFILE_GET] Đã tìm thấy profile: {}", targetProfile.getDisplayName());
+
+    ProfileResponse response = profileMapper.toProfileResponse(targetProfile);
+
+    // Xác định trạng thái mối quan hệ và follow
+    RelationshipStatus status =
+        socialUtils.determineRelationshipStatus(currentUserId, targetProfile);
+    response.setRelationshipStatus(status);
+    log.info("[PROFILE_GET] Đã xác định status: {}", status);
+
+    boolean isFollowing =
+        followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
+    response.setFollowing(isFollowing);
+    log.info("[PROFILE_GET] Đã kiểm tra following. Hoàn tất.");
+
+    // Check if current user has blocked this profile
+    boolean isBlocked = blockService.hasBlocked(currentUserId, targetUserId);
+    response.setIsBlocked(isBlocked);
+
+    if (response.getFriends() == null) {
+      response.setFriends(Collections.emptyList());
+    }
+    return response;
+  }
+
+  /** Xác thực OTP và tạo user (Keycloak + Mongo) */
+  @Transactional
+  public ProfileResponse verifyOtpAndCreateUser(String email, String otp) {
+    // 1. Xác thực OTP
+    SignupRequest req = validateSignupOtp(email, otp);
+
+    // 2. Tạo user trên Keycloak
+    String userId = createKeycloakUser(req);
+
+    // 3. Lưu profile vào MongoDB
+    UserProfile profile = createMongoProfile(req, userId);
+
+    // 4. Xóa request đăng ký
+    signupRequestRepository.delete(req);
+    log.info("Signup verified and created user in Keycloak + Mongo, userId={}", userId);
+
+    return profileMapper.toProfileResponse(profile);
+  }
+
+  /** Xác thực OTP và đặt lại mật khẩu (Keycloak) */
+  @Transactional
+  public void resetPassword(String email, String otp, String newPassword) {
+    // 1. Xác thực OTP
+    ResetPasswordRequest req = validateResetPasswordOtp(email, otp);
+
+    // 2. Cập nhật mật khẩu trên Keycloak
+    updateKeycloakPassword(email, newPassword);
+
+    // 3. Xóa request reset
+    resetPasswordRepository.delete(req);
+  }
+
+  /** Cập nhật Profile của userId hiện tại */
+  @Transactional
+  public ProfileResponse updateProfile(
+      Authentication authentication, ProfileUpdateRequest request) {
+
+    String userId = securityUtils.getCurrentUserId(authentication);
+
+    // 1. Tìm profile hiện tại
+    UserProfile userProfile =
+        profileRepository
+            .findByUserId(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    // 2. Cập nhật các trường nếu chúng được cung cấp (không null)
+    //    (Bạn cũng sẽ cần hàm private `updateIfNotNull` ở dưới)
+    updateIfNotNull(request.getFirstName(), userProfile::setFirstName);
+    updateIfNotNull(request.getLastName(), userProfile::setLastName);
+    updateIfNotNull(request.getDisplayName(), userProfile::setDisplayName);
+    updateIfNotNull(request.getDob(), userProfile::setDob);
+    updateIfNotNull(request.getPhoneNumber(), userProfile::setPhoneNumber);
+    updateIfNotNull(request.getAvatarUrl(), userProfile::setAvatarUrl);
+    updateIfNotNull(request.getCoverImageUrl(), userProfile::setCoverImageUrl);
+    updateIfNotNull(request.getBio(), userProfile::setBio);
+    updateIfNotNull(request.getLocation(), userProfile::setLocation);
+    updateIfNotNull(request.getPreferences(), userProfile::setPreferences);
+
+    // 3. Lưu profile đã cập nhật
+    UserProfile updatedProfile = profileRepository.save(userProfile);
+
+    // 4. Map sang DTO và gán các trường động
+    ProfileResponse response = profileMapper.toProfileResponse(updatedProfile);
+    response.setRelationshipStatus(RelationshipStatus.SELF);
+    response.setFollowing(false);
+    if (response.getFriends() == null) {
+      response.setFriends(Collections.emptyList());
+    }
+    return response;
+  }
+
+  // ===================================================================
+  // === PRIVATE HELPERS (Logic nội bộ) ===
+  // ===================================================================
+
+  /**
+   * [HÀM LÕI] Xây dựng đối tượng ProfileWithPostsResponse. Giả định Feign Interceptor đã được cấu
+   * hình để tự động forward token.
+   */
+  private ProfileWithPostsResponse buildProfileWithPosts(
+      String targetUserId, String currentUserId, Pageable pageable) {
+
+    // 1. CHUẨN BỊ TÁC VỤ A (Profile - CPU) - Chạy song song
+    CompletableFuture<ProfileResponse> profileFuture =
+        CompletableFuture.supplyAsync(
+            () -> {
+              UserProfile userProfile =
+                  profileRepository
+                      .findByUserId(targetUserId)
+                      .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+              ProfileResponse localResponse = profileMapper.toProfileResponse(userProfile);
+
+              // Logic xác định mối quan hệ
+              RelationshipStatus status =
+                  socialUtils.determineRelationshipStatus(currentUserId, userProfile);
+              localResponse.setRelationshipStatus(status);
+
+              boolean isFollowing =
+                  followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
+              localResponse.setFollowing(isFollowing);
+
+              if (localResponse.getFriends() == null) {
+                localResponse.setFriends(Collections.emptyList());
+              }
+              return localResponse;
+            },
+            taskExecutor);
+
+    // 2. Get posts via PostProvider (direct call in monolith, was Feign)
+    try {
+      Page<PostSummary> posts = postProvider.getPostsByUserId(targetUserId, pageable);
+
+      // 3. CHỜ KẾT QUẢ PROFILE
+      ProfileResponse profile = profileFuture.join();
+
+      // 4. Trả về kết quả
+      return new ProfileWithPostsResponse(profile, posts);
+
+    } catch (Exception e) {
+      log.error("Lỗi khi tải song song profile và posts: {}", e.getMessage(), e);
+      // Bắt lỗi Feign/Profile
+      throw new AppException(
+          ErrorCode.INTERNAL_SERVER_ERROR, "Không thể tải dữ liệu: " + e.getMessage());
+    }
+    // Không cần khối finally để dọn dẹp ThreadLocal nữa
+  }
+
+  /** Helper cập nhật các fields kh null */
+  private <T> void updateIfNotNull(T value, Consumer<T> setter) {
+    if (value != null) {
+      setter.accept(value);
+    }
+  }
+
+  // --- Helpers cho Đăng ký (verifyOtpAndCreateUser) ---
+
+  private SignupRequest validateSignupOtp(String email, String otp) {
+    SignupRequest req =
+        signupRequestRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.SIGNUP_REQUEST_NOT_FOUND));
+
+    // Check max attempts first (before expiry check to prevent timing attacks)
+    int currentAttempts = req.getAttempts() != null ? req.getAttempts() : 0;
+    if (currentAttempts >= maxOtpAttempts) {
+      signupRequestRepository.delete(req);
+      throw new AppException(ErrorCode.OTP_MAX_ATTEMPTS_EXCEEDED);
+    }
+
+    // Check expiry
+    if (Instant.now().isAfter(req.getExpiresAt())) {
+      signupRequestRepository.delete(req);
+      throw new AppException(ErrorCode.OTP_EXPIRED);
+    }
+
+    // Validate OTP hash
+    String expected = emailService.hmacOtp(otp);
+    if (!constantTimeEquals(expected, req.getOtpHash())) {
+      req.setAttempts(currentAttempts + 1);
+      signupRequestRepository.save(req);
+      throw new AppException(ErrorCode.OTP_INVALID);
+    }
+    return req;
+  }
+
+  private String createKeycloakUser(SignupRequest req) {
+    try {
+      var token =
+          keycloakAdminClient.exchangeToken(
+              TokenExchangeParam.builder()
+                  .grant_type("client_credentials")
+                  .client_id(clientId)
+                  .client_secret(clientSecret)
+                  .scope("openid")
+                  .build());
+
+      var creationResponse =
+          keycloakAdminClient.createUser(
+              "Bearer " + token.getAccessToken(),
+              UserCreationParam.builder()
+                  .username(req.getUsername())
+                  .email(req.getEmail())
+                  .firstName(req.getFirstName())
+                  .lastName(req.getLastName())
+                  .enabled(true)
+                  .emailVerified(false)
+                  .credentials(
+                      List.of(
+                          Credential.builder()
+                              .type("password")
+                              .temporary(false)
+                              .value(req.getPassword())
+                              .build()))
+                  .build());
+
+      return extractUserId(creationResponse);
+    } catch (Exception e) {
+      log.error(
+          "Lỗi khi tạo user trên Keycloak cho email {}: {}", req.getEmail(), e.getMessage(), e);
+      throw errorNormalizer.handleKeyCloakException(e);
+    }
+  }
+
+  private UserProfile createMongoProfile(SignupRequest req, String userId) {
+    UserProfile profile = profileMapper.toProfile(req);
+    profile.setUserId(userId);
+    profile.setEmail(req.getEmail());
+    profile.setFirstName(req.getFirstName());
+    profile.setDisplayName(req.getDisplayName());
+    profile.setDob(req.getDob());
+    profile.setLastName(req.getLastName());
+    profile.setUsername(req.getUsername());
+    profile.setAccountType("user");
+
+    Statistics initialStats = Statistics.builder().build();
+    profile.setStatistics(initialStats);
+
+    return profileRepository.save(profile);
+  }
+
+  // --- Helpers cho Đặt lại Mật khẩu (resetPassword) ---
+
+  private ResetPasswordRequest validateResetPasswordOtp(String email, String otp) {
+    ResetPasswordRequest req =
+        resetPasswordRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new AppException(ErrorCode.RESET_PASSWORD_REQUEST_NOT_FOUND));
+
+    // Check max attempts first (before expiry check to prevent timing attacks)
+    int currentAttempts = req.getAttempts() != null ? req.getAttempts() : 0;
+    if (currentAttempts >= maxOtpAttempts) {
+      resetPasswordRepository.delete(req);
+      throw new AppException(ErrorCode.OTP_MAX_ATTEMPTS_EXCEEDED);
+    }
+
+    // Check expiry
+    if (Instant.now().isAfter(req.getExpiresAt())) {
+      resetPasswordRepository.delete(req);
+      throw new AppException(ErrorCode.OTP_EXPIRED);
+    }
+
+    // Validate OTP hash
+    String expected = emailService.hmacOtp(otp);
+    if (!constantTimeEquals(expected, req.getOtpHash())) {
+      req.setAttempts(currentAttempts + 1);
+      resetPasswordRepository.save(req);
+      throw new AppException(ErrorCode.OTP_INVALID);
+    }
+    return req;
+  }
+
+  public InternalBasicProfileResponse getBasicProfile(String userId) {
+    UserProfile user =
+        profileRepository
+            .findByUserId(userId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+    // CRITICAL: displayName is OPTIONAL. Apply fallback: displayName → firstName+lastName → username
+    String displayName = user.getDisplayName();
+    if (displayName == null || displayName.isBlank()) {
+      String firstName = user.getFirstName();
+      String lastName = user.getLastName();
+      if (firstName != null && !firstName.isBlank()) {
+        displayName = lastName != null && !lastName.isBlank() 
+            ? firstName + " " + lastName 
+            : firstName;
+      } else if (lastName != null && !lastName.isBlank()) {
+        displayName = lastName;
+      } else {
+        displayName = user.getUsername() != null ? user.getUsername() : "Unknown User";
+      }
+    }
+
+    return InternalBasicProfileResponse.builder()
+        .userId(user.getUserId())
+        .username(user.getUsername())
+        .displayName(displayName)
+        .firstName(user.getFirstName())
+        .lastName(user.getLastName())
+        .avatarUrl(user.getAvatarUrl())
+        .build();
+  }
+
+  private void updateKeycloakPassword(String email, String newPassword) {
+    // Cần tìm UserId từ Profile Repository
+    var userProfile =
+        profileRepository
+            .findByEmail(email)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("User profile not found or Keycloak ID missing."));
+
+    String userId = userProfile.getUserId();
+    if (userId == null) {
+      throw new IllegalArgumentException("Keycloak ID missing for email: " + email);
+    }
+
+    try {
+      // 1. Lấy Admin Access Token
+      var token =
+          keycloakAdminClient.exchangeToken(
+              TokenExchangeParam.builder()
+                  .grant_type("client_credentials")
+                  .client_id(clientId)
+                  .client_secret(clientSecret)
+                  .scope("openid")
+                  .build());
+
+      // 2. Gọi API resetPassword
+      keycloakAdminClient.resetPassword(
+          "Bearer " + token.getAccessToken(),
+          userId,
+          ResetPasswordParam.builder()
+              .type("password")
+              .temporary(false)
+              .value(newPassword)
+              .build());
+
+      log.info("Password successfully reset for userId={}", userId);
+
+    } catch (Exception e) {
+      log.error("Failed to reset password in Keycloak for userId={}", userId, e);
+      throw errorNormalizer.handleKeyCloakException(e);
+    }
+  }
+
+  // --- Helpers chung ---
+
+  private String extractUserId(ResponseEntity<?> response) {
+    // Xử lý an toàn hơn
+    try {
+      String location = response.getHeaders().get("Location").getFirst();
+      String[] splitedStr = location.split("/");
+      return splitedStr[splitedStr.length - 1];
+    } catch (Exception e) {
+      log.error(
+          "Không thể trích xuất UserId từ header 'Location': {}",
+          response.getHeaders().get("Location"),
+          e);
+      throw new AppException(
+          ErrorCode.INTERNAL_SERVER_ERROR, "Không thể lấy UserId sau khi tạo user.");
+    }
+  }
+
+  private boolean constantTimeEquals(String a, String b) {
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.length() != b.length()) {
+      return false;
+    }
+    int result = 0;
+    for (int i = 0; i < a.length(); i++) {
+      result |= a.charAt(i) ^ b.charAt(i);
+    }
+    return result == 0;
+  }
+}
