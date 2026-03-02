@@ -1,0 +1,56 @@
+package com.chefkix.social.post.entity;
+
+import com.chefkix.shared.util.SlugUtils;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.Instant;
+import java.util.List;
+
+@Document(collection = "post")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Post {
+  @Id String id;
+  String userId;
+  List<String> tags;
+  String displayName;
+  String content;
+  String avatarUrl;
+  List<String> photoUrls;
+  String videoUrl;
+  String slug;
+  String postUrl;
+  String sessionId; // Liên kết với Cooking Session
+  String recipeId;  // ID công thức đã nấu
+
+  String recipeTitle; // Tên món ăn (VD: "Phở Bò")
+  @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư
+  double xpEarned; // Số XP nhận được từ bài post này
+
+  @Builder.Default Integer likes = 0;
+  @Builder.Default Integer commentCount = 0;
+  @Builder.Default Double hotScore = 0.0;
+  @CreatedDate Instant createdAt;
+  @LastModifiedDate Instant updatedAt;
+
+  // List<String> taggedUserIds;
+  List<String> commentIds;
+
+  public void generateSlug() {
+    if (this.content != null) {
+      this.slug =
+          SlugUtils.toSlug(
+              this.content.length() > 50 ? this.content.substring(0, 50) : this.content);
+    } else {
+      this.slug = SlugUtils.toSlug(this.id);
+    }
+  }
+}
