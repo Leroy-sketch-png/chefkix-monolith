@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.chefkix</groupId>
+        <artifactId>chefkix-monolith</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>shared</artifactId>
+    <name>ChefKix - Shared</name>
+    <description>Common DTOs, exceptions, events, and utilities shared across all modules</description>
+
+    <!-- ──────────────────────────────────────────────
+         THIN module: POJOs + annotations only.
+         NO Spring Boot starters. NO heavy frameworks.
+         ────────────────────────────────────────────── -->
+    <dependencies>
+        <!-- Jackson annotations for @JsonProperty, @JsonInclude on DTOs -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <!-- Spring Web for HttpStatus in ErrorCode (lightweight, no server) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <!-- Validation annotations (@NotBlank, @Size) on shared DTOs -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

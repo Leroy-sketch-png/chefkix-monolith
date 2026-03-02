@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.chefkix</groupId>
+        <artifactId>chefkix-monolith</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>application</artifactId>
+    <name>ChefKix - Application</name>
+    <description>Spring Boot entry point, unified configuration, executable JAR</description>
+
+    <dependencies>
+        <!-- ── All implementation modules (transitively brings everything) ── -->
+        <dependency>
+            <groupId>com.chefkix</groupId>
+            <artifactId>identity</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.chefkix</groupId>
+            <artifactId>culinary</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.chefkix</groupId>
+            <artifactId>social</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.chefkix</groupId>
+            <artifactId>notification</artifactId>
+        </dependency>
+
+        <!-- ── Application-level extras ── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
+        <!-- ── Testing ── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Only this module produces an executable JAR -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

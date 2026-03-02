@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════════════════════
+# ChefKix Modular Monolith — Unified Configuration
+# ═══════════════════════════════════════════════════════════════
+# This replaces 5 separate application.yml files + gateway routing.
+# All services now run in a single JVM on port 8080.
+# ═══════════════════════════════════════════════════════════════
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: chefkix-monolith
+
+  # ── MongoDB (single database, consolidated from 5) ──
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/chefkix
+
+  # ── Kafka ──
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.chefkix.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # ── Security (Keycloak JWT) ──
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/nottisn
+
+# ── Application-specific ──
+app:
+  services:
+    ai-url: http://localhost:8000

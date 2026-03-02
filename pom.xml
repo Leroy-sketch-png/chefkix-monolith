@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================
+         ChefKix Modular Monolith — Parent POM
+         ============================================================
+         Uses spring-boot-dependencies BOM (NOT spring-boot-starter-parent)
+         so library modules produce plain JARs.
+         Only the 'application' module applies spring-boot-maven-plugin.
+         ============================================================ -->
+
+    <groupId>com.chefkix</groupId>
+    <artifactId>chefkix-monolith</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>ChefKix Monolith</name>
+    <description>ChefKix — Gamified cooking platform (modular monolith)</description>
+
+    <!-- ============================== MODULES ============================== -->
+    <modules>
+        <module>shared</module>
+        <module>identity-api</module>
+        <module>culinary-api</module>
+        <module>social-api</module>
+        <module>identity</module>
+        <module>culinary</module>
+        <module>social</module>
+        <module>notification</module>
+        <module>application</module>
+    </modules>
+
+    <!-- ============================== PROPERTIES ============================== -->
+    <properties>
+        <!-- Java -->
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Spring Boot (single source of truth) -->
+        <spring-boot.version>3.5.7</spring-boot.version>
+
+        <!-- Code generation -->
+        <lombok.version>1.18.36</lombok.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+
+        <!-- Third-party -->
+        <cloudinary.version>1.38.0</cloudinary.version>
+        <springdoc.version>2.8.4</springdoc.version>
+    </properties>
+
+    <!-- ============================== DEPENDENCY MANAGEMENT ============================== -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM — manages ALL Spring + transitive versions -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- ── Internal modules ── -->
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>shared</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>identity-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>culinary-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>social-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>identity</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>culinary</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>social</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chefkix</groupId>
+                <artifactId>notification</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- ── External (not managed by Spring Boot BOM) ── -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.cloudinary</groupId>
+                <artifactId>cloudinary-http45</artifactId>
+                <version>${cloudinary.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ============================== GLOBAL DEPENDENCIES ============================== -->
+    <!-- These apply to ALL modules -->
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- ============================== BUILD ============================== -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Compiler: Lombok → binding → MapStruct (correct order!) -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                        <compilerArgs>
+                            <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                            <arg>-Amapstruct.verbose=true</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+
+                <!-- Spring Boot plugin (ONLY used in application module) -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!-- Activate compiler plugin for all modules -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
