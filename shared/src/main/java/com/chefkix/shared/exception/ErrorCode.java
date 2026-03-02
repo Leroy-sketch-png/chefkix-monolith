@@ -99,6 +99,9 @@ public enum ErrorCode {
     COMPLETION_NOT_FOUND(404, "Completion not found", HttpStatus.NOT_FOUND),
     RATE_LIMIT_EXCEEDED(429, "Rate limit exceeded, please try again later", HttpStatus.TOO_MANY_REQUESTS),
     CHALLENGE_NOT_FOUND(404, "Challenge not found", HttpStatus.NOT_FOUND),
+    INVALID_ACTION(400, "Invalid action", HttpStatus.BAD_REQUEST),
+    EMPTY(404, "No data found", HttpStatus.NOT_FOUND),
+    NO_FRIEND_YET(404, "You have no friends yet", HttpStatus.NOT_FOUND),
 
     // ─── POST / FEED ────────────────────────────────────────────────
 
