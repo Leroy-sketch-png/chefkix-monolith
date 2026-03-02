@@ -1,4 +1,4 @@
-package com.chefkix.social.chat.config;
+package com.chefkix.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -22,23 +22,33 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Unified WebSocket/STOMP configuration.
+ * Merges the formerly separate chat and notification WebSocket configs
+ * into a single {@code /ws} endpoint with JWT authentication.
+ */
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 @Slf4j
-public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
+        // Single endpoint serves both chat and notification WebSocket traffic
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
+        // Broker destinations for subscriptions
         registry.enableSimpleBroker("/topic", "/queue");
+        // Application destination prefix for @MessageMapping methods
         registry.setApplicationDestinationPrefixes("/app");
     }
 
@@ -47,57 +57,33 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                log.debug("Interceptor received command: {}", accessor.getCommand()); // Log command
+                StompHeaderAccessor accessor =
+                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                // 1. Xác thực khi CONNECT
+                // Authenticate on CONNECT using Bearer token from headers
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                     String authHeader = accessor.getFirstNativeHeader("Authorization");
-                    log.debug("Interceptor CONNECT: Authorization header found? {}", StringUtils.hasText(authHeader));
 
                     if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
                         String token = authHeader.substring(7);
                         try {
                             Jwt jwt = jwtDecoder.decode(token);
                             Authentication authentication = jwtAuthenticationConverter.convert(jwt);
-                            accessor.setUser(authentication); // Lưu user vào session
+                            accessor.setUser(authentication);
                             log.info("STOMP user connected: {}", authentication.getName());
                         } catch (Exception e) {
-                            log.error("STOMP Authentication failed: {}", e.getMessage(), e); // Log cả exception
+                            log.error("STOMP Authentication failed: {}", e.getMessage());
                         }
                     } else {
-                        log.warn("Interceptor CONNECT: No valid Authorization header found.");
+                        log.warn("STOMP CONNECT without valid Authorization header");
                     }
                 }
 
-                // --- PHẦN SỬA LỖI QUAN TRỌNG NHẤT (VỚI DEBUG LOG) ---
-                // 2. Đặt Authentication vào SecurityContext cho TẤT CẢ các tin nhắn
-                Authentication authentication = (Authentication) accessor.getUser();
-                if (authentication != null) {
-                    log.debug(
-                            "Interceptor (preSend): Setting Authentication in SecurityContextHolder for user: {}",
-                            authentication.getName());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    // Kiểm tra ngay sau khi set
-                    Authentication checkAuth =
-                            SecurityContextHolder.getContext().getAuthentication();
-                    log.debug(
-                            "Interceptor (preSend): SecurityContextHolder NOW HAS Authentication? {}, User: {}",
-                            (checkAuth != null),
-                            (checkAuth != null ? checkAuth.getName() : "NULL"));
-                } else if (accessor.getUser() == null && !StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // Log nếu user bị null sau khi connect (cho các lệnh SEND, SUBSCRIBE...)
-                    log.warn(
-                            "Interceptor (preSend): Authentication is NULL in session for non-CONNECT command '{}'. Session: {}",
-                            accessor.getCommand(),
-                            accessor.getSessionId());
-                } else if (accessor.getUser() == null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // Log nếu user bị null ngay cả khi CONNECT (thường do token lỗi)
-                    log.warn(
-                            "Interceptor (preSend): Authentication is NULL after CONNECT processing. Session: {}",
-                            accessor.getSessionId());
+                // Propagate Authentication to SecurityContext for all frames
+                Authentication auth = (Authentication) accessor.getUser();
+                if (auth != null) {
+                    SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-                // ----------------------------------------------------
 
                 return message;
             }

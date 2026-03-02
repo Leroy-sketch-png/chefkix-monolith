@@ -16,6 +16,14 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/chefkix
+      auto-index-creation: true
+
+  # ── Redis (OTP rate limiting, token blacklisting) ──
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+      database: 0
 
   # ── Kafka ──
   kafka:
@@ -37,7 +45,40 @@ spring:
         jwt:
           issuer-uri: http://localhost:8180/realms/nottisn
 
-# ── Application-specific ──
+# ── Keycloak IDP (identity module — admin client) ──
+idp:
+  url: http://localhost:8180
+  client-id: chefkix-be
+  client-secret: PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL
+
+keycloak:
+  auth-server-url: http://localhost:8180
+  realm: nottisn
+  resource: chefkix-be
+  credentials:
+    secret: PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL
+
+# ── OTP Configuration (identity module) ──
 app:
+  otp:
+    secret: ${APP_OTP_SECRET:change-me}
+    ttl-seconds: 600
+    max-attempts: 5
+  signup:
+    cleanup-millis: 3600000
   services:
     ai-url: http://localhost:8000
+
+# ── Email — Brevo (notification module) ──
+notification:
+  email:
+    brevo-url: https://api.brevo.com
+    brevo-apikey: ${BREVO_API_KEY:xkeysib-replace-me}
+
+# ── Logging (sensible defaults, not microservice DEBUG spam) ──
+logging:
+  level:
+    com.chefkix: INFO
+    org.springframework.security: WARN
+    org.springframework.web.socket: WARN
+    org.springframework.messaging: WARN
