@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/") // Base path - gateway strips /api/v1/recipes
+@RequestMapping("/recipes")
 @RequiredArgsConstructor
 public class InteractionController {
 
