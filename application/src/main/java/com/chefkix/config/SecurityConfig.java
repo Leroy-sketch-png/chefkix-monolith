@@ -2,10 +2,12 @@ package com.chefkix.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -26,8 +28,17 @@ public class SecurityConfig {
      * Consolidated from identity, notification, and other service SecurityConfigs.
      */
     private static final String[] PUBLIC_ENDPOINTS = {
-            // --- Auth (identity) ---
-            "/auth/**",
+            // --- Auth (identity) — public-facing only ---
+            "/auth/login",
+            "/auth/signup",
+            "/auth/refresh-token",
+            "/auth/verify-otp-user",
+            "/auth/request-reset-password",
+            "/auth/reset-password",
+            "/auth/verify-reset-otp",
+            "/auth/resend-signup-otp",
+            "/auth/profiles",
+            "/auth/profiles/paginated",
 
             // --- Email trigger (notification) ---
             "/email/send",
@@ -52,6 +63,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())

@@ -11,6 +11,7 @@ import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
@@ -201,6 +202,14 @@ public class PostService {
         }
 
         post = postRepository.save(post);
+
+        // Publish event so identity module can increment totalRecipesPublished
+        kafkaTemplate.send("post-delivery",
+                PostCreatedEvent.builder()
+                        .userId(userId)
+                        .postId(post.getId())
+                        .build());
+
         return postMapper.toPostResponse(post);
     }
 

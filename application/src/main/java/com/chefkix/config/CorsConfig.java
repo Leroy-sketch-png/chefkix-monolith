@@ -3,19 +3,19 @@ package com.chefkix.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 /**
  * CORS configuration for the monolith.
- * In the microservice architecture, the API gateway handled CORS.
- * Now the monolith must handle it directly.
+ * Exposes a {@link CorsConfigurationSource} bean so Spring Security's
+ * {@code .cors(Customizer.withDefaults())} picks it up automatically.
  */
 @Configuration
 public class CorsConfig {
 
     @Bean
-    public CorsFilter corsFilter() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
         // Allow Next.js dev server and common production origins
@@ -30,6 +30,6 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
-        return new CorsFilter(source);
+        return source;
     }
 }

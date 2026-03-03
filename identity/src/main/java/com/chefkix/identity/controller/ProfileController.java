@@ -5,7 +5,6 @@ import com.chefkix.identity.dto.request.ProfileUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.identity.dto.response.ProfileResponse;
 import com.chefkix.identity.dto.response.ProfileWithPostsResponse;
-import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
 import com.chefkix.identity.service.ProfileService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -88,14 +87,5 @@ public class ProfileController {
     // You can add a custom message here easily
     return ApiResponse.success(
         profileService.updateProfile(authentication, req), "Profile updated successfully");
-  }
-
-  // Trong ProfileController.java
-
-  @GetMapping("/internal/{userId}")
-  public ApiResponse<InternalBasicProfileResponse> getBasicProfile(@PathVariable String userId) {
-    InternalBasicProfileResponse response = profileService.getBasicProfile(userId);
-
-    return ApiResponse.success(response);
   }
 }

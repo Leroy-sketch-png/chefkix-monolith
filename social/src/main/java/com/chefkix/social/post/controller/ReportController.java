@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
  * Controller for content reports.
  * Per spec 13-moderation.txt.
  * 
- * Base path: /report (Gateway adds /api/v1/post prefix)
+ * Monolith path: /api/v1/posts/report
  */
 @RestController
-@RequestMapping("/report")
+@RequestMapping("/posts/report")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ReportController {

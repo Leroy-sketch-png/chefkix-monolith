@@ -1,6 +1,5 @@
 package com.chefkix.social.post.controller;
 
-import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
@@ -103,28 +102,6 @@ public class PostController {
         
         Page<PostResponse> result = postService.getSavedPosts(pageable);
         return ResponseEntity.ok(ApiResponse.success(result));
-    }
-
-    @GetMapping("/{postId}/internal/post-link")
-    public ApiResponse<PostLinkInfo> getPostLinking(
-            @PathVariable String postId
-    ) {
-        PostLinkInfo response = postService.linkingResponse(postId);
-        return ApiResponse.success(response);
-    }
-
-    /**
-     * INTERNAL ENDPOINT: Update post's xpEarned after recipe-service calculates XP.
-     * Called by recipe-service via Feign after linkSession() completes.
-     * No JWT required - internal service-to-service communication.
-     */
-    @PatchMapping("/{postId}/internal/update-xp")
-    public ApiResponse<Void> updatePostXp(
-            @PathVariable String postId,
-            @RequestParam double xpEarned
-    ) {
-        postService.updatePostXpEarned(postId, xpEarned);
-        return ApiResponse.success(null);
     }
 
     @GetMapping("/{postId}")

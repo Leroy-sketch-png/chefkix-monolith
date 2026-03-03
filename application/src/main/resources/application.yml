@@ -75,20 +75,17 @@ app:
   services:
     ai-url: http://localhost:8000
 
-# ── SMTP Mail (identity module — OTP emails via JavaMailSender) ──
-spring.mail:
-  host: ${MAIL_HOST:localhost}
-  port: ${MAIL_PORT:1025}
-  username: ${MAIL_USERNAME:}
-  password: ${MAIL_PASSWORD:}
-  properties.mail.smtp.auth: false
-  properties.mail.smtp.starttls.enable: false
-
 # ── Email — Brevo (notification module) ──
 notification:
   email:
     brevo-url: https://api.brevo.com
     brevo-apikey: ${BREVO_API_KEY:xkeysib-replace-me}
+
+# ── Cloudinary (culinary module — image uploads) ──
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dc0umlqvf}
+  api-key: ${CLOUDINARY_API_KEY:762755256531976}
+  api-secret: ${CLOUDINARY_API_SECRET:VRyusVXC7KObwoLjg1zmRtUt514}
 
 # ── Logging (sensible defaults, not microservice DEBUG spam) ──
 logging:

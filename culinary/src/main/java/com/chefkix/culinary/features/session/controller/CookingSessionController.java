@@ -4,7 +4,6 @@ import com.chefkix.culinary.common.dto.query.SessionHistoryQuery;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.shared.dto.PaginationMeta;
 import com.chefkix.culinary.common.dto.response.LoggedResponse;
-import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.dto.request.*;
 import com.chefkix.culinary.features.session.dto.response.*;
 import com.chefkix.culinary.features.session.service.CookingSessionService;
@@ -42,13 +41,6 @@ public class CookingSessionController {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(sessionService.completeSession(userId, sessionId, request));
-    }
-
-    // 3. API nội bộ cho Post Service gọi (Internal)
-    // Feign Client bên Post Service sẽ gọi vào đây
-    @GetMapping("/internal/{sessionId}")
-    public ApiResponse<CookingSession> getSession(@PathVariable String sessionId) {
-        return ApiResponse.success(sessionService.getSessionById(sessionId));
     }
 
     @GetMapping("/{sessionId}")
