@@ -64,7 +64,7 @@ public class StatisticsService {
       retryFor = {OptimisticLockingFailureException.class},
       maxAttempts = 5)
   public RecipeCompletionResponse updateAfterCompletion(InternalCompletionRequest request) {
-    // This is an internal endpoint called by recipe-service via Feign (no JWT).
+    // Internal method called by culinary module via ProfileProvider.
     // Prefer request.userId over SecurityContext since auth may be null for internal calls.
     String userId = request.getUserId();
     if (userId == null || userId.isEmpty()) {

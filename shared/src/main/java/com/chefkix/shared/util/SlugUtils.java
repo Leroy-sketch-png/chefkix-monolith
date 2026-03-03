@@ -6,8 +6,7 @@ import java.text.Normalizer;
  * URL-safe slug generator.
  * <p>
  * Handles Unicode normalization (accented characters), lowercasing,
- * and non-alphanumeric replacement. Consolidated from identical copies
- * in chefkix-be and chefkix-post-service.
+ * and non-alphanumeric replacement. Consolidated from identity and social modules.
  */
 public final class SlugUtils {
 

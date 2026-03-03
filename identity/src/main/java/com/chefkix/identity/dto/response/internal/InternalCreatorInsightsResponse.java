@@ -6,8 +6,8 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Internal DTO for receiving creator insights from recipe-service via Feign.
- * Must match recipe-service's InternalCreatorInsightsResponse structure.
+ * Internal DTO for receiving creator insights from culinary module via CulinaryProvider.
+ * Must match culinary module's InternalCreatorInsightsResponse structure.
  */
 @Data
 public class InternalCreatorInsightsResponse {

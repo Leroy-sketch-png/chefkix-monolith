@@ -450,8 +450,8 @@ public class PostService {
     }
 
     /**
-     * INTERNAL API: Update xpEarned on a post after recipe-service calculates it.
-     * Called by recipe-service via Feign after linkSession() completes.
+     * INTERNAL API: Update xpEarned on a post after culinary module calculates it.
+     * Called by culinary module via PostProvider after linkSession() completes.
      */
     @Transactional
     public void updatePostXpEarned(String postId, double xpEarned) {

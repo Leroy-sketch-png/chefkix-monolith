@@ -15,7 +15,7 @@ import java.util.List;
  * Unifies the duplicated DTOs:
  * <ul>
  *   <li>{@code chefkix-be} → InternalCompletionRequest ({@code Integer xpAmount})</li>
- *   <li>{@code chefkix-recipe-service} → InternalCompletionRequest ({@code int xpAmount})</li>
+ *   <li>culinary module → InternalCompletionRequest ({@code int xpAmount})</li>
  * </ul>
  * <p>
  * FIXED: Uses {@code int} (not Integer) for xpAmount — XP is always required, never null.

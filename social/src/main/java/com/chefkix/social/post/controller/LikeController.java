@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * Controller for post interactions: like and save (bookmark).
  */
 @RestController
-@RequestMapping("/posts")  // ← FIXED: Changed from /post to /posts to match Gateway route
+@RequestMapping("/posts")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LikeController {

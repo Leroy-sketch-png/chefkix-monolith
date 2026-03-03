@@ -58,7 +58,7 @@ public class ProfileService {
   ResetPasswordRepository resetPasswordRepository;
   FollowRepository followRepository;
 
-  // === Feign Clients ===
+  // === External Module Providers ===
   KeycloakAdminClient keycloakAdminClient;
   PostProvider postProvider;
 
@@ -265,8 +265,8 @@ public class ProfileService {
   // ===================================================================
 
   /**
-   * [HÀM LÕI] Xây dựng đối tượng ProfileWithPostsResponse. Giả định Feign Interceptor đã được cấu
-   * hình để tự động forward token.
+   * [HÀM LÕI] Xây dựng đối tượng ProfileWithPostsResponse.
+   * Uses PostProvider for cross-module post retrieval.
    */
   private ProfileWithPostsResponse buildProfileWithPosts(
       String targetUserId, String currentUserId, Pageable pageable) {
@@ -310,7 +310,7 @@ public class ProfileService {
 
     } catch (Exception e) {
       log.error("Lỗi khi tải song song profile và posts: {}", e.getMessage(), e);
-      // Bắt lỗi Feign/Profile
+      // Bắt lỗi Profile
       throw new AppException(
           ErrorCode.INTERNAL_SERVER_ERROR, "Không thể tải dữ liệu: " + e.getMessage());
     }

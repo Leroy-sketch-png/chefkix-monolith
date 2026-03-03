@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Leaderboard Controller
  *
- * <p>Gateway route: /api/v1/auth/** → StripPrefix=2 → receives /auth/**
+ * <p>Route: /api/v1/auth/leaderboard/**
  *
  * <p>This controller handles leaderboard queries for the gamification system. Supports global,
  * friends, and league leaderboards with weekly/monthly/all-time timeframes.
