@@ -13,20 +13,25 @@ import java.util.Optional;
 
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {
-    Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    // --- Feed queries (exclude hidden posts) ---
+    Page<Post> findByHiddenFalseOrderByCreatedAtDesc(Pageable pageable);
 
-    // this is to retrieve Posts after a period of since
+    Page<Post> findByHiddenFalseOrderByHotScoreDesc(Pageable pageable);
+
+    Page<Post> findByHiddenFalse(Pageable pageable);
+
+    Page<Post> findByUserIdAndHiddenFalseOrderByCreatedAtDesc(String userId, Pageable pageable);
+
+    Page<Post> findByUserIdInAndHiddenFalseOrderByCreatedAtDesc(List<String> userIds, Pageable pageable);
+
+    Page<Post> findByUserIdInAndHiddenFalseOrderByHotScoreDesc(List<String> userIds, Pageable pageable);
+
+    // --- Non-feed queries (include all) ---
     List<Post> findByCreatedAtAfter(Instant since);
 
-    Page<Post> findAllByOrderByHotScoreDesc(Pageable pageable);
+    long countByUserIdAndHiddenFalse(String userId);
 
-    Page<Post> findAll(Pageable pageable);
-
+    // Legacy (kept for backward compat, prefer hidden-aware variants above)
     Page<Post> findAllByUserId(String userId, Pageable pageable);
-
-    Page<Post> findByUserIdInOrderByCreatedAtDesc(List<String> userIds, Pageable pageable);
-
-    Page<Post> findByUserIdInOrderByHotScoreDesc(List<String> userIds, Pageable pageable);
-
     long countByUserId(String userId);
 }

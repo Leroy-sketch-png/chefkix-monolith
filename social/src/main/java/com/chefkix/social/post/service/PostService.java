@@ -377,7 +377,7 @@ public class PostService {
                 sort
         );
 
-        return postRepository.findAll(sortedPageable)
+        return postRepository.findByHiddenFalse(sortedPageable)
                 .map(postMapper::toPostResponse)
                 .map(post -> enrichWithUserStatus(post, currentUserId));
     }
@@ -388,7 +388,7 @@ public class PostService {
                 pageable.getPageSize(),
                 Sort.by("createdAt").descending()
         );
-        return postRepository.findAllByUserId(userId, sortedPageable)
+        return postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
                 .map(postMapper::toPostResponse)
                 .map(post -> enrichWithUserStatus(post, currentUserId));
     }
@@ -414,8 +414,8 @@ public class PostService {
         }
 
         Page<Post> posts = (mode == 1)
-                ? postRepository.findByUserIdInOrderByHotScoreDesc(followingIds, pageable)
-                : postRepository.findByUserIdInOrderByCreatedAtDesc(followingIds, pageable);
+                ? postRepository.findByUserIdInAndHiddenFalseOrderByHotScoreDesc(followingIds, pageable)
+                : postRepository.findByUserIdInAndHiddenFalseOrderByCreatedAtDesc(followingIds, pageable);
 
         return posts
                 .map(postMapper::toPostResponse)

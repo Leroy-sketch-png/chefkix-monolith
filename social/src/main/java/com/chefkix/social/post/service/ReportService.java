@@ -82,7 +82,8 @@ public class ReportService {
         if (reviewTriggered) {
             log.warn("Review triggered for {} {} - {} reports received",
                     request.getTargetType(), request.getTargetId(), totalReports);
-            // TODO: Send Kafka event to moderation queue for admin review
+            // Auto-hide the content to protect the community immediately
+            autoHideContent(request.getTargetType(), request.getTargetId());
         }
 
         log.info("Report created: {} reported {} {} for {}",
@@ -97,6 +98,23 @@ public class ReportService {
                 .reviewTriggered(reviewTriggered)
                 .createdAt(saved.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Auto-hide content that has reached the report threshold.
+     * Posts are hidden from feeds immediately. An admin can reverse this later.
+     */
+    private void autoHideContent(String targetType, String targetId) {
+        if ("post".equals(targetType)) {
+            postRepository.findById(targetId).ifPresent(post -> {
+                if (!post.isHidden()) {
+                    post.setHidden(true);
+                    postRepository.save(post);
+                    log.info("Post {} auto-hidden after reaching report threshold", targetId);
+                }
+            });
+        }
+        // Comments could be hidden similarly in the future
     }
 
     /**
