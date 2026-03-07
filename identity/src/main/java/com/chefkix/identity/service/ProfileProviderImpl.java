@@ -75,6 +75,11 @@ public class ProfileProviderImpl implements ProfileProvider {
     }
 
     @Override
+    public List<String> getFollowingIds(String userId) {
+        return socialService.getFollowingIds(userId);
+    }
+
+    @Override
     public void updateUserOnlineStatus(String userId, boolean isOnline) {
         if (isOnline) {
             userStatusService.setUserOnline(userId);

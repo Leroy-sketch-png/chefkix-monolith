@@ -24,5 +24,9 @@ public interface PostRepository extends MongoRepository<Post, String> {
 
     Page<Post> findAllByUserId(String userId, Pageable pageable);
 
+    Page<Post> findByUserIdInOrderByCreatedAtDesc(List<String> userIds, Pageable pageable);
+
+    Page<Post> findByUserIdInOrderByHotScoreDesc(List<String> userIds, Pageable pageable);
+
     long countByUserId(String userId);
 }
