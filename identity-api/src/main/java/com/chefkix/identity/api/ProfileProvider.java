@@ -33,14 +33,23 @@ public interface ProfileProvider {
     CompletionResult updateAfterCompletion(CompletionRequest request);
 
     /**
-     * Get the IDs of users that the given user is following.
+     * Get the IDs of users that the given user is following (mutual followers only).
      * Replaces: {@code GET /auth/{userId}/friends} (identity's Feign endpoint consumed by recipe-service).
      * Used for "friends only" recipe visibility filtering.
      *
      * @param userId the user whose friend list to retrieve
-     * @return list of followed user IDs (never null, may be empty)
+     * @return list of mutual follower user IDs (never null, may be empty)
      */
     List<String> getFriendIds(String userId);
+
+    /**
+     * Get the IDs of all users that the given user is following (one-directional).
+     * Used for personalized "Following" feed — shows posts from everyone the user follows.
+     *
+     * @param userId the user whose following list to retrieve
+     * @return list of followed user IDs (never null, may be empty)
+     */
+    List<String> getFollowingIds(String userId);
 
     /**
      * Update user's online/offline status.

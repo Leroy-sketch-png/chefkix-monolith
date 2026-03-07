@@ -392,6 +392,35 @@ public class PostService {
                 .map(postMapper::toPostResponse)
                 .map(post -> enrichWithUserStatus(post, currentUserId));
     }
+
+    /**
+     * Personalized "Following" feed — posts from users the current user follows, plus their own.
+     * Uses one-directional follow list (not mutual-only), matching Instagram/Twitter behavior.
+     *
+     * @param mode 0 = latest (createdAt desc), 1 = trending (hotScore desc)
+     * @param pageable pagination params
+     * @param currentUserId the authenticated user
+     * @return paginated feed of posts from followed users + self
+     */
+    public Page<PostResponse> getFollowingFeed(int mode, Pageable pageable, String currentUserId) {
+        // Get one-directional following list (everyone the user follows)
+        List<String> followingIds = new ArrayList<>(profileProvider.getFollowingIds(currentUserId));
+        // Include user's own posts — Instagram/Twitter convention
+        followingIds.add(currentUserId);
+
+        // Defensive: empty $in query would match nothing or error in some drivers
+        if (followingIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        Page<Post> posts = (mode == 1)
+                ? postRepository.findByUserIdInOrderByHotScoreDesc(followingIds, pageable)
+                : postRepository.findByUserIdInOrderByCreatedAtDesc(followingIds, pageable);
+
+        return posts
+                .map(postMapper::toPostResponse)
+                .map(post -> enrichWithUserStatus(post, currentUserId));
+    }
     
     /**
      * Enriches a PostResponse with the current user's like/save status.

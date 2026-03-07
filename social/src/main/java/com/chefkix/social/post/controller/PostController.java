@@ -77,6 +77,16 @@ public class PostController {
         return ResponseEntity.ok(body);
     }
 
+    @GetMapping("/following")
+    public ResponseEntity<ApiResponse<Page<PostResponse>>> getFollowingFeed(
+            @RequestParam(defaultValue = "0") int mode,
+            @PageableDefault(size = 10) Pageable pageable,
+            Authentication authentication) {
+        String currentUserId = authentication.getName();
+        Page<PostResponse> result = postService.getFollowingFeed(mode, pageable, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
     @GetMapping("/feed")
     public ResponseEntity<ApiResponse<Page<PostResponse>>> getPostsByUserId(
             @RequestParam("userId") String userId,
