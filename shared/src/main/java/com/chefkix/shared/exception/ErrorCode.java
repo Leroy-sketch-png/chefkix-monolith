@@ -118,6 +118,13 @@ public enum ErrorCode {
     CONVERSATION_NOT_FOUND(404, "Conversation not found", HttpStatus.NOT_FOUND),
     INVALID_MESSAGE(400, "Invalid message", HttpStatus.BAD_REQUEST),
 
+    // ─── COOKING ROOM ───────────────────────────────────────────────
+
+    ROOM_NOT_FOUND(404, "Cooking room not found or expired", HttpStatus.NOT_FOUND),
+    ROOM_FULL(409, "Cooking room is full", HttpStatus.CONFLICT),
+    ALREADY_IN_ROOM(409, "Already in this cooking room", HttpStatus.CONFLICT),
+    NOT_IN_ROOM(400, "You are not in this cooking room", HttpStatus.BAD_REQUEST),
+
     // ─── NOTIFICATION ───────────────────────────────────────────────
 
     CANNOT_SEND_EMAIL(500, "Cannot send email", HttpStatus.INTERNAL_SERVER_ERROR),
