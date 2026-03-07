@@ -17,10 +17,9 @@ public class AIController {
     @PostMapping("/generate")
     public ApiResponse<RecipeDetailResponse> generateRecipe(@RequestBody AIProcessRequest request) {
         String userId = request.getUserId();
-        System.out.println("DEBUG CHECK INPUT: " + request.getRawText());
 
         if (request.getRawText() == null) {
-            throw new RuntimeException("Lỗi: Java nhận được rawText là NULL!");
+            throw new RuntimeException("rawText must not be null");
         }
         RecipeDetailResponse response = aiIntegrationService.createRecipeFromText(request.getRawText(), userId);
         return ApiResponse.success(response);

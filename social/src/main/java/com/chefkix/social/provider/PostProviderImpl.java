@@ -34,7 +34,7 @@ public class PostProviderImpl implements PostProvider {
 
     @Override
     public long countPostsByUserId(String userId) {
-        return postRepository.countByUserId(userId);
+        return postRepository.countByUserIdAndHiddenFalse(userId);
     }
 
     @Override

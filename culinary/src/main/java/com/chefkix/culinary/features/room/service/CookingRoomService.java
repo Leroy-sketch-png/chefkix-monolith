@@ -1,0 +1,363 @@
+package com.chefkix.culinary.features.room.service;
+
+import com.chefkix.culinary.features.room.dto.request.CreateRoomRequest;
+import com.chefkix.culinary.features.room.dto.request.JoinRoomRequest;
+import com.chefkix.culinary.features.room.dto.response.CookingRoomResponse;
+import com.chefkix.culinary.features.room.dto.response.LeaveRoomResponse;
+import com.chefkix.culinary.features.room.model.CookingRoom;
+import com.chefkix.culinary.features.room.model.RoomEvent;
+import com.chefkix.culinary.features.room.model.RoomEventType;
+import com.chefkix.culinary.features.room.model.RoomParticipant;
+import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
+import com.chefkix.culinary.features.session.dto.request.StartSessionRequest;
+import com.chefkix.culinary.features.session.entity.CookingSession;
+import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
+import com.chefkix.culinary.features.session.service.CookingSessionService;
+import com.chefkix.culinary.common.enums.SessionStatus;
+import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.util.*;
+import java.util.Comparator;
+
+/**
+ * Manages ephemeral co-cooking rooms backed by Redis.
+ * Rooms are an awareness overlay on top of individual CookingSessions.
+ */
+@Service
+@Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class CookingRoomService {
+
+    CookingRoomRedisRepository roomRepository;
+    CookingSessionService sessionService;
+    CookingSessionRepository sessionRepository;
+    ProfileProvider profileProvider;
+    SimpMessagingTemplate messagingTemplate;
+
+    private static final int ROOM_CODE_LENGTH = 6;
+    private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I/O/0/1 to avoid confusion
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    // ────────────────────────────────────────────────────────
+    // CREATE ROOM
+    // ────────────────────────────────────────────────────────
+
+    public CookingRoomResponse createRoom(String userId, CreateRoomRequest request) {
+        // Generate unique room code
+        String roomCode = generateUniqueRoomCode();
+
+        // Get or create a cooking session for this recipe
+        String sessionId = getOrCreateSession(userId, request.getRecipeId());
+
+        // Get user profile for participant info
+        BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+        String displayName = resolveDisplayName(profile);
+
+        RoomParticipant host = RoomParticipant.builder()
+                .userId(userId)
+                .displayName(displayName)
+                .avatarUrl(profile.getAvatarUrl())
+                .sessionId(sessionId)
+                .currentStep(1)
+                .completedSteps(new ArrayList<>())
+                .joinedAt(Instant.now())
+                .isHost(true)
+                .build();
+
+        // Fetch recipe title from session (the session already validated the recipe)
+        CookingSession session = sessionRepository.findById(sessionId).orElse(null);
+        String recipeTitle = session != null ? session.getRecipeTitle() : "";
+
+        CookingRoom room = CookingRoom.builder()
+                .roomCode(roomCode)
+                .recipeId(request.getRecipeId())
+                .recipeTitle(recipeTitle)
+                .hostUserId(userId)
+                .status(CookingRoom.STATUS_WAITING)
+                .maxParticipants(6)
+                .createdAt(Instant.now())
+                .participants(new ArrayList<>(List.of(host)))
+                .build();
+
+        roomRepository.save(room);
+        log.info("Room {} created by {} for recipe {}", roomCode, userId, request.getRecipeId());
+
+        return toResponse(room, sessionId);
+    }
+
+    // ────────────────────────────────────────────────────────
+    // JOIN ROOM
+    // ────────────────────────────────────────────────────────
+
+    public CookingRoomResponse joinRoom(String userId, JoinRoomRequest request) {
+        String roomCode = request.getRoomCode().toUpperCase();
+
+        CookingRoom room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
+
+        if (CookingRoom.STATUS_DISSOLVED.equals(room.getStatus())) {
+            throw new AppException(ErrorCode.ROOM_NOT_FOUND);
+        }
+
+        // Check if already in room
+        boolean alreadyIn = room.getParticipants().stream()
+                .anyMatch(p -> p.getUserId().equals(userId));
+        if (alreadyIn) {
+            throw new AppException(ErrorCode.ALREADY_IN_ROOM);
+        }
+
+        // Check capacity
+        if (room.getParticipants().size() >= room.getMaxParticipants()) {
+            throw new AppException(ErrorCode.ROOM_FULL);
+        }
+
+        // Get or create cooking session for the room's recipe
+        String sessionId = getOrCreateSession(userId, room.getRecipeId());
+
+        // Build participant
+        BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+        String displayName = resolveDisplayName(profile);
+
+        RoomParticipant participant = RoomParticipant.builder()
+                .userId(userId)
+                .displayName(displayName)
+                .avatarUrl(profile.getAvatarUrl())
+                .sessionId(sessionId)
+                .currentStep(1)
+                .completedSteps(new ArrayList<>())
+                .joinedAt(Instant.now())
+                .isHost(false)
+                .build();
+
+        room.getParticipants().add(participant);
+
+        // Transition to COOKING when 2+ participants
+        if (room.getParticipants().size() >= 2 && CookingRoom.STATUS_WAITING.equals(room.getStatus())) {
+            room.setStatus(CookingRoom.STATUS_COOKING);
+        }
+
+        roomRepository.save(room);
+        log.info("User {} joined room {}", userId, roomCode);
+
+        // Broadcast join event
+        broadcastEvent(roomCode, RoomEventType.PARTICIPANT_JOINED, userId, displayName,
+                Map.of("userId", userId, "displayName", displayName,
+                        "avatarUrl", profile.getAvatarUrl() != null ? profile.getAvatarUrl() : ""));
+
+        return toResponse(room, sessionId);
+    }
+
+    // ────────────────────────────────────────────────────────
+    // LEAVE ROOM
+    // ────────────────────────────────────────────────────────
+
+    public LeaveRoomResponse leaveRoom(String userId, String roomCode) {
+        roomCode = roomCode.toUpperCase();
+
+        CookingRoom room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
+
+        // Remove participant
+        boolean removed = room.getParticipants().removeIf(p -> p.getUserId().equals(userId));
+        if (!removed) {
+            throw new AppException(ErrorCode.NOT_IN_ROOM);
+        }
+
+        String newHostUserId = null;
+        boolean dissolved = false;
+
+        if (room.getParticipants().isEmpty()) {
+            // Last person left — dissolve room
+            room.setStatus(CookingRoom.STATUS_DISSOLVED);
+            roomRepository.delete(roomCode);
+            dissolved = true;
+            log.info("Room {} dissolved (last participant left)", roomCode);
+
+            broadcastEvent(roomCode, RoomEventType.ROOM_DISSOLVED, userId, null, Map.of());
+        } else {
+            // If host left, transfer to longest-active participant
+            if (userId.equals(room.getHostUserId())) {
+                RoomParticipant newHost = room.getParticipants().stream()
+                        .min(Comparator.comparing(RoomParticipant::getJoinedAt))
+                        .orElseThrow();
+
+                newHost.setHost(true);
+                room.setHostUserId(newHost.getUserId());
+                newHostUserId = newHost.getUserId();
+
+                log.info("Room {} host transferred from {} to {}", roomCode, userId, newHostUserId);
+
+                broadcastEvent(roomCode, RoomEventType.HOST_TRANSFERRED, userId, null,
+                        Map.of("newHostUserId", newHostUserId, "reason", "host_left"));
+            }
+
+            roomRepository.save(room);
+
+            // Broadcast leave
+            broadcastEvent(roomCode, RoomEventType.PARTICIPANT_LEFT, userId, null,
+                    Map.of("userId", userId,
+                            "newHostUserId", newHostUserId != null ? newHostUserId : ""));
+        }
+
+        return LeaveRoomResponse.builder()
+                .left(true)
+                .roomDissolved(dissolved)
+                .newHostUserId(newHostUserId)
+                .build();
+    }
+
+    // ────────────────────────────────────────────────────────
+    // GET ROOM
+    // ────────────────────────────────────────────────────────
+
+    public CookingRoomResponse getRoom(String userId, String roomCode) {
+        roomCode = roomCode.toUpperCase();
+
+        CookingRoom room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
+
+        // Find this user's session ID
+        String sessionId = room.getParticipants().stream()
+                .filter(p -> p.getUserId().equals(userId))
+                .findFirst()
+                .map(RoomParticipant::getSessionId)
+                .orElse(null);
+
+        roomRepository.refreshTtl(roomCode);
+        return toResponse(room, sessionId);
+    }
+
+    // ────────────────────────────────────────────────────────
+    // UPDATE PARTICIPANT STATE (called from WebSocket handlers)
+    // ────────────────────────────────────────────────────────
+
+    public void updateParticipantStep(String roomCode, String userId, int stepNumber) {
+        roomRepository.findByRoomCode(roomCode).ifPresent(room -> {
+            room.getParticipants().stream()
+                    .filter(p -> p.getUserId().equals(userId))
+                    .findFirst()
+                    .ifPresent(p -> p.setCurrentStep(stepNumber));
+            roomRepository.save(room);
+            roomRepository.refreshTtl(roomCode);
+        });
+    }
+
+    public void updateParticipantCompletedSteps(String roomCode, String userId,
+                                                  int stepNumber, List<Integer> completedSteps) {
+        roomRepository.findByRoomCode(roomCode).ifPresent(room -> {
+            room.getParticipants().stream()
+                    .filter(p -> p.getUserId().equals(userId))
+                    .findFirst()
+                    .ifPresent(p -> {
+                        if (completedSteps != null) {
+                            p.setCompletedSteps(completedSteps);
+                        } else {
+                            // Add single step if completedSteps list not provided
+                            if (!p.getCompletedSteps().contains(stepNumber)) {
+                                p.getCompletedSteps().add(stepNumber);
+                            }
+                        }
+                    });
+            roomRepository.save(room);
+            roomRepository.refreshTtl(roomCode);
+        });
+    }
+
+    // ────────────────────────────────────────────────────────
+    // BROADCAST HELPER
+    // ────────────────────────────────────────────────────────
+
+    public void broadcastEvent(String roomCode, RoomEventType type,
+                                String userId, String displayName,
+                                Map<String, Object> data) {
+        RoomEvent event = RoomEvent.builder()
+                .type(type)
+                .userId(userId)
+                .displayName(displayName)
+                .timestamp(Instant.now())
+                .data(data)
+                .build();
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomCode.toUpperCase(), event);
+    }
+
+    // ────────────────────────────────────────────────────────
+    // PRIVATE HELPERS
+    // ────────────────────────────────────────────────────────
+
+    /**
+     * Gets existing IN_PROGRESS session for recipe, or starts a new one.
+     */
+    private String getOrCreateSession(String userId, String recipeId) {
+        // Check if user already has an active session
+        Optional<CookingSession> existing = sessionRepository
+                .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
+
+        if (existing.isPresent()) {
+            CookingSession session = existing.get();
+            if (session.getRecipeId().equals(recipeId)) {
+                // Reuse existing session for same recipe
+                return session.getId();
+            }
+            // Different recipe — can't join room while cooking something else
+            throw new AppException(ErrorCode.SESSION_ALREADY_ACTIVE);
+        }
+
+        // Start a new session
+        var response = sessionService.startSession(userId,
+                StartSessionRequest.builder().recipeId(recipeId).build());
+        return response.getSessionId();
+    }
+
+    private String generateUniqueRoomCode() {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            StringBuilder code = new StringBuilder(ROOM_CODE_LENGTH);
+            for (int i = 0; i < ROOM_CODE_LENGTH; i++) {
+                code.append(ROOM_CODE_CHARS.charAt(SECURE_RANDOM.nextInt(ROOM_CODE_CHARS.length())));
+            }
+            String roomCode = code.toString();
+            if (!roomRepository.exists(roomCode)) {
+                return roomCode;
+            }
+        }
+        throw new RuntimeException("Failed to generate unique room code after 10 attempts");
+    }
+
+    private String resolveDisplayName(BasicProfileInfo profile) {
+        if (profile.getDisplayName() != null && !profile.getDisplayName().isBlank()) {
+            return profile.getDisplayName();
+        }
+        if (profile.getFirstName() != null) {
+            String name = profile.getFirstName();
+            if (profile.getLastName() != null) name += " " + profile.getLastName();
+            return name;
+        }
+        return profile.getUsername() != null ? profile.getUsername() : "Unknown";
+    }
+
+    private CookingRoomResponse toResponse(CookingRoom room, String sessionId) {
+        return CookingRoomResponse.builder()
+                .roomCode(room.getRoomCode())
+                .recipeId(room.getRecipeId())
+                .recipeTitle(room.getRecipeTitle())
+                .hostUserId(room.getHostUserId())
+                .status(room.getStatus())
+                .maxParticipants(room.getMaxParticipants())
+                .participants(room.getParticipants())
+                .createdAt(room.getCreatedAt())
+                .sessionId(sessionId)
+                .build();
+    }
+}

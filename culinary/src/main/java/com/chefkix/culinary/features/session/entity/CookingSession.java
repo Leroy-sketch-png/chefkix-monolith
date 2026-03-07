@@ -28,6 +28,8 @@ public class CookingSession {
     List<String> coverImageUrl;
     SessionStatus status;   // status: enum
 
+    String roomCode;        // Co-cooking room code (null for solo sessions)
+
     Integer currentStep;            // currentStep: number
 
     @Builder.Default

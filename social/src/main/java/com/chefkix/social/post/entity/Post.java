@@ -37,6 +37,8 @@ public class Post {
   @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư
   double xpEarned; // Số XP nhận được từ bài post này
 
+  @Builder.Default boolean hidden = false; // Auto-hidden when report threshold reached
+
   @Builder.Default Integer likes = 0;
   @Builder.Default Integer commentCount = 0;
   @Builder.Default Double hotScore = 0.0;
