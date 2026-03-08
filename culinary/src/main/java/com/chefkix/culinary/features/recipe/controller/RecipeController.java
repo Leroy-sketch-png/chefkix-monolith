@@ -22,13 +22,7 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    // 1. CREATE
-    @PostMapping
-    public ApiResponse<RecipeDetailResponse> create(@Valid @RequestBody RecipeRequest request) {
-        return ApiResponse.created(recipeService.createRecipe(request));
-    }
-
-    // 2. UPDATE
+    // 1. UPDATE
     @PutMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> update(@PathVariable String id,
                                                     @Valid @RequestBody RecipeRequest request) {

@@ -1,11 +1,8 @@
 package com.chefkix.culinary.features.ai.service;
 
 import com.chefkix.culinary.common.enums.Difficulty;
-import com.chefkix.culinary.features.ai.dto.internal.AIMetaRequest;
-import com.chefkix.culinary.features.ai.dto.internal.AIProcessRequest;
+import com.chefkix.culinary.features.ai.dto.internal.*;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
-import com.chefkix.culinary.features.ai.dto.internal.AIMetaResponse;
-import com.chefkix.culinary.features.ai.dto.internal.AIProcessResponse;
 import com.chefkix.culinary.features.recipe.entity.Ingredient;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.entity.Step;
@@ -291,5 +288,110 @@ public class AiIntegrationService {
                 .culturalContext(culture)
                 .build();
         recipe.setEnrichment(enrichment);
+    }
+
+    // ─── PUBLISH GATE: AI Validation & Moderation (fail-closed) ─────
+
+    /**
+     * Validate recipe content safety before publishing.
+     * FAIL-CLOSED: If AI service is unavailable, publishing is BLOCKED.
+     *
+     * @param recipe the recipe to validate
+     * @return the validation response
+     * @throws AppException with RECIPE_VALIDATION_FAILED if recipe is unsafe
+     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down
+     */
+    public AIValidationResponse validateRecipeForPublish(Recipe recipe) {
+        log.info("Validating recipe for publish: {} (id={})", recipe.getTitle(), recipe.getId());
+
+        // Build ingredient names for validation
+        List<String> ingredientNames = recipe.getFullIngredientList() != null
+                ? recipe.getFullIngredientList().stream()
+                    .map(Ingredient::getName)
+                    .filter(name -> name != null && !name.isBlank())
+                    .collect(Collectors.toList())
+                : List.of();
+
+        // Build step descriptions for validation
+        List<String> stepDescriptions = recipe.getSteps() != null
+                ? recipe.getSteps().stream()
+                    .map(Step::getDescription)
+                    .filter(desc -> desc != null && !desc.isBlank())
+                    .collect(Collectors.toList())
+                : List.of();
+
+        AIValidationRequest request = AIValidationRequest.builder()
+                .title(recipe.getTitle())
+                .description(recipe.getDescription())
+                .ingredients(ingredientNames)
+                .steps(stepDescriptions)
+                .checkSafety(true)
+                .build();
+
+        // This call throws AI_SERVICE_UNAVAILABLE if AI is down (fail-closed)
+        AIValidationResponse response = aiRestClient.validateRecipe(request);
+
+        if (!response.isContentSafe()) {
+            log.warn("Recipe {} failed content safety validation: {}", recipe.getId(), response.getIssues());
+            throw new AppException(ErrorCode.RECIPE_VALIDATION_FAILED);
+        }
+
+        log.info("Recipe {} passed content safety validation (legitimacy={})",
+                recipe.getId(), response.getLegitimacyScore());
+        return response;
+    }
+
+    /**
+     * Moderate recipe text content before publishing.
+     * FAIL-CLOSED: If AI service is unavailable, publishing is BLOCKED.
+     *
+     * @param recipe the recipe to moderate
+     * @return the moderation response
+     * @throws AppException with RECIPE_MODERATION_FAILED if content is blocked
+     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down
+     */
+    public AIModerationResponse moderateRecipeContent(Recipe recipe) {
+        log.info("Moderating recipe content: {} (id={})", recipe.getTitle(), recipe.getId());
+
+        // Concatenate all text content for moderation
+        StringBuilder textBuilder = new StringBuilder();
+        textBuilder.append("Title: ").append(recipe.getTitle()).append("\n");
+        if (recipe.getDescription() != null) {
+            textBuilder.append("Description: ").append(recipe.getDescription()).append("\n");
+        }
+        if (recipe.getSteps() != null) {
+            for (Step step : recipe.getSteps()) {
+                if (step.getDescription() != null) {
+                    textBuilder.append("Step: ").append(step.getDescription()).append("\n");
+                }
+                if (step.getTips() != null) {
+                    textBuilder.append("Tips: ").append(step.getTips()).append("\n");
+                }
+            }
+        }
+
+        AIModerationRequest request = AIModerationRequest.builder()
+                .content(textBuilder.toString())
+                .contentType("recipe")
+                .build();
+
+        // This call throws AI_SERVICE_UNAVAILABLE if AI is down (fail-closed)
+        AIModerationResponse response = aiRestClient.moderateContent(request);
+
+        if (response.isBlocked()) {
+            log.warn("Recipe {} blocked by moderation: {} (severity={}, reason={})",
+                    recipe.getId(), response.getCategory(), response.getSeverity(), response.getReason());
+            throw new AppException(ErrorCode.RECIPE_MODERATION_FAILED);
+        }
+
+        if ("flag".equalsIgnoreCase(response.getAction())) {
+            log.info("Recipe {} flagged by moderation but allowed (severity={}, reason={})",
+                    recipe.getId(), response.getSeverity(), response.getReason());
+            // Flagged content is still allowed to publish for now — can be reviewed later
+        }
+
+        log.info("Recipe {} passed moderation (action={}, confidence={})",
+                recipe.getId(), response.getAction(), response.getConfidence());
+        return response;
     }
 }
