@@ -1,19 +1,31 @@
 package com.chefkix.culinary.features.ai.dto.internal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Response DTO for POST /api/v1/validate_recipe on the Python AI service.
+ * Python response uses camelCase aliases (by_alias=True in model_dump).
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AIValidationResponse {
-    boolean schemaValid;
-    boolean contentSafe;
-    List<String> issues;
-    boolean isRealFood;
-    double legitimacyScore;
-    String aiAnalysis;
+    private boolean schemaValid;
+    private boolean contentSafe;
+    private List<String> issues;
+    private boolean isRealFood;
+    private boolean isSafeToConsume;
+    private double legitimacyScore;
+    private String aiAnalysis;
+    private boolean aiUsed;
+    private List<String> safetyIssues;
+    private List<String> coherenceIssues;
+    private List<String> dietaryConflicts;
+    private List<String> suggestions;
 }

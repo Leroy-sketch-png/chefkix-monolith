@@ -8,6 +8,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecipePublishResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.features.ai.service.AiIntegrationService;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.common.helper.AsyncHelper;
@@ -38,6 +39,7 @@ public class DraftService {
     private final StepMapper stepMapper;
     private final IngredientMapper ingredientMapper;
     private final AsyncHelper asyncHelper;
+    private final AiIntegrationService aiIntegrationService;
 
     @Transactional
     public RecipeDetailResponse createDraft() {
@@ -198,7 +200,8 @@ public class DraftService {
     @Transactional
     public RecipePublishResponse publishRecipe(String id, RecipePublishRequest request) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
-        // 1. Fetch & Authen
+
+        // 1. Fetch & authorize
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
@@ -206,70 +209,66 @@ public class DraftService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 2. VALIDATION (Chốt chặn kỹ thuật)
-        // Phải điền đủ thông tin mới được đăng
+        // 2. MANDATORY FIELD VALIDATION (local — no AI needed)
         validateMandatoryFields(recipe);
 
-        // 3. MODERATION (Kiểm duyệt nội dung)
-        boolean isClean = checkContentSafety(recipe);
+        // 3. AI RECIPE VALIDATION (fail-closed: if AI is down, block publish)
+        // Checks: content safety, legitimacy, is-real-food, dangerous combinations
+        aiIntegrationService.validateRecipeForPublish(recipe);
 
-        // 4. Quyết định trạng thái
-        if (isClean) {
-            recipe.setStatus(RecipeStatus.PUBLISHED);
-            recipe.setPublishedAt(Instant.now());
-            // Trigger Notification cho Follower tại đây
-        } else {
-            recipe.setStatus(RecipeStatus.PENDING);
-            // Trigger Alert cho Admin team tại đây
-        }
+        // 4. AI CONTENT MODERATION (fail-closed: if AI is down, block publish)
+        // Checks: toxic content, spam, off-topic (hybrid rules + AI)
+        aiIntegrationService.moderateRecipeContent(recipe);
 
-        // 5. Update Metadata
+        // 5. All gates passed — publish
+        recipe.setStatus(RecipeStatus.PUBLISHED);
+        recipe.setPublishedAt(Instant.now());
         recipe.setRecipeVisibility(request.getVisibility());
         recipe.setUpdatedAt(Instant.now());
 
-        // Init stats
+        // Init stats if needed
         if (recipe.getLikeCount() == 0) recipe.setLikeCount(0);
+
         var savedRecipe = recipeRepository.save(recipe);
+
+        log.info("Recipe {} published successfully by user {}", id, currentUserId);
 
         return RecipePublishResponse.builder()
                 .moderationStatus(savedRecipe.getStatus())
-                .isPublished(savedRecipe.getStatus() == RecipeStatus.PUBLISHED)
+                .isPublished(true)
                 .build();
     }
 
-    // Hàm Validate bắt buộc nhập
+    /**
+     * Validate all mandatory fields required for publishing.
+     * Uses English error messages per spec §3.
+     */
     private void validateMandatoryFields(Recipe recipe) {
-        if (!StringUtils.hasText(recipe.getTitle()))
-            throw new AppException(ErrorCode.VALIDATION_ERROR, "Tiêu đề là bắt buộc");
+        List<String> errors = new ArrayList<>();
 
-        if (recipe.getCoverImageUrl() == null || recipe.getCoverImageUrl().isEmpty())
-            throw new AppException(ErrorCode.VALIDATION_ERROR, "Cần ít nhất 1 ảnh bìa");
-
-        if (recipe.getFullIngredientList().isEmpty())
-            throw new AppException(ErrorCode.VALIDATION_ERROR, "Danh sách nguyên liệu không được trống");
-
-        if (recipe.getSteps().isEmpty())
-            throw new AppException(ErrorCode.VALIDATION_ERROR, "Cần ít nhất 1 bước hướng dẫn");
-    }
-
-    // Hàm Kiểm duyệt (Demo đơn giản)
-    private boolean checkContentSafety(Recipe recipe) {
-        // 1. List từ khóa cấm (Nên lưu trong DB hoặc Config)
-        List<String> badWords = List.of("bạo lực", "cờ bạc", "lừa đảo", "xxx");
-
-        String contentToCheck = (recipe.getTitle() + " " + recipe.getDescription()).toLowerCase();
-
-        for (String badWord : badWords) {
-            if (contentToCheck.contains(badWord)) {
-                // Phát hiện từ cấm -> Đánh dấu vi phạm trong ValidationMetadata
-                Recipe.ValidationMetadata validation = Recipe.ValidationMetadata.builder()
-                        .validationIssues(List.of("Chứa từ khóa nhạy cảm: " + badWord))
-                        .validationConfidence(0.9)
-                        .build();
-                recipe.setValidation(validation);
-                return false; // Không an toàn
-            }
+        if (!StringUtils.hasText(recipe.getTitle())) {
+            errors.add("Title is required");
         }
-        return true; // An toàn
+
+        if (recipe.getCoverImageUrl() == null || recipe.getCoverImageUrl().isEmpty()) {
+            errors.add("At least one cover image is required");
+        }
+
+        if (recipe.getFullIngredientList() == null || recipe.getFullIngredientList().isEmpty()) {
+            errors.add("Ingredient list cannot be empty");
+        }
+
+        if (recipe.getSteps() == null || recipe.getSteps().isEmpty()) {
+            errors.add("At least one cooking step is required");
+        }
+
+        if (recipe.getServings() <= 0) {
+            errors.add("Servings must be greater than 0");
+        }
+
+        if (!errors.isEmpty()) {
+            log.warn("Draft {} failed mandatory validation: {}", recipe.getId(), errors);
+            throw new AppException(ErrorCode.DRAFT_VALIDATION_FAILED, String.join("; ", errors));
+        }
     }
 }

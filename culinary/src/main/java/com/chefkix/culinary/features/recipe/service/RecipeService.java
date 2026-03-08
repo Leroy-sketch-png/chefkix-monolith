@@ -46,25 +46,6 @@ public class RecipeService {
     InteractionService interactionService; // Inject Service mới
 
     @Transactional
-    public RecipeDetailResponse createRecipe(RecipeRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(userId);
-
-        Recipe recipe = recipeMapper.toRecipe(request);
-        recipe.setUserId(userId);
-        recipe.setStatus(RecipeStatus.PUBLISHED);
-
-        recipe = recipeRepository.save(recipe);
-
-        RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(recipe);
-        response.setAuthor(authorFuture.join());
-        response.setIsLiked(false);
-        response.setIsSaved(false);
-
-        return response;
-    }
-
-    @Transactional
     public RecipeDetailResponse updateRecipe(String recipeId, RecipeRequest request) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         log.info("[RECIPE_UPDATE] User {} yêu cầu cập nhật recipe {}", currentUserId, recipeId);
@@ -81,9 +62,8 @@ public class RecipeService {
 
             recipeMapper.updateRecipeFromRequest(existingRecipe, request);
 
-            if (request.getIsPublished() != null) {
-                existingRecipe.setStatus(RecipeStatus.PUBLISHED);
-            }
+            // NOTE: isPublished bypass removed — publishing only via DraftService.publishRecipe()
+            // which enforces mandatory field validation + AI safety checks
 
             authorFuture.join();
             existingRecipe = recipeRepository.save(existingRecipe);
