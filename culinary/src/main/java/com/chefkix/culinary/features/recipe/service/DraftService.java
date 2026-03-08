@@ -6,7 +6,9 @@ import com.chefkix.culinary.common.dto.response.AuthorResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipePublishResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
+import com.chefkix.culinary.features.recipe.entity.Ingredient;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
+import com.chefkix.culinary.features.recipe.entity.Step;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.features.ai.service.AiIntegrationService;
 import com.chefkix.shared.exception.AppException;
@@ -237,6 +239,113 @@ public class DraftService {
                 .moderationStatus(savedRecipe.getStatus())
                 .isPublished(true)
                 .build();
+    }
+
+    /**
+     * Duplicate any owned recipe (draft or published) as a new DRAFT.
+     * Deep-copies all content fields; resets identity, status, and social counters.
+     */
+    @Transactional
+    public RecipeDetailResponse duplicateDraft(String sourceId) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Recipe source = recipeRepository.findById(sourceId)
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        if (!source.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Deep copy content via builder — new lists to avoid shared references
+        Recipe duplicate = Recipe.builder()
+                .userId(userId)
+                .status(RecipeStatus.DRAFT)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .publishedAt(null)
+                .recipeVisibility(null)
+                // Content
+                .title(source.getTitle() != null ? source.getTitle() + " (Copy)" : "Untitled (Copy)")
+                .description(source.getDescription())
+                .difficulty(source.getDifficulty())
+                .prepTimeMinutes(source.getPrepTimeMinutes())
+                .cookTimeMinutes(source.getCookTimeMinutes())
+                .totalTimeMinutes(source.getTotalTimeMinutes())
+                .servings(source.getServings())
+                .cuisineType(source.getCuisineType())
+                .caloriesPerServing(source.getCaloriesPerServing())
+                // Media — new lists with same URLs (Cloudinary URLs are shareable)
+                .coverImageUrl(source.getCoverImageUrl() != null ? new ArrayList<>(source.getCoverImageUrl()) : new ArrayList<>())
+                .videoUrl(source.getVideoUrl() != null ? new ArrayList<>(source.getVideoUrl()) : new ArrayList<>())
+                // Tags
+                .dietaryTags(source.getDietaryTags() != null ? new ArrayList<>(source.getDietaryTags()) : new ArrayList<>())
+                .skillTags(source.getSkillTags() != null ? new ArrayList<>(source.getSkillTags()) : new ArrayList<>())
+                .rewardBadges(source.getRewardBadges() != null ? new ArrayList<>(source.getRewardBadges()) : new ArrayList<>())
+                // Structure — deep copy via streams
+                .fullIngredientList(deepCopyIngredients(source.getFullIngredientList()))
+                .steps(deepCopySteps(source.getSteps()))
+                // Gamification (preserve AI data so user doesn't have to re-process)
+                .xpReward(source.getXpReward())
+                .difficultyMultiplier(source.getDifficultyMultiplier())
+                .xpBreakdown(source.getXpBreakdown())
+                .validation(source.getValidation())
+                .enrichment(source.getEnrichment())
+                // Social counters — reset to 0
+                .likeCount(0)
+                .saveCount(0)
+                .viewCount(0)
+                .cookCount(0)
+                .masteredByCount(0)
+                .averageRating(0.0)
+                .creatorXpEarned(0)
+                .trendingScore(0.0)
+                .build();
+
+        duplicate = recipeRepository.save(duplicate);
+
+        // Build response with author info
+        CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(userId);
+        RecipeDetailResponse response = mapper.toRecipeDetailResponse(duplicate);
+        response.setAuthor(authorFuture.join());
+        response.setIsLiked(false);
+        response.setIsSaved(false);
+
+        log.info("Recipe {} duplicated as new draft {} by user {}", sourceId, duplicate.getId(), userId);
+
+        return response;
+    }
+
+    private List<Ingredient> deepCopyIngredients(List<Ingredient> source) {
+        if (source == null || source.isEmpty()) return new ArrayList<>();
+        return source.stream().map(i -> {
+            Ingredient copy = new Ingredient();
+            copy.setName(i.getName());
+            copy.setQuantity(i.getQuantity());
+            copy.setUnit(i.getUnit());
+            return copy;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
+    private List<Step> deepCopySteps(List<Step> source) {
+        if (source == null || source.isEmpty()) return new ArrayList<>();
+        return source.stream().map(s -> {
+            Step copy = new Step();
+            copy.setStepNumber(s.getStepNumber());
+            copy.setTitle(s.getTitle());
+            copy.setDescription(s.getDescription());
+            copy.setAction(s.getAction());
+            copy.setTimerSeconds(s.getTimerSeconds());
+            copy.setImageUrl(s.getImageUrl());
+            copy.setTips(s.getTips());
+            copy.setIngredients(s.getIngredients() != null ? deepCopyIngredients(s.getIngredients()) : null);
+            copy.setChefTip(s.getChefTip());
+            copy.setTechniqueExplanation(s.getTechniqueExplanation());
+            copy.setCommonMistake(s.getCommonMistake());
+            copy.setEstimatedHandsOnTime(s.getEstimatedHandsOnTime());
+            copy.setEquipmentNeeded(s.getEquipmentNeeded() != null ? new ArrayList<>(s.getEquipmentNeeded()) : null);
+            copy.setVisualCues(s.getVisualCues());
+            return copy;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     /**

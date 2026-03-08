@@ -55,4 +55,10 @@ public class DraftController {
             @RequestBody RecipePublishRequest request) {
         return ApiResponse.success(draftService.publishRecipe(id, request));
     }
+
+    // 6. DUPLICATE RECIPE (creates a new DRAFT from any owned recipe)
+    @PostMapping("/{id}/duplicate")
+    public ApiResponse<RecipeDetailResponse> duplicateDraft(@PathVariable String id) {
+        return ApiResponse.success(draftService.duplicateDraft(id));
+    }
 }
