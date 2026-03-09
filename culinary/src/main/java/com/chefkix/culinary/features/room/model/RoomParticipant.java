@@ -24,4 +24,8 @@ public class RoomParticipant {
     List<Integer> completedSteps;
     Instant joinedAt;
     boolean isHost;
+
+    /** COOK (default) or SPECTATOR — spec 24-advanced-multiplayer.txt §3 */
+    @Builder.Default
+    String role = "COOK";
 }

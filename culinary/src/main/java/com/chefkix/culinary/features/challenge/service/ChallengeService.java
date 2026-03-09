@@ -3,14 +3,17 @@ package com.chefkix.culinary.features.challenge.service;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeHistoryResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResult;
+import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeResponse;
 import com.chefkix.culinary.features.challenge.entity.ChallengeLog;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.helper.StreakCalculatorHelper;
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
-import com.chefkix.culinary.features.recipe.repository.RecipeRepository; // Giả sử bạn đã có
+import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
+import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.mongodb.DuplicateKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +40,7 @@ public class ChallengeService {
     private final ChallengePoolService challengePoolService;
     private final ChallengeLogRepository challengeLogRepository;
     private final RecipeRepository recipeRepository;
+    private final CookingSessionRepository cookingSessionRepository;
     private final StreakCalculatorHelper streakCalculator;
 
     public ChallengeResponse getTodayChallenge(String userId) {
@@ -267,5 +271,142 @@ public class ChallengeService {
                 .bonusXpEarned(log.getBonusXp())
                 .recipeCooked(recipeInfo)
                 .build();
+    }
+
+    // ===============================================
+    // WEEKLY CHALLENGES
+    // ===============================================
+
+    /**
+     * Get current weekly challenge with progress for the user.
+     * Progress = completed sessions this week matching the weekly criteria.
+     */
+    @Transactional(readOnly = true)
+    public WeeklyChallengeResponse getWeeklyChallenge(String userId) {
+        ChallengeDefinition weekly = challengePoolService.getThisWeekChallenge();
+        if (weekly == null) {
+            throw new AppException(ErrorCode.CHALLENGE_NOT_FOUND);
+        }
+
+        // Compute ISO week boundaries (Monday-Sunday)
+        LocalDate today = LocalDate.now(ZoneId.of("UTC"));
+        LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
+        LocalDate weekEnd = weekStart.plusDays(7);
+
+        LocalDateTime weekStartDt = weekStart.atStartOfDay();
+        LocalDateTime weekEndDt = weekEnd.atStartOfDay();
+
+        // Find matching recipes for this challenge criteria
+        List<Recipe> matchingRecipes = findMatchingRecipes(weekly.getCriteriaMetadata()).stream()
+                .map(dto -> recipeRepository.findById(dto.getId()).orElse(null))
+                .filter(Objects::nonNull)
+                .toList();
+        List<String> matchingRecipeIds = matchingRecipes.isEmpty()
+                ? recipeRepository.findAll().stream().map(Recipe::getId).toList()
+                : matchingRecipes.stream().map(Recipe::getId).toList();
+
+        // Count user's completed sessions this week with matching recipes
+        long progress = matchingRecipeIds.isEmpty() ? 0 :
+                cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
+                        userId, matchingRecipeIds, SessionStatus.COMPLETED, weekStartDt, weekEndDt);
+
+        // Check if weekly is already marked completed (via ChallengeLog)
+        String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
+                today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        boolean isCompleted = challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey);
+
+        String completedAt = null;
+        if (isCompleted) {
+            completedAt = challengeLogRepository.findByUserIdAndChallengeDate(userId, weekKey)
+                    .map(log -> log.getCompletedAt().toString())
+                    .orElse(null);
+        }
+
+        // Matching recipe previews for FE display
+        List<ChallengeResponse.RecipePreviewDto> previewDtos = findMatchingRecipes(weekly.getCriteriaMetadata());
+
+        return WeeklyChallengeResponse.builder()
+                .id(weekly.getId())
+                .title(weekly.getTitle())
+                .description(weekly.getDescription())
+                .bonusXp(weekly.getBonusXp())
+                .target(weekly.getTarget())
+                .progress((int) Math.min(progress, weekly.getTarget()))
+                .completed(isCompleted)
+                .completedAt(completedAt)
+                .startsAt(weekStart.atStartOfDay(ZoneId.of("UTC"))
+                        .format(java.time.format.DateTimeFormatter.ISO_INSTANT))
+                .endsAt(weekEnd.atStartOfDay(ZoneId.of("UTC"))
+                        .format(java.time.format.DateTimeFormatter.ISO_INSTANT))
+                .criteria(weekly.getCriteriaMetadata())
+                .matchingRecipes(previewDtos)
+                .build();
+    }
+
+    /**
+     * Check if a recipe completion should advance/complete the weekly challenge.
+     * Called during cooking session completion alongside daily challenge check.
+     */
+    public Optional<ChallengeRewardResult> checkAndCompleteWeeklyChallenge(String userId, Recipe recipe) {
+        ChallengeDefinition weekly = challengePoolService.getThisWeekChallenge();
+        if (weekly == null) return Optional.empty();
+
+        // Check if recipe matches weekly criteria
+        if (!weekly.isSatisfiedBy(recipe)) return Optional.empty();
+
+        // Check if already completed
+        LocalDate today = LocalDate.now(ZoneId.of("UTC"));
+        String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
+                today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey)) {
+            return Optional.empty(); // Already rewarded
+        }
+
+        // Compute current progress
+        LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
+        LocalDate weekEnd = weekStart.plusDays(7);
+
+        // Count matching sessions (including the current one about to be saved)
+        List<String> matchingRecipeIds = findRecipeIdsMatchingCriteria(weekly);
+        long currentProgress = matchingRecipeIds.isEmpty() ? 0 :
+                cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
+                        userId, matchingRecipeIds, SessionStatus.COMPLETED,
+                        weekStart.atStartOfDay(), weekEnd.atStartOfDay());
+
+        // +1 for the current completion (not yet saved when this is called)
+        long totalProgress = currentProgress + 1;
+
+        if (totalProgress >= weekly.getTarget()) {
+            // Weekly challenge completed!
+            try {
+                ChallengeLog log = ChallengeLog.builder()
+                        .userId(userId)
+                        .challengeId(weekly.getId())
+                        .challengeTitle(weekly.getTitle())
+                        .recipeId(recipe.getId())
+                        .recipeTitle(recipe.getTitle())
+                        .challengeDate(weekKey)
+                        .bonusXp(weekly.getBonusXp())
+                        .completedAt(Instant.now())
+                        .build();
+                challengeLogRepository.save(log);
+
+                return Optional.of(ChallengeRewardResult.builder()
+                        .completed(true)
+                        .bonusXp(weekly.getBonusXp())
+                        .challengeTitle(weekly.getTitle())
+                        .build());
+            } catch (DuplicateKeyException e) {
+                return Optional.empty();
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private List<String> findRecipeIdsMatchingCriteria(ChallengeDefinition challenge) {
+        // Use the same logic as findMatchingRecipes but return IDs only
+        List<ChallengeResponse.RecipePreviewDto> previews = findMatchingRecipes(challenge.getCriteriaMetadata());
+        return previews.stream().map(ChallengeResponse.RecipePreviewDto::getId).toList();
     }
 }

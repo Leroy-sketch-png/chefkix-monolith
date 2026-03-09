@@ -58,6 +58,10 @@ public class CookingSession {
     Double pendingXp;           // pendingXp?: number
     Double remainingXpAwarded;  // remainingXpAwarded?: number
 
+    // --- Co-op multiplier (from co-cooking rooms) ---
+    Double xpMultiplier;            // 1.0, 1.1, 1.2 — null for solo
+    String xpMultiplierReason;      // "CO_OP_DUO", "CO_OP_GROUP", null
+
     // --- Link to post ---
     String postId;              // postId?: string
     LocalDateTime postDeadline; // postDeadline?: string

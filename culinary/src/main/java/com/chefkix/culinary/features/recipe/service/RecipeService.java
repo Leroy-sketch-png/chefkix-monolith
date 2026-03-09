@@ -4,6 +4,8 @@ import com.chefkix.culinary.common.dto.query.RecipeSearchQuery;
 import com.chefkix.culinary.common.dto.response.AuthorResponse;
 import com.chefkix.culinary.features.report.dto.internal.InternalCreatorInsightsResponse;
 import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
+import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
@@ -16,6 +18,10 @@ import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.culinary.features.interaction.service.InteractionService; // Import Service mới
+import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
+import com.chefkix.culinary.features.session.entity.CookingSession;
+import com.chefkix.culinary.common.enums.SessionStatus;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -44,6 +50,7 @@ public class RecipeService {
     RecipeRepository recipeRepository;
     RecipeHelper recipeHelper;
     InteractionService interactionService; // Inject Service mới
+    CookingSessionRepository cookingSessionRepository;
 
     @Transactional
     public RecipeDetailResponse updateRecipe(String recipeId, RecipeRequest request) {
@@ -227,6 +234,113 @@ public class RecipeService {
                 .topRecipe(recipeMapper.toRecipeDto(top))
                 .highPerformingRecipes(performantRecipes.stream().map(recipeMapper::toRecipeDto).toList())
                 .avgRating(avgRating > 0 ? avgRating : null)
+                .build();
+    }
+
+    // ===============================================
+    // CREATOR ANALYTICS
+    // ===============================================
+
+    /**
+     * Per-recipe performance metrics for the creator dashboard.
+     * Returns all published recipes with their individual stats + an aggregate summary.
+     */
+    @Transactional(readOnly = true)
+    public CreatorPerformanceResponse getCreatorPerformance() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<Recipe> recipes = recipeRepository.findByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);
+
+        List<CreatorPerformanceResponse.RecipePerformanceItem> items = recipes.stream()
+                .map(r -> CreatorPerformanceResponse.RecipePerformanceItem.builder()
+                        .id(r.getId())
+                        .title(r.getTitle())
+                        .coverImageUrl(r.getCoverImageUrl())
+                        .difficulty(r.getDifficulty() != null ? r.getDifficulty().toString() : null)
+                        .xpReward(r.getXpReward())
+                        .cookCount(r.getCookCount())
+                        .masteredByCount(r.getMasteredByCount())
+                        .averageRating(r.getAverageRating())
+                        .creatorXpEarned(r.getCreatorXpEarned())
+                        .likeCount(r.getLikeCount())
+                        .saveCount(r.getSaveCount())
+                        .viewCount(r.getViewCount())
+                        .build())
+                .sorted((a, b) -> Long.compare(b.getCookCount(), a.getCookCount()))
+                .toList();
+
+        long totalCooks = recipes.stream().mapToLong(Recipe::getCookCount).sum();
+        long totalViews = recipes.stream().mapToLong(Recipe::getViewCount).sum();
+        long totalLikes = recipes.stream().mapToLong(Recipe::getLikeCount).sum();
+        double avgRating = recipes.stream()
+                .filter(r -> r.getAverageRating() != null && r.getAverageRating() > 0)
+                .mapToDouble(Recipe::getAverageRating)
+                .average().orElse(0.0);
+
+        return CreatorPerformanceResponse.builder()
+                .recipes(items)
+                .summary(CreatorPerformanceResponse.CreatorSummary.builder()
+                        .totalRecipes(recipes.size())
+                        .totalCooks(totalCooks)
+                        .totalViews(totalViews)
+                        .totalLikes(totalLikes)
+                        .averageRating(Math.round(avgRating * 10.0) / 10.0)
+                        .build())
+                .build();
+    }
+
+    /**
+     * Who recently cooked the creator's recipes.
+     * Returns paginated cooking sessions with cooker profile info.
+     */
+    @Transactional(readOnly = true)
+    public RecentCookResponse getRecentCooksOfMyRecipes(int page, int size) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<Recipe> myRecipes = recipeRepository.findByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);
+
+        if (myRecipes.isEmpty()) {
+            return RecentCookResponse.builder().cooks(List.of()).totalCount(0).build();
+        }
+
+        List<String> recipeIds = myRecipes.stream().map(Recipe::getId).toList();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "completedAt"));
+
+        Page<CookingSession> sessionsPage = cookingSessionRepository
+                .findByRecipeIdInAndStatus(recipeIds, SessionStatus.COMPLETED, pageable);
+
+        // Resolve cooker profiles — batch-friendly approach
+        List<RecentCookResponse.RecentCookItem> cooks = sessionsPage.getContent().stream()
+                .filter(s -> !userId.equals(s.getUserId())) // Exclude self-cooks
+                .map(session -> {
+                    RecentCookResponse.RecentCookItem.RecentCookItemBuilder item =
+                            RecentCookResponse.RecentCookItem.builder()
+                                    .sessionId(session.getId())
+                                    .recipeId(session.getRecipeId())
+                                    .recipeTitle(session.getRecipeTitle())
+                                    .coverImageUrl(session.getCoverImageUrl())
+                                    .cookUserId(session.getUserId())
+                                    .completedAt(session.getCompletedAt())
+                                    .rating(session.getRating());
+
+                    // Resolve cooker profile (fail-safe)
+                    try {
+                        BasicProfileInfo cookerProfile = profileProvider.getBasicProfile(session.getUserId());
+                        if (cookerProfile != null) {
+                            item.cookDisplayName(cookerProfile.getDisplayName())
+                                .cookAvatarUrl(cookerProfile.getAvatarUrl())
+                                .cookUsername(cookerProfile.getUsername());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
+                        item.cookDisplayName("Chef");
+                    }
+
+                    return item.build();
+                })
+                .toList();
+
+        return RecentCookResponse.builder()
+                .cooks(cooks)
+                .totalCount(sessionsPage.getTotalElements())
                 .build();
     }
 }

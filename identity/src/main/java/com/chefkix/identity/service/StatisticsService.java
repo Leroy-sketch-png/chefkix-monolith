@@ -1,6 +1,7 @@
 package com.chefkix.identity.service;
 
 import com.chefkix.shared.event.GamificationNotificationEvent;
+import com.chefkix.shared.event.ReminderEvent;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.LeaderboardResponse;
 import com.chefkix.identity.dto.response.CreatorStatsResponse;
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StatisticsService {
 
   private static final String GAMIFICATION_TOPIC = "gamification-delivery";
+  private static final String REMINDER_TOPIC = "reminder-delivery";
 
   MongoTemplate mongoTemplate;
   UserProfileRepository userProfileRepository;
@@ -394,13 +396,30 @@ public class StatisticsService {
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
-        // --- SEND NOTIFICATION (Only for level-up, creator bonus is passive) ---
+        // --- SEND NOTIFICATION: Level-up via gamification topic ---
         if (levelResult.leveledUp()) {
             sendGamificationNotification(
                     creatorId, profile.getDisplayName(),
                     xpAmount, stats.getCurrentXP(),
                     levelResult, null,
                     "CREATOR_BONUS", null, null);
+        }
+
+        // --- ALWAYS NOTIFY CREATOR: Someone cooked your recipe! ---
+        try {
+            ReminderEvent creatorNotif = ReminderEvent.builder()
+                    .userId(creatorId)
+                    .displayName(profile.getDisplayName())
+                    .reminderType("CREATOR_BONUS")
+                    .content(String.format(
+                            "\uD83C\uDF89 Someone cooked your recipe! You earned +%.0f XP as a creator bonus.",
+                            xpAmount))
+                    .priority(ReminderEvent.ReminderPriority.NORMAL)
+                    .build();
+            kafkaTemplate.send(REMINDER_TOPIC, creatorNotif);
+            log.info("Creator bonus notification sent to user {}: +{} XP", creatorId, xpAmount);
+        } catch (Exception e) {
+            log.error("Failed to send creator bonus notification to user {}", creatorId, e);
         }
     }
 

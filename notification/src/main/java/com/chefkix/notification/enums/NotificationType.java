@@ -21,5 +21,9 @@ public enum NotificationType {
     STREAK_WARNING,
     POST_DEADLINE,
     CHALLENGE_AVAILABLE,
-    CHALLENGE_REMINDER
+    CHALLENGE_REMINDER,
+
+    // Co-Cooking (spec 24-advanced-multiplayer.txt)
+    ROOM_INVITE,
+    CO_CHEF_TAGGED
 }

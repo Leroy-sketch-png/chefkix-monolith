@@ -135,6 +135,12 @@ public enum ErrorCode {
     // ─── CROSS-MODULE COMMUNICATION ─────────────────────────────────
 
     POST_SERVICE_ERROR(500, "Post service communication error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // ─── PANTRY / MEAL PLAN / SHOPPING ──────────────────────────────
+
+    PANTRY_ITEM_NOT_FOUND(404, "Pantry item not found", HttpStatus.NOT_FOUND),
+    MEAL_PLAN_NOT_FOUND(404, "Meal plan not found", HttpStatus.NOT_FOUND),
+    SHOPPING_LIST_NOT_FOUND(404, "Shopping list not found", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

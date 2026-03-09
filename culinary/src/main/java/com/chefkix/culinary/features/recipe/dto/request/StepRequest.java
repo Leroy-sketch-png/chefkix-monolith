@@ -27,5 +27,8 @@ public class StepRequest {
 
     private Integer timerSeconds;
     private String imageUrl;
+    private String videoUrl;
+    private String videoThumbnailUrl;
+    private Integer videoDurationSec;
     private String tips;
 }

@@ -3,6 +3,8 @@ package com.chefkix.culinary.features.recipe.controller;
 import com.chefkix.culinary.common.dto.query.RecipeSearchQuery;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
+import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
@@ -69,5 +71,23 @@ public class RecipeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.successPage(recipeService.getRecipesByUser(userId, page, size));
+    }
+
+    // ===============================================
+    // CREATOR ANALYTICS (spec: 21-creator-analytics.txt)
+    // ===============================================
+
+    // 8. CREATOR PERFORMANCE — per-recipe metrics
+    @GetMapping("/creator/performance")
+    public ApiResponse<CreatorPerformanceResponse> getCreatorPerformance() {
+        return ApiResponse.success(recipeService.getCreatorPerformance(), "Creator performance retrieved");
+    }
+
+    // 9. CREATOR RECENT COOKS — who cooked your recipes
+    @GetMapping("/creator/recent-cooks")
+    public ApiResponse<RecentCookResponse> getRecentCooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(recipeService.getRecentCooksOfMyRecipes(page, size), "Recent cooks retrieved");
     }
 }

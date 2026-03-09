@@ -33,6 +33,7 @@ public class CookingRoomWsController {
     public void handleStepNavigated(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
+        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't navigate
 
         // Update participant state in Redis
         roomService.updateParticipantStep(request.getRoomCode(), userId, request.getStepNumber());
@@ -47,6 +48,7 @@ public class CookingRoomWsController {
     public void handleStepCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
+        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete steps
 
         // Update completed steps in Redis
         roomService.updateParticipantCompletedSteps(
@@ -67,6 +69,7 @@ public class CookingRoomWsController {
     public void handleTimerStarted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't start timers
 
         Map<String, Object> data = new HashMap<>();
         if (request.getStepNumber() != null) data.put("stepNumber", request.getStepNumber());
@@ -80,6 +83,7 @@ public class CookingRoomWsController {
     public void handleTimerCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete timers
 
         Map<String, Object> data = new HashMap<>();
         if (request.getStepNumber() != null) data.put("stepNumber", request.getStepNumber());
@@ -102,6 +106,7 @@ public class CookingRoomWsController {
     public void handleSessionCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete sessions
 
         Map<String, Object> data = new HashMap<>();
         data.put("userId", userId);
