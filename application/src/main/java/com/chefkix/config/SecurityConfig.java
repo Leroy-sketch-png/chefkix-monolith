@@ -53,6 +53,9 @@ public class SecurityConfig {
 
             // --- Actuator ---
             "/actuator/**",
+
+            // --- Shopping list share links (public) ---
+            "/shopping-lists/shared/**",
     };
 
     @Bean
