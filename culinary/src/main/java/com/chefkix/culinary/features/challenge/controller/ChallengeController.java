@@ -3,6 +3,7 @@ package com.chefkix.culinary.features.challenge.controller;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeHistoryResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeResponse;
+import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeResponse;
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,5 +35,12 @@ public class ChallengeController {
         ChallengeHistoryResponse data = challengeService.getChallengeHistory(userId, page, size);
 
         return ApiResponse.success(data);
+    }
+
+    @GetMapping("/weekly")
+    public ApiResponse<WeeklyChallengeResponse> getWeeklyChallenge() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        WeeklyChallengeResponse response = challengeService.getWeeklyChallenge(userId);
+        return ApiResponse.success(response);
     }
 }

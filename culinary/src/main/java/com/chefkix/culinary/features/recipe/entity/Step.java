@@ -13,6 +13,11 @@ public class Step {
     private Integer timerSeconds;
     private String imageUrl;
 
+    // --- Video Fields (per spec 20-media-lifecycle.txt) ---
+    private String videoUrl;
+    private String videoThumbnailUrl;
+    private Integer videoDurationSec;
+
     // --- Fields khớp với AI Spec (Bạn đang thiếu 2 cái này) ---
     private String tips;                  // Mẹo cơ bản (AI trả về field "tips")
     private List<Ingredient> ingredients; // Nguyên liệu riêng cho bước này

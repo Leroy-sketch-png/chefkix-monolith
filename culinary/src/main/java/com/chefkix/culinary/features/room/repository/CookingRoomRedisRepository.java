@@ -10,8 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Redis-backed repository for ephemeral cooking rooms.
@@ -69,5 +72,28 @@ public class CookingRoomRedisRepository {
      */
     public void refreshTtl(String roomCode) {
         redisTemplate.expire(key(roomCode.toUpperCase()), TTL_SECONDS, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Retrieve all active cooking rooms from Redis.
+     * Scans for all keys with the room prefix and deserializes them.
+     */
+    public List<CookingRoom> findAll() {
+        Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) return List.of();
+
+        return keys.stream()
+                .map(k -> redisTemplate.opsForValue().get(k))
+                .filter(json -> json != null)
+                .map(json -> {
+                    try {
+                        return objectMapper.readValue(json, CookingRoom.class);
+                    } catch (JsonProcessingException e) {
+                        log.warn("Failed to deserialize room: {}", e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(room -> room != null)
+                .collect(Collectors.toList());
     }
 }

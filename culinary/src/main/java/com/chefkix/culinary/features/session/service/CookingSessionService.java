@@ -20,6 +20,8 @@ import com.chefkix.culinary.features.session.mapper.CookingSessionMapper;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
+import com.chefkix.culinary.features.room.model.CookingRoom;
+import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,6 +47,7 @@ public class CookingSessionService {
     private final RecipeHelper helper;
     private final ProfileProvider profileProvider;
     private final PostProvider postProvider;
+    private final CookingRoomRedisRepository roomRepository;
 
     @Transactional
     public StartSessionResponse startSession(String userId, StartSessionRequest request) {
@@ -139,12 +142,43 @@ public class CookingSessionService {
         log.info("🔍 DIAG completeSession: recipeXpReward={}, masteryMult={}, totalEffectiveXp={}", recipe.getXpReward(), masteryMult, totalEffectiveXp);
         log.info("🔍 DIAG completeSession: baseXp={}, pendingXp={}", baseXp, pendingXp);
 
-        // 3. Check Challenge
+        // 3. Check Challenge (Daily)
         Optional<ChallengeRewardResult> challengeResult = challengeService.checkAndCompleteChallenge(userId, recipe);
         String challengeTitle = null;
         if (challengeResult.isPresent()) {
             baseXp += challengeResult.get().getBonusXp();
             challengeTitle = challengeResult.get().getChallengeTitle();
+        }
+
+        // 3b. Check Weekly Challenge
+        Optional<ChallengeRewardResult> weeklyResult = challengeService.checkAndCompleteWeeklyChallenge(userId, recipe);
+        if (weeklyResult.isPresent()) {
+            baseXp += weeklyResult.get().getBonusXp();
+            if (challengeTitle == null) {
+                challengeTitle = weeklyResult.get().getChallengeTitle();
+            } else {
+                challengeTitle += " & " + weeklyResult.get().getChallengeTitle();
+            }
+        }
+
+        // 3c. Co-op XP multiplier (from co-cooking rooms)
+        double coOpMultiplier = 1.0;
+        String coOpReason = null;
+        if (session.getRoomCode() != null) {
+            var roomOpt = roomRepository.findByRoomCode(session.getRoomCode());
+            if (roomOpt.isPresent()) {
+                CookingRoom room = roomOpt.get();
+                long cookCount = room.getParticipants().stream()
+                        .filter(p -> !"SPECTATOR".equals(p.getRole()))
+                        .count();
+                if (cookCount == 2) { coOpMultiplier = 1.2; coOpReason = "CO_OP_DUO"; }
+                else if (cookCount >= 3) { coOpMultiplier = 1.1; coOpReason = "CO_OP_GROUP"; }
+            }
+        }
+        if (coOpMultiplier > 1.0) {
+            baseXp = Math.round(baseXp * coOpMultiplier);
+            pendingXp = Math.round(pendingXp * coOpMultiplier);
+            log.info("Co-op multiplier applied: {}× ({}) for session {}", coOpMultiplier, coOpReason, sessionId);
         }
 
         // 4. Update Session Status
@@ -154,6 +188,8 @@ public class CookingSessionService {
         session.setPostDeadline(now.plusDays(14));
         session.setBaseXpAwarded(baseXp);
         session.setPendingXp(pendingXp);
+        session.setXpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null);
+        session.setXpMultiplierReason(coOpReason);
         session.setRating(request.getRating());
         session.setNotes(request.getNotes());
         sessionRepository.save(session);
@@ -191,6 +227,8 @@ public class CookingSessionService {
                 .baseXpAwarded(baseXpInt)
                 .pendingXp(pendingXpInt)
                 .postDeadline(session.getPostDeadline())
+                .xpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null)
+                .xpMultiplierReason(coOpReason)
                 .message("Chúc mừng! + " + baseXpInt + " XP. Đăng bài để nhận thêm " + pendingXpInt + " XP!");
 
         if (profileResult != null) {

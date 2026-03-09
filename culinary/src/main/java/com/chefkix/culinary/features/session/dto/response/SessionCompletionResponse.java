@@ -20,4 +20,8 @@ public class SessionCompletionResponse {
     private Integer newLevel;     // Level after completion (if leveledUp)
     private Integer currentXp;    // Total XP after this completion
     private Integer xpToNextLevel; // XP needed for next level
+
+    // Co-op multiplier — only set when cooking in a room with 2+ cooks
+    private Double xpMultiplier;          // 1.2 (duo) or 1.1 (group), null if solo
+    private String xpMultiplierReason;    // "CO_OP_DUO" or "CO_OP_GROUP"
 }

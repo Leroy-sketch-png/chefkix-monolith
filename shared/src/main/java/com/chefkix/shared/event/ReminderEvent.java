@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @JsonTypeName("REMINDER_ACTION")
 public class ReminderEvent extends BaseEvent {
 
-    /** Reminder category, e.g. "STREAK_AT_RISK", "POST_DEADLINE", "CHALLENGE_ENDING". */
+    /** Reminder category, e.g. "STREAK_AT_RISK", "POST_DEADLINE", "CHALLENGE_ENDING", "ROOM_INVITE". */
     private String reminderType;
     private String displayName;
     private String content;
@@ -33,13 +33,16 @@ public class ReminderEvent extends BaseEvent {
     private String recipeTitle;
     private Integer daysRemaining;
     private String challengeCategory;
+    /** Co-cooking room code — used for ROOM_INVITE deep-link (/cook-together?roomCode=XXX). */
+    private String roomCode;
 
     @Builder
     public ReminderEvent(String userId, String displayName, String reminderType,
                          String content, ReminderPriority priority,
                          Integer streakCount, Integer hoursRemaining,
                          String sessionId, String recipeTitle,
-                         Integer daysRemaining, String challengeCategory) {
+                         Integer daysRemaining, String challengeCategory,
+                         String roomCode) {
         super("REMINDER_ACTION", userId);
         this.displayName = displayName;
         this.reminderType = reminderType;
@@ -51,6 +54,7 @@ public class ReminderEvent extends BaseEvent {
         this.recipeTitle = recipeTitle;
         this.daysRemaining = daysRemaining;
         this.challengeCategory = challengeCategory;
+        this.roomCode = roomCode;
     }
 
     public enum ReminderPriority {

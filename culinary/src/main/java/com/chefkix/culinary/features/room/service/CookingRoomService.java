@@ -1,8 +1,10 @@
 package com.chefkix.culinary.features.room.service;
 
 import com.chefkix.culinary.features.room.dto.request.CreateRoomRequest;
+import com.chefkix.culinary.features.room.dto.request.InviteToRoomRequest;
 import com.chefkix.culinary.features.room.dto.request.JoinRoomRequest;
 import com.chefkix.culinary.features.room.dto.response.CookingRoomResponse;
+import com.chefkix.culinary.features.room.dto.response.FriendsActiveRoomResponse;
 import com.chefkix.culinary.features.room.dto.response.LeaveRoomResponse;
 import com.chefkix.culinary.features.room.model.CookingRoom;
 import com.chefkix.culinary.features.room.model.RoomEvent;
@@ -16,12 +18,14 @@ import com.chefkix.culinary.features.session.service.CookingSessionService;
 import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.shared.event.ReminderEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +49,9 @@ public class CookingRoomService {
     CookingSessionRepository sessionRepository;
     ProfileProvider profileProvider;
     SimpMessagingTemplate messagingTemplate;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
+    private static final String REMINDER_TOPIC = "reminder-delivery";
     private static final int ROOM_CODE_LENGTH = 6;
     private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I/O/0/1 to avoid confusion
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -103,6 +109,8 @@ public class CookingRoomService {
 
     public CookingRoomResponse joinRoom(String userId, JoinRoomRequest request) {
         String roomCode = request.getRoomCode().toUpperCase();
+        String role = request.getRole() != null ? request.getRole().toUpperCase() : "COOK";
+        boolean isSpectator = "SPECTATOR".equals(role);
 
         CookingRoom room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
@@ -123,8 +131,11 @@ public class CookingRoomService {
             throw new AppException(ErrorCode.ROOM_FULL);
         }
 
-        // Get or create cooking session for the room's recipe
-        String sessionId = getOrCreateSession(userId, room.getRecipeId());
+        // Spectators don't get a cooking session — they're just watching
+        String sessionId = null;
+        if (!isSpectator) {
+            sessionId = getOrCreateSession(userId, room.getRecipeId());
+        }
 
         // Build participant
         BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
@@ -139,22 +150,27 @@ public class CookingRoomService {
                 .completedSteps(new ArrayList<>())
                 .joinedAt(Instant.now())
                 .isHost(false)
+                .role(role)
                 .build();
 
         room.getParticipants().add(participant);
 
-        // Transition to COOKING when 2+ participants
-        if (room.getParticipants().size() >= 2 && CookingRoom.STATUS_WAITING.equals(room.getStatus())) {
+        // Transition to COOKING when 2+ COOK participants
+        long cookCount = room.getParticipants().stream()
+                .filter(p -> !"SPECTATOR".equals(p.getRole()))
+                .count();
+        if (cookCount >= 2 && CookingRoom.STATUS_WAITING.equals(room.getStatus())) {
             room.setStatus(CookingRoom.STATUS_COOKING);
         }
 
         roomRepository.save(room);
-        log.info("User {} joined room {}", userId, roomCode);
+        log.info("User {} joined room {} as {}", userId, roomCode, role);
 
         // Broadcast join event
         broadcastEvent(roomCode, RoomEventType.PARTICIPANT_JOINED, userId, displayName,
                 Map.of("userId", userId, "displayName", displayName,
-                        "avatarUrl", profile.getAvatarUrl() != null ? profile.getAvatarUrl() : ""));
+                        "avatarUrl", profile.getAvatarUrl() != null ? profile.getAvatarUrl() : "",
+                        "role", role));
 
         return toResponse(room, sessionId);
     }
@@ -276,6 +292,119 @@ public class CookingRoomService {
     }
 
     // ────────────────────────────────────────────────────────
+    // INVITE TO ROOM
+    // ────────────────────────────────────────────────────────
+
+    /**
+     * Sends a room invite notification to a target user.
+     * Validates sender is in room, target is not already in room.
+     * Notification deep-links to /cook-together?roomCode=XXX.
+     */
+    public void inviteToRoom(String senderId, String roomCode, InviteToRoomRequest request) {
+        roomCode = roomCode.toUpperCase();
+
+        CookingRoom room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
+
+        // Sender must be in the room
+        boolean senderInRoom = room.getParticipants().stream()
+                .anyMatch(p -> p.getUserId().equals(senderId));
+        if (!senderInRoom) {
+            throw new AppException(ErrorCode.NOT_IN_ROOM);
+        }
+
+        // Target must not already be in room
+        boolean targetInRoom = room.getParticipants().stream()
+                .anyMatch(p -> p.getUserId().equals(request.getUserId()));
+        if (targetInRoom) {
+            throw new AppException(ErrorCode.ALREADY_IN_ROOM);
+        }
+
+        // Room must not be full
+        if (room.getParticipants().size() >= room.getMaxParticipants()) {
+            throw new AppException(ErrorCode.ROOM_FULL);
+        }
+
+        BasicProfileInfo senderProfile = profileProvider.getBasicProfile(senderId);
+        String senderName = resolveDisplayName(senderProfile);
+
+        ReminderEvent event = ReminderEvent.builder()
+                .userId(request.getUserId())
+                .displayName(senderName)
+                .reminderType("ROOM_INVITE")
+                .content(String.format("🍳 %s invited you to cook %s together!", senderName, room.getRecipeTitle()))
+                .priority(ReminderEvent.ReminderPriority.HIGH)
+                .recipeTitle(room.getRecipeTitle())
+                .roomCode(roomCode)
+                .build();
+
+        kafkaTemplate.send(REMINDER_TOPIC, event);
+        log.info("Room invite sent: {} → {} for room {}", senderId, request.getUserId(), roomCode);
+    }
+
+    // ────────────────────────────────────────────────────────
+    // FRIENDS ACTIVE ROOMS
+    // ────────────────────────────────────────────────────────
+
+    /**
+     * Returns active rooms where users the caller follows are currently cooking.
+     * Used for "Friends Cooking Now" widget — poll every 30s.
+     */
+    public List<FriendsActiveRoomResponse> getFriendsActiveRooms(String userId) {
+        List<String> followingIds = profileProvider.getFollowingIds(userId);
+        if (followingIds.isEmpty()) return List.of();
+
+        Set<String> followingSet = new HashSet<>(followingIds);
+
+        return roomRepository.findAll().stream()
+                .filter(room -> !CookingRoom.STATUS_DISSOLVED.equals(room.getStatus()))
+                .filter(room -> room.getParticipants().stream()
+                        .anyMatch(p -> followingSet.contains(p.getUserId())))
+                .map(room -> {
+                    List<String> friendNames = room.getParticipants().stream()
+                            .filter(p -> followingSet.contains(p.getUserId()))
+                            .map(RoomParticipant::getDisplayName)
+                            .toList();
+
+                    long minutesAgo = java.time.Duration.between(room.getCreatedAt(), Instant.now()).toMinutes();
+
+                    return FriendsActiveRoomResponse.builder()
+                            .roomCode(room.getRoomCode())
+                            .recipeId(room.getRecipeId())
+                            .recipeTitle(room.getRecipeTitle())
+                            .participantCount(room.getParticipants().size())
+                            .participantNames(room.getParticipants().stream()
+                                    .map(RoomParticipant::getDisplayName).toList())
+                            .startedMinutesAgo(minutesAgo)
+                            .build();
+                })
+                .toList();
+    }
+
+    // ────────────────────────────────────────────────────────
+    // CO-OP XP MULTIPLIER
+    // ────────────────────────────────────────────────────────
+
+    /**
+     * Calculates the co-op XP multiplier for a room-linked session.
+     * 2 cooks = 1.2×, 3+ cooks = 1.1×, solo/spectator-only = 1.0×.
+     */
+    public double getCoOpMultiplier(String roomCode) {
+        if (roomCode == null) return 1.0;
+
+        return roomRepository.findByRoomCode(roomCode)
+                .map(room -> {
+                    long cookCount = room.getParticipants().stream()
+                            .filter(p -> !"SPECTATOR".equals(p.getRole()))
+                            .count();
+                    if (cookCount == 2) return 1.2;
+                    if (cookCount >= 3) return 1.1;
+                    return 1.0;
+                })
+                .orElse(1.0);
+    }
+
+    // ────────────────────────────────────────────────────────
     // BROADCAST HELPER
     // ────────────────────────────────────────────────────────
 
@@ -296,6 +425,20 @@ public class CookingRoomService {
     // ────────────────────────────────────────────────────────
     // PRIVATE HELPERS
     // ────────────────────────────────────────────────────────
+
+    /**
+     * Returns true if the given user is a spectator in the given room.
+     * Used by WsController to guard cooking-specific events.
+     */
+    public boolean isSpectator(String roomCode, String userId) {
+        return roomRepository.findByRoomCode(roomCode.toUpperCase())
+                .map(room -> room.getParticipants().stream()
+                        .filter(p -> p.getUserId().equals(userId))
+                        .findFirst()
+                        .map(p -> "SPECTATOR".equals(p.getRole()))
+                        .orElse(false))
+                .orElse(false);
+    }
 
     /**
      * Gets existing IN_PROGRESS session for recipe, or starts a new one.

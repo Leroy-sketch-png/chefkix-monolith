@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,18 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
     Optional<CookingSession> findFirstByUserIdAndStatus(String userId, SessionStatus sessionStatus);
 
     Page<CookingSession> findAllByUserIdAndStatusIn(String userId, List<SessionStatus> statuses, Pageable pageable);
+
+    /**
+     * Find completed sessions for a set of recipe IDs, sorted by completedAt DESC.
+     * Used by creator analytics to show who recently cooked the creator's recipes.
+     */
+    Page<CookingSession> findByRecipeIdInAndStatus(List<String> recipeIds, SessionStatus status, Pageable pageable);
+
+    /**
+     * Count completed sessions for a user within a date range for specific recipe IDs.
+     * Used by weekly challenge progress computation.
+     */
+    long countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
+            String userId, List<String> recipeIds, SessionStatus status,
+            LocalDateTime start, LocalDateTime end);
 }

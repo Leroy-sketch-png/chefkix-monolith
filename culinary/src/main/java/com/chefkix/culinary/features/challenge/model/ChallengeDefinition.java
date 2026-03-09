@@ -28,6 +28,10 @@ public class ChallengeDefinition {
     // Số XP thưởng thêm
     private int bonusXp;
 
+    // Target completions (1 for daily, N for weekly)
+    @Builder.Default
+    private int target = 1;
+
     // Metadata dành cho Frontend hiển thị UI
     // Ví dụ: Frontend cần biết tag nào để highlight, hoặc icon gì
     // VD: { "cuisine": "Italian", "icon": "🍝", "color": "#FF5733" }

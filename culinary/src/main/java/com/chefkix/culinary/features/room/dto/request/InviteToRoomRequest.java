@@ -4,16 +4,16 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Invite a user to an active cooking room.
+ * Spec: vision_and_spec/24-advanced-multiplayer.txt §2
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class JoinRoomRequest {
-    @NotBlank(message = "roomCode must not be blank")
-    String roomCode;
-
-    /** "COOK" (default) or "SPECTATOR". Spectators can watch but not interact with cooking steps. */
-    @Builder.Default
-    String role = "COOK";
+public class InviteToRoomRequest {
+    @NotBlank
+    String userId;
 }
