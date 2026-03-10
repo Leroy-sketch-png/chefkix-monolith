@@ -37,22 +37,6 @@ public class LikeController {
         return ApiResponse.success(response);
     }
 
-    @PutMapping("/{postId}/like")
-    public ApiResponse<PostLikeResponse> postLike(
-            @PathVariable String postId
-    ) {
-        PostLikeResponse response = postService.likePost(postId);
-        return ApiResponse.created(response);
-    }
-
-    @DeleteMapping("/{postId}/like")
-    public ApiResponse<PostLikeResponse> postUnlike(
-            @PathVariable String postId
-    ) {
-        PostLikeResponse response = postService.unlikePost(postId);
-        return ApiResponse.success(response, "Successfully unliked post");
-    }
-
     // ========================================================================
     // SAVE (BOOKMARK) ENDPOINTS
     // ========================================================================
