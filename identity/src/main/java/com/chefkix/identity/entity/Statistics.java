@@ -3,7 +3,9 @@ package com.chefkix.identity.entity;
 import com.chefkix.identity.enums.Title;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -64,6 +66,9 @@ public class Statistics {
   @Builder.Default Long reputation = 0L;
 
   @Builder.Default List<String> badges = new ArrayList<>();
+
+  /** Badge name → timestamp when earned. Additive alongside badges list for backwards compat. */
+  @Builder.Default Map<String, Instant> badgeTimestamps = new HashMap<>();
 
   // Creator stats
   @Builder.Default Long totalCooksOfYourRecipes = 0L;

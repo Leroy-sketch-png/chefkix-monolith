@@ -7,11 +7,17 @@ import com.chefkix.identity.api.dto.CompletionResult;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
+import com.chefkix.identity.entity.User;
+import com.chefkix.identity.repository.UserRepository;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -30,6 +36,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     StatisticsService statisticsService;
     SocialService socialService;
     UserStatusService userStatusService;
+    UserRepository userRepository;
 
     @Override
     public BasicProfileInfo getBasicProfile(String userId) {
@@ -86,5 +93,16 @@ public class ProfileProviderImpl implements ProfileProvider {
         } else {
             userStatusService.setUserOffline(userId);
         }
+    }
+
+    @Override
+    public Instant getAccountCreatedAt(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (user.getCreatedAt() == null) {
+            // Fallback for legacy users without createdAt — treat as old account (no restriction)
+            return Instant.EPOCH;
+        }
+        return user.getCreatedAt().toInstant(ZoneOffset.UTC);
     }
 }

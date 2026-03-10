@@ -4,6 +4,7 @@ import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -59,4 +60,13 @@ public interface ProfileProvider {
      * @param isOnline true if user is online, false if offline
      */
     void updateUserOnlineStatus(String userId, boolean isOnline);
+
+    /**
+     * Get the account creation timestamp for a user.
+     * Used by culinary module for account-age-based rate limiting.
+     *
+     * @param userId the user whose creation date to retrieve
+     * @return account creation instant (never null)
+     */
+    Instant getAccountCreatedAt(String userId);
 }

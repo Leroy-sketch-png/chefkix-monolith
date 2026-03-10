@@ -98,11 +98,15 @@ public class StatisticsService {
       if (stats.getBadges() == null) {
         stats.setBadges(new ArrayList<>());
       }
+      if (stats.getBadgeTimestamps() == null) {
+        stats.setBadgeTimestamps(new java.util.HashMap<>());
+      }
 
       for (String badge : request.getNewBadges()) {
         // Chỉ thêm nếu user chưa có badge này
         if (!stats.getBadges().contains(badge)) {
           stats.getBadges().add(badge);
+          stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
           actuallyAddedBadges.add(badge);
         }
       }
@@ -241,10 +245,14 @@ public class StatisticsService {
         List<String> actuallyNewBadges = new ArrayList<>();
         if (badges != null && !badges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
+            if (stats.getBadgeTimestamps() == null) {
+                stats.setBadgeTimestamps(new java.util.HashMap<>());
+            }
             int beforeCount = currentBadges.size();
             for (String badge : badges) {
                 if (!currentBadges.contains(badge)) {
                     actuallyNewBadges.add(badge);
+                    stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
                 }
             }
             currentBadges.addAll(badges);
@@ -337,6 +345,14 @@ public class StatisticsService {
         // C. XỬ LÝ BADGES (Dùng Set để code gọn và không trùng)
         if (newBadges != null && !newBadges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
+            if (stats.getBadgeTimestamps() == null) {
+                stats.setBadgeTimestamps(new java.util.HashMap<>());
+            }
+            for (String badge : newBadges) {
+                if (!currentBadges.contains(badge)) {
+                    stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
+                }
+            }
             currentBadges.addAll(newBadges);
             stats.setBadges(new ArrayList<>(currentBadges));
         }
