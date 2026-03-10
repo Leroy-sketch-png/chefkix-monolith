@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.chefkix.notification.dto.request.NotificationUpdateRequest;
 import com.chefkix.notification.dto.response.NotificationResponse;
 import com.chefkix.notification.service.NotificationService;
+import com.chefkix.shared.dto.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,17 +23,17 @@ public class BellNotificationController {
     private final NotificationService notificationService;
 
     @GetMapping("/unread-count")
-    public long getUnreadNotificationCount() {
+    public ApiResponse<Long> getUnreadNotificationCount() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        return notificationService.getUnreadNotificationCount(userId);
+        return ApiResponse.success(notificationService.getUnreadNotificationCount(userId));
     }
 
     @GetMapping
-    public List<NotificationResponse> getNotifications(
+    public ApiResponse<List<NotificationResponse>> getNotifications(
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(defaultValue = "false") boolean unreadOnly) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        return notificationService.getNotifications(userId, limit, unreadOnly);
+        return ApiResponse.success(notificationService.getNotifications(userId, limit, unreadOnly));
     }
 
     @PutMapping

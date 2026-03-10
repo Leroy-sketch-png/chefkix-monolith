@@ -111,55 +111,9 @@ public class SocialController {
     return ApiResponse.success(blockService.hasBlocked(userId, targetUserId));
   }
 
-  // ===================================================================================
-  // --- DEPRECATED: Friend Request System ---
-  // These endpoints are kept for backwards compatibility but are no longer recommended.
-  // Use the follow system instead. Mutual follows = friends.
-  // ===================================================================================
-
-  /**
-   * @deprecated Use follow system instead. Mutual follows = friends.
-   */
-  @Deprecated
-  @PostMapping("/toggle-friend-request/{receiverId}")
-  public ApiResponse<ProfileResponse> profileFriendRequest(
-      @PathVariable("receiverId") String receiverId, Authentication authentication) {
-    return ApiResponse.success(socialService.toggleSendFriendRequest(receiverId, authentication));
-  }
-
-  /**
-   * @deprecated Use follow system instead. Mutual follows = friends.
-   */
-  @Deprecated
-  @PostMapping("/accept-friend/{senderId}")
-  public ApiResponse<ProfileResponse> profileFriendAccept(
-      @PathVariable("senderId") String senderId, Authentication authentication) {
-    return ApiResponse.success(
-        socialService.acceptFriendRequest(senderId, authentication), "Friend request accepted");
-  }
-
-  /**
-   * @deprecated Use follow system instead. Mutual follows = friends.
-   */
-  @Deprecated
-  @PostMapping("/reject-friend/{senderId}")
-  public ApiResponse<ProfileResponse> profileFriendReject(
-      @PathVariable("senderId") String senderId, Authentication authentication) {
-    return ApiResponse.success(
-        socialService.rejectFriendRequest(senderId, authentication), "Friend request rejected");
-  }
-
-  /**
-   * @deprecated Use unfollow instead. Mutual follows = friends.
-   */
-  @Deprecated
-  @PostMapping("/unfriend/{friendId}")
-  public ApiResponse<ProfileResponse> profileUnfriend(
-      @PathVariable("friendId") String friendId, Authentication authentication) {
-    return ApiResponse.success(
-        socialService.unfriend(friendId, authentication),
-        "You are no longer friends with this user.");
-  }
+  // Friend request endpoints REMOVED — use follow system. Mutual follows = friends.
+  // Deleted in audit 2025-03: toggle-friend-request, accept-friend, reject-friend, unfriend
+  // These created a parallel social graph alongside the follow system, causing data inconsistency.
 
   /**
    * Get a list of friend by text-change that like the keyword (display name) to mention them And
