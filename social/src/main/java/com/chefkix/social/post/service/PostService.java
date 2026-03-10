@@ -1,5 +1,6 @@
 package com.chefkix.social.post.service;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.api.ProfileProvider;
@@ -72,6 +73,7 @@ public class PostService {
     UploadImageFile uploadImageFile;
     ProfileProvider profileProvider;
     SessionProvider sessionProvider;
+    ContentModerationProvider contentModerationProvider;
 
     @Qualifier("taskExecutor")
     Executor taskExecutor;
@@ -157,6 +159,15 @@ public class PostService {
             SessionInfo session = sessionFuture.join();
 
             log.info("Xử lý xong I/O trong {}ms", System.currentTimeMillis() - startTime);
+
+            // AI CONTENT MODERATION — fail-open for posts
+            if (request.getContent() != null && !request.getContent().isBlank()) {
+                var moderationResult = contentModerationProvider.moderate(request.getContent(), "post");
+                if (moderationResult.isBlocked()) {
+                    log.warn("Post content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+                    throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+                }
+            }
 
             // LƯU VÀO DB
             return savePostToDb(request, userId, userProfile, photoUrls, session);
