@@ -125,6 +125,15 @@ public class CookingSessionController {
         return ApiResponse.success(response);
     }
 
+    /**
+     * Get active cooking sessions of people the current user follows.
+     * Powers the "Friends Cooking Now" widget on dashboard and explore pages.
+     */
+    @GetMapping("/friends-active")
+    public ApiResponse<FriendCookingActivityResponse> getFriendsActiveCooking() {
+        return ApiResponse.success(sessionService.getFriendsActiveCooking());
+    }
+
     @PostMapping("/{sessionId}/pause")
     public ApiResponse<SessionPauseResponse> pauseSession(
             @Valid @PathVariable String sessionId

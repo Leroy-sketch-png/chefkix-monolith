@@ -2,12 +2,14 @@ package com.chefkix.culinary.features.session.service;
 
 import com.chefkix.social.api.PostProvider;
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.culinary.common.dto.query.SessionHistoryQuery;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResult;
 import com.chefkix.culinary.features.session.entity.CookingSession;
+import com.chefkix.culinary.features.session.model.ActiveCookingPresence;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.enums.TimerEventType;
@@ -17,6 +19,7 @@ import com.chefkix.culinary.common.helper.RecipeHelper;
 import com.chefkix.culinary.features.session.dto.request.*;
 import com.chefkix.culinary.features.session.dto.response.*;
 import com.chefkix.culinary.features.session.mapper.CookingSessionMapper;
+import com.chefkix.culinary.features.session.repository.ActiveCookingRedisRepository;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
@@ -48,6 +51,7 @@ public class CookingSessionService {
     private final ProfileProvider profileProvider;
     private final PostProvider postProvider;
     private final CookingRoomRedisRepository roomRepository;
+    private final ActiveCookingRedisRepository activeCookingRepository;
 
     @Transactional
     public StartSessionResponse startSession(String userId, StartSessionRequest request) {
@@ -81,6 +85,7 @@ public class CookingSessionService {
                 .build();
 
         sessionRepository.save(session);
+        setActiveCookingPresence(userId, session, recipe);
         return sessionMapper.toStartSessionResponse(session, recipe);
     }
 
@@ -211,6 +216,7 @@ public class CookingSessionService {
         session.setRating(request.getRating());
         session.setNotes(request.getNotes());
         sessionRepository.save(session);
+        removeActiveCookingPresence(userId);
 
         // 5. Update Stats
         helper.updateRecipeStats(recipe.getId(), 1, 0);
@@ -411,6 +417,7 @@ public class CookingSessionService {
         session.setPausedAt(now);
         session.setResumeDeadline(deadline);
         sessionRepository.save(session);
+        removeActiveCookingPresence(userId);
 
         return SessionPauseResponse.builder()
                 .sessionId(session.getId())
@@ -431,6 +438,10 @@ public class CookingSessionService {
 
         session.setStatus(SessionStatus.IN_PROGRESS);
         sessionRepository.save(session);
+
+        // Re-set cooking presence after resume
+        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        setActiveCookingPresence(userId, session, recipe);
 
         return SessionResumeResponse.builder()
                 .sessionId(session.getId())
@@ -529,6 +540,7 @@ public class CookingSessionService {
         session.setStatus(SessionStatus.ABANDONED);
         session.setAbandonedAt(now);
         sessionRepository.save(session);
+        removeActiveCookingPresence(userId);
 
         log.info("Session {} abandoned by user {}", sessionId, userId);
 
@@ -543,5 +555,85 @@ public class CookingSessionService {
     // Hàm này chỉ phục vụ FeignClient, logic đơn giản nên để lại
     public CookingSession getSessionById(String sessionId) {
         return sessionRepository.findById(sessionId).orElse(null);
+    }
+
+    // ======================== Friends Cooking Now ========================
+
+    /**
+     * Returns active cooking sessions for people the current user follows.
+     * Uses Redis MGET for O(1) per-friend lookup in a single round-trip.
+     */
+    public FriendCookingActivityResponse getFriendsActiveCooking() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        List<String> followingIds = profileProvider.getFollowingIds(userId);
+        if (followingIds == null || followingIds.isEmpty()) {
+            return FriendCookingActivityResponse.builder()
+                    .friends(List.of())
+                    .totalActive(0)
+                    .build();
+        }
+
+        List<ActiveCookingPresence> activePresences = activeCookingRepository.getActiveForUsers(followingIds);
+
+        List<FriendCookingActivityResponse.ActiveFriend> friends = activePresences.stream()
+                .map(p -> FriendCookingActivityResponse.ActiveFriend.builder()
+                        .userId(p.getUserId())
+                        .username(p.getUsername())
+                        .displayName(p.getDisplayName())
+                        .avatarUrl(p.getAvatarUrl())
+                        .recipeId(p.getRecipeId())
+                        .recipeTitle(p.getRecipeTitle())
+                        .coverImageUrl(p.getCoverImageUrl())
+                        .currentStep(p.getCurrentStep())
+                        .totalSteps(p.getTotalSteps())
+                        .startedAt(p.getStartedAt())
+                        .roomCode(p.getRoomCode())
+                        .build())
+                .toList();
+
+        return FriendCookingActivityResponse.builder()
+                .friends(friends)
+                .totalActive(friends.size())
+                .build();
+    }
+
+    // ======================== Presence Helpers ========================
+
+    /**
+     * Set Redis presence for "Friends Cooking Now" feature.
+     * Non-critical — failures are logged but don't block the session operation.
+     */
+    private void setActiveCookingPresence(String userId, CookingSession session, Recipe recipe) {
+        try {
+            BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+            ActiveCookingPresence presence = ActiveCookingPresence.builder()
+                    .userId(userId)
+                    .username(profile != null ? profile.getUsername() : null)
+                    .displayName(profile != null ? profile.getDisplayName() : null)
+                    .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
+                    .recipeId(session.getRecipeId())
+                    .recipeTitle(session.getRecipeTitle())
+                    .coverImageUrl(session.getCoverImageUrl())
+                    .currentStep(session.getCurrentStep() != null ? session.getCurrentStep() : 1)
+                    .totalSteps(recipe != null && recipe.getSteps() != null ? recipe.getSteps().size() : 0)
+                    .startedAt(session.getStartedAt())
+                    .roomCode(session.getRoomCode())
+                    .build();
+            activeCookingRepository.setActive(presence);
+        } catch (Exception e) {
+            log.warn("Failed to set cooking presence for user {}: {}", userId, e.getMessage());
+        }
+    }
+
+    /**
+     * Remove Redis presence. Non-critical — TTL will clean up even if this fails.
+     */
+    private void removeActiveCookingPresence(String userId) {
+        try {
+            activeCookingRepository.removeActive(userId);
+        } catch (Exception e) {
+            log.warn("Failed to remove cooking presence for user {}: {}", userId, e.getMessage());
+        }
     }
 }
