@@ -119,7 +119,6 @@ public class CommentService {
 
     // Send notification to the tagged users
     if (!extractedTagIds.isEmpty()) {
-        // TODO
         sendTagNotification(comment, post, extractedTagIds);
     }
 

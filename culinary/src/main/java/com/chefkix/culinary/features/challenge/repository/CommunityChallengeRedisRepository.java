@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Redis-backed tracking for community challenge progress.
  * Uses atomic INCR for progress count and SADD for unique participant tracking.
@@ -91,6 +94,20 @@ public class CommunityChallengeRedisRepository {
         } catch (Exception e) {
             log.error("Failed to get community challenge participant count: {}", challengeId, e);
             return 0;
+        }
+    }
+
+    /**
+     * Get all participant user IDs for a community challenge.
+     */
+    public Set<String> getParticipants(String challengeId) {
+        String key = PROGRESS_PREFIX + challengeId + PARTICIPANTS_SUFFIX;
+        try {
+            Set<String> members = redisTemplate.opsForSet().members(key);
+            return members != null ? members : Collections.emptySet();
+        } catch (Exception e) {
+            log.error("Failed to get community challenge participants: {}", challengeId, e);
+            return Collections.emptySet();
         }
     }
 

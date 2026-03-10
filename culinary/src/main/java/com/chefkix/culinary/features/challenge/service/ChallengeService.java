@@ -52,6 +52,7 @@ public class ChallengeService {
     private final RecipeRepository recipeRepository;
     private final CookingSessionRepository cookingSessionRepository;
     private final StreakCalculatorHelper streakCalculator;
+    private final com.chefkix.culinary.common.helper.RecipeHelper recipeHelper;
 
     public ChallengeResponse getTodayChallenge(String userId) {
         // 1. Lấy Challenge hôm nay từ Pool
@@ -486,7 +487,21 @@ public class ChallengeService {
                 communityChallengeRepository.save(ch);
                 log.info("Community challenge completed: {} (progress: {}/{})",
                         ch.getTitle(), newProgress, ch.getTargetCount());
-                // TODO: Kafka event to award XP to all participants
+
+                // Award XP to all participants
+                Set<String> participantIds = communityChallengeRedisRepository.getParticipants(ch.getId());
+                int bonusXp = ch.getRewardXpPerUser() > 0 ? ch.getRewardXpPerUser() : 50;
+                for (String participantId : participantIds) {
+                    recipeHelper.sendXpEvent(
+                            participantId,
+                            bonusXp,
+                            "COMMUNITY_CHALLENGE",
+                            null,
+                            "Community challenge completed: " + ch.getTitle()
+                    );
+                }
+                log.info("Awarded {} XP to {} participants for community challenge: {}",
+                        bonusXp, participantIds.size(), ch.getTitle());
             }
         }
     }
