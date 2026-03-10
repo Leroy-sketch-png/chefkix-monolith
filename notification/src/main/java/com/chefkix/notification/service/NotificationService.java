@@ -14,6 +14,7 @@ import com.chefkix.notification.entity.Notification;
 import com.chefkix.notification.enums.NotificationType;
 import com.chefkix.notification.dto.request.NotificationUpdateRequest;
 import com.chefkix.notification.dto.response.NotificationResponse;
+import com.chefkix.notification.dto.response.NotificationSummaryResponse;
 import com.chefkix.notification.mapper.NotificationMapper;
 import com.chefkix.notification.repository.NotificationRepository;
 import com.chefkix.shared.event.*;
@@ -436,5 +437,46 @@ public class NotificationService {
         if (content == null || content.isBlank()) return "";
         return content.substring(0, Math.min(content.length(), POST_PREVIEW_LENGTH))
                 + (content.length() > POST_PREVIEW_LENGTH ? "..." : "");
+    }
+
+    // ===============================================
+    // WELCOME BACK — ACTIVITY SUMMARY
+    // ===============================================
+
+    /**
+     * Aggregate notifications since a given timestamp, grouped by type.
+     * Powers the "Welcome Back" dashboard card.
+     */
+    public NotificationSummaryResponse getActivitySummary(String userId, Instant since) {
+        List<Notification> notifications = notificationRepository
+                .findAllByRecipientIdAndCreatedAtAfter(userId, since);
+
+        Map<NotificationType, Long> counts = notifications.stream()
+                .collect(Collectors.groupingBy(Notification::getType, Collectors.counting()));
+
+        return NotificationSummaryResponse.builder()
+                .newLikes(countTypes(counts, NotificationType.POST_LIKE, NotificationType.RECIPE_LIKED))
+                .newFollowers(countTypes(counts, NotificationType.NEW_FOLLOWER, NotificationType.FOLLOW))
+                .newComments(countTypes(counts, NotificationType.POST_COMMENT))
+                .newMentions(countTypes(counts, NotificationType.USER_MENTION))
+                .challengesAvailable(countTypes(counts, NotificationType.CHALLENGE_AVAILABLE, NotificationType.CHALLENGE_REMINDER))
+                .xpAwarded(countTypes(counts, NotificationType.XP_AWARDED, NotificationType.CREATOR_BONUS))
+                .levelsGained(countTypes(counts, NotificationType.LEVEL_UP))
+                .badgesEarned(countTypes(counts, NotificationType.BADGE_EARNED))
+                .roomInvites(countTypes(counts, NotificationType.ROOM_INVITE))
+                .totalNotifications(notifications.size())
+                .since(since)
+                .build();
+    }
+
+    /**
+     * Sum counts for one or more notification types.
+     */
+    private int countTypes(Map<NotificationType, Long> counts, NotificationType... types) {
+        int total = 0;
+        for (NotificationType type : types) {
+            total += counts.getOrDefault(type, 0L).intValue();
+        }
+        return total;
     }
 }

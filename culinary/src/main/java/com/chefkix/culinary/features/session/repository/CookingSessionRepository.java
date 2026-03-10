@@ -38,4 +38,16 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
     long countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
             String userId, List<String> recipeIds, SessionStatus status,
             LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Find recent cooking sessions for a single recipe by status.
+     * Used by social proof to show "recent cookers" of a recipe.
+     */
+    Page<CookingSession> findByRecipeIdAndStatusIn(String recipeId, List<SessionStatus> statuses, Pageable pageable);
+
+    /**
+     * Count sessions for a recipe with a specific status.
+     * Used to count posts linked to a recipe (status = POSTED).
+     */
+    long countByRecipeIdAndStatus(String recipeId, SessionStatus status);
 }

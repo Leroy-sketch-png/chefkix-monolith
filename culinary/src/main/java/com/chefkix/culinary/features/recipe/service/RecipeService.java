@@ -7,6 +7,7 @@ import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
 import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.RecipeStatus;
@@ -341,6 +342,56 @@ public class RecipeService {
         return RecentCookResponse.builder()
                 .cooks(cooks)
                 .totalCount(sessionsPage.getTotalElements())
+                .build();
+    }
+
+    // ===============================================
+    // SOCIAL PROOF (spec: 09-posts.txt / vision)
+    // ===============================================
+
+    /**
+     * Community validation for a recipe: cook count, rating, recent cookers, post count.
+     * Powers the "12 people made this" widget on recipe detail page.
+     */
+    @Transactional(readOnly = true)
+    public RecipeSocialProofResponse getRecipeSocialProof(String recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        // Post count = sessions that successfully linked a post
+        long postCount = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.POSTED);
+
+        // Recent cookers (last 5 who completed or posted)
+        Pageable top5 = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "completedAt"));
+        Page<CookingSession> recentSessions = cookingSessionRepository
+                .findByRecipeIdAndStatusIn(recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED), top5);
+
+        List<RecipeSocialProofResponse.RecentCooker> recentCookers = recentSessions.getContent().stream()
+                .map(session -> {
+                    RecipeSocialProofResponse.RecentCooker.RecentCookerBuilder cooker =
+                            RecipeSocialProofResponse.RecentCooker.builder()
+                                    .userId(session.getUserId())
+                                    .completedAt(session.getCompletedAt());
+                    try {
+                        BasicProfileInfo profile = profileProvider.getBasicProfile(session.getUserId());
+                        if (profile != null) {
+                            cooker.username(profile.getUsername())
+                                  .displayName(profile.getDisplayName())
+                                  .avatarUrl(profile.getAvatarUrl());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
+                        cooker.displayName("Chef");
+                    }
+                    return cooker.build();
+                })
+                .toList();
+
+        return RecipeSocialProofResponse.builder()
+                .cookCount(recipe.getCookCount())
+                .postCount(postCount)
+                .averageRating(recipe.getAverageRating())
+                .recentCookers(recentCookers)
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.chefkix.notification.controller;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.chefkix.notification.dto.request.NotificationUpdateRequest;
 import com.chefkix.notification.dto.response.NotificationResponse;
+import com.chefkix.notification.dto.response.NotificationSummaryResponse;
 import com.chefkix.notification.service.NotificationService;
 import com.chefkix.shared.dto.ApiResponse;
 
@@ -55,5 +57,17 @@ public class BellNotificationController {
     public void markAllAsRead() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         notificationService.markAllAsRead(userId);
+    }
+
+    /**
+     * Get aggregated activity summary since a given timestamp.
+     * Powers the "Welcome Back" card on the dashboard.
+     * FE stores lastVisitTimestamp in localStorage and passes it here.
+     */
+    @GetMapping("/summary-since")
+    public ApiResponse<NotificationSummaryResponse> getActivitySummary(
+            @RequestParam Instant since) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ApiResponse.success(notificationService.getActivitySummary(userId, since));
     }
 }
