@@ -15,6 +15,7 @@ import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
+import com.chefkix.social.post.entity.CoChef;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.entity.PostLike;
 import com.chefkix.social.post.entity.PostSave;
@@ -199,6 +200,25 @@ public class PostService {
             // xpEarned will be updated by recipe-service via Kafka or internal API
             // after FE calls link-post endpoint
             post.setXpEarned(0.0);
+
+            // Co-cooking attribution — populate co-chefs from room participants
+            if (session.getRoomCode() != null && !session.getRoomCode().isBlank()) {
+                post.setRoomCode(session.getRoomCode());
+                try {
+                    var coChefProfiles = sessionProvider.getCoChefs(session.getRoomCode(), userId);
+                    if (coChefProfiles != null && !coChefProfiles.isEmpty()) {
+                        post.setCoChefs(coChefProfiles.stream()
+                                .map(p -> CoChef.builder()
+                                        .userId(p.getUserId())
+                                        .displayName(p.getDisplayName())
+                                        .avatarUrl(p.getAvatarUrl())
+                                        .build())
+                                .collect(Collectors.toList()));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to populate co-chefs for room {}: {}", session.getRoomCode(), e.getMessage());
+                }
+            }
         }
 
         post = postRepository.save(post);

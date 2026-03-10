@@ -46,4 +46,6 @@ public class SessionInfo {
     String recipeAuthorId;
 
     Double recipeBaseXp;
+
+    String roomCode; // Co-cooking room code (null for solo sessions)
 }

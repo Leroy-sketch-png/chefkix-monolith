@@ -1,6 +1,9 @@
 package com.chefkix.culinary.api;
 
 import com.chefkix.culinary.api.dto.SessionInfo;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
+
+import java.util.List;
 
 /**
  * Cross-module contract for cooking session operations.
@@ -19,4 +22,14 @@ public interface SessionProvider {
      * @return session info including recipe metadata, or null if not found
      */
     SessionInfo getSession(String sessionId);
+
+    /**
+     * Get co-chefs (other participants) from a co-cooking room.
+     * Used by post creation to populate co-attribution.
+     *
+     * @param roomCode       the room code
+     * @param excludeUserId  the post author's user ID (excluded from results)
+     * @return list of other participants' basic profile info, or empty list
+     */
+    List<BasicProfileInfo> getCoChefs(String roomCode, String excludeUserId);
 }
