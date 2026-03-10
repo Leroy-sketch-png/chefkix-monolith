@@ -32,6 +32,7 @@ public class NotificationService {
     NotificationRepository notificationRepository;
     NotificationMapper notificationMapper;
     SimpMessagingTemplate messagingTemplate;
+    PushNotificationService pushNotificationService;
 
     private static final String USER_TOPIC_PREFIX = "/topic/user/";
     private static final int POST_PREVIEW_LENGTH = 50;
@@ -378,16 +379,57 @@ public class NotificationService {
     }
 
     // ===============================================
-    // WEBSOCKET BROADCAST
+    // WEBSOCKET + PUSH BROADCAST
     // ===============================================
 
     public void broadcastNotification(String recipientId, NotificationResponse response, String action) {
+        // WebSocket broadcast for real-time delivery
         Map<String, Object> payload = new HashMap<>();
         payload.put("action", action);
         payload.put("notification", response);
 
         messagingTemplate.convertAndSend(USER_TOPIC_PREFIX + recipientId, payload);
         log.info("Broadcasted {} notification to user: {}", action, recipientId);
+
+        // Push notification for background/offline delivery
+        if ("CREATE".equals(action)) {
+            sendPushNotification(recipientId, response);
+        }
+    }
+
+    /**
+     * Send push notification to user's devices.
+     */
+    private void sendPushNotification(String recipientId, NotificationResponse response) {
+        String title = "ChefKix";
+        String body = response.getMessage();
+        
+        // Customize title based on notification type
+        if (response.getType() != null) {
+            switch (response.getType()) {
+                case POST_LIKE -> title = "❤️ New Like";
+                case POST_COMMENT -> title = "💬 New Comment";
+                case NEW_FOLLOWER -> title = "👋 New Follower";
+                case LEVEL_UP -> title = "🎉 Level Up!";
+                case BADGE_EARNED -> title = "🏆 Badge Earned!";
+                case STREAK_WARNING -> title = "🔥 Streak Alert";
+                case RECIPE_MENTIONED -> title = "📝 You were tagged";
+                case POST_MENTIONED -> title = "📝 You were mentioned";
+                default -> title = "ChefKix";
+            }
+        }
+
+        Map<String, String> data = new HashMap<>();
+        data.put("notificationId", response.getId());
+        data.put("type", response.getType() != null ? response.getType().name() : "GENERAL");
+        if (response.getTargetEntityId() != null) {
+            data.put("targetId", response.getTargetEntityId());
+        }
+        if (response.getLink() != null) {
+            data.put("link", response.getLink());
+        }
+
+        pushNotificationService.sendToUser(recipientId, title, body, data);
     }
 
     private String getPreviewContent(String content) {

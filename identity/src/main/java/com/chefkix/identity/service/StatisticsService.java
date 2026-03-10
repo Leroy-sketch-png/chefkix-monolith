@@ -108,9 +108,11 @@ public class StatisticsService {
       }
     }
 
-    // 4. XỬ LÝ COUNTER (Tăng số món đã nấu)
-    // Giả sử bạn có field recipeCount hoặc completionCount trong Statistics
-    stats.setTotalRecipesPublished(stats.getCompletionCount() + 1);
+    // 4. INCREMENT COOKING COMPLETION COUNTER
+    // completionCount = cooking sessions completed (distinct from totalRecipesPublished which
+    // is tracked via Kafka PostCreatedEvent/PostDeletedEvent in PostEventListener).
+    long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
+    stats.setCompletionCount(currentCount + 1);
 
     // 5. CẬP NHẬT VÀ LƯU (1 lần duy nhất)
     profile.setStatistics(stats);

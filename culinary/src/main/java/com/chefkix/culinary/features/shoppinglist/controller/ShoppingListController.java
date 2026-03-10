@@ -6,6 +6,8 @@ import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromMealPlan
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromRecipeRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListResponse;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListSummaryResponse;
+import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProvider;
+import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProviderRegistry;
 import com.chefkix.culinary.features.shoppinglist.service.ShoppingListService;
 import com.chefkix.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -22,6 +24,7 @@ import java.util.List;
 public class ShoppingListController {
 
     private final ShoppingListService shoppingListService;
+    private final GroceryProviderRegistry groceryProviderRegistry;
 
     // ── Create ──────────────────────────────────────────────────────
 
@@ -128,6 +131,54 @@ public class ShoppingListController {
                 .success(true).statusCode(200)
                 .data(shoppingListService.regenerateShareToken(userId(), id))
                 .build();
+    }
+
+    // ── Grocery Delivery ────────────────────────────────────────────
+
+    /**
+     * POST /api/v1/shopping-lists/{id}/checkout — Convert shopping list to grocery cart.
+     * Uses the specified provider (defaults to "manual").
+     */
+    @PostMapping("/{id}/checkout")
+    public ApiResponse<GroceryProvider.CheckoutResult> checkout(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "manual") String provider) {
+        ShoppingListResponse list = shoppingListService.getById(userId(), id);
+        List<GroceryProvider.GroceryItemRequest> items = list.getItems().stream()
+                .filter(item -> !item.isChecked())
+                .map(item -> new GroceryProvider.GroceryItemRequest(
+                        item.getItemId(), item.getIngredient(),
+                        item.getQuantity(), item.getUnit(), item.getCategory()))
+                .toList();
+
+        GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
+        GroceryProvider.CheckoutResult result = groceryProvider.createCheckout(items, userId());
+
+        return ApiResponse.<GroceryProvider.CheckoutResult>builder()
+                .success(true).statusCode(200).data(result).build();
+    }
+
+    /**
+     * GET /api/v1/shopping-lists/checkout-status/{orderId} — Check delivery status.
+     */
+    @GetMapping("/checkout-status/{orderId}")
+    public ApiResponse<GroceryProvider.OrderStatus> checkoutStatus(
+            @PathVariable String orderId,
+            @RequestParam(defaultValue = "manual") String provider) {
+        GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
+        GroceryProvider.OrderStatus status = groceryProvider.getOrderStatus(orderId);
+        return ApiResponse.<GroceryProvider.OrderStatus>builder()
+                .success(true).statusCode(200).data(status).build();
+    }
+
+    /**
+     * GET /api/v1/shopping-lists/grocery-providers — List available providers.
+     */
+    @GetMapping("/grocery-providers")
+    public ApiResponse<List<GroceryProviderRegistry.ProviderInfo>> getProviders() {
+        return ApiResponse.<List<GroceryProviderRegistry.ProviderInfo>>builder()
+                .success(true).statusCode(200)
+                .data(groceryProviderRegistry.getAvailableProviders()).build();
     }
 
     // ── Helpers ─────────────────────────────────────────────────────

@@ -78,7 +78,7 @@ public class AuthenticationController {
 
   @PostMapping("/login")
   ApiResponse<AuthenticationResponse> authenticate(
-      @RequestBody AuthenticationRequest request, HttpServletResponse response) { // thêm response
+      @RequestBody @Valid AuthenticationRequest request, HttpServletResponse response) { // thêm response
     // 1. authenticate user và lấy token từ Keycloak
     AuthenticationResponse authResponse = authenticationService.authenticate(request);
 
@@ -99,7 +99,7 @@ public class AuthenticationController {
   }
 
   @PutMapping("/verify-otp-password")
-  ApiResponse<String> resetPassword(@RequestBody ResetPasswordRequest req) {
+  ApiResponse<String> resetPassword(@RequestBody @Valid ResetPasswordRequest req) {
     profileService.resetPassword(req.getEmail(), req.getOtp(), req.getNewPassword());
     return ApiResponse.<String>builder().data("Successfully reset password!").build();
   }

@@ -1,5 +1,6 @@
 package com.chefkix.social.post.dto.response;
 
+import com.chefkix.social.post.entity.CoChef;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -31,6 +32,10 @@ public class PostResponse {
     @JsonProperty("isPrivateRecipe")
     boolean isPrivateRecipe; // Nếu true -> FE ẩn nút "Xem công thức"
     Double xpEarned;        // Để FE chạy animation chúc mừng "+180 XP"
+
+    // --- CO-COOKING ATTRIBUTION ---
+    String roomCode;                // Co-cooking room this post originated from
+    List<CoChef> coChefs;           // Co-chefs who cooked together (userId, displayName, avatarUrl)
 
     Integer likes;
     Integer commentCount;

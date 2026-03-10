@@ -37,6 +37,10 @@ public class Post {
   @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư
   double xpEarned; // Số XP nhận được từ bài post này
 
+  // Co-cooking attribution (Stream 4)
+  String roomCode; // Room code if cooked in co-cooking session
+  List<CoChef> coChefs; // Other participants who cooked together
+
   @Builder.Default boolean hidden = false; // Auto-hidden when report threshold reached
 
   @Builder.Default Integer likes = 0;

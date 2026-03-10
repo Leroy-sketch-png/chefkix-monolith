@@ -141,6 +141,16 @@ public enum ErrorCode {
     PANTRY_ITEM_NOT_FOUND(404, "Pantry item not found", HttpStatus.NOT_FOUND),
     MEAL_PLAN_NOT_FOUND(404, "Meal plan not found", HttpStatus.NOT_FOUND),
     SHOPPING_LIST_NOT_FOUND(404, "Shopping list not found", HttpStatus.NOT_FOUND),
+
+    // ─── ADMIN / MODERATION / BAN ──────────────────────────────────
+
+    ADMIN_ACCESS_DENIED(403, "Admin access required", HttpStatus.FORBIDDEN),
+    REPORT_NOT_FOUND(404, "Report not found", HttpStatus.NOT_FOUND),
+    USER_BANNED(403, "Your account is currently suspended", HttpStatus.FORBIDDEN),
+    BAN_NOT_FOUND(404, "Ban record not found", HttpStatus.NOT_FOUND),
+    APPEAL_NOT_FOUND(404, "Appeal not found", HttpStatus.NOT_FOUND),
+    APPEAL_ALREADY_EXISTS(409, "An active appeal already exists for this ban", HttpStatus.CONFLICT),
+    CONTENT_MODERATION_FAILED(400, "Content was flagged by moderation and cannot be posted", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

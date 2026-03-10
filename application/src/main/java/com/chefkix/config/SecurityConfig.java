@@ -25,34 +25,31 @@ public class SecurityConfig {
 
     /**
      * Public endpoints that do NOT require authentication.
-     * Consolidated from identity, notification, and other service SecurityConfigs.
+     * CRITICAL: Must match ACTUAL controller @XxxMapping paths exactly.
+     * Audited 2025-03 against all controllers in identity/notification modules.
      */
     private static final String[] PUBLIC_ENDPOINTS = {
-            // --- Auth (identity) — public-facing only ---
-            "/auth/login",
-            "/auth/signup",
-            "/auth/refresh-token",
-            "/auth/verify-otp-user",
-            "/auth/request-reset-password",
-            "/auth/reset-password",
-            "/auth/verify-reset-otp",
-            "/auth/resend-signup-otp",
-            "/auth/profiles",
-            "/auth/profiles/paginated",
-
-            // --- Email trigger (notification) ---
-            "/email/send",
+            // --- Auth (identity) — pre-login flows only ---
+            "/auth/login",                  // AuthenticationController POST /login
+            "/auth/register",               // AuthenticationController POST /register
+            "/auth/refresh-token",          // AuthenticationController POST /refresh-token
+            "/auth/verify-otp",             // OtpController POST /verify-otp (signup OTP)
+            "/auth/resend-otp",             // OtpController POST /resend-otp
+            "/auth/forgot-password",        // AuthenticationController POST /forgot-password
+            "/auth/verify-otp-password",    // AuthenticationController PUT /verify-otp-password (reset)
+            "/auth/profiles",               // ProfileController GET /profiles (public listing)
+            "/auth/profiles/paginated",     // ProfileController GET /profiles/paginated
 
             // --- WebSocket ---
             "/ws/**",
 
-            // --- OpenAPI / Swagger ---
+            // --- OpenAPI / Swagger (dev only, restrict in prod profile) ---
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
 
-            // --- Actuator ---
-            "/actuator/**",
+            // --- Actuator (health only — restrict env/beans/heap in prod) ---
+            "/actuator/health",
 
             // --- Shopping list share links (public) ---
             "/shopping-lists/shared/**",

@@ -161,7 +161,25 @@ public class CookingSessionService {
             }
         }
 
-        // 3c. Co-op XP multiplier (from co-cooking rooms)
+        // 3c. Check Community Challenge (global progress, fire-and-forget)
+        try {
+            challengeService.checkAndAdvanceCommunityChallenge(userId, recipe);
+        } catch (Exception e) {
+            log.warn("Community challenge check failed for user {}: {}", userId, e.getMessage());
+        }
+
+        // 3d. Check Seasonal Challenge
+        Optional<ChallengeRewardResult> seasonalResult = challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe);
+        if (seasonalResult.isPresent()) {
+            baseXp += seasonalResult.get().getBonusXp();
+            if (challengeTitle == null) {
+                challengeTitle = seasonalResult.get().getChallengeTitle();
+            } else {
+                challengeTitle += " & " + seasonalResult.get().getChallengeTitle();
+            }
+        }
+
+        // 3e. Co-op XP multiplier (from co-cooking rooms)
         double coOpMultiplier = 1.0;
         String coOpReason = null;
         if (session.getRoomCode() != null) {

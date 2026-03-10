@@ -1,5 +1,6 @@
 package com.chefkix.social.post.service;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.UserMentionEvent;
@@ -47,6 +48,7 @@ public class ReplyService {
     ReplyLikeRepository replyLikeRepository;
     ReplyMapper replyMapper;
     ProfileProvider profileProvider;
+    ContentModerationProvider contentModerationProvider;
     MongoTemplate mongoTemplate;
     KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -62,6 +64,13 @@ public class ReplyService {
 
         Comment comment = commentRepository.findById(replyRequest.getParentCommentId())
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // AI CONTENT MODERATION — fail-open for replies
+        var moderationResult = contentModerationProvider.moderate(replyRequest.getContent(), "comment");
+        if (moderationResult.isBlocked()) {
+            log.warn("Reply content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+            throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+        }
 
         Reply reply = replyMapper.toReply(replyRequest);
         String parentCommentAuthorId = comment.getUserId();

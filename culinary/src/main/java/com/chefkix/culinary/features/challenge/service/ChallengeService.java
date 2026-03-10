@@ -3,8 +3,12 @@ package com.chefkix.culinary.features.challenge.service;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeHistoryResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResult;
+import com.chefkix.culinary.features.challenge.dto.response.CommunityChallengeResponse;
+import com.chefkix.culinary.features.challenge.dto.response.SeasonalChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeResponse;
 import com.chefkix.culinary.features.challenge.entity.ChallengeLog;
+import com.chefkix.culinary.features.challenge.entity.CommunityChallenge;
+import com.chefkix.culinary.features.challenge.entity.SeasonalChallenge;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -12,6 +16,9 @@ import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.helper.StreakCalculatorHelper;
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
+import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRepository;
+import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRedisRepository;
+import com.chefkix.culinary.features.challenge.repository.SeasonalChallengeRepository;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.mongodb.DuplicateKeyException;
@@ -39,9 +46,13 @@ public class ChallengeService {
 
     private final ChallengePoolService challengePoolService;
     private final ChallengeLogRepository challengeLogRepository;
+    private final CommunityChallengeRepository communityChallengeRepository;
+    private final CommunityChallengeRedisRepository communityChallengeRedisRepository;
+    private final SeasonalChallengeRepository seasonalChallengeRepository;
     private final RecipeRepository recipeRepository;
     private final CookingSessionRepository cookingSessionRepository;
     private final StreakCalculatorHelper streakCalculator;
+    private final com.chefkix.culinary.common.helper.RecipeHelper recipeHelper;
 
     public ChallengeResponse getTodayChallenge(String userId) {
         // 1. Lấy Challenge hôm nay từ Pool
@@ -408,5 +419,268 @@ public class ChallengeService {
         // Use the same logic as findMatchingRecipes but return IDs only
         List<ChallengeResponse.RecipePreviewDto> previews = findMatchingRecipes(challenge.getCriteriaMetadata());
         return previews.stream().map(ChallengeResponse.RecipePreviewDto::getId).toList();
+    }
+
+    // ===============================================
+    // COMMUNITY CHALLENGES
+    // ===============================================
+
+    /**
+     * Get active community challenges with live progress from Redis.
+     */
+    @Transactional(readOnly = true)
+    public List<CommunityChallengeResponse> getActiveCommunityChallenge(String userId) {
+        List<CommunityChallenge> active = communityChallengeRepository
+                .findByStatusAndEndsAtAfter("ACTIVE", Instant.now());
+
+        return active.stream().map(ch -> {
+            long progress = communityChallengeRedisRepository.getProgress(ch.getId());
+            long participants = communityChallengeRedisRepository.getParticipantCount(ch.getId());
+            boolean hasContributed = communityChallengeRedisRepository.isParticipant(ch.getId(), userId);
+            double percent = ch.getTargetCount() > 0
+                    ? Math.min(100.0, (progress * 100.0) / ch.getTargetCount())
+                    : 0.0;
+
+            return CommunityChallengeResponse.builder()
+                    .id(ch.getId())
+                    .title(ch.getTitle())
+                    .description(ch.getDescription())
+                    .emoji(ch.getEmoji())
+                    .targetCount(ch.getTargetCount())
+                    .targetUnit(ch.getTargetUnit())
+                    .currentProgress(progress)
+                    .participantCount(participants)
+                    .progressPercent(Math.round(percent * 10.0) / 10.0)
+                    .rewardXpPerUser(ch.getRewardXpPerUser())
+                    .rewardBadgeId(ch.getRewardBadgeId())
+                    .startsAt(ch.getStartsAt().toString())
+                    .endsAt(ch.getEndsAt().toString())
+                    .status(ch.getStatus())
+                    .hasContributed(hasContributed)
+                    .criteria(ch.getCriteria())
+                    .tags(ch.getTags())
+                    .build();
+        }).toList();
+    }
+
+    /**
+     * Check if a completed recipe should contribute to active community challenges.
+     * Called during cooking session completion.
+     */
+    public void checkAndAdvanceCommunityChallenge(String userId, Recipe recipe) {
+        List<CommunityChallenge> active = communityChallengeRepository
+                .findByStatusAndEndsAtAfter("ACTIVE", Instant.now());
+
+        for (CommunityChallenge ch : active) {
+            if (!matchesCriteria(recipe, ch.getCriteria())) continue;
+
+            // Increment progress and track participant
+            long newProgress = communityChallengeRedisRepository.incrementProgress(ch.getId());
+            communityChallengeRedisRepository.addParticipant(ch.getId(), userId);
+
+            // Check if community goal reached
+            if (newProgress >= ch.getTargetCount() && "ACTIVE".equals(ch.getStatus())) {
+                ch.setStatus("COMPLETED");
+                ch.setFinalProgress((int) newProgress);
+                ch.setFinalParticipantCount((int)
+                        communityChallengeRedisRepository.getParticipantCount(ch.getId()));
+                communityChallengeRepository.save(ch);
+                log.info("Community challenge completed: {} (progress: {}/{})",
+                        ch.getTitle(), newProgress, ch.getTargetCount());
+
+                // Award XP to all participants
+                Set<String> participantIds = communityChallengeRedisRepository.getParticipants(ch.getId());
+                int bonusXp = ch.getRewardXpPerUser() > 0 ? ch.getRewardXpPerUser() : 50;
+                for (String participantId : participantIds) {
+                    recipeHelper.sendXpEvent(
+                            participantId,
+                            bonusXp,
+                            "COMMUNITY_CHALLENGE",
+                            null,
+                            "Community challenge completed: " + ch.getTitle()
+                    );
+                }
+                log.info("Awarded {} XP to {} participants for community challenge: {}",
+                        bonusXp, participantIds.size(), ch.getTitle());
+            }
+        }
+    }
+
+    // ===============================================
+    // SEASONAL CHALLENGES
+    // ===============================================
+
+    /**
+     * Get active/upcoming seasonal challenges with per-user progress.
+     */
+    @Transactional(readOnly = true)
+    public List<SeasonalChallengeResponse> getSeasonalChallenges(String userId) {
+        List<SeasonalChallenge> challenges = seasonalChallengeRepository
+                .findByStatusIn(List.of("ACTIVE", "UPCOMING"));
+
+        return challenges.stream().map(ch -> {
+            // Calculate user progress from ChallengeLog
+            String seasonalKey = "SEASONAL-" + ch.getId();
+            int userProgress = 0;
+            boolean userCompleted = false;
+            String userCompletedAt = null;
+
+            if ("ACTIVE".equals(ch.getStatus())) {
+                // Count user's qualifying completions during this event's date range
+                userProgress = countUserSeasonalProgress(userId, ch);
+
+                Optional<ChallengeLog> logOpt = challengeLogRepository
+                        .findByUserIdAndChallengeDate(userId, seasonalKey);
+                if (logOpt.isPresent()) {
+                    userCompleted = true;
+                    userCompletedAt = logOpt.get().getCompletedAt().toString();
+                }
+            }
+
+            // Load featured recipes
+            List<ChallengeResponse.RecipePreviewDto> featuredRecipes = List.of();
+            if (ch.getFeaturedRecipeIds() != null && !ch.getFeaturedRecipeIds().isEmpty()) {
+                featuredRecipes = recipeRepository.findAllById(ch.getFeaturedRecipeIds()).stream()
+                        .map(this::mapToPreviewDto)
+                        .toList();
+            }
+
+            return SeasonalChallengeResponse.builder()
+                    .id(ch.getId())
+                    .title(ch.getTitle())
+                    .description(ch.getDescription())
+                    .emoji(ch.getEmoji())
+                    .theme(ch.getTheme())
+                    .heroImageUrl(ch.getHeroImageUrl())
+                    .accentColor(ch.getAccentColor())
+                    .targetCount(ch.getTargetCount())
+                    .targetUnit(ch.getTargetUnit())
+                    .rewardXp(ch.getRewardXp())
+                    .rewardBadgeId(ch.getRewardBadgeId())
+                    .rewardBadgeName(ch.getRewardBadgeName())
+                    .startsAt(ch.getStartsAt().toString())
+                    .endsAt(ch.getEndsAt().toString())
+                    .status(ch.getStatus())
+                    .userProgress(Math.min(userProgress, ch.getTargetCount()))
+                    .userCompleted(userCompleted)
+                    .userCompletedAt(userCompletedAt)
+                    .criteria(ch.getCriteria())
+                    .featuredRecipes(featuredRecipes)
+                    .tags(ch.getTags())
+                    .build();
+        }).toList();
+    }
+
+    /**
+     * Check if a completed recipe should advance seasonal challenge progress.
+     * Awards badge + XP when personal target is met.
+     */
+    public Optional<ChallengeRewardResult> checkAndAdvanceSeasonalChallenge(String userId, Recipe recipe) {
+        List<SeasonalChallenge> active = seasonalChallengeRepository
+                .findByStatusAndEndsAtAfter("ACTIVE", Instant.now());
+
+        for (SeasonalChallenge ch : active) {
+            if (!matchesCriteria(recipe, ch.getCriteria())) continue;
+
+            String seasonalKey = "SEASONAL-" + ch.getId();
+
+            // Already completed?
+            if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, seasonalKey)) continue;
+
+            // Count progress (including this current completion)
+            int progress = countUserSeasonalProgress(userId, ch) + 1;
+
+            if (progress >= ch.getTargetCount()) {
+                // Seasonal challenge completed!
+                try {
+                    ChallengeLog log = ChallengeLog.builder()
+                            .userId(userId)
+                            .challengeId(ch.getId())
+                            .challengeTitle(ch.getTitle())
+                            .recipeId(recipe.getId())
+                            .recipeTitle(recipe.getTitle())
+                            .challengeDate(seasonalKey)
+                            .bonusXp(ch.getRewardXp())
+                            .completedAt(Instant.now())
+                            .build();
+                    challengeLogRepository.save(log);
+
+                    return Optional.of(ChallengeRewardResult.builder()
+                            .completed(true)
+                            .bonusXp(ch.getRewardXp())
+                            .challengeTitle(ch.getTitle())
+                            .build());
+                } catch (DuplicateKeyException e) {
+                    return Optional.empty();
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Count how many qualifying recipes a user has completed during a seasonal event.
+     */
+    private int countUserSeasonalProgress(String userId, SeasonalChallenge ch) {
+        LocalDateTime startDt = LocalDateTime.ofInstant(ch.getStartsAt(), ZoneId.of("UTC"));
+        LocalDateTime endDt = LocalDateTime.ofInstant(ch.getEndsAt(), ZoneId.of("UTC"));
+
+        // If the challenge has featured recipe IDs, use those; otherwise match by criteria
+        List<String> recipeIds;
+        if (ch.getFeaturedRecipeIds() != null && !ch.getFeaturedRecipeIds().isEmpty()) {
+            recipeIds = ch.getFeaturedRecipeIds();
+        } else {
+            recipeIds = findMatchingRecipes(ch.getCriteria()).stream()
+                    .map(ChallengeResponse.RecipePreviewDto::getId)
+                    .toList();
+        }
+
+        if (recipeIds.isEmpty()) return 0;
+
+        return (int) cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
+                userId, recipeIds, SessionStatus.COMPLETED, startDt, endDt);
+    }
+
+    /**
+     * Check if a recipe matches generic criteria map.
+     * Used by community and seasonal challenges.
+     */
+    private boolean matchesCriteria(Recipe recipe, Map<String, Object> criteria) {
+        if (criteria == null || criteria.isEmpty()) return true; // No criteria = any recipe qualifies
+
+        String type = (String) criteria.get("type");
+        if ("COOK_ANY".equals(type)) return true;
+
+        // Check cuisineType
+        if (criteria.containsKey("cuisineType")) {
+            @SuppressWarnings("unchecked")
+            List<String> cuisines = (List<String>) criteria.get("cuisineType");
+            if (recipe.getCuisineType() != null &&
+                    cuisines.stream().anyMatch(c -> c.equalsIgnoreCase(recipe.getCuisineType()))) {
+                return true;
+            }
+        }
+
+        // Check skillTags
+        if (criteria.containsKey("skillTags")) {
+            @SuppressWarnings("unchecked")
+            List<String> tags = (List<String>) criteria.get("skillTags");
+            if (recipe.getSkillTags() != null &&
+                    recipe.getSkillTags().stream().anyMatch(t ->
+                            tags.stream().anyMatch(ct -> ct.equalsIgnoreCase(t)))) {
+                return true;
+            }
+        }
+
+        // Check difficulty
+        if (criteria.containsKey("difficulty")) {
+            String difficulty = (String) criteria.get("difficulty");
+            if (recipe.getDifficulty() != null &&
+                    recipe.getDifficulty().name().equalsIgnoreCase(difficulty)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

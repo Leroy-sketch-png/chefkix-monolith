@@ -48,17 +48,18 @@ spring:
           issuer-uri: http://localhost:8180/realms/nottisn
 
 # ── Keycloak IDP (identity module — admin client) ──
+# SECURITY: Use env vars in production. Defaults here are for local Docker Keycloak only.
 idp:
-  url: http://localhost:8180
-  client-id: chefkix-be
-  client-secret: PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL
+  url: ${IDP_URL:http://localhost:8180}
+  client-id: ${IDP_CLIENT_ID:chefkix-be}
+  client-secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
 
 keycloak:
-  auth-server-url: http://localhost:8180
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}
   realm: nottisn
   resource: chefkix-be
   credentials:
-    secret: PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL
+    secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
 
 # ── OTP Configuration (identity module) ──
 app:
@@ -94,3 +95,8 @@ logging:
     org.springframework.security: WARN
     org.springframework.web.socket: WARN
     org.springframework.messaging: WARN
+
+# ── ChefKix Custom Configuration ──
+chefkix:
+  push:
+    enabled: ${PUSH_ENABLED:false}  # Set to true and provide FIREBASE_SERVICE_ACCOUNT_JSON to enable

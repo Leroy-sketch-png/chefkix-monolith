@@ -1,5 +1,6 @@
 package com.chefkix.social.post.service;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.api.ProfileProvider;
@@ -15,6 +16,7 @@ import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
+import com.chefkix.social.post.entity.CoChef;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.entity.PostLike;
 import com.chefkix.social.post.entity.PostSave;
@@ -71,6 +73,7 @@ public class PostService {
     UploadImageFile uploadImageFile;
     ProfileProvider profileProvider;
     SessionProvider sessionProvider;
+    ContentModerationProvider contentModerationProvider;
 
     @Qualifier("taskExecutor")
     Executor taskExecutor;
@@ -157,6 +160,15 @@ public class PostService {
 
             log.info("Xử lý xong I/O trong {}ms", System.currentTimeMillis() - startTime);
 
+            // AI CONTENT MODERATION — fail-open for posts
+            if (request.getContent() != null && !request.getContent().isBlank()) {
+                var moderationResult = contentModerationProvider.moderate(request.getContent(), "post");
+                if (moderationResult.isBlocked()) {
+                    log.warn("Post content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+                    throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+                }
+            }
+
             // LƯU VÀO DB
             return savePostToDb(request, userId, userProfile, photoUrls, session);
 
@@ -199,6 +211,25 @@ public class PostService {
             // xpEarned will be updated by recipe-service via Kafka or internal API
             // after FE calls link-post endpoint
             post.setXpEarned(0.0);
+
+            // Co-cooking attribution — populate co-chefs from room participants
+            if (session.getRoomCode() != null && !session.getRoomCode().isBlank()) {
+                post.setRoomCode(session.getRoomCode());
+                try {
+                    var coChefProfiles = sessionProvider.getCoChefs(session.getRoomCode(), userId);
+                    if (coChefProfiles != null && !coChefProfiles.isEmpty()) {
+                        post.setCoChefs(coChefProfiles.stream()
+                                .map(p -> CoChef.builder()
+                                        .userId(p.getUserId())
+                                        .displayName(p.getDisplayName())
+                                        .avatarUrl(p.getAvatarUrl())
+                                        .build())
+                                .collect(Collectors.toList()));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to populate co-chefs for room {}: {}", session.getRoomCode(), e.getMessage());
+                }
+            }
         }
 
         post = postRepository.save(post);

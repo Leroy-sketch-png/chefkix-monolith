@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.social.api.dto.PostDetail;
@@ -36,6 +37,7 @@ public class ChatMessageService {
     ChatMessageRepository chatMessageRepository;
     ConversationRepository conversationRepository;
     ProfileProvider profileProvider;
+    ContentModerationProvider contentModerationProvider;
 
     ChatMessageMapper chatMessageMapper;
     PostService postService;
@@ -138,6 +140,13 @@ public class ChatMessageService {
             // If message type is TEXT, the content must not be NULL
             if (finalMessageContent == null || finalMessageContent.trim().isEmpty()) {
                 throw new AppException(ErrorCode.INVALID_MESSAGE);
+            }
+
+            // AI CONTENT MODERATION — fail-open for chat
+            var moderationResult = contentModerationProvider.moderate(finalMessageContent, "chat");
+            if (moderationResult.isBlocked()) {
+                log.warn("Chat message blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+                throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
             }
         }
 

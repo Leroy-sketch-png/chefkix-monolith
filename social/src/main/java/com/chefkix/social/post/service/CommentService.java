@@ -1,5 +1,6 @@
 package com.chefkix.social.post.service;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.shared.event.CommentEvent;
 import com.chefkix.shared.event.UserMentionEvent;
 import com.chefkix.social.post.dto.request.CommentRequest;
@@ -49,6 +50,7 @@ public class CommentService {
     static Pattern TAG_PATTERN = Pattern.compile("@\\[([^|]+)\\|([^]]+)\\]");
   CommentMapper commentMapper;
     private final ProfileProvider profileProvider;
+    private final ContentModerationProvider contentModerationProvider;
 
     public CommentResponse createComment(
       Authentication authentication, String postId, CommentRequest req) {
@@ -84,6 +86,13 @@ public class CommentService {
             }
         }
 
+        // AI CONTENT MODERATION — fail-open for comments
+        var moderationResult = contentModerationProvider.moderate(req.getContent(), "comment");
+        if (moderationResult.isBlocked()) {
+            log.warn("Comment content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+            throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+        }
+
     Comment comment =
         Comment.builder()
             .userId(userId)
@@ -110,7 +119,6 @@ public class CommentService {
 
     // Send notification to the tagged users
     if (!extractedTagIds.isEmpty()) {
-        // TODO
         sendTagNotification(comment, post, extractedTagIds);
     }
 

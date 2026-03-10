@@ -4,21 +4,26 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value; // Import thêm cái này
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration("identityKafkaConsumerConfig")
 public class KafkaConsumerConfig {
 
   @Value("${spring.kafka.bootstrap-servers:localhost:9094}")
   private String bootstrapServers;
 
-  /** 🔧 Hàm generic tạo factory cho bất kỳ event class nào */
+  /** Generic factory builder with error handling — 3 retries, 1s between each. */
   private <T> ConcurrentKafkaListenerContainerFactory<String, T> createFactory(
       Class<T> eventClass, String groupId) {
     Map<String, Object> props = new HashMap<>();
@@ -37,6 +42,11 @@ public class KafkaConsumerConfig {
     ConcurrentKafkaListenerContainerFactory<String, T> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
+    // 3 retries, 1s between each. Prevents permanent message loss on transient failures.
+    factory.setCommonErrorHandler(new DefaultErrorHandler(
+        (record, ex) -> log.error("Dead-letter (identity {}): topic={}, offset={}, error={}",
+            eventClass.getSimpleName(), record.topic(), record.offset(), ex.getMessage()),
+        new FixedBackOff(1000L, 3L)));
 
     return factory;
   }

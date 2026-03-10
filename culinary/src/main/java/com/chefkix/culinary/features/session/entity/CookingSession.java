@@ -5,6 +5,8 @@ import com.chefkix.culinary.common.enums.TimerEventType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -12,6 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "cooking_sessions")
+@CompoundIndexes({
+    @CompoundIndex(name = "user_status_idx", def = "{'userId': 1, 'status': 1}"),
+    @CompoundIndex(name = "user_recipe_status_idx", def = "{'userId': 1, 'recipeId': 1, 'status': 1}")
+})
 @Data
 @Builder
 @NoArgsConstructor

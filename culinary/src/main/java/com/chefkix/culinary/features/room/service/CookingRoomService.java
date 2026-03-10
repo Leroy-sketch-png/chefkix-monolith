@@ -64,8 +64,8 @@ public class CookingRoomService {
         // Generate unique room code
         String roomCode = generateUniqueRoomCode();
 
-        // Get or create a cooking session for this recipe
-        String sessionId = getOrCreateSession(userId, request.getRecipeId());
+        // Get or create a cooking session for this recipe (linked to room for co-op XP)
+        String sessionId = getOrCreateSession(userId, request.getRecipeId(), roomCode);
 
         // Get user profile for participant info
         BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
@@ -134,7 +134,7 @@ public class CookingRoomService {
         // Spectators don't get a cooking session — they're just watching
         String sessionId = null;
         if (!isSpectator) {
-            sessionId = getOrCreateSession(userId, room.getRecipeId());
+            sessionId = getOrCreateSession(userId, room.getRecipeId(), roomCode);
         }
 
         // Build participant
@@ -442,8 +442,9 @@ public class CookingRoomService {
 
     /**
      * Gets existing IN_PROGRESS session for recipe, or starts a new one.
+     * Links the session to the room so co-op XP multiplier applies on completion.
      */
-    private String getOrCreateSession(String userId, String recipeId) {
+    private String getOrCreateSession(String userId, String recipeId, String roomCode) {
         // Check if user already has an active session
         Optional<CookingSession> existing = sessionRepository
                 .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
@@ -451,7 +452,11 @@ public class CookingRoomService {
         if (existing.isPresent()) {
             CookingSession session = existing.get();
             if (session.getRecipeId().equals(recipeId)) {
-                // Reuse existing session for same recipe
+                // Link existing session to room if not already linked
+                if (session.getRoomCode() == null && roomCode != null) {
+                    session.setRoomCode(roomCode);
+                    sessionRepository.save(session);
+                }
                 return session.getId();
             }
             // Different recipe — can't join room while cooking something else
@@ -461,6 +466,15 @@ public class CookingRoomService {
         // Start a new session
         var response = sessionService.startSession(userId,
                 StartSessionRequest.builder().recipeId(recipeId).build());
+
+        // Link the newly created session to the room
+        if (roomCode != null) {
+            sessionRepository.findById(response.getSessionId()).ifPresent(session -> {
+                session.setRoomCode(roomCode);
+                sessionRepository.save(session);
+            });
+        }
+
         return response.getSessionId();
     }
 

@@ -62,9 +62,11 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, BaseEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(notificationEventConsumerFactory());
+        // 3 retries, 1s between each. Prevents permanent message loss on transient failures.
         factory.setCommonErrorHandler(new DefaultErrorHandler(
-                (record, ex) -> log.error("Skipping poison pill: {} - Error: {}", record, ex.getMessage()),
-                new FixedBackOff(0L, 0L)));
+                (record, ex) -> log.error("Dead-letter (bell notification): topic={}, offset={}, error={}",
+                        record.topic(), record.offset(), ex.getMessage()),
+                new FixedBackOff(1000L, 3L)));
         return factory;
     }
 
@@ -94,9 +96,11 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, EmailEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(emailEventConsumerFactory());
+        // 3 retries, 1s between each. Email delivery is important — don't lose OTPs.
         factory.setCommonErrorHandler(new DefaultErrorHandler(
-                (record, ex) -> log.error("Skipping poison pill email: {} - Error: {}", record, ex.getMessage()),
-                new FixedBackOff(0L, 0L)));
+                (record, ex) -> log.error("Dead-letter (email): topic={}, offset={}, error={}",
+                        record.topic(), record.offset(), ex.getMessage()),
+                new FixedBackOff(1000L, 3L)));
         return factory;
     }
 }
