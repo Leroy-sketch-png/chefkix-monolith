@@ -6,6 +6,7 @@ import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
 import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
 import jakarta.validation.Valid;
@@ -35,6 +36,12 @@ public class RecipeController {
     @GetMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> getById(@PathVariable String id) {
         return ApiResponse.success(recipeService.getRecipeById(id));
+    }
+
+    // 3b. SOCIAL PROOF — community validation for a recipe
+    @GetMapping("/{id}/social-proof")
+    public ApiResponse<RecipeSocialProofResponse> getSocialProof(@PathVariable String id) {
+        return ApiResponse.success(recipeService.getRecipeSocialProof(id));
     }
 
     // 4. SEARCH & FILTER
