@@ -50,6 +50,13 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- ── Firebase Admin SDK for Push Notifications ── -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.4.3</version>
+        </dependency>
+
         <!-- ── Security ── -->
         <dependency>
             <groupId>org.springframework.security</groupId>
