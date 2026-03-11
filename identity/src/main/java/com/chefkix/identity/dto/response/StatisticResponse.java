@@ -3,7 +3,9 @@ package com.chefkix.identity.dto.response;
 import com.chefkix.identity.enums.Title;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -35,6 +37,8 @@ public class StatisticResponse {
   @Builder.Default Long completionCount = 0L;
   @Builder.Default Long reputation = 0L;
   @Builder.Default List<String> badges = Arrays.asList();
+  /** Badge name → ISO timestamp when earned. Null for badges earned before tracking was added. */
+  @Builder.Default Map<String, Instant> badgeTimestamps = new HashMap<>();
   
   // Streak tracking - computed from lastCookAt
   /** Whether user has cooked within the streak window (today for daily, 72h for cooking) */

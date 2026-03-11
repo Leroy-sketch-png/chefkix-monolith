@@ -45,6 +45,7 @@ public class RecipeController {
     }
 
     // 4. SEARCH & FILTER
+    // GET /recipes — main search endpoint (accepts query params from RecipeSearchQuery)
     @GetMapping
     public ApiResponse<List<RecipeDetailResponse>> search(
             @ModelAttribute RecipeSearchQuery query,
@@ -52,6 +53,15 @@ public class RecipeController {
     ) {
         Page<RecipeDetailResponse> pageResult = recipeService.searchRecipes(query, pageable);
         return ApiResponse.successPage(pageResult);
+    }
+
+    // GET /recipes/search — alias for FE convenience (same logic, cleaner semantic URL)
+    @GetMapping("/search")
+    public ApiResponse<List<RecipeDetailResponse>> searchAlias(
+            @ModelAttribute RecipeSearchQuery query,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return search(query, pageable);
     }
 
     // 5. TRENDING

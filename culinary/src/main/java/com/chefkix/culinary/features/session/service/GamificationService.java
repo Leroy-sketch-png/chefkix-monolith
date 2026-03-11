@@ -49,8 +49,10 @@ public class GamificationService {
         long completedToday = completionRepository.countByUserIdAndCompletedAtAfter(
                 userId, today.atStartOfDay());
 
-        // TODO: Logic check account age (ví dụ < 7 ngày thì limit = 2)
-        int dailyLimit = 5;
+        // Account age-based rate limiting: new accounts (< 7 days) get stricter limits
+        java.time.Instant accountCreatedAt = profileProvider.getAccountCreatedAt(userId);
+        long accountAgeDays = java.time.temporal.ChronoUnit.DAYS.between(accountCreatedAt, java.time.Instant.now());
+        int dailyLimit = accountAgeDays < 7 ? 2 : 5;
         if (completedToday >= dailyLimit) {
             throw new AppException(ErrorCode.RATE_LIMIT_EXCEEDED,
                     "Bạn đã đạt giới hạn nấu ăn trong ngày (" + dailyLimit + " món).");

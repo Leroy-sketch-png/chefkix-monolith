@@ -48,18 +48,18 @@ spring:
           issuer-uri: http://localhost:8180/realms/nottisn
 
 # ── Keycloak IDP (identity module — admin client) ──
-# SECURITY: Use env vars in production. Defaults here are for local Docker Keycloak only.
+# SECURITY: Use env vars in production. Defaults here are PLACEHOLDERS for documentation only.
 idp:
   url: ${IDP_URL:http://localhost:8180}
   client-id: ${IDP_CLIENT_ID:chefkix-be}
-  client-secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
+  client-secret: ${IDP_CLIENT_SECRET:CHANGE_ME_KEYCLOAK_SECRET}
 
 keycloak:
   auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}
   realm: nottisn
   resource: chefkix-be
   credentials:
-    secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
+    secret: ${IDP_CLIENT_SECRET:CHANGE_ME_KEYCLOAK_SECRET}
 
 # ── OTP Configuration (identity module) ──
 app:
@@ -84,9 +84,9 @@ notification:
 
 # ── Cloudinary (culinary module — image uploads) ──
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME:dc0umlqvf}
-  api-key: ${CLOUDINARY_API_KEY:762755256531976}
-  api-secret: ${CLOUDINARY_API_SECRET:VRyusVXC7KObwoLjg1zmRtUt514}
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:CHANGE_ME}
+  api-key: ${CLOUDINARY_API_KEY:CHANGE_ME}
+  api-secret: ${CLOUDINARY_API_SECRET:CHANGE_ME}
 
 # ── Logging (sensible defaults, not microservice DEBUG spam) ──
 logging:
