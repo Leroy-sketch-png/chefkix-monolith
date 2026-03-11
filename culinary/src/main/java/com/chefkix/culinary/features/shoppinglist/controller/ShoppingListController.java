@@ -9,7 +9,7 @@ import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListSumma
 import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProvider;
 import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProviderRegistry;
 import com.chefkix.culinary.features.shoppinglist.service.ShoppingListService;
-import com.chefkix.shared.dto.response.ApiResponse;
+import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

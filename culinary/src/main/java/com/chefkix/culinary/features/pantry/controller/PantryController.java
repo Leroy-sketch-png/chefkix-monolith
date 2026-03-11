@@ -5,7 +5,7 @@ import com.chefkix.culinary.features.pantry.dto.request.PantryItemRequest;
 import com.chefkix.culinary.features.pantry.dto.response.PantryItemResponse;
 import com.chefkix.culinary.features.pantry.dto.response.PantryRecipeMatchResponse;
 import com.chefkix.culinary.features.pantry.service.PantryService;
-import com.chefkix.shared.dto.response.ApiResponse;
+import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;

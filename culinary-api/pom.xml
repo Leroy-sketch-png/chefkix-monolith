@@ -19,5 +19,9 @@
             <groupId>com.chefkix</groupId>
             <artifactId>shared</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.chefkix</groupId>
+            <artifactId>identity-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

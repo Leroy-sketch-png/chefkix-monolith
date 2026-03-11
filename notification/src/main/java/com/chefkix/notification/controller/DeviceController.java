@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.chefkix.notification.dto.request.RegisterPushTokenRequest;
 import com.chefkix.notification.service.PushNotificationService;
-import com.chefkix.shared.dto.response.ApiResponse;
+import com.chefkix.shared.dto.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -5,7 +5,7 @@ import com.chefkix.culinary.features.mealplan.dto.request.SwapMealRequest;
 import com.chefkix.culinary.features.mealplan.dto.response.MealPlanResponse;
 import com.chefkix.culinary.features.mealplan.entity.ShoppingItem;
 import com.chefkix.culinary.features.mealplan.service.MealPlanService;
-import com.chefkix.shared.dto.response.ApiResponse;
+import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;

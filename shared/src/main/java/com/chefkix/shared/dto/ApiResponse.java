@@ -35,6 +35,15 @@ public class ApiResponse<T> {
     // ─── Factory Methods ────────────────────────────────────────────
 
     /** 200 OK with data. */
+    public static <T> ApiResponse<T> ok(T data) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .statusCode(200)
+                .data(data)
+                .build();
+    }
+
+    /** 200 OK with data. Alias for {@link #ok(Object)}. */
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
                 .success(true)

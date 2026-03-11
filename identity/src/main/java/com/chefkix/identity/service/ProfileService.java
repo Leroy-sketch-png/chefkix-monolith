@@ -24,6 +24,7 @@ import com.chefkix.social.api.PostProvider;
 import com.chefkix.social.api.dto.PostSummary;
 import com.chefkix.identity.utils.SecurityUtils;
 import com.chefkix.identity.utils.SocialUtils;
+import org.springframework.context.annotation.Lazy;
 // Feign removed in monolith
 import java.time.Instant;
 import java.util.Collections;
@@ -60,7 +61,7 @@ public class ProfileService {
 
   // === External Module Providers ===
   KeycloakAdminClient keycloakAdminClient;
-  PostProvider postProvider;
+  @Lazy PostProvider postProvider;
 
   // === Utilities & Services ===
   ErrorNormalizer errorNormalizer;

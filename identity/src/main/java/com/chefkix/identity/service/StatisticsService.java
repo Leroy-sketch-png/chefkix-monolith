@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.dto.CreatorInsightsInfo;
 import lombok.AccessLevel;
+import org.springframework.context.annotation.Lazy;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,7 @@ public class StatisticsService {
   ProfileMapper profileMapper;
   KafkaTemplate<String, Object> kafkaTemplate;
 
-  RecipeProvider recipeProvider;
+  @Lazy RecipeProvider recipeProvider;
 
   /**
    * Hàm chính xử lý logic sau khi hoàn thành Recipe (Được gọi từ Recipe Service). Thực hiện: Cộng

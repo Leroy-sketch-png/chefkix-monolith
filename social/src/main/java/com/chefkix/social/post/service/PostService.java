@@ -2,6 +2,7 @@ package com.chefkix.social.post.service;
 
 import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.SessionProvider;
+import org.springframework.context.annotation.Lazy;
 import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
@@ -72,7 +73,7 @@ public class PostService {
     // Services & Providers
     UploadImageFile uploadImageFile;
     ProfileProvider profileProvider;
-    SessionProvider sessionProvider;
+    @Lazy SessionProvider sessionProvider;
     ContentModerationProvider contentModerationProvider;
 
     @Qualifier("taskExecutor")

@@ -18,6 +18,7 @@ import com.google.firebase.messaging.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +36,7 @@ public class PushNotificationService {
     PushTokenRepository pushTokenRepository;
 
     @Value("${chefkix.push.enabled:false}")
+    @NonFinal
     boolean pushEnabled;
 
     // ===============================================

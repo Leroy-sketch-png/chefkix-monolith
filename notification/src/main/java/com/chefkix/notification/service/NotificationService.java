@@ -403,7 +403,7 @@ public class NotificationService {
      */
     private void sendPushNotification(String recipientId, NotificationResponse response) {
         String title = "ChefKix";
-        String body = response.getMessage();
+        String body = response.getContent();
         
         // Customize title based on notification type
         if (response.getType() != null) {
@@ -414,8 +414,7 @@ public class NotificationService {
                 case LEVEL_UP -> title = "🎉 Level Up!";
                 case BADGE_EARNED -> title = "🏆 Badge Earned!";
                 case STREAK_WARNING -> title = "🔥 Streak Alert";
-                case RECIPE_MENTIONED -> title = "📝 You were tagged";
-                case POST_MENTIONED -> title = "📝 You were mentioned";
+                case USER_MENTION -> title = "📝 You were mentioned";
                 default -> title = "ChefKix";
             }
         }
@@ -426,8 +425,8 @@ public class NotificationService {
         if (response.getTargetEntityId() != null) {
             data.put("targetId", response.getTargetEntityId());
         }
-        if (response.getLink() != null) {
-            data.put("link", response.getLink());
+        if (response.getTargetEntityUrl() != null) {
+            data.put("link", response.getTargetEntityUrl());
         }
 
         pushNotificationService.sendToUser(recipientId, title, body, data);
