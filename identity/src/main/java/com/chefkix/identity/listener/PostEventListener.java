@@ -1,5 +1,6 @@
 package com.chefkix.identity.listener;
 
+import com.chefkix.config.KafkaIdempotencyService;
 import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.identity.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +14,16 @@ import org.springframework.stereotype.Component;
 public class PostEventListener {
 
   private final StatisticsService statisticsService;
+  private final KafkaIdempotencyService idempotencyService;
 
   @KafkaListener(
       topics = "post-delivery",
       groupId = "post-created-group",
       containerFactory = "postCreatedKafkaListenerContainerFactory")
   public void listenPostCreatedDelivery(PostCreatedEvent event) {
+    if (!idempotencyService.tryProcess(event.getEventId(), "post-delivery")) {
+      return;
+    }
     statisticsService.incrementCounter(event.getUserId(), "totalRecipesPublished", 1);
   }
 }

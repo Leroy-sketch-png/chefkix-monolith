@@ -1,5 +1,6 @@
 package com.chefkix.identity.listener;
 
+import com.chefkix.config.KafkaIdempotencyService;
 import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.identity.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class XpRewardListener {
   private final StatisticsService statisticsService;
+  private final KafkaIdempotencyService idempotencyService;
 
   @KafkaListener(
       topics = "xp-delivery",
       groupId = "xp-rewarded-group",
       containerFactory = "xpRewardedKafkaListenerContainerFactory")
   public void listenXpRewardDelivery(XpRewardEvent event) {
+    // Idempotency check: prevent duplicate XP awards on Kafka redelivery
+    if (!idempotencyService.tryProcess(event.getEventId(), "xp-delivery")) {
+      return;
+    }
+
     log.info(
         "Received XP event: userId={}, amount={}, source={}, badges={}, challengeCompleted={}",
         event.getUserId(),

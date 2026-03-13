@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Follow {
   @Id String id;
-  String followerId;
+  @Indexed String followerId;
   @Indexed String followingId;
   @CreatedDate Instant createdAt;
 }

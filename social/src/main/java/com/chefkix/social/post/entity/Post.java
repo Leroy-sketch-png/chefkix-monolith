@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -30,8 +31,8 @@ public class Post {
   String videoUrl;
   String slug;
   String postUrl;
-  String sessionId; // Liên kết với Cooking Session
-  String recipeId;  // ID công thức đã nấu
+  @Indexed String sessionId; // Liên kết với Cooking Session
+  @Indexed String recipeId;  // ID công thức đã nấu
 
   String recipeTitle; // Tên món ăn (VD: "Phở Bò")
   @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư

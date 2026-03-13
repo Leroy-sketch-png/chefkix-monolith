@@ -5,8 +5,9 @@ import com.chefkix.social.post.dto.response.CommentResponse;
 import com.chefkix.social.post.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CommentMapper {
   /**
    * Maps CommentRequest to Comment entity.

@@ -5,6 +5,7 @@ import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.service.PostService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -29,7 +30,7 @@ public class PostController {
     // SỬA 2: Trả về ResponseEntity để có status 201
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PostResponse>> createPost(
-            @ModelAttribute PostCreationRequest post) {
+            @Valid @ModelAttribute PostCreationRequest post) {
 
         PostResponse result = postService.createPost(post);
 
@@ -43,7 +44,7 @@ public class PostController {
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
             @PathVariable("postId") String postId, // SỬA 2: Lấy ID từ Path
-            @RequestBody PostUpdateRequest postUpdateRequest) {
+            @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
 
         PostResponse result = postService.updatePost(postId, postUpdateRequest);
 

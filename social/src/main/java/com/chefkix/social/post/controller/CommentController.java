@@ -9,6 +9,7 @@ import com.chefkix.social.post.dto.response.ReplyLikeResponse;
 import com.chefkix.social.post.dto.response.ReplyResponse;
 import com.chefkix.social.post.service.CommentService;
 import com.chefkix.social.post.service.ReplyService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -37,7 +38,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             Authentication authentication,
             @PathVariable("postId") String postId,
-            @RequestBody CommentRequest req) {
+            @Valid @RequestBody CommentRequest req) {
 
         // SỬA: Gọi service
         CommentResponse data = commentService.createComment(authentication, postId, req);
@@ -54,7 +55,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<ReplyResponse>> createReply(
             Authentication authentication, // SỬA: Thêm Authentication
             @PathVariable("commentId") String commentId,
-            @RequestBody ReplyRequest req) {
+            @Valid @RequestBody ReplyRequest req) {
 
         // SỬA: Gọi service (Cần cập nhật service để nhận auth)
         ReplyResponse data = replyService.createReply(req);

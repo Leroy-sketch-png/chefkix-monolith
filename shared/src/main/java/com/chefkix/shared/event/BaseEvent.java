@@ -40,11 +40,17 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BaseEvent {
 
+    /**
+     * Unique identifier for idempotency checks.
+     * Generated on event creation to prevent duplicate processing on Kafka redelivery.
+     */
+    protected String eventId;
     protected String eventType;
     protected Long timestamp = System.currentTimeMillis();
     protected String userId;
 
     protected BaseEvent(String eventType, String userId) {
+        this.eventId = java.util.UUID.randomUUID().toString();
         this.eventType = eventType;
         this.userId = userId;
         this.timestamp = System.currentTimeMillis();

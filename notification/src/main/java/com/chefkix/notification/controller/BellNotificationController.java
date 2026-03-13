@@ -3,6 +3,7 @@ package com.chefkix.notification.controller;
 import java.time.Instant;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,7 @@ public class BellNotificationController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateNotificationReadStatus(@RequestBody NotificationUpdateRequest request) {
+    public void updateNotificationReadStatus(@Valid @RequestBody NotificationUpdateRequest request) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         notificationService.updateReadStatus(userId, request);
     }

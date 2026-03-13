@@ -7,6 +7,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipePublishResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.service.DraftService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class DraftController {
     @PatchMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> autoSaveDraft(
             @PathVariable String id,
-            @RequestBody RecipeRequest request) { // Request này cho phép các trường null
+            @Valid @RequestBody RecipeRequest request) { // Request này cho phép các trường null
         return ApiResponse.success(draftService.autoSaveDraft(id, request));
     }
 
@@ -52,7 +53,7 @@ public class DraftController {
     @PostMapping("/{id}/publish")
     public ApiResponse<RecipePublishResponse> publishRecipe(
             @PathVariable String id,
-            @RequestBody RecipePublishRequest request) {
+            @Valid @RequestBody RecipePublishRequest request) {
         return ApiResponse.success(draftService.publishRecipe(id, request));
     }
 
