@@ -1,6 +1,6 @@
 package com.chefkix.identity.listener;
 
-import com.chefkix.config.KafkaIdempotencyService;
+import com.chefkix.shared.service.KafkaIdempotencyService;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.identity.service.StatisticsService;
 import lombok.RequiredArgsConstructor;

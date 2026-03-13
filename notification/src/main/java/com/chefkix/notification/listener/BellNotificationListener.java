@@ -3,7 +3,7 @@ package com.chefkix.notification.listener;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.chefkix.config.KafkaIdempotencyService;
+import com.chefkix.shared.service.KafkaIdempotencyService;
 import com.chefkix.notification.service.NotificationService;
 import com.chefkix.shared.event.*;
 
