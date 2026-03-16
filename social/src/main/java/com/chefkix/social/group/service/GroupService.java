@@ -5,6 +5,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.response.GroupResponse;
+import com.chefkix.social.group.dto.response.JoinGroupResponse;
 import com.chefkix.social.group.entity.Group;
 import com.chefkix.social.group.entity.GroupMember;
 import com.chefkix.social.group.enums.MemberRole;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -76,5 +78,60 @@ public class GroupService {
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Transactional
+    public JoinGroupResponse handleJoinRequest(String groupId, String currentUserId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        log.info("Joining group: {}", groupId);
+
+        // Idempotency: Check if they already have a record
+        Optional<GroupMember> existingRecord = memberRepository.findByGroupIdAndUserId(groupId, currentUserId);
+        if (existingRecord.isPresent()) {
+            MemberStatus currentStatus = existingRecord.get().getStatus();
+            if (currentStatus == MemberStatus.BANNED) {
+                throw new AppException(ErrorCode.GROUP_BANNED);
+            }
+            throw new AppException(ErrorCode.GROUP_ALREADY_IN);
+        }
+
+        MemberStatus assignedStatus;
+        String message;
+
+        // Routing based on Privacy
+        if (group.getPrivacyType() == PrivacyType.PUBLIC) {
+            assignedStatus = MemberStatus.ACTIVE;
+            message = "Successfully joined the group!";
+
+            // Increase member count ONLY if they are fully active
+            group.setMemberCount(group.getMemberCount() + 1);
+            groupRepository.save(group);
+        } else {
+            assignedStatus = MemberStatus.PENDING;
+            message = "Join request sent. Waiting for admin approval.";
+        }
+
+        // Save new membership record
+        GroupMember newMember = GroupMember.builder()
+                .groupId(groupId)
+                .userId(currentUserId)
+                .role(MemberRole.MEMBER)
+                .status(assignedStatus)
+                .requestedAt(LocalDateTime.now())
+                .joinedAt(assignedStatus == MemberStatus.ACTIVE ? LocalDateTime.now() : null)
+                .build();
+
+        memberRepository.save(newMember);
+
+        // TODO: Fire Kafka event here (e.g., alert admins if PENDING)
+
+        return JoinGroupResponse.builder()
+                .groupId(groupId)
+                .membershipStatus(assignedStatus.name())
+                .message(message)
+                .build();
+    }
+
+
 
 }

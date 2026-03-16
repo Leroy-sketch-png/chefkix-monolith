@@ -151,7 +151,10 @@ public enum ErrorCode {
     APPEAL_NOT_FOUND(404, "Appeal not found", HttpStatus.NOT_FOUND),
     APPEAL_ALREADY_EXISTS(409, "An active appeal already exists for this ban", HttpStatus.CONFLICT),
     CONTENT_MODERATION_FAILED(400, "Content was flagged by moderation and cannot be posted", HttpStatus.BAD_REQUEST),
-    ;
+    GROUP_NOT_FOUND(404, "Group not found", HttpStatus.NOT_FOUND),
+    GROUP_MEMBER_NOT_FOUND(404, "Group member not found", HttpStatus.NOT_FOUND),
+    GROUP_BANNED(409, "You are restricted from joining this group.", HttpStatus.CONFLICT),
+    GROUP_ALREADY_IN(409, "You are already in this group.", HttpStatus.CONFLICT);
 
     private final int code;
     private final String message;
