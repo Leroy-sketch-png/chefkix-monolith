@@ -45,14 +45,18 @@ public class GroupController {
             @PathVariable("groupId") String groupId
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("groupId: {}", groupId);
-        log.info("currentUserId: {}", currentUserId);
-        log.info("Current DB: {}", mongoTemplate.getDb().getName());
 
         JoinGroupResponse response = groupService.handleJoinRequest(groupId, currentUserId);
-
-        log.info("Joining group: {}", groupId);
-
         return ApiResponse.created(response);
+    }
+
+    @DeleteMapping("/{groupId}/leave")
+    public ApiResponse<String> leaveGroup(
+            @PathVariable("groupId") String groupId
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+        groupService.handleLeaveOrCancel(groupId, currentUserId);
+
+        return ApiResponse.success("Successfully left group"); // 204 No Content
     }
 }

@@ -133,5 +133,33 @@ public class GroupService {
     }
 
 
+    // --- LEAVE / CANCEL LOGIC ---
+    @Transactional
+    public void handleLeaveOrCancel(String groupId, String currentUserId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
+        GroupMember member = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
+
+        // Rule: The Owner cannot abandon the group.
+        if (group.getOwnerId().equals(currentUserId)) {
+            throw new IllegalStateException("You are the owner. You must transfer ownership before leaving.");
+        }
+
+        // If they were an ACTIVE member, we must decrease the count
+        if (member.getStatus() == MemberStatus.ACTIVE) {
+            // Math.max ensures we never get a negative count due to race conditions
+            group.setMemberCount(Math.max(0, group.getMemberCount() - 1));
+            groupRepository.save(group);
+        }
+        else if (member.getStatus() == MemberStatus.BANNED) {
+            throw new IllegalStateException("Action not permitted.");
+        }
+
+        // Delete the record completely so they can re-apply in the future if they want
+        memberRepository.delete(member);
+
+        // TODO: Fire Kafka event here (e.g., update analytics)
+    }
 }
