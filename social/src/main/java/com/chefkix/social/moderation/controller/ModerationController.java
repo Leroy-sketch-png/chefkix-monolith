@@ -5,6 +5,7 @@ import com.chefkix.social.moderation.dto.AppealRequest;
 import com.chefkix.social.moderation.dto.BanResponse;
 import com.chefkix.social.moderation.entity.Appeal;
 import com.chefkix.social.moderation.service.ModerationService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -44,7 +45,7 @@ public class ModerationController {
     @PostMapping("/appeals")
     public ResponseEntity<ApiResponse<Appeal>> createAppeal(
             Authentication authentication,
-            @RequestBody AppealRequest request) {
+            @Valid @RequestBody AppealRequest request) {
         String userId = authentication.getName();
         Appeal appeal = moderationService.createAppeal(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED)

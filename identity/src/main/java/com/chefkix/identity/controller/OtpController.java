@@ -8,6 +8,7 @@ import com.chefkix.identity.service.ProfileService;
 import com.chefkix.identity.service.SignupRequestService;
 import com.chefkix.identity.utils.ClientIpUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +23,8 @@ public class OtpController {
   SignupRequestService signupRequestService;
 
   @PostMapping("/verify-otp")
-  public ApiResponse<ProfileResponse> verifyOtp(@RequestBody EmailVerificationRequest request) {
+  public ApiResponse<ProfileResponse> verifyOtp(
+      @RequestBody @Valid EmailVerificationRequest request) {
     return ApiResponse.<ProfileResponse>builder()
         .data(profileService.verifyOtpAndCreateUser(request.getEmail(), request.getOtp()))
         .build();
