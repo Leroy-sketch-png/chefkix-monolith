@@ -6,6 +6,7 @@ import com.chefkix.social.moderation.entity.Appeal;
 import com.chefkix.social.moderation.entity.Ban;
 import com.chefkix.social.moderation.service.ModerationService;
 import com.chefkix.social.post.entity.Report;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -61,7 +62,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Report>> reviewReport(
             @PathVariable String reportId,
             Authentication authentication,
-            @RequestBody ReviewReportRequest request) {
+            @Valid @RequestBody ReviewReportRequest request) {
         String adminId = authentication.getName();
         Report reviewed = moderationService.reviewReport(reportId, adminId, request);
         return ResponseEntity.ok(ApiResponse.ok(reviewed));
@@ -76,7 +77,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse<BanResponse>> banUser(
             @PathVariable String userId,
             Authentication authentication,
-            @RequestBody BanUserRequest request) {
+            @Valid @RequestBody BanUserRequest request) {
         String adminId = authentication.getName();
         Ban ban = moderationService.banUser(
                 userId, request.getReason(), adminId,
@@ -127,7 +128,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Appeal>> reviewAppeal(
             @PathVariable String appealId,
             Authentication authentication,
-            @RequestBody ReviewAppealRequest request) {
+            @Valid @RequestBody ReviewAppealRequest request) {
         String adminId = authentication.getName();
         Appeal reviewed = moderationService.reviewAppeal(appealId, adminId, request);
         return ResponseEntity.ok(ApiResponse.ok(reviewed));

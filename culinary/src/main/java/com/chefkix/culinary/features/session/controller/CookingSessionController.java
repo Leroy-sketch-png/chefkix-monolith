@@ -27,7 +27,7 @@ public class CookingSessionController {
     // 1. Start Session
     @PostMapping
     public ApiResponse<StartSessionResponse> startSession(
-            @RequestBody StartSessionRequest request
+            @Valid @RequestBody StartSessionRequest request
     ) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(sessionService.startSession(userId, request));
@@ -37,7 +37,7 @@ public class CookingSessionController {
     @PostMapping("/{sessionId}/complete")
     public ApiResponse<SessionCompletionResponse> completeSession(
             @PathVariable String sessionId,
-            @RequestBody CompleteSessionRequest request) {
+            @Valid @RequestBody CompleteSessionRequest request) {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(sessionService.completeSession(userId, sessionId, request));
@@ -92,7 +92,7 @@ public class CookingSessionController {
     @PostMapping("/{sessionId}/timer-event")
     public ApiResponse<LoggedResponse> startTimerEvent(
             @Valid @PathVariable String sessionId,
-            @RequestBody TimerEventRequest request
+            @Valid @RequestBody TimerEventRequest request
     ) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         sessionService.logTimerEvent(userId, sessionId, request);
@@ -103,7 +103,7 @@ public class CookingSessionController {
     @PostMapping("/{sessionId}/navigate")
     public ApiResponse<SessionNavigateResponse> getSessionCurrentStep(
             @Valid @PathVariable String sessionId,
-            @RequestBody SessionNavigateRequest request
+            @Valid @RequestBody SessionNavigateRequest request
     ) {
         SessionNavigateResponse response = sessionService.getSessionCurrentStep(sessionId, request);
         return ApiResponse.success(response);
@@ -169,7 +169,7 @@ public class CookingSessionController {
     @PostMapping("/{sessionId}/link-post")
     public ApiResponse<SessionLinkingResponse> linkPost(
             @Valid @PathVariable String sessionId,
-            @RequestBody SessionLinkingRequest request
+            @Valid @RequestBody SessionLinkingRequest request
     ) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         SessionLinkingResponse response = sessionService.linkSession(userId, sessionId, request);
