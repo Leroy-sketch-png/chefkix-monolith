@@ -265,6 +265,70 @@ public class NotificationService {
     }
 
     // ===============================================
+    // GROUP EVENT HANDLERS
+    // ===============================================
+
+    public void handleGroupJoinRequestedEvent(GroupJoinRequestedEvent event) {
+        String adminId = event.getUserId(); // In BaseEvent, we passed adminId here
+        String displayName = safeDisplayName(event.getRequesterDisplayName());
+
+        String content = String.format("%s requested to join your private group: %s",
+                displayName, event.getGroupName());
+
+        Notification notification = Notification.builder()
+                .recipientId(adminId)
+                .type(NotificationType.JOIN_REQUESTED)
+                .isRead(false)
+                .content(content)
+                .targetEntityId(event.getGroupId())
+                .latestActorId(event.getRequesterId())
+                .latestActorName(displayName)
+                .latestActorAvatarUrl(event.getRequesterAvatarUrl())
+                .count(1)
+                .actorIds(Set.of(event.getRequesterId()))
+                .createdAt(Instant.now())
+                .build();
+
+        notificationRepository.save(notification);
+
+        NotificationResponse response = notificationMapper.toNotificationResponse(notification);
+        broadcastNotification(adminId, response, "CREATE");
+
+        log.info("Created group join request notification for admin: {} regarding group: {}",
+                adminId, event.getGroupId());
+    }
+
+    public void handleGroupMemberJoinedEvent(GroupMemberJoinedEvent event) {
+        String adminId = event.getUserId();
+        String displayName = safeDisplayName(event.getMemberDisplayName());
+
+        String content = String.format("%s just joined your group: %s!",
+                displayName, event.getGroupName());
+
+        Notification notification = Notification.builder()
+                .recipientId(adminId)
+                .type(NotificationType.MEMBER_JOINED)
+                .isRead(false)
+                .content(content)
+                .targetEntityId(event.getGroupId())
+                .latestActorId(event.getMemberId())
+                .latestActorName(displayName)
+                .latestActorAvatarUrl(event.getMemberAvatarUrl())
+                .count(1)
+                .actorIds(Set.of(event.getMemberId()))
+                .createdAt(Instant.now())
+                .build();
+
+        notificationRepository.save(notification);
+
+        NotificationResponse response = notificationMapper.toNotificationResponse(notification);
+        broadcastNotification(adminId, response, "CREATE");
+
+        log.info("Created new group member notification for admin: {} regarding group: {}",
+                adminId, event.getGroupId());
+    }
+
+    // ===============================================
     // INTERNAL HELPERS
     // ===============================================
 

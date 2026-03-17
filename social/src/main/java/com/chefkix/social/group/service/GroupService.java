@@ -1,6 +1,10 @@
 package com.chefkix.social.group.service;
 
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.shared.event.BaseEvent;
+import com.chefkix.shared.event.GroupJoinRequestedEvent;
+import com.chefkix.shared.event.GroupMemberJoinedEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
@@ -18,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
@@ -35,6 +42,8 @@ public class GroupService {
     final GroupRepository groupRepository;
     final GroupMemberRepository memberRepository;
     final KafkaTemplate<String, Object> kafkaTemplate;
+    @Qualifier("taskExecutor")
+    final Executor taskExecutor;
     final GroupMapper mapper;
 
     // Simulating a call to your identity-api to ensure the user isn't banned globally
@@ -124,6 +133,7 @@ public class GroupService {
         memberRepository.save(newMember);
 
         // TODO: Fire Kafka event here (e.g., alert admins if PENDING)
+        fireGroupMembershipEventAsync(group, currentUserId, assignedStatus);
 
         return JoinGroupResponse.builder()
                 .groupId(groupId)
@@ -161,5 +171,58 @@ public class GroupService {
         memberRepository.delete(member);
 
         // TODO: Fire Kafka event here (e.g., update analytics)
+    }
+
+
+
+    // ===============================================
+    // ASYNC EVENT PUBLISHER
+    // ===============================================
+
+    private void fireGroupMembershipEventAsync(Group group, String currentUserId, MemberStatus status) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                // 1. Lấy thông tin Profile với Fallback an toàn (Graceful Degradation)
+                BasicProfileInfo profile = null;
+                try {
+                    profile = profileProvider.getBasicProfile(currentUserId);
+                } catch (Exception ignored) {
+                    log.warn("Could not fetch profile for user {}. Using fallback data.", currentUserId);
+                }
+
+                String displayName = profile != null ? profile.getDisplayName() : "A new user";
+                String avatarUrl = profile != null ? profile.getAvatarUrl() : null;
+
+                // 2. Build Event đa hình dựa vào Status
+                BaseEvent event;
+                if (status == MemberStatus.ACTIVE) {
+                    event = GroupMemberJoinedEvent.builder()
+                            .groupId(group.getId())
+                            .groupName(group.getName())
+                            .memberId(currentUserId)
+                            .memberDisplayName(displayName)
+                            .memberAvatarUrl(avatarUrl)
+                            .adminId(group.getOwnerId())
+                            .build();
+                } else {
+                    event = GroupJoinRequestedEvent.builder()
+                            .groupId(group.getId())
+                            .groupName(group.getName())
+                            .requesterId(currentUserId)
+                            .requesterDisplayName(displayName)
+                            .requesterAvatarUrl(avatarUrl)
+                            .adminId(group.getOwnerId())
+                            .build();
+                }
+
+                // 3. Bắn vào đúng topic bạn đang cấu hình
+                kafkaTemplate.send("group-delivery", event);
+                log.info("Successfully published {} for group {}", event.getEventType(), group.getId());
+
+            } catch (Exception e) {
+                // Lỗi Kafka chết mạng cũng không làm sập API của người dùng
+                log.error("Critical error while sending group membership event", e);
+            }
+        }, taskExecutor);
     }
 }

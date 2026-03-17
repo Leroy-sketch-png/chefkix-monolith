@@ -136,4 +136,36 @@ public class BellNotificationListener {
             log.warn("Received unexpected event type on 'tag-delivery': {}", event.getClass().getSimpleName());
         }
     }
+
+    @KafkaListener(
+            topics = "group-delivery", // Ensure your social module produces to this topic!
+            groupId = "notification-group",
+            containerFactory = "notificationEventListenerFactory")
+    public void listenGroupDelivery(BaseEvent event) {
+
+        // 1. Your standard idempotency check
+        if (!idempotencyService.tryProcess(event.getEventId(), "group-delivery")) {
+            return;
+        }
+
+        // 2. Java 21 Pattern Matching Switch to handle the specific group events
+        switch (event) {
+            case GroupJoinRequestedEvent requestEvent -> {
+                log.info("Received GroupJoinRequestedEvent for group: {} from user: {}",
+                        requestEvent.getGroupId(), requestEvent.getRequesterId());
+
+                notificationService.handleGroupJoinRequestedEvent(requestEvent);
+            }
+            case GroupMemberJoinedEvent joinEvent -> {
+                log.info("Received GroupMemberJoinedEvent for group: {} from user: {}",
+                        joinEvent.getGroupId(), joinEvent.getMemberId());
+
+                notificationService.handleGroupMemberJoinedEvent(joinEvent);
+            }
+            default -> {
+                log.warn("Received unexpected event type on 'group-delivery': {}",
+                        event.getClass().getSimpleName());
+            }
+        }
+    }
 }
