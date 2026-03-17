@@ -75,4 +75,16 @@ public class GroupController {
         groupService.processJoinRequest(groupId, targetUserId, request.getAction());
         return ApiResponse.success("Request processed successfully");
     }
+
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public ApiResponse<String> kickMember(
+            @PathVariable(value = "groupId") String groupId,
+            @PathVariable(value = "userId") String targetUserId
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        groupService.kickMember(groupId, targetUserId, currentUserId);
+
+        return ApiResponse.success("User has been removed from the group");
+    }
 }

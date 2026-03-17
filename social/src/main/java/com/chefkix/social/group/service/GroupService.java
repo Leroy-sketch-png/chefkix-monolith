@@ -255,4 +255,36 @@ public class GroupService {
             memberRepository.delete(pendingMember);
         }
     }
+
+    @Transactional
+    public void kickMember(String groupId, String targetUserId, String currentUserId) {
+
+        // 1. Fetch Group & Verify Admin Permission
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        // 2. Prevent the Owner from kicking themselves
+        if (group.getOwnerId().equals(targetUserId)) {
+            throw new IllegalStateException("The group owner cannot be kicked.");
+        }
+
+        // 3. Fetch the target member
+        GroupMember targetMember = memberRepository.findByGroupIdAndUserId(groupId, targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
+
+        // 4. Decrease member count ONLY if they were an ACTIVE member
+        if (targetMember.getStatus() == MemberStatus.ACTIVE) {
+            group.setMemberCount(Math.max(0, group.getMemberCount() - 1));
+            groupRepository.save(group);
+        }
+
+        // 5. Hard Delete: Remove the record from MongoDB
+        memberRepository.delete(targetMember);
+
+        log.info("Admin {} kicked user {} from group {}", currentUserId, targetUserId, groupId);
+    }
 }
