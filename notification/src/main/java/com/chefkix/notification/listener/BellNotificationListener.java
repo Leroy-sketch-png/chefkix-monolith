@@ -162,6 +162,12 @@ public class BellNotificationListener {
 
                 notificationService.handleGroupMemberJoinedEvent(joinEvent);
             }
+            case GroupRequestApprovedEvent approveEvent -> {
+                log.info("Received GroupRequestApprovedEvent for group: {} from user: {}",
+                        approveEvent.getGroupId(), approveEvent.getRequesterId());
+
+                notificationService.handleGroupRequestApprovedEvent(approveEvent);
+            }
             default -> {
                 log.warn("Received unexpected event type on 'group-delivery': {}",
                         event.getClass().getSimpleName());

@@ -168,8 +168,8 @@ public class NotificationService {
             String badgeContent = event.getNewBadges().size() == 1
                     ? String.format("🏆 You earned a new badge: %s!", badgeList)
                     : String.format(
-                            "🏆 You earned %d new badges: %s!",
-                            event.getNewBadges().size(), badgeList);
+                    "🏆 You earned %d new badges: %s!",
+                    event.getNewBadges().size(), badgeList);
 
             Notification badgeNotification = Notification.builder()
                     .recipientId(recipientId)
@@ -197,7 +197,6 @@ public class NotificationService {
         String recipientId = event.getUserId();
         String displayName = safeDisplayName(event.getDisplayName());
 
-        // Shared ReminderEvent uses String reminderType — map to NotificationType enum
         NotificationType reminderType;
         try {
             reminderType = NotificationType.valueOf(event.getReminderType());
@@ -265,67 +264,84 @@ public class NotificationService {
     }
 
     // ===============================================
-    // GROUP EVENT HANDLERS
+    // GROUP EVENT HANDLERS (REFACTORED)
     // ===============================================
 
     public void handleGroupJoinRequestedEvent(GroupJoinRequestedEvent event) {
-        String adminId = event.getUserId(); // In BaseEvent, we passed adminId here
         String displayName = safeDisplayName(event.getRequesterDisplayName());
-
         String content = String.format("%s requested to join your private group: %s",
                 displayName, event.getGroupName());
 
-        Notification notification = Notification.builder()
-                .recipientId(adminId)
-                .type(NotificationType.JOIN_REQUESTED)
-                .isRead(false)
-                .content(content)
-                .targetEntityId(event.getGroupId())
-                .latestActorId(event.getRequesterId())
-                .latestActorName(displayName)
-                .latestActorAvatarUrl(event.getRequesterAvatarUrl())
-                .count(1)
-                .actorIds(Set.of(event.getRequesterId()))
-                .createdAt(Instant.now())
-                .build();
-
-        notificationRepository.save(notification);
-
-        NotificationResponse response = notificationMapper.toNotificationResponse(notification);
-        broadcastNotification(adminId, response, "CREATE");
-
-        log.info("Created group join request notification for admin: {} regarding group: {}",
-                adminId, event.getGroupId());
+        createAndBroadcastNotification(
+                event.getUserId(), // adminId
+                event.getRequesterId(),
+                displayName,
+                event.getRequesterAvatarUrl(),
+                event.getGroupId(),
+                content,
+                NotificationType.JOIN_REQUESTED,
+                "Created group join request notification"
+        );
     }
 
     public void handleGroupMemberJoinedEvent(GroupMemberJoinedEvent event) {
-        String adminId = event.getUserId();
         String displayName = safeDisplayName(event.getMemberDisplayName());
-
         String content = String.format("%s just joined your group: %s!",
                 displayName, event.getGroupName());
 
+        createAndBroadcastNotification(
+                event.getUserId(), // adminId
+                event.getMemberId(),
+                displayName,
+                event.getMemberAvatarUrl(),
+                event.getGroupId(),
+                content,
+                NotificationType.MEMBER_JOINED,
+                "Created new group member notification"
+        );
+    }
+
+    public void handleGroupRequestApprovedEvent(GroupRequestApprovedEvent event) {
+
+        String content = String.format("Your request to join the group '%s' has been approved!",
+                event.getGroupName());
+
+        createAndBroadcastNotification(
+                event.getRequesterId(),        // recipient: The user
+                event.getGroupId(),            // actorId: Make the GROUP the actor!
+                event.getGroupName(),          // actorName: The Group's name
+                event.getGroupCoverImageUrl(), // actorAvatar: The Group's cover photo!
+                event.getGroupId(),            // targetEntityId: The Group
+                content,
+                NotificationType.JOIN_REQUEST_APPROVED,
+                "Created join request approved notification"
+        );
+    }
+
+    private void createAndBroadcastNotification(
+            String recipientId, String actorId, String actorName, String actorAvatarUrl,
+            String targetEntityId, String content, NotificationType type, String logMessagePrefix) {
+
         Notification notification = Notification.builder()
-                .recipientId(adminId)
-                .type(NotificationType.MEMBER_JOINED)
+                .recipientId(recipientId)
+                .type(type)
                 .isRead(false)
                 .content(content)
-                .targetEntityId(event.getGroupId())
-                .latestActorId(event.getMemberId())
-                .latestActorName(displayName)
-                .latestActorAvatarUrl(event.getMemberAvatarUrl())
+                .targetEntityId(targetEntityId)
+                .latestActorId(actorId)
+                .latestActorName(actorName)
+                .latestActorAvatarUrl(actorAvatarUrl)
                 .count(1)
-                .actorIds(Set.of(event.getMemberId()))
+                .actorIds(Set.of(actorId))
                 .createdAt(Instant.now())
                 .build();
 
         notificationRepository.save(notification);
 
         NotificationResponse response = notificationMapper.toNotificationResponse(notification);
-        broadcastNotification(adminId, response, "CREATE");
+        broadcastNotification(recipientId, response, "CREATE");
 
-        log.info("Created new group member notification for admin: {} regarding group: {}",
-                adminId, event.getGroupId());
+        log.info("{} for recipient: {} regarding target: {}", logMessagePrefix, recipientId, targetEntityId);
     }
 
     // ===============================================
@@ -448,7 +464,6 @@ public class NotificationService {
     // ===============================================
 
     public void broadcastNotification(String recipientId, NotificationResponse response, String action) {
-        // WebSocket broadcast for real-time delivery
         Map<String, Object> payload = new HashMap<>();
         payload.put("action", action);
         payload.put("notification", response);
@@ -456,20 +471,15 @@ public class NotificationService {
         messagingTemplate.convertAndSend(USER_TOPIC_PREFIX + recipientId, payload);
         log.info("Broadcasted {} notification to user: {}", action, recipientId);
 
-        // Push notification for background/offline delivery
         if ("CREATE".equals(action)) {
             sendPushNotification(recipientId, response);
         }
     }
 
-    /**
-     * Send push notification to user's devices.
-     */
     private void sendPushNotification(String recipientId, NotificationResponse response) {
         String title = "ChefKix";
         String body = response.getContent();
-        
-        // Customize title based on notification type
+
         if (response.getType() != null) {
             switch (response.getType()) {
                 case POST_LIKE -> title = "❤️ New Like";
@@ -479,6 +489,10 @@ public class NotificationService {
                 case BADGE_EARNED -> title = "🏆 Badge Earned!";
                 case STREAK_WARNING -> title = "🔥 Streak Alert";
                 case USER_MENTION -> title = "📝 You were mentioned";
+                // Added new push notification titles for Groups!
+                case JOIN_REQUESTED -> title = "🚪 Group Request";
+                case MEMBER_JOINED -> title = "👋 New Group Member";
+                case JOIN_REQUEST_APPROVED -> title = "✅ Request Approved";
                 default -> title = "ChefKix";
             }
         }
@@ -506,10 +520,6 @@ public class NotificationService {
     // WELCOME BACK — ACTIVITY SUMMARY
     // ===============================================
 
-    /**
-     * Aggregate notifications since a given timestamp, grouped by type.
-     * Powers the "Welcome Back" dashboard card.
-     */
     public NotificationSummaryResponse getActivitySummary(String userId, Instant since) {
         List<Notification> notifications = notificationRepository
                 .findAllByRecipientIdAndCreatedAtAfter(userId, since);
@@ -532,9 +542,6 @@ public class NotificationService {
                 .build();
     }
 
-    /**
-     * Sum counts for one or more notification types.
-     */
     private int countTypes(Map<NotificationType, Long> counts, NotificationType... types) {
         int total = 0;
         for (NotificationType type : types) {

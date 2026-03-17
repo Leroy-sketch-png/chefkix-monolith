@@ -29,5 +29,6 @@ public enum NotificationType {
 
     // Group
     JOIN_REQUESTED,
-    MEMBER_JOINED
+    MEMBER_JOINED,
+    JOIN_REQUEST_APPROVED,
 }

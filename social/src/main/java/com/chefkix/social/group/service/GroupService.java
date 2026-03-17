@@ -2,11 +2,9 @@ package com.chefkix.social.group.service;
 
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
-import com.chefkix.shared.event.BaseEvent;
-import com.chefkix.shared.event.GroupJoinRequestedEvent;
-import com.chefkix.shared.event.GroupMemberJoinedEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.social.chat.enums.RequestAction;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
@@ -17,6 +15,7 @@ import com.chefkix.social.group.enums.MemberRole;
 import com.chefkix.social.group.enums.MemberStatus;
 import com.chefkix.social.group.enums.PrivacyType;
 import com.chefkix.social.group.mapper.GroupMapper;
+import com.chefkix.social.group.publisher.GroupEventPublisher;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.group.repository.GroupRepository;
 import lombok.AccessLevel;
@@ -26,16 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @Service
@@ -46,15 +43,13 @@ public class GroupService {
 
     final GroupRepository groupRepository;
     final GroupMemberRepository memberRepository;
-    final KafkaTemplate<String, Object> kafkaTemplate;
-    @Qualifier("taskExecutor")
-    final Executor taskExecutor;
     final GroupMapper mapper;
+    final GroupEventPublisher eventPublisher;
 
     // Simulating a call to your identity-api to ensure the user isn't banned globally
-    private final ProfileProvider profileProvider;
+    final ProfileProvider profileProvider;
 
-    @Transactional // CRITICAL: Requires MongoDB Replica Set to work
+    @Transactional
     public GroupResponse createGroup(GroupCreationRequest request, String currentUserId) {
 
         try {
@@ -138,7 +133,7 @@ public class GroupService {
         memberRepository.save(newMember);
 
         // TODO: Fire Kafka event here (e.g., alert admins if PENDING)
-        fireGroupMembershipEventAsync(group, currentUserId, assignedStatus);
+        eventPublisher.publishMembershipEvent(group, currentUserId, assignedStatus);
 
         return JoinGroupResponse.builder()
                 .groupId(groupId)
@@ -167,8 +162,7 @@ public class GroupService {
             // Math.max ensures we never get a negative count due to race conditions
             group.setMemberCount(Math.max(0, group.getMemberCount() - 1));
             groupRepository.save(group);
-        }
-        else if (member.getStatus() == MemberStatus.BANNED) {
+        } else if (member.getStatus() == MemberStatus.BANNED) {
             throw new IllegalStateException("Action not permitted.");
         }
 
@@ -221,54 +215,44 @@ public class GroupService {
         });
     }
 
-    // ===============================================
-    // ASYNC EVENT PUBLISHER
-    // ===============================================
+    @Transactional
+    public void processJoinRequest(String groupId, String targetUserId, RequestAction action) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    private void fireGroupMembershipEventAsync(Group group, String currentUserId, MemberStatus status) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                // 1. Lấy thông tin Profile với Fallback an toàn (Graceful Degradation)
-                BasicProfileInfo profile = null;
-                try {
-                    profile = profileProvider.getBasicProfile(currentUserId);
-                } catch (Exception ignored) {
-                    log.warn("Could not fetch profile for user {}. Using fallback data.", currentUserId);
-                }
+        // 1. Fetch Group & Verify Admin Permission
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
-                String displayName = profile != null ? profile.getDisplayName() : "A new user";
-                String avatarUrl = profile != null ? profile.getAvatarUrl() : null;
+        if (!group.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
 
-                // 2. Build Event đa hình dựa vào Status
-                BaseEvent event;
-                if (status == MemberStatus.ACTIVE) {
-                    event = GroupMemberJoinedEvent.builder()
-                            .groupId(group.getId())
-                            .groupName(group.getName())
-                            .memberId(currentUserId)
-                            .memberDisplayName(displayName)
-                            .memberAvatarUrl(avatarUrl)
-                            .adminId(group.getOwnerId())
-                            .build();
-                } else {
-                    event = GroupJoinRequestedEvent.builder()
-                            .groupId(group.getId())
-                            .groupName(group.getName())
-                            .requesterId(currentUserId)
-                            .requesterDisplayName(displayName)
-                            .requesterAvatarUrl(avatarUrl)
-                            .adminId(group.getOwnerId())
-                            .build();
-                }
+        // 2. Fetch the specific pending request
+        GroupMember pendingMember = memberRepository.findByGroupIdAndUserId(groupId, targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
 
-                // 3. Bắn vào đúng topic bạn đang cấu hình
-                kafkaTemplate.send("group-delivery", event);
-                log.info("Successfully published {} for group {}", event.getEventType(), group.getId());
+        // 3. Prevent processing if the user is already ACTIVE or BANNED
+        if (pendingMember.getStatus() != MemberStatus.PENDING) {
+            throw new AppException(ErrorCode.PENDING_NOT_FOUND);
+        }
 
-            } catch (Exception e) {
-                // Lỗi Kafka chết mạng cũng không làm sập API của người dùng
-                log.error("Critical error while sending group membership event", e);
-            }
-        }, taskExecutor);
+        // 4. Process the action
+        if (action == RequestAction.ACCEPT) {
+            // Update the member to ACTIVE
+            pendingMember.setStatus(MemberStatus.ACTIVE);
+            pendingMember.setJoinedAt(LocalDateTime.now());
+            memberRepository.save(pendingMember);
+
+            // Increment the group's active member count
+            group.setMemberCount(group.getMemberCount() + 1);
+            groupRepository.save(group);
+
+            // KAFKA EVENT: Notify the target user they were accepted!
+            eventPublisher.publishRequestApprovedEvent(group, currentUserId, pendingMember.getId());
+
+        } else if (action == RequestAction.REJECT) {
+            // Simply delete the record so they can try again in the future if desired
+            memberRepository.delete(pendingMember);
+        }
     }
 }

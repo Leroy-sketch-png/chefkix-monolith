@@ -33,7 +33,8 @@ import lombok.Setter;
         @JsonSubTypes.Type(value = GamificationNotificationEvent.class, name = "GAMIFICATION_ACTION"),
         @JsonSubTypes.Type(value = ReminderEvent.class, name = "REMINDER_ACTION"),
         @JsonSubTypes.Type(value = GroupJoinRequestedEvent.class, name = "GROUP_JOIN_REQUESTED"),
-        @JsonSubTypes.Type(value = GroupMemberJoinedEvent.class, name = "GROUP_MEMBER_JOINED")
+        @JsonSubTypes.Type(value = GroupMemberJoinedEvent.class, name = "GROUP_MEMBER_JOINED"),
+        @JsonSubTypes.Type(value = GroupRequestApprovedEvent.class, name = "GROUP_REQUEST_APPROVED"),
 })
 @Getter
 @Setter
