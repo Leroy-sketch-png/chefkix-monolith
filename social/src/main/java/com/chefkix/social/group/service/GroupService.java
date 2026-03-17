@@ -10,6 +10,7 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
+import com.chefkix.social.group.dto.response.PendingRequestResponse;
 import com.chefkix.social.group.entity.Group;
 import com.chefkix.social.group.entity.GroupMember;
 import com.chefkix.social.group.enums.MemberRole;
@@ -24,6 +25,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -173,7 +178,48 @@ public class GroupService {
         // TODO: Fire Kafka event here (e.g., update analytics)
     }
 
+    @Transactional(readOnly = true)
+    public Page<PendingRequestResponse> getPendingRequests(String groupId, String currentUserId, Pageable pageable) {
 
+        // 1. Security Check: Only the Admin/Owner can view pending requests
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        // 2. Fetch the PENDING records from MongoDB using the index we created earlier
+        Page<GroupMember> pendingMembers = memberRepository.findAllByGroupIdAndStatus(
+                groupId,
+                MemberStatus.PENDING,
+                pageable
+        );
+
+        // 3. Map the raw database records into the rich DTO
+        return pendingMembers.map(member -> {
+            // Fetch visual data from Identity module (with fallback)
+            String displayName = "Unknown User";
+            String avatarUrl = null;
+
+            try {
+                BasicProfileInfo profile = profileProvider.getBasicProfile(member.getUserId());
+                if (profile != null) {
+                    displayName = profile.getDisplayName();
+                    avatarUrl = profile.getAvatarUrl();
+                }
+            } catch (Exception e) {
+                log.warn("Could not fetch profile for user {}", member.getUserId());
+            }
+
+            return PendingRequestResponse.builder()
+                    .userId(member.getUserId())
+                    .displayName(displayName)
+                    .avatarUrl(avatarUrl)
+                    .requestedAt(member.getRequestedAt())
+                    .build();
+        });
+    }
 
     // ===============================================
     // ASYNC EVENT PUBLISHER
