@@ -37,6 +37,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     SocialService socialService;
     UserStatusService userStatusService;
     UserRepository userRepository;
+    private final KeycloakService keycloakService;
 
     @Override
     public BasicProfileInfo getBasicProfile(String userId) {
@@ -104,5 +105,11 @@ public class ProfileProviderImpl implements ProfileProvider {
             return Instant.EPOCH;
         }
         return user.getCreatedAt().toInstant(ZoneOffset.UTC);
+    }
+
+    @Override
+    public boolean verifyUserPassword(String userName, String confirmationPassword) {
+
+        return keycloakService.verifyPassword(userName, confirmationPassword);
     }
 }

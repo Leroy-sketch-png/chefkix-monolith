@@ -35,6 +35,8 @@ import lombok.Setter;
         @JsonSubTypes.Type(value = GroupJoinRequestedEvent.class, name = "GROUP_JOIN_REQUESTED"),
         @JsonSubTypes.Type(value = GroupMemberJoinedEvent.class, name = "GROUP_MEMBER_JOINED"),
         @JsonSubTypes.Type(value = GroupRequestApprovedEvent.class, name = "GROUP_REQUEST_APPROVED"),
+        @JsonSubTypes.Type(value = GroupOwnershipTransferredEvent.class, name = "GROUP_OWNERSHIP_TRANSFERRED"),
+
 })
 @Getter
 @Setter

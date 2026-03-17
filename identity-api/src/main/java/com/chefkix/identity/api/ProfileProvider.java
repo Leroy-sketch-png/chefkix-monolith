@@ -69,4 +69,11 @@ public interface ProfileProvider {
      * @return account creation instant (never null)
      */
     Instant getAccountCreatedAt(String userId);
+
+    /**
+     * verify user's authentication
+     * @param userId the user's ID
+     * @return boolean
+     */
+    boolean verifyUserPassword(String userId, String confirmationPassword);
 }

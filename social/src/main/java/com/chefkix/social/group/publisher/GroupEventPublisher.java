@@ -2,10 +2,7 @@ package com.chefkix.social.group.publisher;
 
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
-import com.chefkix.shared.event.BaseEvent;
-import com.chefkix.shared.event.GroupJoinRequestedEvent;
-import com.chefkix.shared.event.GroupMemberJoinedEvent;
-import com.chefkix.shared.event.GroupRequestApprovedEvent;
+import com.chefkix.shared.event.*;
 import com.chefkix.social.group.entity.Group;
 import com.chefkix.social.group.enums.MemberStatus;
 import lombok.AccessLevel;
@@ -90,6 +87,26 @@ public class GroupEventPublisher {
 
             } catch (Exception e) {
                 log.error("Failed to publish approval event", e);
+            }
+        }, taskExecutor);
+    }
+
+    public void publishOwnershipTransferredEvent(Group group, String newOwnerId, String oldOwnerId) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                GroupOwnershipTransferredEvent event = GroupOwnershipTransferredEvent.builder()
+                        .groupId(group.getId())
+                        .groupName(group.getName())
+                        .groupCoverImageUrl(group.getCoverImageUrl())
+                        .newOwnerId(newOwnerId)
+                        .oldOwnerId(oldOwnerId)
+                        .build();
+
+                kafkaTemplate.send("group-delivery", event);
+                log.info("Published GROUP_OWNERSHIP_TRANSFERRED for group {}", group.getId());
+
+            } catch (Exception e) {
+                log.error("Failed to publish ownership transfer event", e);
             }
         }, taskExecutor);
     }

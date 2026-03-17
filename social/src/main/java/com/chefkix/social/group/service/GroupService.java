@@ -287,4 +287,61 @@ public class GroupService {
 
         log.info("Admin {} kicked user {} from group {}", currentUserId, targetUserId, groupId);
     }
+
+    @Transactional
+    public void transferOwnership(String groupId, String targetUserId, String currentUserId, String confirmationPassword) {
+
+        // 1. SECURITY CHECK: Verify the Owner's Password!
+        // (Assuming you have a method in your profileProvider or a new AuthClient to check this)
+
+        log.info(currentUserId);
+        BasicProfileInfo info = profileProvider.getBasicProfile(currentUserId);
+        boolean isPasswordValid = profileProvider.verifyUserPassword(info.getUsername(), confirmationPassword);
+
+
+        if (!isPasswordValid) {
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS); // Or "Incorrect Password"
+        }
+
+        log.info(currentUserId);
+
+        // 2. Fetch Group & Verify Current Owner
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        if (!group.getOwnerId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        // 3. Prevent transferring to self
+        if (currentUserId.equals(targetUserId)) {
+            throw new IllegalStateException("You are already the owner of this group.");
+        }
+
+        // 4. Fetch Target Member & Ensure they are ACTIVE
+        GroupMember targetMember = memberRepository.findByGroupIdAndUserId(groupId, targetUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
+
+        GroupMember previousAdmin = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
+
+        if (targetMember.getStatus() != MemberStatus.ACTIVE) {
+            throw new IllegalStateException("Only active members can receive group ownership.");
+        }
+
+        // 5. ATOMIC UPDATES
+        group.setOwnerId(targetUserId);
+        groupRepository.save(group);
+
+        if (targetMember.getRole() != MemberRole.ADMIN) {
+            targetMember.setRole(MemberRole.ADMIN);
+            previousAdmin.setRole(MemberRole.MEMBER);
+            memberRepository.save(targetMember);
+        }
+
+        // 6. Fire Notification Event!
+        eventPublisher.publishOwnershipTransferredEvent(group, targetUserId, currentUserId);
+
+        log.info("User {} transferred ownership of group {} to user {}", currentUserId, groupId, targetUserId);
+    }
 }

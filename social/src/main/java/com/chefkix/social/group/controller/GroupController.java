@@ -2,6 +2,7 @@ package com.chefkix.social.group.controller;
 
 import com.chefkix.social.group.dto.request.ProcessJoinRequest;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
+import com.chefkix.social.group.dto.request.TransferOwnershipRequest;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
 import com.chefkix.social.group.dto.response.PendingRequestResponse;
@@ -86,5 +87,18 @@ public class GroupController {
         groupService.kickMember(groupId, targetUserId, currentUserId);
 
         return ApiResponse.success("User has been removed from the group");
+    }
+
+    @PutMapping("/{groupId}/transfer")
+    public ApiResponse<String> transferOwnership(
+            @PathVariable("groupId") String groupId,
+            @RequestBody @Valid TransferOwnershipRequest request
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Pass the password down to the service
+        groupService.transferOwnership(groupId, request.getTargetUserId(), currentUserId, request.getPassword());
+
+        return ApiResponse.success("Ownership has been successfully transferred");
     }
 }
