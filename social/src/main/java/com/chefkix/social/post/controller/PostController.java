@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,15 +29,43 @@ public class PostController {
 
     // SỬA 1: Dùng "POST /" (chuẩn REST)
     // SỬA 2: Trả về ResponseEntity để có status 201
+    // ========================================================================
+    // 1. CREATE PERSONAL POST
+    // Endpoint: POST /api/v1/posts
+    // ========================================================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<PostResponse>> createPost(
-            @Valid @ModelAttribute PostCreationRequest post) {
+    public ResponseEntity<ApiResponse<PostResponse>> createPersonalPost(
+            @Valid @ModelAttribute PostCreationRequest request
+    ) {
+        // 1. Lấy ID của user đang đăng nhập
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        PostResponse result = postService.createPost(post);
+        // 2. Gọi service xử lý
+        PostResponse result = postService.createPersonalPost(request, currentUserId);
 
-        // SỬA 3: Dùng hàm factory "created"
+        // 3. Trả về chuẩn REST (201 Created)
         ApiResponse<PostResponse> body = ApiResponse.created(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
 
+
+    // ========================================================================
+    // 2. CREATE GROUP POST
+    // Endpoint: POST /api/v1/groups/{groupId}/posts
+    // ========================================================================
+    @PostMapping(value = "/groups/{groupId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<PostResponse>> createGroupPost(
+            @PathVariable("groupId") String groupId,
+            @Valid @ModelAttribute PostCreationRequest request
+    ) {
+        // 1. Lấy ID của user đang đăng nhập
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 2. Gọi service xử lý (truyền thêm groupId)
+        PostResponse result = postService.createGroupPost(groupId, request, currentUserId);
+
+        // 3. Trả về chuẩn REST (201 Created)
+        ApiResponse<PostResponse> body = ApiResponse.created(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
