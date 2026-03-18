@@ -5,6 +5,7 @@ import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.enums.RequestAction;
+import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
@@ -18,6 +19,7 @@ import com.chefkix.social.group.mapper.GroupMapper;
 import com.chefkix.social.group.publisher.GroupEventPublisher;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.group.repository.GroupRepository;
+import com.chefkix.social.group.specification.GroupSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,14 +28,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -383,5 +390,19 @@ public class GroupService {
                 .myRole(myRole)
                 .myStatus(myStatus)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<GroupResponse> exploreGroups(GroupExploreQuery query, Pageable pageable) {
+
+        // 1. Fetch user context so the repository can filter by 'isJoined'
+        Map<String, GroupMember> myMemberships = memberRepository.findByUserId(query.getCurrentUserId())
+                .stream().collect(Collectors.toMap(GroupMember::getGroupId, m -> m));
+
+        query.setJoinedGroupIds(myMemberships.keySet());
+
+        // 2. Execute Custom Repository Query & Map Results (The Clean 1-Liner!)
+        return groupRepository.searchGroups(query, pageable)
+                .map(group -> mapper.toExploreResponse(group, myMemberships.get(group.getId())));
     }
 }

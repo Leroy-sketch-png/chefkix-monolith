@@ -1,5 +1,6 @@
 package com.chefkix.social.group.controller;
 
+import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.ProcessJoinRequest;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.request.TransferOwnershipRequest;
@@ -111,5 +112,26 @@ public class GroupController {
         GroupResponse response = groupService.getGroupDetails(groupId, currentUserId);
 
         return ApiResponse.success(response);
+    }
+
+    @GetMapping("/explore")
+    public ApiResponse<Page<GroupResponse>> exploreGroups(
+            // @ModelAttribute automatically maps URL parameters to your DTO fields!
+            @ModelAttribute GroupExploreQuery query,
+
+            // We only need page and size here, because our DTO handles the custom 'sortBy'
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        // 1. Get the current logged-in user
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 2. Inject the user ID into the query object so the Service/Repository can use it
+        query.setCurrentUserId(currentUserId);
+
+        // 3. Execute the search
+        Page<GroupResponse> responses = groupService.exploreGroups(query, pageable);
+
+        // 4. Return the paginated results
+        return ApiResponse.success(responses);
     }
 }

@@ -21,6 +21,7 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
 
     // Check if a user is already in the group before saving a new request
     boolean existsByGroupIdAndUserId(String groupId, String userId);
+    List<GroupMember> findByUserIdAndGroupIdIn(String userId, List<String> groupIds);
 
 
     // --- 2. GROUP ADMIN QUERIES (Using group_status_idx) ---
@@ -43,4 +44,6 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
 
     // Get all groups a user is actively a part of (CRITICAL for the Home Feed Aggregator)
     List<GroupMember> findAllByUserIdAndStatus(String userId, MemberStatus status);
+
+    List<GroupMember> findByUserId(String currentUserId);
 }
