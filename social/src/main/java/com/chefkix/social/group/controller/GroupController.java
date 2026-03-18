@@ -101,4 +101,15 @@ public class GroupController {
 
         return ApiResponse.success("Ownership has been successfully transferred");
     }
+
+    @GetMapping("/{groupId}")
+    public ApiResponse<GroupResponse> getGroupDetails(
+            @PathVariable("groupId") String groupId
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        GroupResponse response = groupService.getGroupDetails(groupId, currentUserId);
+
+        return ApiResponse.success(response);
+    }
 }

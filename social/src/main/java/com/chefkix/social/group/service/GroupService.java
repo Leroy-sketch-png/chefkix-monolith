@@ -79,8 +79,11 @@ public class GroupService {
             memberRepository.save(adminMember);
 
             // --- 5. RETURN RESPONSE ---
-            return mapper.toGroupResponse(savedGroup);
+            GroupResponse response = mapper.toGroupResponse(savedGroup);
+            response.setMyRole(MemberRole.ADMIN.toString());
+            response.setMyStatus(MemberStatus.ACTIVE.toString());
 
+            return response;
         } catch (DataAccessException e) {
             // Catches MongoDB connection issues or constraints
             log.error("Database error while creating group for user {}", currentUserId, e);
@@ -343,5 +346,42 @@ public class GroupService {
         eventPublisher.publishOwnershipTransferredEvent(group, targetUserId, currentUserId);
 
         log.info("User {} transferred ownership of group {} to user {}", currentUserId, groupId, targetUserId);
+    }
+
+    @Transactional(readOnly = true)
+    public GroupResponse getGroupDetails(String groupId, String currentUserId) {
+
+        // 1. Fetch the core group
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        // 2. Look up the current user's membership state
+        Optional<GroupMember> membership = memberRepository.findByGroupIdAndUserId(groupId, currentUserId);
+
+        // 3. Default to "NONE" if they are a completely new visitor
+        String myRole = "NONE";
+        String myStatus = "NONE";
+
+        if (membership.isPresent()) {
+            myRole = membership.get().getRole().name();
+            myStatus = membership.get().getStatus().name();
+        }
+
+        // 4. Map and return using your existing DTO
+        return GroupResponse.builder()
+                .id(group.getId())
+                .name(group.getName())
+                .description(group.getDescription())
+                .coverImageUrl(group.getCoverImageUrl())
+                .privacyType(group.getPrivacyType().name())
+                .creatorId(group.getCreatorId())
+                .ownerId(group.getOwnerId())
+                .memberCount(group.getMemberCount())
+                // Assuming you have tags in your Group entity. If not, omit this or pass an empty list.
+                // .tags(group.getTags())
+                .createdAt(group.getCreatedAt())
+                .myRole(myRole)
+                .myStatus(myStatus)
+                .build();
     }
 }
