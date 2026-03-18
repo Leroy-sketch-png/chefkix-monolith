@@ -15,6 +15,7 @@ import com.chefkix.shared.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -145,6 +148,19 @@ public class GroupController {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Page<GroupMemberResponse> responses = groupService.getGroupMembers(groupId, currentUserId, pageable);
+
+        return ApiResponse.success(responses);
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<Slice<GroupResponse>> getMyGroups(
+            @RequestParam(value = "status", required = false) String status,
+            @PageableDefault(size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Pass the optional status down to the service
+        Slice<GroupResponse> responses = groupService.getMyGroups(currentUserId, status, pageable);
 
         return ApiResponse.success(responses);
     }

@@ -5,6 +5,7 @@ import com.chefkix.social.group.enums.MemberRole;
 import com.chefkix.social.group.enums.MemberStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -46,4 +47,7 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
     List<GroupMember> findAllByUserIdAndStatus(String userId, MemberStatus status);
 
     List<GroupMember> findByUserId(String currentUserId);
+
+    Slice<GroupMember> findByUserIdAndStatus(String userId, MemberStatus status, Pageable pageable);
+    Slice<GroupMember> findByUserIdAndStatusNot(String userId, MemberStatus status, Pageable pageable);
 }

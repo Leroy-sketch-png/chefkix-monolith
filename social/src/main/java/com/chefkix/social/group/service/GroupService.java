@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,10 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -449,5 +448,38 @@ public class GroupService {
                     .joinedAt(member.getJoinedAt())
                     .build();
         });
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<GroupResponse> getMyGroups(String currentUserId, String statusFilter, Pageable pageable) {
+
+        // 1. Fetch Memberships using SLICE instead of Page
+        Slice<GroupMember> membershipSlice;
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            MemberStatus status = MemberStatus.valueOf(statusFilter.toUpperCase());
+            membershipSlice = memberRepository.findByUserIdAndStatus(currentUserId, status, pageable);
+        } else {
+            membershipSlice = memberRepository.findByUserIdAndStatusNot(currentUserId, MemberStatus.BANNED, pageable);
+        }
+
+        if (membershipSlice.isEmpty()) {
+            // Return an empty slice if they have no groups
+            return new SliceImpl<>(List.of(), pageable, false);
+        }
+
+        // 2. Extract IDs
+        List<String> joinedGroupIds = membershipSlice.getContent().stream()
+                .map(GroupMember::getGroupId)
+                .toList();
+
+        // 3. Fetch Groups
+        List<Group> joinedGroups = groupRepository.findAllById(joinedGroupIds);
+
+        // 4. Map the List
+        List<GroupResponse> responseList = mapper.toGroupResponseList(joinedGroups, membershipSlice.getContent());
+
+        // 5. Wrap in a SliceImpl!
+        // Notice we don't pass 'totalElements' anymore. We just pass 'hasNext()'.
+        return new SliceImpl<>(responseList, pageable, membershipSlice.hasNext());
     }
 }
