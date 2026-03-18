@@ -4,6 +4,7 @@ import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.ProcessJoinRequest;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.request.TransferOwnershipRequest;
+import com.chefkix.social.group.dto.response.GroupMemberResponse;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
 import com.chefkix.social.group.dto.response.PendingRequestResponse;
@@ -132,6 +133,19 @@ public class GroupController {
         Page<GroupResponse> responses = groupService.exploreGroups(query, pageable);
 
         // 4. Return the paginated results
+        return ApiResponse.success(responses);
+    }
+
+    @GetMapping("/{groupId}/members")
+    public ApiResponse<Page<GroupMemberResponse>> getGroupMembers(
+            @PathVariable("groupId") String groupId,
+            // Default: Show 20 members per page, newest first!
+            @PageableDefault(size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Page<GroupMemberResponse> responses = groupService.getGroupMembers(groupId, currentUserId, pageable);
+
         return ApiResponse.success(responses);
     }
 }

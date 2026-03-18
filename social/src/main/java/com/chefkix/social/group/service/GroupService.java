@@ -7,6 +7,7 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.enums.RequestAction;
 import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
+import com.chefkix.social.group.dto.response.GroupMemberResponse;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
 import com.chefkix.social.group.dto.response.PendingRequestResponse;
@@ -404,5 +405,49 @@ public class GroupService {
         // 2. Execute Custom Repository Query & Map Results (The Clean 1-Liner!)
         return groupRepository.searchGroups(query, pageable)
                 .map(group -> mapper.toExploreResponse(group, myMemberships.get(group.getId())));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<GroupMemberResponse> getGroupMembers(String groupId, String currentUserId, Pageable pageable) {
+
+        // 1. SECURITY CHECK: Verify the requester is actually in the group AND is an Admin
+        GroupMember requester = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+
+        if (requester.getRole() != MemberRole.ADMIN) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        // 2. Fetch all ACTIVE members (we don't want to show pending or banned users here)
+        Page<GroupMember> activeMembers = memberRepository.findAllByGroupIdAndStatus(
+                groupId,
+                MemberStatus.ACTIVE,
+                pageable
+        );
+
+        // 3. Map to DTO and inject the Identity Profile Data
+        return activeMembers.map(member -> {
+            String displayName = "Unknown User";
+            String avatarUrl = null;
+
+            // Fetch visual data from Identity module safely
+            try {
+                BasicProfileInfo profile = profileProvider.getBasicProfile(member.getUserId());
+                if (profile != null) {
+                    displayName = profile.getDisplayName();
+                    avatarUrl = profile.getAvatarUrl();
+                }
+            } catch (Exception e) {
+                log.warn("Could not fetch profile for user {}", member.getUserId());
+            }
+
+            return GroupMemberResponse.builder()
+                    .userId(member.getUserId())
+                    .displayName(displayName)
+                    .avatarUrl(avatarUrl)
+                    .role(member.getRole().name())
+                    .joinedAt(member.getJoinedAt())
+                    .build();
+        });
     }
 }
