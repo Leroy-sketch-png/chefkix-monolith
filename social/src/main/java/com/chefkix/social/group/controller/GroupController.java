@@ -1,10 +1,7 @@
 package com.chefkix.social.group.controller;
 
 import com.chefkix.social.group.dto.query.GroupExploreQuery;
-import com.chefkix.social.group.dto.request.GroupUpdateRequest;
-import com.chefkix.social.group.dto.request.ProcessJoinRequest;
-import com.chefkix.social.group.dto.request.GroupCreationRequest;
-import com.chefkix.social.group.dto.request.TransferOwnershipRequest;
+import com.chefkix.social.group.dto.request.*;
 import com.chefkix.social.group.dto.response.GroupMemberResponse;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
@@ -174,6 +171,18 @@ public class GroupController {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         GroupResponse response = groupService.updateGroup(groupId, request, currentUserId);
+
+        return ApiResponse.success(response);
+    }
+
+    @PatchMapping("/{groupId}/privacy")
+    public ApiResponse<GroupResponse> changePrivacy(
+            @PathVariable("groupId") String groupId,
+            @Valid @RequestBody GroupPrivacyUpdateRequest request
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        GroupResponse response = groupService.changePrivacy(groupId, request, currentUserId);
 
         return ApiResponse.success(response);
     }

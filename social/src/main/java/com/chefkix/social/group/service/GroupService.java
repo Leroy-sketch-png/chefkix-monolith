@@ -7,6 +7,7 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.enums.RequestAction;
 import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
+import com.chefkix.social.group.dto.request.GroupPrivacyUpdateRequest;
 import com.chefkix.social.group.dto.request.GroupUpdateRequest;
 import com.chefkix.social.group.dto.response.GroupMemberResponse;
 import com.chefkix.social.group.dto.response.GroupResponse;
@@ -305,7 +306,6 @@ public class GroupService {
         // 1. SECURITY CHECK: Verify the Owner's Password!
         // (Assuming you have a method in your profileProvider or a new AuthClient to check this)
 
-        log.info(currentUserId);
         BasicProfileInfo info = profileProvider.getBasicProfile(currentUserId);
         boolean isPasswordValid = profileProvider.verifyUserPassword(info.getUsername(), confirmationPassword);
 
@@ -516,6 +516,54 @@ public class GroupService {
         group = groupRepository.save(group);
 
         // 5. Return the updated group (reusing our mapper!)
+        return mapper.toExploreResponse(group, requester);
+    }
+
+    @Transactional
+    public GroupResponse changePrivacy(String groupId, GroupPrivacyUpdateRequest request, String currentUserId) {
+
+        // 1. SECURITY CHECK: Must be ADMIN
+        GroupMember requester = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+
+        if (requester.getRole() != MemberRole.ADMIN) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        BasicProfileInfo info = profileProvider.getBasicProfile(currentUserId);
+        boolean isPasswordValid = profileProvider.verifyUserPassword(info.getUsername(), request.getConfirmationPassword());
+
+
+        if (!isPasswordValid) {
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS); // Or "Incorrect Password"
+        }
+
+        // 2. Fetch the Group
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        // 3. Check if the privacy is actually changing
+        PrivacyType newPrivacy = PrivacyType.valueOf(request.getPrivacyType().toUpperCase());
+        PrivacyType oldPrivacy = group.getPrivacyType();
+
+        if (oldPrivacy == newPrivacy) {
+            return mapper.toExploreResponse(group, requester); // Nothing to do!
+        }
+
+        // 4. Update and Save the Group
+        group.setPrivacyType(newPrivacy);
+        group = groupRepository.save(group);
+
+        // 5. THE SIDE EFFECT: Auto-accept pending members if going PUBLIC
+        if (newPrivacy == PrivacyType.PUBLIC && oldPrivacy == PrivacyType.PRIVATE) {
+            /* * Pro-Tip: If you expect 100,000+ pending members, you would wrap this
+             * in an @Async method or publish a Spring ApplicationEvent so the
+             * HTTP request doesn't wait for it to finish. But for standard apps,
+             * Mongo bulk updates are fast enough to run synchronously!
+             */
+            memberRepository.approveAllPendingMembers(groupId);
+        }
+
         return mapper.toExploreResponse(group, requester);
     }
 }
