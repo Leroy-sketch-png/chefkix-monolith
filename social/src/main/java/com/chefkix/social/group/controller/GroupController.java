@@ -1,6 +1,7 @@
 package com.chefkix.social.group.controller;
 
 import com.chefkix.social.group.dto.query.GroupExploreQuery;
+import com.chefkix.social.group.dto.request.GroupUpdateRequest;
 import com.chefkix.social.group.dto.request.ProcessJoinRequest;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
 import com.chefkix.social.group.dto.request.TransferOwnershipRequest;
@@ -163,5 +164,17 @@ public class GroupController {
         Slice<GroupResponse> responses = groupService.getMyGroups(currentUserId, status, pageable);
 
         return ApiResponse.success(responses);
+    }
+
+    @PatchMapping("/{groupId}")
+    public ApiResponse<GroupResponse> updateGroup(
+            @PathVariable("groupId") String groupId,
+            @RequestBody GroupUpdateRequest request
+    ) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        GroupResponse response = groupService.updateGroup(groupId, request, currentUserId);
+
+        return ApiResponse.success(response);
     }
 }

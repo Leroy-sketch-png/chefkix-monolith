@@ -7,6 +7,7 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.enums.RequestAction;
 import com.chefkix.social.group.dto.query.GroupExploreQuery;
 import com.chefkix.social.group.dto.request.GroupCreationRequest;
+import com.chefkix.social.group.dto.request.GroupUpdateRequest;
 import com.chefkix.social.group.dto.response.GroupMemberResponse;
 import com.chefkix.social.group.dto.response.GroupResponse;
 import com.chefkix.social.group.dto.response.JoinGroupResponse;
@@ -481,5 +482,40 @@ public class GroupService {
         // 5. Wrap in a SliceImpl!
         // Notice we don't pass 'totalElements' anymore. We just pass 'hasNext()'.
         return new SliceImpl<>(responseList, pageable, membershipSlice.hasNext());
+    }
+
+    @Transactional
+    public GroupResponse updateGroup(String groupId, GroupUpdateRequest request, String currentUserId) {
+
+        // 1. SECURITY CHECK: Ensure requester is in the group and is an ADMIN
+        GroupMember requester = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+
+        if (requester.getRole() != MemberRole.ADMIN) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION); // Or custom ErrorCode.NOT_GROUP_ADMIN
+        }
+
+        // 2. Fetch the Group
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        // 3. Apply Partial Updates (Only overwrite if the frontend sent a value)
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            group.setName(request.getName());
+        }
+
+        if (request.getDescription() != null) {
+            group.setDescription(request.getDescription());
+        }
+
+        if (request.getCoverImageUrl() != null) {
+            group.setCoverImageUrl(request.getCoverImageUrl());
+        }
+
+        // 4. Save to Database
+        group = groupRepository.save(group);
+
+        // 5. Return the updated group (reusing our mapper!)
+        return mapper.toExploreResponse(group, requester);
     }
 }
