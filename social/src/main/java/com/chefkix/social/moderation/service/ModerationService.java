@@ -229,14 +229,18 @@ public class ModerationService {
      */
     @Scheduled(cron = "0 0 * * * *") // Every hour
     public void expireBans() {
-        List<Ban> expiredBans = banRepository.findByActiveTrueAndExpiresAtBefore(Instant.now());
-        for (Ban ban : expiredBans) {
-            ban.setActive(false);
-            banRepository.save(ban);
-            log.info("Ban {} expired for user {}", ban.getId(), ban.getUserId());
-        }
-        if (!expiredBans.isEmpty()) {
-            log.info("Expired {} bans", expiredBans.size());
+        try {
+            List<Ban> expiredBans = banRepository.findByActiveTrueAndExpiresAtBefore(Instant.now());
+            for (Ban ban : expiredBans) {
+                ban.setActive(false);
+                banRepository.save(ban);
+                log.info("Ban {} expired for user {}", ban.getId(), ban.getUserId());
+            }
+            if (!expiredBans.isEmpty()) {
+                log.info("Expired {} bans", expiredBans.size());
+            }
+        } catch (Exception e) {
+            log.error("Ban expiry scheduler failed — will retry next cycle", e);
         }
     }
 

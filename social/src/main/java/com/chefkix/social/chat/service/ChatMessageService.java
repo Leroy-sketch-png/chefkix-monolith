@@ -69,7 +69,11 @@ public class ChatMessageService {
      * Validates that the current user is a participant in the conversation.
      */
     private void validateConversationAccess(String conversationId) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        String userId = authentication.getName();
         conversationRepository
                 .findById(conversationId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND))
@@ -81,7 +85,11 @@ public class ChatMessageService {
     }
 
     public ChatMessageResponse create(ChatMessageRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        String userId = authentication.getName();
 
         // 1. Determine message type
         MessageType msgType = request.getType() != null ? request.getType() : MessageType.TEXT;

@@ -51,13 +51,20 @@ public class ConversationService {
     public ConversationResponse create(ConversationRequest request) {
         // Fetch user infos
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        String targetUserId = request.getParticipantIds().getFirst();
         log.info(
                 "Creating conversation for user {} with participant {}",
                 userId,
-                request.getParticipantIds().getFirst());
+                targetUserId);
+
+        // PRIVACY: Block check — blocked users cannot create conversations with each other
+        if (profileProvider.isBlocked(userId, targetUserId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
         var userInfo = profileProvider.getBasicProfile(userId);
         log.info("User info: {}", userInfo);
-        var participantInfo = profileProvider.getBasicProfile(request.getParticipantIds().getFirst());
+        var participantInfo = profileProvider.getBasicProfile(targetUserId);
 
         if (userInfo == null || participantInfo == null) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
