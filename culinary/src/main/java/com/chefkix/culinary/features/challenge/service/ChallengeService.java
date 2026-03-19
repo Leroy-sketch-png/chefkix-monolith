@@ -86,6 +86,7 @@ public class ChallengeService {
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
+            .icon(extractChallengeIcon(challenge.getTitle()))
                 .bonusXp(challenge.getBonusXp())
                 .endsAt(endsAtStr)
                 .criteria(challenge.getCriteriaMetadata()) // Trả về cục JSON criteria
@@ -93,6 +94,21 @@ public class ChallengeService {
                 .completedAt(completedAt)
                 .matchingRecipes(matchingRecipes) // Bạn nên map sang RecipePreviewDTO để gọn hơn
                 .build();
+    }
+
+    private String extractChallengeIcon(String title) {
+        if (!StringUtils.hasText(title)) {
+            return "🎯";
+        }
+
+        String[] tokens = title.trim().split("\\s+");
+        if (tokens.length == 0) {
+            return "🎯";
+        }
+
+        String lastToken = tokens[tokens.length - 1];
+        boolean looksLikeEmoji = lastToken.codePoints().anyMatch(codePoint -> !Character.isLetterOrDigit(codePoint));
+        return looksLikeEmoji ? lastToken : "🎯";
     }
 
     /**
@@ -112,14 +128,14 @@ public class ChallengeService {
 
         // 1. Ưu tiên tìm theo Cuisine (Vì nó chính xác hơn)
         if (criteria.containsKey("cuisineType")) {
-            List<String> cuisines = (List<String>) criteria.get("cuisineType");
+            List<String> cuisines = getStringListCriteria(criteria, "cuisineType");
             // Gọi Repository
             recipes = recipeRepository.findTop5ByCuisineTypeInIgnoreCase(cuisines);
         }
 
         // 2. Nếu chưa tìm thấy gì, thử tìm theo Nguyên liệu
-        if (recipes.isEmpty() && criteria.containsKey("fullI")) {
-            List<String> ingredients = (List<String>) criteria.get("ingredientContains");
+        if (recipes.isEmpty() && criteria.containsKey("ingredientContains")) {
+            List<String> ingredients = getStringListCriteria(criteria, "ingredientContains");
             // Gọi Repository
             recipes = recipeRepository.findTop5ByFullIngredientListInIgnoreCase(ingredients);
         }
@@ -135,6 +151,18 @@ public class ChallengeService {
                 .map(this::mapToPreviewDto)
                 .toList(); // Java 16+
         // .collect(Collectors.toList()); // Nếu dùng Java cũ hơn
+    }
+
+    private List<String> getStringListCriteria(Map<String, Object> criteria, String key) {
+        Object rawValue = criteria.get(key);
+        if (!(rawValue instanceof List<?> rawList)) {
+            return Collections.emptyList();
+        }
+
+        return rawList.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .toList();
     }
 
     /**
@@ -266,10 +294,16 @@ public class ChallengeService {
         ChallengeHistoryResponse.RecipeShortInfo recipeInfo = null;
 
         if (StringUtils.hasText(log.getRecipeId())) {
-            // Check cache or simple query
+            String recipeImageUrl = recipeRepository.findById(log.getRecipeId())
+                    .map(Recipe::getCoverImageUrl)
+                    .filter(images -> images != null && !images.isEmpty())
+                    .map(images -> images.get(0))
+                    .orElse(null);
+
             recipeInfo = ChallengeHistoryResponse.RecipeShortInfo.builder()
                     .id(log.getRecipeId())
                     .title(log.getRecipeTitle()) // ChallengeLog already has the title snapshot
+                    .imageUrl(recipeImageUrl)
                     .build();
         }
 

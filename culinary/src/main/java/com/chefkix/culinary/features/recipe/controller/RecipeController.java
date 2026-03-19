@@ -32,6 +32,13 @@ public class RecipeController {
         return ApiResponse.success(recipeService.updateRecipe(id, request), "Recipe updated successfully");
     }
 
+    // 2. DELETE (soft-delete / archive)
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable String id) {
+        recipeService.deleteRecipe(id);
+        return ApiResponse.success(null, "Recipe deleted successfully");
+    }
+
     // 3. GET DETAIL
     @GetMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> getById(@PathVariable String id) {

@@ -11,6 +11,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofRespon
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.RecipeVisibility;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.common.helper.AsyncHelper;
@@ -95,11 +96,45 @@ public class RecipeService {
 
     // --- CÁC HÀM TOGGLE ĐÃ CHUYỂN SANG INTERACTION SERVICE ---
 
+    @Transactional
+    public void deleteRecipe(String recipeId) {
+        String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        if (!recipe.getUserId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Prevent deleting recipes that have active cooking sessions
+        long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS);
+        if (activeSessions > 0) {
+            throw new AppException(ErrorCode.INVALID_REQUEST);
+        }
+
+        // Soft-delete: archive instead of hard delete to preserve data integrity
+        recipe.setStatus(RecipeStatus.ARCHIVED);
+        recipeRepository.save(recipe);
+        log.info("[RECIPE_DELETE] User {} archived recipe {}", currentUserId, recipeId);
+    }
+
     public RecipeDetailResponse getRecipeById(String recipeId) {
         String viewerId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        // Prevent unauthorized access to non-published recipes
+        boolean isOwner = recipe.getUserId().equals(viewerId);
+        if (!isOwner) {
+            if (recipe.getStatus() == RecipeStatus.DRAFT || recipe.getStatus() == RecipeStatus.ARCHIVED) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+            if (recipe.getRecipeVisibility() == RecipeVisibility.PRIVATE) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+        }
 
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(recipe.getUserId())
                 .exceptionally(ex -> {
@@ -127,6 +162,14 @@ public class RecipeService {
     }
 
     public Page<RecipeDetailResponse> searchRecipes(RecipeSearchQuery query, Pageable pageable) {
+        // Populate visibility context for privacy-aware search
+        try {
+            String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+            query.setCurrentUserId(currentUserId);
+            query.setFriendIds(profileProvider.getFriendIds(currentUserId));
+        } catch (Exception e) {
+            // Unauthenticated or error — will only see PUBLIC recipes (handled by RecipeSpecification)
+        }
         return recipeRepository.searchRecipes(query, pageable).map(recipeMapper::toRecipeDetailResponse);
     }
 

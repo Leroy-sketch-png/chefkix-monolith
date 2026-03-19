@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -21,11 +22,15 @@ public class RecipeRequest {
 
     // --- BASIC INFO ---
     @NotBlank(message = "Title is required")
+    @Size(max = 200, message = "Title must not exceed 200 characters")
     String title;
 
+    @Size(max = 5000, message = "Description must not exceed 5000 characters")
     String description;
 
+    @Size(max = 10, message = "Maximum 10 cover images allowed")
     List<String> coverImageUrl;
+    @Size(max = 5, message = "Maximum 5 videos allowed")
     List<String> videoUrl;
 
     // --- METADATA ---
@@ -42,9 +47,11 @@ public class RecipeRequest {
 
     // --- STRUCTURE (Nested DTOs) ---
     @Valid
+    @Size(max = 100, message = "Maximum 100 ingredients allowed")
     List<IngredientRequest> fullIngredientList;
 
     @Valid
+    @Size(max = 50, message = "Maximum 50 steps allowed")
     List<StepRequest> steps;
 
     // --- GAMIFICATION (Config) ---
