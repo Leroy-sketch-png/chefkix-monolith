@@ -2,6 +2,7 @@ package com.chefkix.culinary.common.scheduled;
 
 import com.chefkix.culinary.features.report.dto.internal.RecipeStatDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecipeScheduled {
@@ -27,48 +29,52 @@ public class RecipeScheduled {
     // Chạy mỗi 30 phút (đơn vị ms)
     @Scheduled(fixedRate = 1800000)
     public void updateTrendingScores() {
-        // 1. Xác định khung thời gian (7 ngày qua)
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        try {
+            // 1. Xác định khung thời gian (7 ngày qua)
+            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
-        // 2. Map lưu trữ điểm số tạm tính: Key = recipeId, Value = Score
-        Map<String, Double> scoreMap = new HashMap<>();
+            // 2. Map lưu trữ điểm số tạm tính: Key = recipeId, Value = Score
+            Map<String, Double> scoreMap = new HashMap<>();
 
-        // --- BƯỚC A: TÍNH ĐIỂM LIKE (Weight = 1) ---
-        List<RecipeStatDto> likeStats = aggregateCount(
-                RecipeLike.class, "createdAt", sevenDaysAgo, "recipeId"
-        );
+            // --- BƯỚC A: TÍNH ĐIỂM LIKE (Weight = 1) ---
+            List<RecipeStatDto> likeStats = aggregateCount(
+                    RecipeLike.class, "createdAt", sevenDaysAgo, "recipeId"
+            );
 
-        likeStats.forEach(stat ->
-                scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, Double::sum)
-        );
+            likeStats.forEach(stat ->
+                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, Double::sum)
+            );
 
-        // --- BƯỚC B: TÍNH ĐIỂM COMPLETION (Weight = 5) ---
-        List<RecipeStatDto> completionStats = aggregateCount(
-                RecipeCompletion.class, "completedAt", sevenDaysAgo, "recipeId"
-        );
+            // --- BƯỚC B: TÍNH ĐIỂM COMPLETION (Weight = 5) ---
+            List<RecipeStatDto> completionStats = aggregateCount(
+                    RecipeCompletion.class, "completedAt", sevenDaysAgo, "recipeId"
+            );
 
-        completionStats.forEach(stat ->
-                scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, Double::sum)
-        );
+            completionStats.forEach(stat ->
+                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, Double::sum)
+            );
 
-        // --- BƯỚC C: UPDATE VÀO DATABASE (Bulk Update) ---
-        // Dùng Bulk Operations để update hàng nghìn record cực nhanh
-        var bulkOps = mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, Recipe.class);
+            // --- BƯỚC C: UPDATE VÀO DATABASE (Bulk Update) ---
+            // Dùng Bulk Operations để update hàng nghìn record cực nhanh
+            var bulkOps = mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, Recipe.class);
 
-        // Reset điểm của TOÀN BỘ Recipe về 0 trước (để những món hết hot sẽ rớt hạng)
-        // Lưu ý: Cách này đơn giản nhưng có thể gây flick nhẹ. 
-        // Cách tốt hơn là update những món có trong map, và set 0 cho những món không có trong map.
-        // Ở đây mình demo cách update những món CÓ điểm.
+            // Reset điểm của TOÀN BỘ Recipe về 0 trước (để những món hết hot sẽ rớt hạng)
+            // Lưu ý: Cách này đơn giản nhưng có thể gây flick nhẹ. 
+            // Cách tốt hơn là update những món có trong map, và set 0 cho những món không có trong map.
+            // Ở đây mình demo cách update những món CÓ điểm.
 
-        for (Map.Entry<String, Double> entry : scoreMap.entrySet()) {
-            Query query = new Query(Criteria.where("_id").is(entry.getKey()));
-            Update update = new Update().set("trendingScore", entry.getValue());
-            bulkOps.updateOne(query, update);
-        }
+            for (Map.Entry<String, Double> entry : scoreMap.entrySet()) {
+                Query query = new Query(Criteria.where("_id").is(entry.getKey()));
+                Update update = new Update().set("trendingScore", entry.getValue());
+                bulkOps.updateOne(query, update);
+            }
 
-        // Thực thi update
-        if (!scoreMap.isEmpty()) {
-            bulkOps.execute();
+            // Thực thi update
+            if (!scoreMap.isEmpty()) {
+                bulkOps.execute();
+            }
+        } catch (Exception e) {
+            log.error("Error updating recipe trending scores. Task will retry on next schedule.", e);
         }
     }
 

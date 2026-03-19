@@ -40,19 +40,23 @@ public class StreakWarningScheduler {
    */
   @Scheduled(cron = "0 0 * * * *") // Every hour at minute 0
   public void checkExpiringStreaks() {
-    log.info("Running streak warning check...");
+    try {
+      log.info("Running streak warning check...");
 
-    Instant now = Instant.now();
+      Instant now = Instant.now();
 
-    // Find users whose lastCookAt is between (now - 72h + warningHours) and (now - 72h +
-    // warningHours + 1h)
-    // This means they have `warningHours` left before their 72h window expires
+      // Find users whose lastCookAt is between (now - 72h + warningHours) and (now - 72h +
+      // warningHours + 1h)
+      // This means they have `warningHours` left before their 72h window expires
 
-    // First warning: 12 hours left (so they cooked ~60 hours ago)
-    sendWarningsForTimeWindow(now, FIRST_WARNING_HOURS, "NORMAL");
+      // First warning: 12 hours left (so they cooked ~60 hours ago)
+      sendWarningsForTimeWindow(now, FIRST_WARNING_HOURS, "NORMAL");
 
-    // Final warning: 6 hours left (so they cooked ~66 hours ago)
-    sendWarningsForTimeWindow(now, FINAL_WARNING_HOURS, "HIGH");
+      // Final warning: 6 hours left (so they cooked ~66 hours ago)
+      sendWarningsForTimeWindow(now, FINAL_WARNING_HOURS, "HIGH");
+    } catch (Exception e) {
+      log.error("Streak warning scheduler failed — will retry next cycle", e);
+    }
   }
 
   private void sendWarningsForTimeWindow(Instant now, int hoursRemaining, String priorityStr) {
