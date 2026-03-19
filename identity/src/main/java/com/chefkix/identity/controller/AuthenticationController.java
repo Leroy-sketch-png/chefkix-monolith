@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,10 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthenticationController {
   AuthenticationService authenticationService;
   SignupRequestService signupRequestService;
-  PasswordEncoder passwordEncoder;
-  KeycloakService keycloakService;
   ProfileService profileService;
   ResetPasswordService resetPasswordService;
+  AuthRateLimitService authRateLimitService;
 
   @PostMapping(path = "/register")
   ApiResponse<String> register(
@@ -78,9 +76,16 @@ public class AuthenticationController {
 
   @PostMapping("/login")
   ApiResponse<AuthenticationResponse> authenticate(
-      @RequestBody @Valid AuthenticationRequest request, HttpServletResponse response) { // thêm response
+      @RequestBody @Valid AuthenticationRequest request,
+      HttpServletResponse response,
+      HttpServletRequest httpServletRequest) { // thêm response
+    String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
+    authRateLimitService.assertLoginAllowed(clientIp);
+
     // 1. authenticate user và lấy token từ Keycloak
     AuthenticationResponse authResponse = authenticationService.authenticate(request);
+
+    authRateLimitService.clearLoginAttempts(clientIp);
 
     // 2. Lưu refresh token vào HttpOnly cookie
     HttpOnlyCookieUtils.addHttpOnlyCookie(
@@ -93,7 +98,9 @@ public class AuthenticationController {
   }
 
   @PostMapping("/forgot-password")
-  ApiResponse<String> resetPassword(@RequestParam String email) {
+  ApiResponse<String> resetPassword(@RequestParam String email, HttpServletRequest httpServletRequest) {
+    String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
+    authRateLimitService.assertForgotPasswordAllowed(clientIp, email);
     resetPasswordService.sendForgotPasswordOtp(email);
     return ApiResponse.<String>builder().data("Email has been sent!").build();
   }
@@ -130,11 +137,5 @@ public class AuthenticationController {
     HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
     return ApiResponse.<String>builder().data("Logged out successfully").build();
-  }
-
-  private void logError(Exception e) {
-    // Simple logging; integrate with your logger if preferred
-    System.err.println("Google authentication failed: " + e.getMessage());
-    e.printStackTrace();
   }
 }
