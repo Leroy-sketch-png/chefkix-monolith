@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import com.chefkix.identity.api.NotificationPreferencesProvider;
 import com.chefkix.notification.entity.Notification;
 import com.chefkix.notification.enums.NotificationType;
 import com.chefkix.notification.dto.request.NotificationUpdateRequest;
@@ -34,6 +35,7 @@ public class NotificationService {
     NotificationMapper notificationMapper;
     SimpMessagingTemplate messagingTemplate;
     PushNotificationService pushNotificationService;
+    NotificationPreferencesProvider notificationPreferencesProvider;
 
     private static final String USER_TOPIC_PREFIX = "/topic/user/";
     private static final int POST_PREVIEW_LENGTH = 50;
@@ -53,6 +55,12 @@ public class NotificationService {
     public void handlePostLikeEvent(PostLikeEvent event) {
         String recipientId = event.getPostOwnerId();
         String targetId = event.getPostId();
+
+        // PREFERENCE CHECK: respect user's social notification toggle
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
+            log.debug("Skipping POST_LIKE notification for user {} — social notifications disabled", recipientId);
+            return;
+        }
 
         Optional<Notification> existingNotif = notificationRepository.findByRecipientIdAndTargetEntityIdAndType(
                 recipientId, targetId, NotificationType.POST_LIKE);
@@ -75,6 +83,12 @@ public class NotificationService {
     public void handleNewFollowerEvent(NewFollowerEvent event) {
         String recipientId = event.getFollowedUserId();
         String displayName = safeDisplayName(event.getFollowerDisplayName());
+
+        // PREFERENCE CHECK: respect user's follower notification toggle
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "followers")) {
+            log.debug("Skipping NEW_FOLLOWER notification for user {} — follower notifications disabled", recipientId);
+            return;
+        }
 
         String content = event.isMutualFollow()
                 ? String.format("%s followed you back! You're now mutual followers.", displayName)
@@ -105,6 +119,12 @@ public class NotificationService {
     public void handleCommentEvent(CommentEvent event) {
         String recipientId = event.getPostOwnerId();
         String displayName = safeDisplayName(event.getCommenterDisplayName());
+
+        // PREFERENCE CHECK: respect user's social notification toggle
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
+            log.debug("Skipping POST_COMMENT notification for user {} — social notifications disabled", recipientId);
+            return;
+        }
 
         String content = String.format(
                 "%s commented: \"%s\"",
@@ -137,59 +157,69 @@ public class NotificationService {
         String displayName = safeDisplayName(event.getDisplayName());
 
         if (event.isLeveledUp()) {
-            String levelUpContent = String.format(
-                    "🎉 Congratulations! You reached Level %d!%s",
-                    event.getNewLevel(),
-                    event.getNewTitle() != null ? " You're now a " + event.getNewTitle() + "!" : "");
+            // PREFERENCE CHECK: respect user's xpAndLevelUps toggle
+            if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "xpAndLevelUps")) {
+                log.debug("Skipping LEVEL_UP notification for user {} — xpAndLevelUps disabled", recipientId);
+            } else {
+                String levelUpContent = String.format(
+                        "Congratulations! You reached Level %d!%s",
+                        event.getNewLevel(),
+                        event.getNewTitle() != null ? " You're now a " + event.getNewTitle() + "!" : "");
 
-            Notification levelUpNotification = Notification.builder()
-                    .recipientId(recipientId)
-                    .type(NotificationType.LEVEL_UP)
-                    .isRead(false)
-                    .content(levelUpContent)
-                    .targetEntityId(null)
-                    .latestActorId(recipientId)
-                    .latestActorName(displayName)
-                    .count(1)
-                    .actorIds(Set.of(recipientId))
-                    .createdAt(Instant.now())
-                    .build();
+                Notification levelUpNotification = Notification.builder()
+                        .recipientId(recipientId)
+                        .type(NotificationType.LEVEL_UP)
+                        .isRead(false)
+                        .content(levelUpContent)
+                        .targetEntityId(null)
+                        .latestActorId(recipientId)
+                        .latestActorName(displayName)
+                        .count(1)
+                        .actorIds(Set.of(recipientId))
+                        .createdAt(Instant.now())
+                        .build();
 
-            notificationRepository.save(levelUpNotification);
+                notificationRepository.save(levelUpNotification);
 
-            NotificationResponse response = notificationMapper.toNotificationResponse(levelUpNotification);
-            broadcastNotification(recipientId, response, "CREATE");
+                NotificationResponse response = notificationMapper.toNotificationResponse(levelUpNotification);
+                broadcastNotification(recipientId, response, "CREATE");
 
-            log.info("Created level-up notification for user: {} (level {})", recipientId, event.getNewLevel());
+                log.info("Created level-up notification for user: {} (level {})", recipientId, event.getNewLevel());
+            }
         }
 
         if (event.getNewBadges() != null && !event.getNewBadges().isEmpty()) {
-            String badgeList = String.join(", ", event.getNewBadges());
-            String badgeContent = event.getNewBadges().size() == 1
-                    ? String.format("🏆 You earned a new badge: %s!", badgeList)
-                    : String.format(
-                            "🏆 You earned %d new badges: %s!",
-                            event.getNewBadges().size(), badgeList);
+            // PREFERENCE CHECK: respect user's badges toggle
+            if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "badges")) {
+                log.debug("Skipping BADGE_EARNED notification for user {} — badge notifications disabled", recipientId);
+            } else {
+                String badgeList = String.join(", ", event.getNewBadges());
+                String badgeContent = event.getNewBadges().size() == 1
+                        ? String.format("You earned a new badge: %s!", badgeList)
+                        : String.format(
+                                "You earned %d new badges: %s!",
+                                event.getNewBadges().size(), badgeList);
 
-            Notification badgeNotification = Notification.builder()
-                    .recipientId(recipientId)
-                    .type(NotificationType.BADGE_EARNED)
-                    .isRead(false)
-                    .content(badgeContent)
-                    .targetEntityId(null)
-                    .latestActorId(recipientId)
-                    .latestActorName(displayName)
-                    .count(event.getNewBadges().size())
-                    .actorIds(Set.of(recipientId))
-                    .createdAt(Instant.now())
-                    .build();
+                Notification badgeNotification = Notification.builder()
+                        .recipientId(recipientId)
+                        .type(NotificationType.BADGE_EARNED)
+                        .isRead(false)
+                        .content(badgeContent)
+                        .targetEntityId(null)
+                        .latestActorId(recipientId)
+                        .latestActorName(displayName)
+                        .count(event.getNewBadges().size())
+                        .actorIds(Set.of(recipientId))
+                        .createdAt(Instant.now())
+                        .build();
 
-            notificationRepository.save(badgeNotification);
+                notificationRepository.save(badgeNotification);
 
-            NotificationResponse badgeResponse = notificationMapper.toNotificationResponse(badgeNotification);
-            broadcastNotification(recipientId, badgeResponse, "CREATE");
+                NotificationResponse badgeResponse = notificationMapper.toNotificationResponse(badgeNotification);
+                broadcastNotification(recipientId, badgeResponse, "CREATE");
 
-            log.info("Created badge notification for user: {} ({})", recipientId, badgeList);
+                log.info("Created badge notification for user: {} ({})", recipientId, badgeList);
+            }
         }
     }
 
@@ -204,6 +234,18 @@ public class NotificationService {
         } catch (IllegalArgumentException e) {
             log.warn("Unknown reminder type '{}', defaulting to STREAK_WARNING", event.getReminderType());
             reminderType = NotificationType.STREAK_WARNING;
+        }
+
+        // PREFERENCE CHECK: map reminder type to preference category
+        String prefCategory = switch (reminderType) {
+            case STREAK_WARNING -> "streakWarning";
+            case POST_DEADLINE -> "postDeadline";
+            case CHALLENGE_REMINDER, CHALLENGE_AVAILABLE -> "dailyChallenge";
+            default -> "social";
+        };
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, prefCategory)) {
+            log.debug("Skipping {} notification for user {} — {} disabled", reminderType, recipientId, prefCategory);
+            return;
         }
 
         Notification notification = Notification.builder()
@@ -230,6 +272,12 @@ public class NotificationService {
     public void handleTagEvent(UserMentionEvent event) {
         String recipientId = event.getUserId();
         String displayName = safeDisplayName(event.getActorDisplayName());
+
+        // PREFERENCE CHECK: mentions fall under social notifications
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
+            log.debug("Skipping USER_MENTION notification for user {} — social notifications disabled", recipientId);
+            return;
+        }
 
         String content;
         String navigationTargetId = event.getPostId();
