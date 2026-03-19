@@ -3,6 +3,7 @@ package com.chefkix.identity.config;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaOperations;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -25,7 +28,7 @@ public class KafkaConsumerConfig {
 
   /** Generic factory builder with error handling — 3 retries, 1s between each. */
   private <T> ConcurrentKafkaListenerContainerFactory<String, T> createFactory(
-      Class<T> eventClass, String groupId) {
+      Class<T> eventClass, String groupId, KafkaOperations<Object, Object> kafkaOperations) {
     Map<String, Object> props = new HashMap<>();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -33,7 +36,7 @@ public class KafkaConsumerConfig {
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-    props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.chefkix.shared.event,*");
+    props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.chefkix.shared.event");
 
     ConsumerFactory<String, T> consumerFactory =
         new DefaultKafkaConsumerFactory<>(
@@ -42,11 +45,12 @@ public class KafkaConsumerConfig {
     ConcurrentKafkaListenerContainerFactory<String, T> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
+    DeadLetterPublishingRecoverer recoverer =
+      new DeadLetterPublishingRecoverer(
+        kafkaOperations,
+        (record, ex) -> new TopicPartition(record.topic() + ".dlt", record.partition()));
     // 3 retries, 1s between each. Prevents permanent message loss on transient failures.
-    factory.setCommonErrorHandler(new DefaultErrorHandler(
-        (record, ex) -> log.error("Dead-letter (identity {}): topic={}, offset={}, error={}",
-            eventClass.getSimpleName(), record.topic(), record.offset(), ex.getMessage()),
-        new FixedBackOff(1000L, 3L)));
+    factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L)));
 
     return factory;
   }
@@ -57,19 +61,19 @@ public class KafkaConsumerConfig {
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.PostCreatedEvent>
-      postCreatedKafkaListenerContainerFactory() {
-    return createFactory(com.chefkix.shared.event.PostCreatedEvent.class, "post-created-group");
+      postCreatedKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
+    return createFactory(com.chefkix.shared.event.PostCreatedEvent.class, "post-created-group", kafkaOperations);
   }
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.PostDeletedEvent>
-      postDeletedKafkaListenerContainerFactory() {
-    return createFactory(com.chefkix.shared.event.PostDeletedEvent.class, "post-deleted-group");
+      postDeletedKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
+    return createFactory(com.chefkix.shared.event.PostDeletedEvent.class, "post-deleted-group", kafkaOperations);
   }
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.XpRewardEvent>
-      xpRewardedKafkaListenerContainerFactory() {
-    return createFactory(com.chefkix.shared.event.XpRewardEvent.class, "xp-rewarded-group");
+      xpRewardedKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
+    return createFactory(com.chefkix.shared.event.XpRewardEvent.class, "xp-rewarded-group", kafkaOperations);
   }
 }
