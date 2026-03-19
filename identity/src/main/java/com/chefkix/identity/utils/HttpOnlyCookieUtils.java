@@ -3,30 +3,33 @@ package com.chefkix.identity.utils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
+import org.springframework.util.StringUtils;
 
-@RequiredArgsConstructor
 public class HttpOnlyCookieUtils {
+
+  private static String cookieDomain = "localhost";
+  private static boolean secureCookies = false;
+
+  /**
+   * Configure cookie domain and secure flag for deployment environment.
+   * Call from application startup (e.g., @PostConstruct in a config bean).
+   */
+  public static void configure(String domain, boolean secure) {
+    cookieDomain = domain;
+    secureCookies = secure;
+  }
+
   /**
    * Creates and adds an HttpOnly cookie to the response with proper SameSite attribute.
    * Uses ResponseCookie for better control over cookie attributes.
    * 
-   * CRITICAL: Sets domain to "localhost" (without port) so cookies are shared
-   * between frontend (localhost:3000) and backend (localhost:8888).
+   * Domain is configurable via configure() for production deployment.
    * Without explicit domain, cookies are port-specific and cannot be shared.
    */
   public static void addHttpOnlyCookie(
       HttpServletResponse response, String name, String value, int maxAgeInSeconds) {
-    // Use ResponseCookie for proper SameSite support
-    ResponseCookie cookie = ResponseCookie.from(name, value)
-        .httpOnly(true)
-        .secure(false) // Set to true in production with HTTPS
-        .domain("localhost") // CRITICAL: Share cookie across all localhost ports
-        .path("/")
-        .maxAge(maxAgeInSeconds)
-        .sameSite("Lax") // Lax is safe for same-site navigation, prevents CSRF
-        .build();
+    ResponseCookie cookie = buildCookie(name, value, maxAgeInSeconds);
     
     response.addHeader("Set-Cookie", cookie.toString());
   }
@@ -44,16 +47,24 @@ public class HttpOnlyCookieUtils {
 
   /** Delete cookie by setting maxAge = 0 */
   public static void deleteHttpOnlyCookie(HttpServletResponse response, String name) {
-    // Use ResponseCookie for proper SameSite support
-    ResponseCookie cookie = ResponseCookie.from(name, "")
-        .httpOnly(true)
-        .secure(false) // Match the addHttpOnlyCookie settings
-        .domain("localhost") // CRITICAL: Must match the domain used when setting cookie
-        .path("/")
-        .maxAge(0) // Immediately expire = delete
-        .sameSite("Lax")
-        .build();
-    
+    ResponseCookie cookie = buildCookie(name, "", 0);
+
     response.addHeader("Set-Cookie", cookie.toString());
+  }
+
+  private static ResponseCookie buildCookie(String name, String value, int maxAgeInSeconds) {
+    ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
+        .httpOnly(true)
+        .secure(secureCookies)
+        .path("/")
+        .maxAge(maxAgeInSeconds)
+        .sameSite("Strict");
+
+    // Browsers often reject `Domain=localhost`; host-only cookies are correct for local dev.
+    if (StringUtils.hasText(cookieDomain) && !"localhost".equalsIgnoreCase(cookieDomain.trim())) {
+      builder.domain(cookieDomain.trim());
+    }
+
+    return builder.build();
   }
 }
