@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -31,6 +32,11 @@ public class CloudinaryController {
     UploadImageFile uploadImageFile;
     Cloudinary cloudinary;
 
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/gif", "image/webp");
+    private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024; // 10MB
+    private static final int MAX_IMAGE_COUNT = 10;
+
     /**
      * Upload multiple image files to Cloudinary.
      */
@@ -38,6 +44,23 @@ public class CloudinaryController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<List<String>> uploadImages(
             @RequestParam("files") List<MultipartFile> files) {
+
+        if (files.size() > MAX_IMAGE_COUNT) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR,
+                    "Maximum " + MAX_IMAGE_COUNT + " images allowed per upload");
+        }
+
+        for (MultipartFile file : files) {
+            String contentType = file.getContentType();
+            if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+                throw new AppException(ErrorCode.VALIDATION_ERROR,
+                        "Only JPEG, PNG, GIF, and WebP images are allowed");
+            }
+            if (file.getSize() > MAX_IMAGE_SIZE) {
+                throw new AppException(ErrorCode.VALIDATION_ERROR,
+                        "Each image must be under 10MB");
+            }
+        }
 
         List<String> imageUrls = uploadImageFile.uploadMultipleImageFiles(files);
 

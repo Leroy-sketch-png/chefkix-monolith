@@ -141,11 +141,6 @@ public class CookingSessionService {
         // Round to integers immediately to avoid floating point precision errors (e.g., 125.99999999999999)
         double baseXp = Math.round(totalEffectiveXp * 0.30);
         double pendingXp = Math.round(totalEffectiveXp * 0.70);
-        
-        // 🔍 DIAG: Log mastery calculation at completion time
-        log.info("🔍 DIAG completeSession: userId={}, recipeId={}, sessionId={}", userId, session.getRecipeId(), sessionId);
-        log.info("🔍 DIAG completeSession: recipeXpReward={}, masteryMult={}, totalEffectiveXp={}", recipe.getXpReward(), masteryMult, totalEffectiveXp);
-        log.info("🔍 DIAG completeSession: baseXp={}, pendingXp={}", baseXp, pendingXp);
 
         // 3. Check Challenge (Daily)
         Optional<ChallengeRewardResult> challengeResult = challengeService.checkAndCompleteChallenge(userId, recipe);
@@ -275,17 +270,8 @@ public class CookingSessionService {
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 🔍 DIAG: Log session and post data before XP calculation
-        log.info("🔍 DIAG linkSession: sessionId={}, pendingXp={}, baseXpAwarded={}, completedAt={}", 
-                sessionId, session.getPendingXp(), session.getBaseXpAwarded(), session.getCompletedAt());
-        log.info("🔍 DIAG linkSession: postId={}, photoCount={}", request.getPostId(), postData.getPhotoCount());
-        log.info("🔍 DIAG linkSession: recipeXpReward={}", recipe.getXpReward());
-
         // 2. Tính toán XP Link
         int finalXpToAward = helper.calculateFinalXpForLinking(session, postData);
-        
-        // 🔍 DIAG: Log calculated XP
-        log.info("🔍 DIAG linkSession: finalXpToAward={}", finalXpToAward);
 
         // 3. Get badges from recipe (only awarded on post/link, not on complete)
         List<String> badgesEarned = (recipe.getRewardBadges() != null) 
@@ -427,14 +413,23 @@ public class CookingSessionService {
                 .build();
     }
 
+    @Transactional
     public SessionResumeResponse resumeSession(String sessionId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         CookingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
-        if (LocalDateTime.now().isAfter(session.getResumeDeadline())) throw new AppException(ErrorCode.SESSION_EXPIRED);
-        if (session.getStatus().equals(SessionStatus.COMPLETED)) throw new AppException(ErrorCode.SESSION_COMPLETED);
+
+        // CRITICAL: Only PAUSED sessions can be resumed
+        if (session.getStatus() != SessionStatus.PAUSED) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
+        // Null guard for resumeDeadline — if null, allow resume (no deadline set)
+        if (session.getResumeDeadline() != null && LocalDateTime.now().isAfter(session.getResumeDeadline())) {
+            throw new AppException(ErrorCode.SESSION_EXPIRED);
+        }
 
         session.setStatus(SessionStatus.IN_PROGRESS);
         sessionRepository.save(session);
@@ -466,8 +461,10 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        if (session.getStatus() == SessionStatus.COMPLETED) {
-            throw new AppException(ErrorCode.SESSION_COMPLETED);
+        // CRITICAL: Only allow step completion on IN_PROGRESS sessions
+        // Previous check only blocked COMPLETED — PAUSED and ABANDONED sessions could still complete steps
+        if (session.getStatus() != SessionStatus.IN_PROGRESS) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
         Recipe recipe = recipeRepository.findById(session.getRecipeId())

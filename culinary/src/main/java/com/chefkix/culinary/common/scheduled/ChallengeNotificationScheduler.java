@@ -51,37 +51,41 @@ public class ChallengeNotificationScheduler {
      */
     @Scheduled(cron = "0 5 0 * * *")
     public void sendChallengeAvailableNotifications() {
-        ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
-        if (challenge == null) {
-            log.warn("No challenge available for today, skipping CHALLENGE_AVAILABLE notifications");
-            return;
+        try {
+            ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
+            if (challenge == null) {
+                log.warn("No challenge available for today, skipping CHALLENGE_AVAILABLE notifications");
+                return;
+            }
+
+            List<Document> activeUsers = findActiveUsers();
+            log.info("Sending CHALLENGE_AVAILABLE to {} active users for: {}", activeUsers.size(), challenge.getTitle());
+
+            int sent = 0;
+            for (Document user : activeUsers) {
+                String userId = user.getString("userId");
+                String displayName = user.getString("displayName");
+                if (userId == null) continue;
+
+                ReminderEvent event = ReminderEvent.builder()
+                        .userId(userId)
+                        .displayName(displayName != null ? displayName : "Chef")
+                        .reminderType("CHALLENGE_AVAILABLE")
+                        .content(String.format(
+                                "\uD83C\uDFC6 New daily challenge: %s — %s (Bonus: +%d XP)",
+                                challenge.getTitle(), challenge.getDescription(), challenge.getBonusXp()))
+                        .priority(ReminderEvent.ReminderPriority.NORMAL)
+                        .challengeCategory(challenge.getId())
+                        .build();
+
+                kafkaTemplate.send(REMINDER_TOPIC, event);
+                sent++;
+            }
+
+            log.info("CHALLENGE_AVAILABLE notifications sent to {} users", sent);
+        } catch (Exception e) {
+            log.error("Challenge available notification scheduler failed — will retry next cycle", e);
         }
-
-        List<Document> activeUsers = findActiveUsers();
-        log.info("Sending CHALLENGE_AVAILABLE to {} active users for: {}", activeUsers.size(), challenge.getTitle());
-
-        int sent = 0;
-        for (Document user : activeUsers) {
-            String userId = user.getString("userId");
-            String displayName = user.getString("displayName");
-            if (userId == null) continue;
-
-            ReminderEvent event = ReminderEvent.builder()
-                    .userId(userId)
-                    .displayName(displayName != null ? displayName : "Chef")
-                    .reminderType("CHALLENGE_AVAILABLE")
-                    .content(String.format(
-                            "\uD83C\uDFC6 New daily challenge: %s — %s (Bonus: +%d XP)",
-                            challenge.getTitle(), challenge.getDescription(), challenge.getBonusXp()))
-                    .priority(ReminderEvent.ReminderPriority.NORMAL)
-                    .challengeCategory(challenge.getId())
-                    .build();
-
-            kafkaTemplate.send(REMINDER_TOPIC, event);
-            sent++;
-        }
-
-        log.info("CHALLENGE_AVAILABLE notifications sent to {} users", sent);
     }
 
     /**
@@ -90,43 +94,47 @@ public class ChallengeNotificationScheduler {
      */
     @Scheduled(cron = "0 0 20 * * *")
     public void sendChallengeReminderNotifications() {
-        ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
-        if (challenge == null) {
-            log.warn("No challenge available for today, skipping CHALLENGE_REMINDER notifications");
-            return;
-        }
-
-        String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
-        List<Document> activeUsers = findActiveUsers();
-
-        int sent = 0;
-        for (Document user : activeUsers) {
-            String userId = user.getString("userId");
-            String displayName = user.getString("displayName");
-            if (userId == null) continue;
-
-            // Skip users who already completed today's challenge
-            if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, todayStr)) {
-                continue;
+        try {
+            ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
+            if (challenge == null) {
+                log.warn("No challenge available for today, skipping CHALLENGE_REMINDER notifications");
+                return;
             }
 
-            ReminderEvent event = ReminderEvent.builder()
-                    .userId(userId)
-                    .displayName(displayName != null ? displayName : "Chef")
-                    .reminderType("CHALLENGE_REMINDER")
-                    .content(String.format(
-                            "\u23F0 Don't forget today's challenge: %s — Only 4 hours left!",
-                            challenge.getTitle()))
-                    .priority(ReminderEvent.ReminderPriority.HIGH)
-                    .hoursRemaining(4)
-                    .challengeCategory(challenge.getId())
-                    .build();
+            String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
+            List<Document> activeUsers = findActiveUsers();
 
-            kafkaTemplate.send(REMINDER_TOPIC, event);
-            sent++;
+            int sent = 0;
+            for (Document user : activeUsers) {
+                String userId = user.getString("userId");
+                String displayName = user.getString("displayName");
+                if (userId == null) continue;
+
+                // Skip users who already completed today's challenge
+                if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, todayStr)) {
+                    continue;
+                }
+
+                ReminderEvent event = ReminderEvent.builder()
+                        .userId(userId)
+                        .displayName(displayName != null ? displayName : "Chef")
+                        .reminderType("CHALLENGE_REMINDER")
+                        .content(String.format(
+                                "\u23F0 Don't forget today's challenge: %s — Only 4 hours left!",
+                                challenge.getTitle()))
+                        .priority(ReminderEvent.ReminderPriority.HIGH)
+                        .hoursRemaining(4)
+                        .challengeCategory(challenge.getId())
+                        .build();
+
+                kafkaTemplate.send(REMINDER_TOPIC, event);
+                sent++;
+            }
+
+            log.info("CHALLENGE_REMINDER sent to {} users (out of {} active)", sent, activeUsers.size());
+        } catch (Exception e) {
+            log.error("Challenge reminder notification scheduler failed — will retry next cycle", e);
         }
-
-        log.info("CHALLENGE_REMINDER sent to {} users (out of {} active)", sent, activeUsers.size());
     }
 
     /**

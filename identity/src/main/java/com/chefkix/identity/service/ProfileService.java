@@ -187,6 +187,14 @@ public class ProfileService {
     if (response.getFriends() == null) {
       response.setFriends(Collections.emptyList());
     }
+
+    // PRIVACY: Redact PII fields for non-SELF viewers
+    if (status != RelationshipStatus.SELF) {
+      response.setEmail(null);
+      response.setPhoneNumber(null);
+      response.setDob(null);
+    }
+
     return response;
   }
 
@@ -295,6 +303,14 @@ public class ProfileService {
               if (localResponse.getFriends() == null) {
                 localResponse.setFriends(Collections.emptyList());
               }
+
+              // PRIVACY: Redact PII fields for non-SELF viewers
+              if (status != RelationshipStatus.SELF) {
+                localResponse.setEmail(null);
+                localResponse.setPhoneNumber(null);
+                localResponse.setDob(null);
+              }
+
               return localResponse;
             },
             taskExecutor);
@@ -480,12 +496,11 @@ public class ProfileService {
         profileRepository
             .findByEmail(email)
             .orElseThrow(
-                () ->
-                    new IllegalArgumentException("User profile not found or Keycloak ID missing."));
+                () -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     String userId = userProfile.getUserId();
     if (userId == null) {
-      throw new IllegalArgumentException("Keycloak ID missing for email: " + email);
+      throw new AppException(ErrorCode.USER_NOT_FOUND);
     }
 
     try {
@@ -508,6 +523,9 @@ public class ProfileService {
               .temporary(false)
               .value(newPassword)
               .build());
+
+      // 3. Revoke all sessions — force re-authentication on all devices
+      keycloakAdminClient.logoutUser("Bearer " + token.getAccessToken(), userId);
 
       log.info("Password successfully reset for userId={}", userId);
 

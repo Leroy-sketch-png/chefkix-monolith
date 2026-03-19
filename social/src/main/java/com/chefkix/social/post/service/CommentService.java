@@ -30,7 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,6 +56,9 @@ public class CommentService {
 
     public CommentResponse createComment(
       Authentication authentication, String postId, CommentRequest req) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
     String userId = authentication.getName();
 
     // Check to see if post is there
@@ -179,7 +184,7 @@ public class CommentService {
                 kafkaTemplate.send("tag-delivery", event);
 
             } catch (Exception e) {
-                log.error("Failed to send comment notification", e);
+                log.error("Failed to send tag notification for comment {} to user {}", comment.getId(), taggedUserId, e);
             }
         }
     }
@@ -200,14 +205,18 @@ public class CommentService {
     public List<CommentResponse> getAllCommentsByPostId(String postId, String currentUserId) {
         // 1. Lấy tất cả comment thô từ DB
         List<Comment> comments = commentRepository.findByPostId(postId);
+        Map<String, BasicProfileInfo> taggedProfileCache = new HashMap<>();
 
         // 2. Chuyển đổi và "làm giàu" (enrich) từng comment
         return comments.stream()
-                .map(comment -> mapToCommentResponse(comment, currentUserId))
+            .map(comment -> mapToCommentResponse(comment, currentUserId, taggedProfileCache))
                 .collect(Collectors.toList());
     }
 
-    private CommentResponse mapToCommentResponse(Comment comment, String currentUserId) {
+        private CommentResponse mapToCommentResponse(
+            Comment comment,
+            String currentUserId,
+            Map<String, BasicProfileInfo> taggedProfileCache) {
         // 1. Dùng mapper để map các trường cơ bản
         CommentResponse response = commentMapper.toCommentResponse(comment);
         
@@ -230,7 +239,13 @@ public class CommentService {
         if (taggedIds != null && !taggedIds.isEmpty()) {
             for (String taggedUserId : taggedIds) {
                 try {
-                    BasicProfileInfo taggedUserInfo = profileProvider.getBasicProfile(taggedUserId);
+                    BasicProfileInfo taggedUserInfo = taggedProfileCache.get(taggedUserId);
+                    if (taggedUserInfo == null) {
+                        taggedUserInfo = profileProvider.getBasicProfile(taggedUserId);
+                        if (taggedUserInfo != null) {
+                            taggedProfileCache.put(taggedUserId, taggedUserInfo);
+                        }
+                    }
                     if (taggedUserInfo == null) {
                         continue;
                     }
@@ -241,7 +256,7 @@ public class CommentService {
 
                     response.getTaggedUsers().add(taggedUserInCmt);
                 } catch (Exception e) {
-                    log.warn("Could not resolve tagged user {}", taggedUserId);
+                    log.warn("Could not resolve tagged user {}", taggedUserId, e);
                 }
             }
         }

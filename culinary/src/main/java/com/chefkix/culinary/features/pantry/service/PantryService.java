@@ -13,6 +13,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -119,8 +120,9 @@ public class PantryService {
                 .map(PantryItem::getNormalizedName)
                 .collect(Collectors.toSet());
 
-        // Get all published recipes
-        List<Recipe> publishedRecipes = recipeRepo.findByStatus(RecipeStatus.PUBLISHED, Pageable.unpaged()).getContent();
+        // Cap at 500 recipes to prevent OOM as the catalog grows.
+        // TODO: Replace with a MongoDB text-search or aggregation pipeline for true scalability.
+        List<Recipe> publishedRecipes = recipeRepo.findByStatus(RecipeStatus.PUBLISHED, PageRequest.of(0, 500)).getContent();
 
         List<PantryRecipeMatchResponse> matches = new ArrayList<>();
 

@@ -20,6 +20,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmailEvent {
 
+    @Builder.Default
+    String eventId = java.util.UUID.randomUUID().toString();
+
     String recipientEmail;
     String subject;
     String body;

@@ -69,4 +69,24 @@ public interface ProfileProvider {
      * @return account creation instant (never null)
      */
     Instant getAccountCreatedAt(String userId);
+
+    /**
+     * Check if there is a block relationship between two users (either direction).
+     * Used by social module (chat, posts, comments) to enforce block boundaries.
+     *
+     * @param userId1 first user ID
+     * @param userId2 second user ID
+     * @return true if either user has blocked the other
+     */
+    boolean isBlocked(String userId1, String userId2);
+
+    /**
+     * Get all user IDs that should be invisible to the given user.
+     * Includes users they've blocked AND users who blocked them.
+     * Used by social module (feeds, leaderboards) for batch filtering.
+     *
+     * @param userId the user whose invisible list to retrieve
+     * @return list of invisible user IDs (never null, may be empty)
+     */
+    List<String> getInvisibleUserIds(String userId);
 }

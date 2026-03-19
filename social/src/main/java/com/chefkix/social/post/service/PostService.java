@@ -43,7 +43,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -79,6 +82,9 @@ public class PostService {
     @Qualifier("taskExecutor")
     Executor taskExecutor;
 
+    @Value("${app.public-base-url:http://localhost:3000}")
+    String publicBaseUrl;
+
     private static final double GRAVITY = 1.8; // Hệ số dùng cho thuật toán Trending (nếu cần sau này)
 
     // ========================================================================
@@ -106,16 +112,11 @@ public class PostService {
             // Task B: Get Profile (with fallback)
             CompletableFuture<BasicProfileInfo> profileFuture = CompletableFuture.supplyAsync(
                     () -> {
-                        try {
-                            return profileProvider.getBasicProfile(userId);
-                        } catch (Exception e) {
-                            log.warn("Could not fetch profile for user [{}]. Using fallback. Error: {}", userId, e.getMessage());
-                            return BasicProfileInfo.builder()
-                                    .userId(userId)
-                                    .displayName("Anonymous User")
-                                    .avatarUrl(null)
-                                    .build();
+                        BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+                        if (profile == null) {
+                            throw new AppException(ErrorCode.USER_NOT_FOUND, "Profile not found for post creator");
                         }
+                        return profile;
                     },
                     taskExecutor
             );
@@ -137,8 +138,10 @@ public class PostService {
                             } catch (AppException e) {
                                 throw e;
                             } catch (Exception e) {
-                                log.error("Error fetching session [{}]: {}", request.getSessionId(), e.getMessage());
-                                return null;
+                                log.error("Error fetching session [{}]", request.getSessionId(), e);
+                                throw new AppException(
+                                        ErrorCode.INTERNAL_SERVER_ERROR,
+                                        "Failed to load cooking session for post creation");
                             }
                         },
                         taskExecutor
@@ -268,7 +271,7 @@ public class PostService {
         if (StringUtils.hasText(request.getContent())) {
             post.setContent(request.getContent());
             post.generateSlug();
-            post.setPostUrl("http://localhost:8080/posts/" + post.getSlug()); // Nên đưa domain vào file properties
+            post.setPostUrl(publicBaseUrl + "/post/" + post.getId());
         }
 
         if (request.getTags() != null) {
@@ -298,7 +301,16 @@ public class PostService {
                 .postId(post.getId())
                 .build();
 
-        kafkaTemplate.send("post-deleted-delivery", postDeletedEvent);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    kafkaTemplate.send("post-deleted-delivery", postDeletedEvent);
+                }
+            });
+        } else {
+            kafkaTemplate.send("post-deleted-delivery", postDeletedEvent);
+        }
     }
 
     // ========================================================================
@@ -409,9 +421,10 @@ public class PostService {
                 sort
         );
 
-        return postRepository.findByHiddenFalse(sortedPageable)
-                .map(postMapper::toPostResponse)
-                .map(post -> enrichWithUserStatus(post, currentUserId));
+        Page<PostResponse> page = postRepository.findByHiddenFalse(sortedPageable)
+                .map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
     }
 
     public Page<PostResponse> getAllPostsByUserId(String userId, Pageable pageable, String currentUserId) {
@@ -420,9 +433,10 @@ public class PostService {
                 pageable.getPageSize(),
                 Sort.by("createdAt").descending()
         );
-        return postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
-                .map(postMapper::toPostResponse)
-                .map(post -> enrichWithUserStatus(post, currentUserId));
+        Page<PostResponse> page = postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
+                .map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
     }
 
     /**
@@ -449,14 +463,44 @@ public class PostService {
                 ? postRepository.findByUserIdInAndHiddenFalseOrderByHotScoreDesc(followingIds, pageable)
                 : postRepository.findByUserIdInAndHiddenFalseOrderByCreatedAtDesc(followingIds, pageable);
 
-        return posts
-                .map(postMapper::toPostResponse)
-                .map(post -> enrichWithUserStatus(post, currentUserId));
+        Page<PostResponse> page = posts.map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
+    }
+
+    /**
+     * Batch-enriches a page of PostResponses with the current user's like/save status.
+     * Uses 2 batch queries instead of 2N individual queries (eliminates N+1).
+     */
+    private void enrichPageWithUserStatus(Page<PostResponse> page, String currentUserId) {
+        List<PostResponse> content = page.getContent();
+        if (content.isEmpty() || currentUserId == null || currentUserId.isBlank()) {
+            content.forEach(p -> { p.setIsLiked(false); p.setIsSaved(false); });
+            return;
+        }
+
+        List<String> postIds = content.stream().map(PostResponse::getId).collect(Collectors.toList());
+
+        // 2 batch queries instead of 2*N individual queries
+        var likedPosts = postLikeRepository.findByUserIdAndPostIdIn(currentUserId, postIds);
+        var savedPosts = postSaveRepository.findByUserIdAndPostIdIn(currentUserId, postIds);
+
+        var likedPostIds = likedPosts.stream()
+                .map(like -> like.getPostId())
+                .collect(Collectors.toSet());
+        var savedPostIds = savedPosts.stream()
+                .map(save -> save.getPostId())
+                .collect(Collectors.toSet());
+
+        content.forEach(post -> {
+            post.setIsLiked(likedPostIds.contains(post.getId()));
+            post.setIsSaved(savedPostIds.contains(post.getId()));
+        });
     }
     
     /**
-     * Enriches a PostResponse with the current user's like/save status.
-     * Returns post unchanged if currentUserId is null (unauthenticated).
+     * Enriches a single PostResponse with the current user's like/save status.
+     * Used for single-post fetches (detail, update). For feeds, use enrichPageWithUserStatus.
      */
     private PostResponse enrichWithUserStatus(PostResponse post, String currentUserId) {
         if (currentUserId == null || currentUserId.isBlank()) {
@@ -604,11 +648,20 @@ public class PostService {
         List<PostResponse> responses = postIds.stream()
                 .map(postMap::get)
                 .filter(Objects::nonNull)
-                .map(post -> {
-                    PostResponse response = postMapper.toPostResponse(post);
-                    return enrichWithUserStatus(response, userId);
-                })
+                .map(postMapper::toPostResponse)
                 .collect(Collectors.toList());
+
+        // Batch-enrich like/save status (2 queries instead of 2*N)
+        if (!responses.isEmpty()) {
+            var likedPosts = postLikeRepository.findByUserIdAndPostIdIn(userId, postIds);
+            var savedPostsSet = postSaveRepository.findByUserIdAndPostIdIn(userId, postIds);
+            var likedPostIds = likedPosts.stream().map(l -> l.getPostId()).collect(Collectors.toSet());
+            var savedPostIds = savedPostsSet.stream().map(s -> s.getPostId()).collect(Collectors.toSet());
+            responses.forEach(r -> {
+                r.setIsLiked(likedPostIds.contains(r.getId()));
+                r.setIsSaved(savedPostIds.contains(r.getId()));
+            });
+        }
         
         return new PageImpl<>(responses, pageable, savedPosts.getTotalElements());
     }

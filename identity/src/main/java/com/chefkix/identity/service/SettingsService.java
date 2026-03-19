@@ -2,6 +2,9 @@ package com.chefkix.identity.service;
 
 import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.repository.UserSettingsRepository;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +24,19 @@ public class SettingsService {
 
   UserSettingsRepository settingsRepository;
 
+  // Validation constants for enum-like String fields
+  private static final Set<String> VALID_PROFILE_VISIBILITY = Set.of("public", "friends_only", "private");
+  private static final Set<String> VALID_MESSAGES_FROM = Set.of("everyone", "friends", "nobody");
+  private static final Set<String> VALID_SKILL_LEVELS = Set.of("beginner", "intermediate", "advanced", "expert");
+  private static final Set<String> VALID_THEMES = Set.of("light", "dark", "system");
+  private static final Set<String> VALID_MEASUREMENT_UNITS = Set.of("metric", "imperial");
+
+  private void validateEnum(String value, Set<String> allowed, String fieldName) {
+    if (value != null && !allowed.contains(value)) {
+      throw new AppException(ErrorCode.INVALID_REQUEST);
+    }
+  }
+
   // ================================
   // GET OPERATIONS
   // ================================
@@ -31,9 +47,24 @@ public class SettingsService {
     return getOrCreateSettings(userId);
   }
 
+  /** Get settings for a specific user by ID (for cross-service lookups). */
+  public UserSettings getSettingsByUserId(String userId) {
+    return getOrCreateSettings(userId);
+  }
+
   /** Get privacy settings only. */
   public UserSettings.PrivacySettings getPrivacySettings() {
     return getSettings().getPrivacy();
+  }
+
+  /** Get privacy settings for a specific user (for enforcement checks). */
+  public UserSettings.PrivacySettings getPrivacySettingsByUserId(String userId) {
+    return getOrCreateSettings(userId).getPrivacy();
+  }
+
+  /** Get notification settings for a specific user (for notification enforcement). */
+  public UserSettings.NotificationSettings getNotificationSettingsByUserId(String userId) {
+    return getOrCreateSettings(userId).getNotifications();
   }
 
   /** Get notification settings only. */
@@ -59,6 +90,10 @@ public class SettingsService {
   public UserSettings.PrivacySettings updatePrivacySettings(UserSettings.PrivacySettings privacy) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
+
+    // Validate enum-like fields
+    validateEnum(privacy.getProfileVisibility(), VALID_PROFILE_VISIBILITY, "profileVisibility");
+    validateEnum(privacy.getAllowMessagesFrom(), VALID_MESSAGES_FROM, "allowMessagesFrom");
 
     // Update only non-null fields
     if (privacy.getProfileVisibility() != null) {
@@ -133,6 +168,10 @@ public class SettingsService {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
 
+    // Validate enum-like fields
+    validateEnum(cooking.getSkillLevel(), VALID_SKILL_LEVELS, "skillLevel");
+    validateEnum(cooking.getMeasurementUnits(), VALID_MEASUREMENT_UNITS, "measurementUnits");
+
     if (cooking.getSkillLevel() != null) {
       settings.getCooking().setSkillLevel(cooking.getSkillLevel());
     }
@@ -167,6 +206,9 @@ public class SettingsService {
   public UserSettings.AppPreferences updateAppPreferences(UserSettings.AppPreferences app) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
+
+    // Validate enum-like fields
+    validateEnum(app.getTheme(), VALID_THEMES, "theme");
 
     if (app.getTheme() != null) {
       settings.getApp().setTheme(app.getTheme());

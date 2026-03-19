@@ -24,4 +24,9 @@ public interface PostSaveRepository extends MongoRepository<PostSave, String> {
     Page<PostSave> findByUserIdOrderByCreatedDateDesc(String userId, Pageable pageable);
     
     long countByPostId(String postId);
+
+    /**
+     * Batch: find all saves by a user for a set of posts (eliminates N+1).
+     */
+    List<PostSave> findByUserIdAndPostIdIn(String userId, List<String> postIds);
 }

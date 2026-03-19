@@ -18,9 +18,13 @@ public class OtpCleanUpTask {
   @Scheduled(fixedDelayString = "${app.signup.cleanup-millis:3600000}")
   @Transactional
   public void cleanupExpired() {
-    int deleted = signupRequestRepository.deleteExpired(Instant.now());
-    if (deleted > 0) {
-      log.info("Deleted {} expired signup requests", deleted);
+    try {
+      int deleted = signupRequestRepository.deleteExpired(Instant.now());
+      if (deleted > 0) {
+        log.info("Deleted {} expired signup requests", deleted);
+      }
+    } catch (Exception e) {
+      log.error("OTP cleanup task failed — will retry next cycle", e);
     }
   }
 }

@@ -441,6 +441,16 @@ public class CookingRoomService {
     }
 
     /**
+     * Returns true if the given user is an active participant in the given room.
+     */
+    public boolean isParticipant(String roomCode, String userId) {
+        return roomRepository.findByRoomCode(roomCode.toUpperCase())
+                .map(room -> room.getParticipants().stream()
+                        .anyMatch(p -> p.getUserId().equals(userId)))
+                .orElse(false);
+    }
+
+    /**
      * Gets existing IN_PROGRESS session for recipe, or starts a new one.
      * Links the session to the room so co-op XP multiplier applies on completion.
      */

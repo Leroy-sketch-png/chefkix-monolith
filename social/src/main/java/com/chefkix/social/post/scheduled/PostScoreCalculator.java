@@ -31,24 +31,28 @@ public class PostScoreCalculator {
      */
     @Scheduled(fixedDelay = 600000)
     public void updateTrendingScores() {
-        log.info("Bắt đầu chạy tác vụ cập nhật điểm hot...");
+        try {
+            log.info("Bắt đầu chạy tác vụ cập nhật điểm hot...");
 
-        // 1. Chỉ tính cho các post trong 7 ngày qua
-        Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
-        List<Post> recentPosts = postRepository.findByCreatedAtAfter(sevenDaysAgo);
+            // 1. Chỉ tính cho các post trong 7 ngày qua
+            Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+            List<Post> recentPosts = postRepository.findByCreatedAtAfter(sevenDaysAgo);
 
-        Instant now = Instant.now();
+            Instant now = Instant.now();
 
-        // 2. Lặp qua, tính toán và cập nhật
-        for (Post post : recentPosts) {
-            double newHotScore = calculateHotScore(post, now);
+            // 2. Lặp qua, tính toán và cập nhật
+            for (Post post : recentPosts) {
+                double newHotScore = calculateHotScore(post, now);
 
-            // 3. Cập nhật 'hotScore' mới vào DB
-            Query query = Query.query(Criteria.where("id").is(post.getId()));
-            Update update = new Update().set("hotScore", newHotScore);
-            mongoTemplate.updateFirst(query, update, Post.class);
+                // 3. Cập nhật 'hotScore' mới vào DB
+                Query query = Query.query(Criteria.where("id").is(post.getId()));
+                Update update = new Update().set("hotScore", newHotScore);
+                mongoTemplate.updateFirst(query, update, Post.class);
+            }
+            log.info("Hoàn thành cập nhật điểm hot cho {} bài post.", recentPosts.size());
+        } catch (Exception e) {
+            log.error("Lỗi khi cập nhật điểm hot cho bài post. Tác vụ sẽ thử lại lần sau.", e);
         }
-        log.info("Hoàn thành cập nhật điểm hot cho {} bài post.", recentPosts.size());
     }
 
     /**

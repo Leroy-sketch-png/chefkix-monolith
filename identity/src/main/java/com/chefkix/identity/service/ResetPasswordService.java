@@ -1,9 +1,12 @@
 package com.chefkix.identity.service;
 
 import com.chefkix.shared.event.EmailEvent;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.entity.ResetPasswordRequest;
 import com.chefkix.identity.repository.ResetPasswordRepository;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -56,16 +59,14 @@ public class ResetPasswordService {
             .body("Your password reset code is: " + otp)
             .build();
 
-    // Publish message to kafka
+    // Publish message to kafka synchronously so transaction fails if OTP cannot be delivered.
     log.info("Sending notification event to Kafka: {}", notificationEmailEvent);
-    kafkaTemplate
-        .send("otp-delivery", notificationEmailEvent)
-        .whenComplete(
-            (res, ex) -> {
-              if (ex != null) log.error("Failed to send Kafka message", ex);
-              else
-                log.info(
-                    "Kafka message sent successfully to topic {}", res.getRecordMetadata().topic());
-            });
+    try {
+      var result = kafkaTemplate.send("otp-delivery", notificationEmailEvent).get(5, TimeUnit.SECONDS);
+      log.info("Kafka message sent successfully to topic {}", result.getRecordMetadata().topic());
+    } catch (Exception e) {
+      log.error("Failed to send forgot-password OTP message to Kafka", e);
+      throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Could not send reset OTP", e);
+    }
   }
 }

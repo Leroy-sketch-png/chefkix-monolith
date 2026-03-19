@@ -37,6 +37,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     SocialService socialService;
     UserStatusService userStatusService;
     UserRepository userRepository;
+    BlockService blockService;
 
     @Override
     public BasicProfileInfo getBasicProfile(String userId) {
@@ -104,5 +105,15 @@ public class ProfileProviderImpl implements ProfileProvider {
             return Instant.EPOCH;
         }
         return user.getCreatedAt().toInstant(ZoneOffset.UTC);
+    }
+
+    @Override
+    public boolean isBlocked(String userId1, String userId2) {
+        return blockService.isBlocked(userId1, userId2);
+    }
+
+    @Override
+    public List<String> getInvisibleUserIds(String userId) {
+        return blockService.getInvisibleUserIds(userId);
     }
 }

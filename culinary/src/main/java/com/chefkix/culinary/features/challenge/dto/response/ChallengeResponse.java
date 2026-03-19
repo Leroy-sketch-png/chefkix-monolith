@@ -19,6 +19,7 @@ public class ChallengeResponse {
     private String id;
     private String title;
     private String description;
+    private String icon;
     private int bonusXp;
 
     // Metadata giúp Frontend hiển thị điều kiện (VD: cuisineType: ["Italian"])
