@@ -1,5 +1,7 @@
 package com.chefkix.culinary.common.enums;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -30,6 +32,6 @@ public enum TimerEventType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown timer event type: " + value);
+        throw new AppException(ErrorCode.INVALID_INPUT, "Unknown timer event type: " + value);
     }
 }
