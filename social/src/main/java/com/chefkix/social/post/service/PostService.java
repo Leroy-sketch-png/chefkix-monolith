@@ -2,6 +2,9 @@ package com.chefkix.social.post.service;
 
 import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.social.group.repository.GroupMemberRepository;
+import com.chefkix.social.post.enums.PostStatus;
+import com.chefkix.social.post.enums.PostType;
 import org.springframework.context.annotation.Lazy;
 import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.api.ProfileProvider;
@@ -70,6 +73,7 @@ public class PostService {
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
     PostSaveRepository postSaveRepository;
+    GroupMemberRepository groupMemberRepository;
 
     KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -91,8 +95,42 @@ public class PostService {
     // 1. CREATE POST (ASYNC PARALLEL)
     // ========================================================================
 
-    public PostResponse createPost(PostCreationRequest request) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+    // ========================================================================
+    // 1A. CREATE PERSONAL POST
+    // ========================================================================
+    public PostResponse createPersonalPost(PostCreationRequest request, String userId) {
+        log.info("Bắt đầu tạo PERSONAL post cho user: {}", userId);
+
+        // Personal posts go straight to ACTIVE.
+        // We pull the isHidden value directly from the DTO.
+        return processAndSavePost(request, userId, PostType.PERSONAL, null, PostStatus.ACTIVE, request.getIsPrivateRecipe());
+    }
+
+    // ========================================================================
+    // 1B. CREATE GROUP POST
+    // ========================================================================
+    public PostResponse createGroupPost(String groupId, PostCreationRequest request, String userId) {
+        log.info("Bắt đầu tạo GROUP post trong group {} cho user: {}", groupId, userId);
+
+        // 1. SECURITY CHECK: Ensure they are in the group
+        boolean isMember = groupMemberRepository.existsByGroupIdAndUserId(groupId, userId);
+        if (!isMember) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION, "You must join the group to post here.");
+        }
+
+        // 2. STATUS: Defaulting to ACTIVE (You can change this to PENDING later if groups need admin approval)
+        PostStatus initialStatus = PostStatus.ACTIVE;
+
+        // Group posts shouldn't be "hidden" from the group, so we force isHidden = false
+        return processAndSavePost(request, userId, PostType.GROUP, groupId, initialStatus, false);
+    }
+
+    // ========================================================================
+    // 1C. SHARED ASYNC UPLOAD ENGINE
+    // ========================================================================
+    private PostResponse processAndSavePost(PostCreationRequest request, String userId,
+                                            PostType type, String groupId,
+                                            PostStatus status, boolean isHidden) {
         long startTime = System.currentTimeMillis();
 
         log.info("Bắt đầu tạo post cho user: {}", userId);
@@ -128,7 +166,7 @@ public class PostService {
                         () -> {
                             try {
                                 SessionInfo session = sessionProvider.getSession(request.getSessionId());
-                                if (session == null) return null;
+                                if (session == null) throw new AppException(ErrorCode.SESSION_NOT_FOUND, "Fake session ID!");
 
                                 // Validate: must be own session
                                 if (!session.getUserId().equals(userId)) {
@@ -164,7 +202,7 @@ public class PostService {
 
             log.info("Xử lý xong I/O trong {}ms", System.currentTimeMillis() - startTime);
 
-            // AI CONTENT MODERATION — fail-open for posts
+            // AI CONTENT MODERATION
             if (request.getContent() != null && !request.getContent().isBlank()) {
                 var moderationResult = contentModerationProvider.moderate(request.getContent(), "post");
                 if (moderationResult.isBlocked()) {
@@ -174,14 +212,81 @@ public class PostService {
             }
 
             // LƯU VÀO DB
-            return savePostToDb(request, userId, userProfile, photoUrls, session);
+            return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 
         } catch (CompletionException e) {
-            log.error("Lỗi song song createPost", e);
+            log.error("Lỗi song song processAndSavePost", e);
             Throwable cause = e.getCause();
             if (cause instanceof AppException) throw (AppException) cause;
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    @Transactional
+    protected PostResponse savePostToDb(PostCreationRequest request, String userId,
+                                        BasicProfileInfo profile,
+                                        List<String> photoUrls,
+                                        SessionInfo session,
+                                        PostType type,
+                                        String groupId,
+                                        PostStatus status,
+                                        boolean isHidden) {
+
+        Post post = postMapper.toPost(request);
+        post.setUserId(userId);
+
+        post.setDisplayName(profile != null ? profile.getDisplayName() : "Chef User");
+        post.setAvatarUrl(profile != null ? profile.getAvatarUrl() : null);
+
+        post.setPhotoUrls(photoUrls);
+        post.generateSlug();
+        post.setLikes(0);
+        post.setCommentCount(0);
+        post.setCreatedAt(Instant.now());
+        post.setUpdatedAt(Instant.now());
+
+        // 🚀 THE NEW FIELDS MAPPED HERE
+        post.setPostType(type);
+        post.setGroupId(groupId);
+        post.setStatus(status);
+        post.setHidden(isHidden);
+
+        // LINK TO SESSION
+        if (session != null) {
+            post.setSessionId(session.getId());
+            post.setRecipeId(session.getRecipeId());
+            post.setRecipeTitle(session.getRecipeTitle());
+            post.setPrivateRecipe(Boolean.TRUE.equals(request.getIsPrivateRecipe()));
+            post.setXpEarned(0.0);
+
+            if (session.getRoomCode() != null && !session.getRoomCode().isBlank()) {
+                post.setRoomCode(session.getRoomCode());
+                try {
+                    var coChefProfiles = sessionProvider.getCoChefs(session.getRoomCode(), userId);
+                    if (coChefProfiles != null && !coChefProfiles.isEmpty()) {
+                        post.setCoChefs(coChefProfiles.stream()
+                                .map(p -> CoChef.builder()
+                                        .userId(p.getUserId())
+                                        .displayName(p.getDisplayName())
+                                        .avatarUrl(p.getAvatarUrl())
+                                        .build())
+                                .collect(Collectors.toList()));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to populate co-chefs for room {}: {}", session.getRoomCode(), e.getMessage());
+                }
+            }
+        }
+
+        post = postRepository.save(post);
+
+        kafkaTemplate.send("post-delivery",
+                PostCreatedEvent.builder()
+                        .userId(userId)
+                        .postId(post.getId())
+                        .build());
+
+        return postMapper.toPostResponse(post);
     }
 
     @Transactional

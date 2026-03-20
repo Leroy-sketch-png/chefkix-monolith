@@ -37,6 +37,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     SocialService socialService;
     UserStatusService userStatusService;
     UserRepository userRepository;
+    private final KeycloakService keycloakService;
     BlockService blockService;
 
     @Override
@@ -115,5 +116,11 @@ public class ProfileProviderImpl implements ProfileProvider {
     @Override
     public List<String> getInvisibleUserIds(String userId) {
         return blockService.getInvisibleUserIds(userId);
+    }
+
+    @Override
+    public boolean verifyUserPassword(String userName, String confirmationPassword) {
+
+        return keycloakService.verifyPassword(userName, confirmationPassword);
     }
 }

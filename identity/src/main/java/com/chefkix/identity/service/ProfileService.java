@@ -202,6 +202,9 @@ public class ProfileService {
   @Transactional
   public ProfileResponse verifyOtpAndCreateUser(String email, String otp) {
     // 1. Xác thực OTP
+      log.info("HHHHHH");
+      log.info("clientId: {}", clientId);
+      log.info("clientSecret: {}", clientSecret);
     SignupRequest req = validateSignupOtp(email, otp);
 
     // 2. Tạo user trên Keycloak
@@ -374,6 +377,8 @@ public class ProfileService {
 
   private String createKeycloakUser(SignupRequest req) {
     try {
+        log.info("clientId: {}", clientId);
+        log.info("clientSecret: {}", clientSecret);
       var token =
           keycloakAdminClient.exchangeToken(
               TokenExchangeParam.builder()
