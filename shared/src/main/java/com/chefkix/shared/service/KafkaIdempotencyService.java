@@ -37,8 +37,8 @@ public class KafkaIdempotencyService {
      */
     public boolean tryProcess(String eventId) {
         if (eventId == null || eventId.isBlank()) {
-            log.warn("Received event with null/blank eventId - processing anyway but cannot guarantee idempotency");
-            return true;
+            log.error("Received event with null/blank eventId - skipping to protect idempotency guarantees");
+            return false;
         }
 
         String key = KEY_PREFIX + eventId;
@@ -62,8 +62,8 @@ public class KafkaIdempotencyService {
      */
     public boolean tryProcess(String eventId, String topic) {
         if (eventId == null || eventId.isBlank()) {
-            log.warn("Received event with null/blank eventId on topic {} - processing anyway", topic);
-            return true;
+            log.error("Received event with null/blank eventId on topic {} - skipping", topic);
+            return false;
         }
 
         String key = KEY_PREFIX + topic + ":" + eventId;

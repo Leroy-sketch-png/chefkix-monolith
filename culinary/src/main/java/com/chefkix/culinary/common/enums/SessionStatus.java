@@ -1,5 +1,7 @@
 package com.chefkix.culinary.common.enums;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -33,6 +35,6 @@ public enum SessionStatus {
                 return status;
             }
         }
-        throw new IllegalArgumentException("Unknown session status: " + value);
+        throw new AppException(ErrorCode.INVALID_INPUT, "Unknown session status: " + value);
     }
 }

@@ -51,6 +51,7 @@ public class SocialService {
   SecurityUtils securityUtils;
   SocialUtils socialUtils;
   StatisticsService statisticsService;
+  SettingsService settingsService;
   KafkaTemplate<String, Object> kafkaTemplate;
 
   private static final String NEW_FOLLOWER_TOPIC = "new-follower-delivery";
@@ -70,14 +71,13 @@ public class SocialService {
 
     // --- VALIDATION ---
     if (followerId.equals(followingId)) {
-      throw new IllegalArgumentException("User cannot follow themselves.");
+      throw new AppException(ErrorCode.INVALID_REQUEST);
     }
     UserProfile targetProfile =
         userProfileRepository
             .findByUserId(followingId)
             .orElseThrow(
-                () ->
-                    new NoSuchElementException("User to follow not found with ID: " + followingId));
+                () -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     // Get follower profile for notification
     UserProfile followerProfile = userProfileRepository.findByUserId(followerId).orElse(null);
@@ -93,6 +93,11 @@ public class SocialService {
       log.info("User {} successfully UNFOLLOWED {}", followerId, followingId);
     } else {
       // B. CHƯA FOLLOW -> FOLLOW
+      // PRIVACY: Check if target user allows followers
+      var targetPrivacy = settingsService.getPrivacySettingsByUserId(followingId);
+      if (targetPrivacy != null && Boolean.FALSE.equals(targetPrivacy.getAllowFollowers())) {
+        throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+      }
       Follow follow = Follow.builder().followerId(followerId).followingId(followingId).build();
       followRepository.save(follow);
       updateFollowCounts(followerId, followingId, 1);
@@ -104,7 +109,8 @@ public class SocialService {
 
     // --- MAP & RETURN ---
     // Lấy lại profile mới nhất để có số liệu chính xác
-    UserProfile updatedTargetProfile = userProfileRepository.findByUserId(followingId).get();
+    UserProfile updatedTargetProfile = userProfileRepository.findByUserId(followingId)
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     ProfileResponse response = profileMapper.toProfileResponse(updatedTargetProfile);
 
     // Set the isFollowing status - CRITICAL: FE depends on this!
@@ -198,12 +204,12 @@ public class SocialService {
 
     // --- VALIDATION ---
     if (senderId.equals(receiverId)) {
-      throw new IllegalArgumentException("User cannot send a friend request to themselves.");
+      throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
     UserProfile targetProfile =
         userProfileRepository
             .findByUserId(receiverId)
-            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + receiverId));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     List<Friendship> friends =
         (targetProfile.getFriends() != null) ? targetProfile.getFriends() : Collections.emptyList();
@@ -287,11 +293,13 @@ public class SocialService {
     friendRequestRepository.delete(friendRequest);
 
     statisticsService.incrementCounter(currentUserId, "friendRequestCount", -1);
+    statisticsService.incrementCounter(currentUserId, "friendCount", 1);
+    statisticsService.incrementCounter(senderId, "friendCount", 1);
 
     UserProfile updatedSenderProfile =
         userProfileRepository
             .findByUserId(senderId)
-            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + senderId));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     ProfileResponse response = profileMapper.toProfileResponse(updatedSenderProfile);
 
@@ -311,19 +319,20 @@ public class SocialService {
 
     friendRequestRepository.delete(friendRequest);
 
-    statisticsService.incrementCounter(currentUserId, "friendCount", 1);
-    statisticsService.incrementCounter(senderId, "friendCount", 1);
-
+    // Only decrement the pending request count — do NOT increment friendCount
+    // (this was a copy-paste bug from acceptFriendRequest)
     statisticsService.incrementCounter(currentUserId, "friendRequestCount", -1);
 
     UserProfile updatedSenderProfile =
         userProfileRepository
             .findByUserId(senderId)
-            .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + senderId));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     ProfileResponse response = profileMapper.toProfileResponse(updatedSenderProfile);
 
-    response.setRelationshipStatus(RelationshipStatus.FRIENDS);
+    // After rejection, relationship goes back to NONE (not FRIENDS)
+    response.setRelationshipStatus(
+        socialUtils.determineRelationshipStatus(currentUserId, updatedSenderProfile));
 
     return response;
   }
@@ -365,7 +374,7 @@ public class SocialService {
     UserProfile updatedFriendProfile =
         userProfileRepository
             .findByUserId(friendId)
-            .orElseThrow(() -> new NoSuchElementException("User not found: " + friendId));
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     ProfileResponse response = profileMapper.toProfileResponse(updatedFriendProfile);
 

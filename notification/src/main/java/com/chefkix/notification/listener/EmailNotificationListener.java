@@ -7,6 +7,7 @@ import com.chefkix.notification.dto.request.Recipient;
 import com.chefkix.notification.dto.request.SendEmailRequest;
 import com.chefkix.notification.service.EmailService;
 import com.chefkix.shared.event.EmailEvent;
+import com.chefkix.shared.service.KafkaIdempotencyService;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +25,45 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailNotificationListener {
 
     EmailService emailService;
+    KafkaIdempotencyService idempotencyService;
 
     @KafkaListener(
             topics = "otp-delivery",
             groupId = "notification-group",
             containerFactory = "emailEventListenerFactory")
     public void listenOtpDelivery(EmailEvent message) {
-        log.info("Received OTP email event for: {}", message.getRecipientEmail());
-
-        // Defensive: validate before sending
-        if (message.getRecipientEmail() == null || message.getRecipientEmail().isBlank()) {
-            log.error("❌ Cannot send email: recipientEmail is null or blank. Event: {}", message);
+        if (message == null) {
+            log.error("Received null EmailEvent, skipping");
             return;
         }
 
-        emailService.sendEmail(SendEmailRequest.builder()
-                .to(Recipient.builder().email(message.getRecipientEmail()).build())
-                .subject(message.getSubject())
-                .htmlContent(message.getBody())
-                .build());
+        if (message.getEventId() == null || message.getEventId().isBlank()) {
+            log.error("Received EmailEvent with missing eventId for recipient={}, skipping", message.getRecipientEmail());
+            return;
+        }
+
+        log.info("Received OTP email event for: {}", message.getRecipientEmail());
+
+        // Idempotency: skip duplicate messages on Kafka redelivery
+        if (!idempotencyService.tryProcess(message.getEventId())) {
+            log.warn("Duplicate email event skipped: {}", message.getEventId());
+            return;
+        }
+
+        // Defensive: validate before sending
+        if (message.getRecipientEmail() == null || message.getRecipientEmail().isBlank()) {
+            log.error("Cannot send email: recipientEmail is null or blank. Event: {}", message);
+            return;
+        }
+
+        try {
+            emailService.sendEmail(SendEmailRequest.builder()
+                    .to(Recipient.builder().email(message.getRecipientEmail()).build())
+                    .subject(message.getSubject())
+                    .htmlContent(message.getBody())
+                    .build());
+        } catch (Exception e) {
+            log.error("Failed to send OTP email to {}: {}", message.getRecipientEmail(), e.getMessage(), e);
+        }
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -27,10 +28,15 @@ public class AIRestClient {
 
     private final WebClient webClient;
 
-    public AIRestClient(@Value("${app.services.ai-url:http://localhost:8000}") String aiUrl) {
-        this.webClient = WebClient.builder()
-                .baseUrl(aiUrl)
-                .build();
+    public AIRestClient(
+            @Value("${app.services.ai-url:http://localhost:8000}") String aiUrl,
+            @Value("${app.services.ai-api-key:}") String aiApiKey
+    ) {
+        WebClient.Builder builder = WebClient.builder().baseUrl(aiUrl);
+        if (StringUtils.hasText(aiApiKey)) {
+            builder.defaultHeader("X-AI-Service-Key", aiApiKey);
+        }
+        this.webClient = builder.build();
     }
 
     // ─── EXISTING METHODS (legacy direct deserialization) ────────────

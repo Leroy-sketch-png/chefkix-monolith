@@ -82,7 +82,7 @@ public class ProfileController {
 
   @PutMapping("/update")
   public ApiResponse<ProfileResponse> updateProfile(
-      Authentication authentication, @RequestBody ProfileUpdateRequest req) {
+      Authentication authentication, @Valid @RequestBody ProfileUpdateRequest req) {
 
     // You can add a custom message here easily
     return ApiResponse.success(

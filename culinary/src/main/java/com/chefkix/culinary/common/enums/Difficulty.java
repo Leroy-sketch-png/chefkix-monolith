@@ -1,5 +1,7 @@
 package com.chefkix.culinary.common.enums;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -31,6 +33,6 @@ public enum Difficulty {
                 return difficulty;
             }
         }
-        throw new IllegalArgumentException("Unknown difficulty: " + value);
+        throw new AppException(ErrorCode.INVALID_INPUT, "Unknown difficulty: " + value);
     }
 }

@@ -42,18 +42,22 @@ public class PostDeadlineScheduler {
      */
     @Scheduled(cron = "0 0 9 * * *")  // Every day at 9:00 AM
     public void checkPostDeadlines() {
-        log.info("Running post deadline reminder check...");
+        try {
+            log.info("Running post deadline reminder check...");
 
-        LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now();
 
-        // Day 5 reminder (9 days left until 14-day deadline)
-        sendRemindersForDaysRemaining(now, 9, "NORMAL");
+            // Day 5 reminder (9 days left until 14-day deadline)
+            sendRemindersForDaysRemaining(now, 9, "NORMAL");
 
-        // Day 12 reminder (2 days left until 14-day deadline)
-        sendRemindersForDaysRemaining(now, 2, "HIGH");
+            // Day 12 reminder (2 days left until 14-day deadline)
+            sendRemindersForDaysRemaining(now, 2, "HIGH");
 
-        // Final reminder (1 day left - last chance)
-        sendRemindersForDaysRemaining(now, 1, "CRITICAL");
+            // Final reminder (1 day left - last chance)
+            sendRemindersForDaysRemaining(now, 1, "CRITICAL");
+        } catch (Exception e) {
+            log.error("Post deadline reminder scheduler failed — will retry next cycle", e);
+        }
     }
 
     private void sendRemindersForDaysRemaining(LocalDateTime now, int daysRemaining, String priorityStr) {

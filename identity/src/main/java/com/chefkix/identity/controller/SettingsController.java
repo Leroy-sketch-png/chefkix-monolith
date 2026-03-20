@@ -3,6 +3,7 @@ package com.chefkix.identity.controller;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.service.SettingsService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -47,7 +48,7 @@ public class SettingsController {
   /** Update privacy settings. Only non-null fields in the request body will be updated. */
   @PutMapping("/privacy")
   public ResponseEntity<ApiResponse<UserSettings.PrivacySettings>> updatePrivacySettings(
-      @RequestBody UserSettings.PrivacySettings privacy) {
+      @Valid @RequestBody UserSettings.PrivacySettings privacy) {
     return ResponseEntity.ok(ApiResponse.success(settingsService.updatePrivacySettings(privacy)));
   }
 
@@ -64,7 +65,7 @@ public class SettingsController {
   /** Update notification settings. Only non-null fields in the request body will be updated. */
   @PutMapping("/notifications")
   public ResponseEntity<ApiResponse<UserSettings.NotificationSettings>> updateNotificationSettings(
-      @RequestBody UserSettings.NotificationSettings notifications) {
+      @Valid @RequestBody UserSettings.NotificationSettings notifications) {
     return ResponseEntity.ok(
         ApiResponse.success(settingsService.updateNotificationSettings(notifications)));
   }
@@ -82,7 +83,7 @@ public class SettingsController {
   /** Update cooking preferences. Only non-null fields in the request body will be updated. */
   @PutMapping("/cooking")
   public ResponseEntity<ApiResponse<UserSettings.CookingPreferences>> updateCookingPreferences(
-      @RequestBody UserSettings.CookingPreferences cooking) {
+      @Valid @RequestBody UserSettings.CookingPreferences cooking) {
     return ResponseEntity.ok(
         ApiResponse.success(settingsService.updateCookingPreferences(cooking)));
   }
@@ -100,7 +101,7 @@ public class SettingsController {
   /** Update app preferences. Only non-null fields in the request body will be updated. */
   @PutMapping("/app")
   public ResponseEntity<ApiResponse<UserSettings.AppPreferences>> updateAppPreferences(
-      @RequestBody UserSettings.AppPreferences app) {
+      @Valid @RequestBody UserSettings.AppPreferences app) {
     return ResponseEntity.ok(ApiResponse.success(settingsService.updateAppPreferences(app)));
   }
 }

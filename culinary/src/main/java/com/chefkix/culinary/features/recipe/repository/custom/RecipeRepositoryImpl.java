@@ -79,6 +79,13 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
     // Helper method tái sử dụng logic update
     private Recipe updateCounter(String recipeId, String fieldName, int amount) {
         Query query = Query.query(Criteria.where("id").is(recipeId));
+
+        if (amount < 0) {
+            // For decrements, add a floor guard: only decrement if current value > 0
+            // This prevents counters from going negative (e.g., likeCount = -1)
+            query.addCriteria(Criteria.where(fieldName).gt(0));
+        }
+
         Update update = new Update().inc(fieldName, amount);
 
         // returnNew(true): Trả về object SAU KHI đã cộng

@@ -27,22 +27,41 @@ public class UploadImageFileImpl implements UploadImageFile {
 
     final Cloudinary cloudinary;
 
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final List<String> ALLOWED_IMAGE_TYPES = List.of(
+            "image/jpeg", "image/png", "image/webp", "image/gif"
+    );
+
     @Override
     public String uploadImageFile(MultipartFile file) {
+        validateImageFile(file);
         try {
             String publicId = generatePublicValue(file.getOriginalFilename());
 
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
-                            "resource_type", "auto"
+                            "resource_type", "image"
                     ));
 
             return uploadResult.get("secure_url").toString();
 
         } catch (IOException e) {
-            log.error("Lỗi khi upload file lên Cloudinary", e);
+            log.error("Error uploading file to Cloudinary", e);
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE);
+        }
+    }
+
+    private void validateImageFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "File is empty");
+        }
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Image must be under 10MB");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Only JPEG, PNG, WebP, and GIF images are allowed");
         }
     }
 

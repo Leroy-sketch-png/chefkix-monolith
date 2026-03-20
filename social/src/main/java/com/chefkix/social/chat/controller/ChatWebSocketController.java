@@ -3,6 +3,7 @@ package com.chefkix.social.chat.controller;
 import com.chefkix.social.chat.dto.request.ChatMessageRequest;
 import com.chefkix.social.chat.dto.response.ChatMessageResponse;
 import com.chefkix.social.chat.service.ChatMessageService;
+import jakarta.validation.Valid;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -25,7 +26,7 @@ public class ChatWebSocketController {
      * Khi frontend gửi tin nhắn qua endpoint /app/chat.sendMessage
      */
     @MessageMapping("/chat.sendMessage")
-    public void sendMessage(ChatMessageRequest request) {
+    public void sendMessage(@Valid ChatMessageRequest request) {
         ChatMessageResponse response = chatMessageService.create(request);
 
         // Gửi lại message tới topic của conversationId để FE lắng nghe realtime

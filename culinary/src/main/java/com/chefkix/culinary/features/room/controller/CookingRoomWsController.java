@@ -33,6 +33,7 @@ public class CookingRoomWsController {
     public void handleStepNavigated(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
         if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't navigate
 
         // Update participant state in Redis
@@ -48,6 +49,7 @@ public class CookingRoomWsController {
     public void handleStepCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
         if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete steps
 
         // Update completed steps in Redis
@@ -69,6 +71,7 @@ public class CookingRoomWsController {
     public void handleTimerStarted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
         if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't start timers
 
         Map<String, Object> data = new HashMap<>();
@@ -83,6 +86,7 @@ public class CookingRoomWsController {
     public void handleTimerCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
         if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete timers
 
         Map<String, Object> data = new HashMap<>();
@@ -96,6 +100,7 @@ public class CookingRoomWsController {
     public void handleReaction(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getEmoji() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
 
         roomService.broadcastEvent(request.getRoomCode(), RoomEventType.REACTION,
                 userId, null,
@@ -106,6 +111,7 @@ public class CookingRoomWsController {
     public void handleSessionCompleted(RoomEventRequest request) {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
+        if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
         if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete sessions
 
         Map<String, Object> data = new HashMap<>();

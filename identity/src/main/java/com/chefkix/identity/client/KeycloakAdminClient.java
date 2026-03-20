@@ -15,6 +15,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -28,6 +29,8 @@ import java.util.List;
 @Slf4j
 @Component
 public class KeycloakAdminClient {
+
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
 
     private final WebClient webClient;
 
@@ -50,6 +53,7 @@ public class KeycloakAdminClient {
                 .body(BodyInserters.fromFormData(formData))
                 .retrieve()
                 .bodyToMono(TokenExchangeResponse.class)
+            .timeout(REQUEST_TIMEOUT)
                 .block();
     }
 
@@ -65,6 +69,7 @@ public class KeycloakAdminClient {
                 .bodyValue(param)
                 .retrieve()
                 .toBodilessEntity()
+            .timeout(REQUEST_TIMEOUT)
                 .block();
     }
 
@@ -81,6 +86,7 @@ public class KeycloakAdminClient {
                 .bodyValue(actions)
                 .retrieve()
                 .toBodilessEntity()
+            .timeout(REQUEST_TIMEOUT)
                 .block();
     }
 
@@ -97,7 +103,27 @@ public class KeycloakAdminClient {
                 .bodyValue(param)
                 .retrieve()
                 .toBodilessEntity()
+            .timeout(REQUEST_TIMEOUT)
                 .block();
+    }
+
+    /**
+     * Logout all sessions for a user in Keycloak.
+     * Forces re-authentication on all devices after password reset.
+     */
+    public void logoutUser(String bearerToken, String userId) {
+        try {
+            webClient.post()
+                    .uri("/admin/realms/nottisn/users/{userId}/logout", userId)
+                    .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .timeout(REQUEST_TIMEOUT)
+                    .block();
+            log.info("All sessions revoked for Keycloak user {}", userId);
+        } catch (Exception e) {
+            log.error("Failed to revoke sessions for user {}: {}", userId, e.getMessage());
+        }
     }
 
     /**

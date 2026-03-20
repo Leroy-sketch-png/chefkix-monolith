@@ -61,21 +61,21 @@ public class RecipeHelper {
         if (actualSeconds < minSeconds) {
             session.setFlagged(true);
             session.setFlagReason("Cooked too fast: " + actualSeconds + "s (min: " + minSeconds + "s)");
-            log.warn("⚠️ User {} flagged for fast cooking session {}", session.getUserId(), session.getId());
+            log.warn("Anti-cheat: User {} flagged for fast cooking session {}", session.getUserId(), session.getId());
         }
     }
 
     public double calculateMasteryMultiplier(String userId, String recipeId) {
-        long cookCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POSTED);
+        // Count COMPLETED + POSTED sessions (not just POSTED)
+        // Previously only counted POSTED, which meant users could bypass mastery decay by never posting
+        long completedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.COMPLETED);
+        long postedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POSTED);
+        long cookCount = completedCount + postedCount;
         double mult;
         if (cookCount == 0) mult = 1.0;
         else if (cookCount == 1) mult = 0.5;
         else if (cookCount == 2) mult = 0.25;
         else mult = 0.0;
-        
-        // 🔍 DIAG: Log mastery multiplier calculation
-        log.info("🔍 DIAG calculateMasteryMultiplier: userId={}, recipeId={}, postedSessionCount={}, masteryMult={}", 
-                userId, recipeId, cookCount, mult);
         
         return mult;
     }
@@ -92,10 +92,6 @@ public class RecipeHelper {
 
         double pendingXpBase = (session.getPendingXp() != null) ? session.getPendingXp() : 0;
         int finalXp = (int) (pendingXpBase * photoMult * decayMult);
-        
-        // 🔍 DIAG: Log all XP calculation values
-        log.info("🔍 DIAG calculateFinalXpForLinking: pendingXpBase={}, photoCount={}, photoMult={}, daysSinceCompletion={}, decayMult={}, finalXp={}",
-                pendingXpBase, photoCount, photoMult, daysSinceCompletion, decayMult, finalXp);
         
         return finalXp;
     }

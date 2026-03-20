@@ -23,17 +23,41 @@ public class BellNotificationListener {
     private final NotificationService notificationService;
     private final KafkaIdempotencyService idempotencyService;
 
+    private boolean shouldProcess(BaseEvent event, String topic) {
+        if (event == null) {
+            log.error("Received null event on topic {}", topic);
+            return false;
+        }
+        if (event.getEventId() == null || event.getEventId().isBlank()) {
+            log.error("Received event with missing eventId on topic {}", topic);
+            return false;
+        }
+        return idempotencyService.tryProcess(event.getEventId(), topic);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
     @KafkaListener(
             topics = "post-liked-delivery",
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenPostLikedDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "post-liked-delivery")) {
+        if (!shouldProcess(event, "post-liked-delivery")) {
             return;
         }
         if (event instanceof PostLikeEvent likeEvent) {
-            log.info("Received PostLikeEvent for post: {}", likeEvent.getPostId());
-            notificationService.handlePostLikeEvent(likeEvent);
+            if (!hasText(likeEvent.getPostId()) || !hasText(likeEvent.getPostOwnerId())) {
+                log.error("Skipping invalid PostLikeEvent: postId={}, postOwnerId={}", likeEvent.getPostId(), likeEvent.getPostOwnerId());
+                return;
+            }
+            try {
+                log.info("Received PostLikeEvent for post: {}", likeEvent.getPostId());
+                notificationService.handlePostLikeEvent(likeEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle PostLikeEvent for post {}: {}", likeEvent.getPostId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -44,15 +68,23 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenNewFollowerDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "new-follower-delivery")) {
+        if (!shouldProcess(event, "new-follower-delivery")) {
             return;
         }
         if (event instanceof NewFollowerEvent followerEvent) {
-            log.info(
-                    "Received NewFollowerEvent: {} → {}",
-                    followerEvent.getFollowerId(),
-                    followerEvent.getFollowedUserId());
-            notificationService.handleNewFollowerEvent(followerEvent);
+            if (!hasText(followerEvent.getFollowerId()) || !hasText(followerEvent.getFollowedUserId())) {
+                log.error("Skipping invalid NewFollowerEvent: followerId={}, followedUserId={}", followerEvent.getFollowerId(), followerEvent.getFollowedUserId());
+                return;
+            }
+            try {
+                log.info(
+                        "Received NewFollowerEvent: {} → {}",
+                        followerEvent.getFollowerId(),
+                        followerEvent.getFollowedUserId());
+                notificationService.handleNewFollowerEvent(followerEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle NewFollowerEvent: {} → {}: {}", followerEvent.getFollowerId(), followerEvent.getFollowedUserId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -63,15 +95,27 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenCommentDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "comment-delivery")) {
+        if (!shouldProcess(event, "comment-delivery")) {
             return;
         }
         if (event instanceof CommentEvent commentEvent) {
-            log.info(
-                    "Received CommentEvent for post: {} from user: {}",
-                    commentEvent.getPostId(),
-                    commentEvent.getCommenterId());
-            notificationService.handleCommentEvent(commentEvent);
+            if (!hasText(commentEvent.getPostId()) || !hasText(commentEvent.getPostOwnerId()) || !hasText(commentEvent.getCommenterId())) {
+                log.error(
+                        "Skipping invalid CommentEvent: postId={}, postOwnerId={}, commenterId={}",
+                        commentEvent.getPostId(),
+                        commentEvent.getPostOwnerId(),
+                        commentEvent.getCommenterId());
+                return;
+            }
+            try {
+                log.info(
+                        "Received CommentEvent for post: {} from user: {}",
+                        commentEvent.getPostId(),
+                        commentEvent.getCommenterId());
+                notificationService.handleCommentEvent(commentEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle CommentEvent for post {}: {}", commentEvent.getPostId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -82,16 +126,24 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenGamificationDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "gamification-delivery")) {
+        if (!shouldProcess(event, "gamification-delivery")) {
             return;
         }
         if (event instanceof GamificationNotificationEvent gamificationEvent) {
-            log.info(
-                    "Received GamificationEvent: user={}, leveledUp={}, badges={}",
-                    gamificationEvent.getUserId(),
-                    gamificationEvent.isLeveledUp(),
-                    gamificationEvent.getNewBadges());
-            notificationService.handleGamificationEvent(gamificationEvent);
+            if (!hasText(gamificationEvent.getUserId())) {
+                log.error("Skipping invalid GamificationNotificationEvent: userId is blank");
+                return;
+            }
+            try {
+                log.info(
+                        "Received GamificationEvent: user={}, leveledUp={}, badges={}",
+                        gamificationEvent.getUserId(),
+                        gamificationEvent.isLeveledUp(),
+                        gamificationEvent.getNewBadges());
+                notificationService.handleGamificationEvent(gamificationEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle GamificationEvent for user {}: {}", gamificationEvent.getUserId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -102,16 +154,24 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenReminderDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "reminder-delivery")) {
+        if (!shouldProcess(event, "reminder-delivery")) {
             return;
         }
         if (event instanceof ReminderEvent reminderEvent) {
-            log.info(
-                    "Received ReminderEvent: user={}, type={}, priority={}",
-                    reminderEvent.getUserId(),
-                    reminderEvent.getReminderType(),
-                    reminderEvent.getPriority());
-            notificationService.handleReminderEvent(reminderEvent);
+            if (!hasText(reminderEvent.getUserId()) || !hasText(reminderEvent.getReminderType())) {
+                log.error("Skipping invalid ReminderEvent: userId={}, reminderType={}", reminderEvent.getUserId(), reminderEvent.getReminderType());
+                return;
+            }
+            try {
+                log.info(
+                        "Received ReminderEvent: user={}, type={}, priority={}",
+                        reminderEvent.getUserId(),
+                        reminderEvent.getReminderType(),
+                        reminderEvent.getPriority());
+                notificationService.handleReminderEvent(reminderEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle ReminderEvent for user {}, type {}: {}", reminderEvent.getUserId(), reminderEvent.getReminderType(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -122,16 +182,24 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenTagDelivery(BaseEvent event) {
-        if (!idempotencyService.tryProcess(event.getEventId(), "tag-delivery")) {
+        if (!shouldProcess(event, "tag-delivery")) {
             return;
         }
         if (event instanceof UserMentionEvent mentionEvent) {
-            log.info(
-                    "Received UserMentionEvent: recipient={}, actor={}, source={}",
-                    mentionEvent.getUserId(),
-                    mentionEvent.getActorDisplayName(),
-                    mentionEvent.getSourceType());
-            notificationService.handleTagEvent(mentionEvent);
+            if (!hasText(mentionEvent.getUserId()) || !hasText(mentionEvent.getSourceType())) {
+                log.error("Skipping invalid UserMentionEvent: userId={}, sourceType={}", mentionEvent.getUserId(), mentionEvent.getSourceType());
+                return;
+            }
+            try {
+                log.info(
+                        "Received UserMentionEvent: recipient={}, actor={}, source={}",
+                        mentionEvent.getUserId(),
+                        mentionEvent.getActorDisplayName(),
+                        mentionEvent.getSourceType());
+                notificationService.handleTagEvent(mentionEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle UserMentionEvent for user {}: {}", mentionEvent.getUserId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type on 'tag-delivery': {}", event.getClass().getSimpleName());
         }

@@ -1,5 +1,9 @@
 package com.chefkix.config;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,13 +18,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000,https://*.chefkix.com}")
+    private String allowedOriginPatterns;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow Next.js dev server and common production origins
-        config.addAllowedOriginPattern("http://localhost:*");
-        config.addAllowedOriginPattern("https://*.chefkix.com");
+        // Explicitly constrain origins and keep them environment-configurable.
+        List<String> origins = Arrays.stream(allowedOriginPatterns.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
+        config.setAllowedOriginPatterns(origins);
 
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");

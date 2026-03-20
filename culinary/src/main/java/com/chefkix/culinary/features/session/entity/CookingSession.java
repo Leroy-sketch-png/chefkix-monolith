@@ -5,6 +5,7 @@ import com.chefkix.culinary.common.enums.TimerEventType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -27,6 +28,9 @@ public class CookingSession {
 
     @Id
     String id;              // id: string
+
+    @Version
+    Long version;           // Optimistic locking — prevents double-completion race
 
     String userId;          // userId: string
     String recipeId;        // recipeId: string

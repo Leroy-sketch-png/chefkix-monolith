@@ -102,6 +102,12 @@ public class DraftService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        // 2b. CRITICAL: Only allow auto-save on DRAFT recipes
+        // Without this guard, published/archived recipes could be silently modified
+        if (recipe.getStatus() != RecipeStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
         // 3. Map dữ liệu (QUAN TRỌNG: Chỉ map các trường khác null)
         // Nếu FE chỉ gửi title, thì description, steps... cũ phải giữ nguyên
         mapper.updateRecipeFromRequest(recipe, request);
@@ -193,6 +199,12 @@ public class DraftService {
 
         if (!recipe.getUserId().equals(currentUserId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // CRITICAL: Only allow discarding DRAFT recipes
+        // Without this guard, published recipes could be hard-deleted via this endpoint
+        if (recipe.getStatus() != RecipeStatus.DRAFT) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
         // Hard Delete (Xóa hẳn khỏi DB)

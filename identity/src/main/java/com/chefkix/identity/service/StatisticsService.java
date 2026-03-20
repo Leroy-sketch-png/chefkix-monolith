@@ -55,6 +55,8 @@ public class StatisticsService {
   UserProfileRepository userProfileRepository;
   ProfileMapper profileMapper;
   KafkaTemplate<String, Object> kafkaTemplate;
+  SettingsService settingsService;
+  BlockService blockService;
 
   @Lazy RecipeProvider recipeProvider;
 
@@ -170,6 +172,10 @@ public class StatisticsService {
    * @return XpLevelResult with level change info for notifications
    */
   private XpLevelResult applyXpAndLevelLogic(Statistics stats, double xpAmount) {
+    if (xpAmount <= 0) {
+            log.warn("Attempted to apply non-positive XP amount: {}", xpAmount);
+      return new XpLevelResult(false, stats.getCurrentLevel(), stats.getCurrentLevel(), null);
+    }
     int previousLevel = stats.getCurrentLevel();
     stats.setCurrentXP(stats.getCurrentXP() + xpAmount);
 
@@ -565,6 +571,23 @@ public class StatisticsService {
                     .stream()
                     .filter(p -> p.getStatistics() != null)
                     .collect(Collectors.toList());
+        }
+
+        // PRIVACY: Filter out users who opted out of leaderboard
+        profiles.removeIf(p -> {
+            if (p.getUserId().equals(currentUserId)) return false; // Never hide current user from themselves
+            try {
+                var privacy = settingsService.getPrivacySettingsByUserId(p.getUserId());
+                return privacy != null && Boolean.FALSE.equals(privacy.getShowOnLeaderboard());
+            } catch (Exception e) {
+                return false; // Default to showing if settings lookup fails
+            }
+        });
+
+        // PRIVACY: Filter out blocked users (bidirectional)
+        List<String> invisibleIds = blockService.getInvisibleUserIds(currentUserId);
+        if (!invisibleIds.isEmpty()) {
+            profiles.removeIf(p -> invisibleIds.contains(p.getUserId()));
         }
 
         // 2. Sort by XP based on timeframe

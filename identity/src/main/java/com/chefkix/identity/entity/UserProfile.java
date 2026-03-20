@@ -20,6 +20,12 @@ public class UserProfile {
 
   @Id String id;
 
+  /**
+   * Optimistic locking version — enables @Retryable(OptimisticLockingFailureException)
+   * in StatisticsService to detect concurrent writes (XP rewards, follower counts, etc.).
+   */
+  @Version Long version;
+
   /** Tham chiếu đến Keycloak User ID (hoặc bảng User trong DB riêng nếu bạn tự quản lý). */
   @Indexed(unique = true) String userId;
 

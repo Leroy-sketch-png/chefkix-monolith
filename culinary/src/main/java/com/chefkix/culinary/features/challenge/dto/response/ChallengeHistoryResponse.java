@@ -45,5 +45,6 @@ public class ChallengeHistoryResponse {
     public static class RecipeShortInfo {
         private String id;
         private String title;
+        private String imageUrl;
     }
 }
