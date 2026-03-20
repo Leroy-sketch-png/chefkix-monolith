@@ -93,15 +93,16 @@ public class MealPlanService {
 
         AIMealPlanResponse aiResponse = aiRestClient.generateMealPlan(aiRequest);
 
-        // Map AI response to our entities
+        // Map AI response to our entities — carry user's requested servings through
+        int requestedServings = aiPrefs.getServings();
         List<PlannedDay> plannedDays = new ArrayList<>();
         if (aiResponse.getMealPlan() != null) {
             for (var aiDay : aiResponse.getMealPlan()) {
                 plannedDays.add(PlannedDay.builder()
                         .dayOfWeek(DAY_NAMES[Math.min(aiDay.getDay() - 1, DAY_NAMES.length - 1)])
-                        .breakfast(mapAiMealSlot(aiDay.getBreakfast()))
-                        .lunch(mapAiMealSlot(aiDay.getLunch()))
-                        .dinner(mapAiMealSlot(aiDay.getDinner()))
+                        .breakfast(mapAiMealSlot(aiDay.getBreakfast(), requestedServings))
+                        .lunch(mapAiMealSlot(aiDay.getLunch(), requestedServings))
+                        .dinner(mapAiMealSlot(aiDay.getDinner(), requestedServings))
                         .build());
             }
         }
@@ -129,12 +130,12 @@ public class MealPlanService {
                 aiResponse.getPantryUtilizationPercent());
     }
 
-    private PlannedMeal mapAiMealSlot(AIMealPlanResponse.AIMealSlot slot) {
+    private PlannedMeal mapAiMealSlot(AIMealPlanResponse.AIMealSlot slot, int servings) {
         if (slot == null) return null;
         return PlannedMeal.builder()
                 .title(slot.getName())
                 .totalTimeMinutes(slot.getPrepTimeMinutes())
-                .servings(0) // AI doesn't return per-meal servings
+                .servings(servings)
                 .aiGenerated(true)
                 .build();
     }
