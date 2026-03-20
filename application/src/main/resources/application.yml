@@ -68,7 +68,7 @@ app:
     domain: ${APP_COOKIE_DOMAIN:localhost}
     secure: ${APP_COOKIE_SECURE:true}
   otp:
-    secret: ${APP_OTP_SECRET:change-me}
+    secret: ${APP_OTP_SECRET}
     ttl-seconds: 600
     max-attempts: 5
     max-resend-per-hour: 3

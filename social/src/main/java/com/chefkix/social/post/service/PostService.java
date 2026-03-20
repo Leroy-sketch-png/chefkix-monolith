@@ -767,7 +767,7 @@ public class PostService {
                 r.setIsSaved(savedPostIds.contains(r.getId()));
             });
         }
-
+        
         return new PageImpl<>(responses, pageable, savedPosts.getTotalElements());
     }
 
