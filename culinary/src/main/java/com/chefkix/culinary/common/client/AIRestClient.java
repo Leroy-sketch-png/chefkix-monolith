@@ -5,14 +5,19 @@ import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanRequest;
 import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 /**
  * WebClient-based client for the external Python FastAPI AI service.
@@ -34,7 +39,13 @@ public class AIRestClient {
             @Value("${app.services.ai-url:http://localhost:8000}") String aiUrl,
             @Value("${app.services.ai-api-key:}") String aiApiKey
     ) {
-        WebClient.Builder builder = WebClient.builder().baseUrl(aiUrl);
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+                .responseTimeout(Duration.ofSeconds(30));
+
+        WebClient.Builder builder = WebClient.builder()
+                .baseUrl(aiUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient));
         if (StringUtils.hasText(aiApiKey)) {
             builder.defaultHeader("X-AI-Service-Key", aiApiKey);
         }
