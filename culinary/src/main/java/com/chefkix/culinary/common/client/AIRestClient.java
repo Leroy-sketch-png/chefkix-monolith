@@ -1,6 +1,8 @@
 package com.chefkix.culinary.common.client;
 
 import com.chefkix.culinary.features.ai.dto.internal.*;
+import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanRequest;
+import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -129,6 +131,40 @@ public class AIRestClient {
             throw e;
         } catch (Exception e) {
             log.error("AI moderate failed", e);
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
+    }
+
+    /**
+     * Generate an AI-powered meal plan from pantry items and preferences.
+     * Calls POST /api/v1/generate_meal_plan on the AI service.
+     *
+     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down or returns error
+     */
+    public AIMealPlanResponse generateMealPlan(AIMealPlanRequest request) {
+        log.debug("Calling AI service: POST /api/v1/generate_meal_plan");
+        try {
+            AIServiceResponse<AIMealPlanResponse> wrapper = webClient.post()
+                    .uri("/api/v1/generate_meal_plan")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<AIServiceResponse<AIMealPlanResponse>>() {})
+                    .block();
+
+            if (wrapper == null || !wrapper.isSuccess() || wrapper.getData() == null) {
+                log.error("AI meal plan returned null or unsuccessful response");
+                throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+
+            return wrapper.getData();
+        } catch (WebClientResponseException e) {
+            log.error("AI generate_meal_plan HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("AI generate_meal_plan failed", e);
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
