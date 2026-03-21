@@ -226,7 +226,7 @@ public class RecipeHelper {
         log.warn("sendBadgeEvent called but badges should be sent with XP event. userId={}, badges={}", userId, badges);
     }
 
-    public boolean processCreatorBonus(Recipe recipe, String cookerId) {
+    public boolean processCreatorBonus(Recipe recipe, String cookerId, String sessionId) {
         if (recipe.getUserId().equals(cookerId)) return false;
 
         int bonusAmount = (int) (recipe.getXpReward() * 0.04);
@@ -235,6 +235,7 @@ public class RecipeHelper {
                     .userId(recipe.getUserId())
                     .amount(bonusAmount)
                     .recipeId(recipe.getId())
+                    .sessionId(sessionId)
                     .source("CREATOR_BONUS")
                     .description("Bonus từ việc người khác nấu món: " + recipe.getTitle())
                     .build();

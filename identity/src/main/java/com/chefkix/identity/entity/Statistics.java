@@ -1,6 +1,7 @@
 package com.chefkix.identity.entity;
 
 import com.chefkix.identity.enums.Title;
+import jakarta.validation.constraints.Min;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,17 +37,17 @@ public class Statistics {
   // Gamification
   // NOTE: Level starts at 1, not 0. "Level up to Level 1" is psychologically wrong.
   // Users should start as "Level 1 Beginner" and level up to "Level 2".
-  @Builder.Default Integer currentLevel = 1;
+  @Min(1) @Builder.Default Integer currentLevel = 1;
 
-  @Builder.Default Double currentXP = 0.0;
+  @Min(0) @Builder.Default Double currentXP = 0.0;
 
-  @Builder.Default Double currentXPGoal = 1000.0;
+  @Min(0) @Builder.Default Double currentXPGoal = 1000.0;
 
   /** Weekly XP earned (reset every Monday) - used for leaderboard ranking */
-  @Builder.Default Double xpWeekly = 0.0;
+  @Min(0) @Builder.Default Double xpWeekly = 0.0;
 
   /** Monthly XP earned (reset 1st of each month) - used for monthly leaderboard */
-  @Builder.Default Double xpMonthly = 0.0;
+  @Min(0) @Builder.Default Double xpMonthly = 0.0;
 
   @Builder.Default Title title = Title.BEGINNER;
 

@@ -6,6 +6,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class RecipeSpecification {
 
@@ -51,10 +52,12 @@ public class RecipeSpecification {
         // 2. Tìm kiếm theo Từ khóa (Title hoặc Description)
         // Sử dụng Regex để tìm gần đúng (LIKE %query%), 'i' là case-insensitive (không phân biệt hoa thường)
         if (StringUtils.hasText(queryDto.getQuery())) {
-            String regex = ".*" + queryDto.getQuery() + ".*"; // Regex: Chứa chuỗi query
+            String escaped = Pattern.quote(queryDto.getQuery().trim());
+            String regex = ".*" + escaped + ".*";
             criteriaList.add(new Criteria().orOperator(
                     Criteria.where("title").regex(regex, "i"),
-                    Criteria.where("description").regex(regex, "i")
+                    Criteria.where("description").regex(regex, "i"),
+                    Criteria.where("fullIngredientList.name").regex(regex, "i")
             ));
         }
 

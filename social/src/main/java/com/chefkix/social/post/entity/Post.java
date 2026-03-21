@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -23,8 +24,10 @@ import java.util.List;
 public class Post {
   @Id String id;
   String userId;
+  @TextIndexed(weight = 3)
   List<String> tags;
   String displayName;
+  @TextIndexed(weight = 5)
   String content;
   String avatarUrl;
   List<String> photoUrls;
@@ -34,6 +37,7 @@ public class Post {
   @Indexed String sessionId; // Liên kết với Cooking Session
   @Indexed String recipeId;  // ID công thức đã nấu
 
+  @TextIndexed(weight = 7)
   String recipeTitle; // Tên món ăn (VD: "Phở Bò")
   @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư
   double xpEarned; // Số XP nhận được từ bài post này

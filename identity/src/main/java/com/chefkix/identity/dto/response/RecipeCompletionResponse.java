@@ -11,8 +11,8 @@ import lombok.experimental.FieldDefaults;
 public class RecipeCompletionResponse {
   String userId;
   Integer currentLevel;
-  Double currentXP;
-  Double currentXPGoal;
+  Integer currentXP;
+  Integer currentXPGoal;
 
   Long completionCount;
 

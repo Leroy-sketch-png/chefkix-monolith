@@ -16,8 +16,16 @@ public interface ChatMessageMapper {
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "sharedPostImage", ignore = true)
     @Mapping(target = "sharedPostTitle", ignore = true)
+    @Mapping(target = "replyTo", ignore = true)
+    @Mapping(target = "reactions", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     ChatMessageResponse toChatMessageResponse(ChatMessage chatMessage);
 
+    @Mapping(target = "replyToId", ignore = true)
+    @Mapping(target = "replyToContent", ignore = true)
+    @Mapping(target = "replyToSenderName", ignore = true)
+    @Mapping(target = "reactions", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     ChatMessage toChatMessage(ChatMessageRequest request);
 
     List<ChatMessageResponse> toChatMessageResponses(List<ChatMessage> chatMessages);

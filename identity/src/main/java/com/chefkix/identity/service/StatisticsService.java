@@ -2,6 +2,7 @@ package com.chefkix.identity.service;
 
 import com.chefkix.shared.event.GamificationNotificationEvent;
 import com.chefkix.shared.event.ReminderEvent;
+import com.chefkix.shared.service.KafkaIdempotencyService;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.LeaderboardResponse;
 import com.chefkix.identity.dto.response.CreatorStatsResponse;
@@ -57,6 +58,7 @@ public class StatisticsService {
   KafkaTemplate<String, Object> kafkaTemplate;
   SettingsService settingsService;
   BlockService blockService;
+  KafkaIdempotencyService idempotencyService;
 
   @Lazy RecipeProvider recipeProvider;
 
@@ -125,6 +127,13 @@ public class StatisticsService {
     profile.setStatistics(stats);
     userProfileRepository.save(profile);
 
+    // 5b. Mark idempotency key AFTER successful DB write.
+    // If a Kafka fallback event arrives with the same key, it will be deduped.
+    // This prevents double XP when sync succeeds but the caller's catch block fires.
+    if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
+      idempotencyService.tryProcess(request.getIdempotencyKey(), "xp-delivery");
+    }
+
     log.info(
         "Recipe Completed for User {}: +{} XP, New Level: {}, Added Badges: {}",
         userId,
@@ -133,11 +142,11 @@ public class StatisticsService {
         actuallyAddedBadges);
 
     // 6. MAP RA DTO RIÊNG CHO RECIPE SERVICE (including level-up info for frontend celebration)
-    int xpToNextLevel = (int) (stats.getCurrentXPGoal() - stats.getCurrentXP());
+    int xpToNextLevel = (int) Math.round(stats.getCurrentXPGoal() - stats.getCurrentXP());
     return RecipeCompletionResponse.builder()
         .userId(userId)
-        .currentXP(stats.getCurrentXP())
-        .currentXPGoal(stats.getCurrentXPGoal())
+        .currentXP((int) Math.round(stats.getCurrentXP()))
+        .currentXPGoal((int) Math.round(stats.getCurrentXPGoal()))
         .currentLevel(stats.getCurrentLevel())
         .completionCount(stats.getCompletionCount())
         .leveledUp(levelResult.leveledUp())
@@ -172,8 +181,10 @@ public class StatisticsService {
    * @return XpLevelResult with level change info for notifications
    */
   private XpLevelResult applyXpAndLevelLogic(Statistics stats, double xpAmount) {
-    if (xpAmount <= 0) {
-            log.warn("Attempted to apply non-positive XP amount: {}", xpAmount);
+    if (xpAmount < 0) {
+      throw new IllegalArgumentException("XP amount cannot be negative: " + xpAmount);
+    }
+    if (xpAmount == 0) {
       return new XpLevelResult(false, stats.getCurrentLevel(), stats.getCurrentLevel(), null);
     }
     int previousLevel = stats.getCurrentLevel();

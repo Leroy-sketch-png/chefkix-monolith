@@ -59,6 +59,7 @@ public class ProfileProviderImpl implements ProfileProvider {
                 .userId(request.getUserId())
                 .xpAmount(request.getXpAmount())
                 .newBadges(request.getNewBadges())
+                .idempotencyKey(request.getIdempotencyKey())
                 .build();
 
         RecipeCompletionResponse response = statisticsService.updateAfterCompletion(internalReq);
@@ -67,8 +68,8 @@ public class ProfileProviderImpl implements ProfileProvider {
         return CompletionResult.builder()
                 .userId(response.getUserId())
                 .currentLevel(response.getCurrentLevel() != null ? response.getCurrentLevel() : 1)
-                .currentXP(response.getCurrentXP() != null ? response.getCurrentXP().intValue() : 0)
-                .currentXPGoal(response.getCurrentXPGoal() != null ? response.getCurrentXPGoal().intValue() : 0)
+                .currentXP(response.getCurrentXP() != null ? response.getCurrentXP() : 0)
+                .currentXPGoal(response.getCurrentXPGoal() != null ? response.getCurrentXPGoal() : 0)
                 .completionCount(response.getCompletionCount() != null ? response.getCompletionCount() : 0)
                 .leveledUp(response.getLeveledUp() != null && response.getLeveledUp())
                 .oldLevel(response.getOldLevel())

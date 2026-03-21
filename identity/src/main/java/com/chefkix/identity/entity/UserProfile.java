@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -29,15 +30,20 @@ public class UserProfile {
   /** Tham chiếu đến Keycloak User ID (hoặc bảng User trong DB riêng nếu bạn tự quản lý). */
   @Indexed(unique = true) String userId;
 
+  @TextIndexed(weight = 10)
   String displayName;
-  @Indexed(unique = true) String username;
+  @Indexed(unique = true) @TextIndexed(weight = 8)
+  String username;
   @Indexed(unique = true) String email;
+  @TextIndexed(weight = 5)
   String firstName;
+  @TextIndexed(weight = 5)
   String lastName;
   String fullName;
   String phoneNumber;
   String avatarUrl;
   String coverImageUrl;
+  @TextIndexed(weight = 3)
   String bio;
   String accountType; // normal, chef, admin...
   String location;
