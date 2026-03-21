@@ -51,6 +51,7 @@ public class Post {
   @LastModifiedDate Instant updatedAt;
 
   // List<String> taggedUserIds;
+  List<String> taggedUserIds;
   List<String> commentIds;
 
   public void generateSlug() {

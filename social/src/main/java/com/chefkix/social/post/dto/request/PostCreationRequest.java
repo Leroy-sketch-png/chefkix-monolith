@@ -31,4 +31,7 @@ public class PostCreationRequest {
   String sessionId; // Optional: ID của session nấu ăn
   @Builder.Default
   Boolean isPrivateRecipe = false;
+
+  @Size(max = 10, message = "Maximum 10 tagged users")
+  List<String> taggedUserIds;
 }

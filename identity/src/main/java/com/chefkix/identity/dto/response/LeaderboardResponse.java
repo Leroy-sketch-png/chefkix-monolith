@@ -3,6 +3,7 @@ package com.chefkix.identity.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,6 +52,8 @@ public class LeaderboardResponse {
         double xpThisWeek;
         long recipesCooked;
         int streak;
+        @Builder.Default
+        List<String> topBadges = new ArrayList<>();
     }
 
     @Data

@@ -627,6 +627,25 @@ public class StatisticsService {
                 .limit(limit)
                 .map(profile -> {
                     Statistics stats = profile.getStatistics();
+                    // Extract top 3 badges (most recently earned first)
+                    List<String> topBadges = new ArrayList<>();
+                    if (stats.getBadges() != null && !stats.getBadges().isEmpty()) {
+                        var badges = stats.getBadges();
+                        var timestamps = stats.getBadgeTimestamps();
+                        if (timestamps != null && !timestamps.isEmpty()) {
+                            // Sort by earn time descending, take top 3
+                            topBadges = badges.stream()
+                                    .sorted((a, b) -> {
+                                        var ta = timestamps.getOrDefault(a, java.time.Instant.EPOCH);
+                                        var tb = timestamps.getOrDefault(b, java.time.Instant.EPOCH);
+                                        return tb.compareTo(ta);
+                                    })
+                                    .limit(3)
+                                    .collect(Collectors.toList());
+                        } else {
+                            topBadges = badges.stream().limit(3).collect(Collectors.toList());
+                        }
+                    }
                     return LeaderboardResponse.LeaderboardEntry.builder()
                             .rank(rankCounter.getAndIncrement())
                             .userId(profile.getUserId())
@@ -637,6 +656,7 @@ public class StatisticsService {
                             .xpThisWeek(getXpForTimeframe(stats, timeframe))
                             .recipesCooked(stats.getCompletionCount() != null ? stats.getCompletionCount() : 0L)
                             .streak(stats.getStreakCount() != null ? stats.getStreakCount() : 0)
+                            .topBadges(topBadges)
                             .build();
                 })
                 .collect(Collectors.toList());

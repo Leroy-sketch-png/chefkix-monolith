@@ -8,6 +8,7 @@ import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.event.PostLikeEvent;
+import com.chefkix.shared.event.UserMentionEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
@@ -38,6 +39,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,6 +74,7 @@ public class PostService {
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
     PostSaveRepository postSaveRepository;
+    MongoTemplate mongoTemplate;
 
     KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -237,6 +242,35 @@ public class PostService {
         }
 
         post = postRepository.save(post);
+
+        // Send mention notifications (same pattern as CommentService.sendTagNotification)
+        final Post savedPost = post;
+        if (request.getTaggedUserIds() != null && !request.getTaggedUserIds().isEmpty()) {
+            String actorDisplayName = profile != null ? profile.getDisplayName() : "Chef User";
+            String actorAvatarUrl = profile != null ? profile.getAvatarUrl() : null;
+            String contentPreview = request.getContent() != null && request.getContent().length() > 50
+                    ? request.getContent().substring(0, 50) + "..."
+                    : request.getContent();
+
+            for (String taggedUserId : request.getTaggedUserIds()) {
+                if (taggedUserId.equals(userId)) continue; // Skip self-mentions
+                try {
+                    UserMentionEvent event = UserMentionEvent.builder()
+                            .recipientId(taggedUserId)
+                            .sourceId(savedPost.getId())
+                            .sourceType("POST")
+                            .postId(savedPost.getId())
+                            .actorId(userId)
+                            .actorDisplayName(actorDisplayName)
+                            .actorAvatarUrl(actorAvatarUrl)
+                            .contentPreview(contentPreview)
+                            .build();
+                    kafkaTemplate.send("tag-delivery", event);
+                } catch (Exception e) {
+                    log.error("Failed to send post mention notification to user {}: {}", taggedUserId, e.getMessage());
+                }
+            }
+        }
 
         // Publish event so identity module can increment totalRecipesPublished
         kafkaTemplate.send("post-delivery",
@@ -435,6 +469,45 @@ public class PostService {
         );
         Page<PostResponse> page = postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
                 .map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
+    }
+
+    /**
+     * Search posts by content, display name, or tags.
+     * Uses case-insensitive regex matching (same pattern as RecipeSpecification).
+     */
+    public Page<PostResponse> searchPosts(String query, Pageable pageable, String currentUserId) {
+        if (query == null || query.isBlank()) {
+            return Page.empty(pageable);
+        }
+
+        String regex = ".*" + java.util.regex.Pattern.quote(query.trim()) + ".*";
+
+        Criteria searchCriteria = new Criteria().andOperator(
+                Criteria.where("hidden").is(false),
+                new Criteria().orOperator(
+                        Criteria.where("content").regex(regex, "i"),
+                        Criteria.where("displayName").regex(regex, "i"),
+                        Criteria.where("tags").regex(regex, "i"),
+                        Criteria.where("recipeTitle").regex(regex, "i")
+                )
+        );
+
+        Query countQuery = new Query(searchCriteria);
+        long total = mongoTemplate.count(countQuery, Post.class);
+
+        Query searchQuery = new Query(searchCriteria)
+                .with(Sort.by("createdAt").descending())
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize());
+
+        List<Post> posts = mongoTemplate.find(searchQuery, Post.class);
+        List<PostResponse> responses = posts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+
+        Page<PostResponse> page = new PageImpl<>(responses, pageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
     }
