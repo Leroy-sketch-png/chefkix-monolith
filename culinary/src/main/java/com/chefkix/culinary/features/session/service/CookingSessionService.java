@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.session.service;
 
 import com.chefkix.social.api.PostProvider;
+import com.chefkix.social.api.dto.RecentCookRequest;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
@@ -215,6 +216,28 @@ public class CookingSessionService {
 
         // 5. Update Stats
         helper.updateRecipeStats(recipe.getId(), 1, 0);
+
+        // 5b. Auto-draft RECENT_COOK post (if user has showCookingActivity enabled)
+        try {
+            if (profileProvider.isShowCookingActivity(userId)) {
+                BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+                int durationMinutes = (int) java.time.Duration.between(session.getStartedAt(), now).toMinutes();
+                postProvider.createRecentCookPost(
+                        RecentCookRequest.builder()
+                                .userId(userId)
+                                .sessionId(sessionId)
+                                .recipeId(recipe.getId())
+                                .recipeTitle(recipe.getTitle())
+                                .coverImageUrl(recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()
+                                        ? recipe.getCoverImageUrl().get(0) : null)
+                                .durationMinutes(durationMinutes)
+                                .displayName(profile.getDisplayName())
+                                .avatarUrl(profile.getAvatarUrl())
+                                .build());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to auto-create RECENT_COOK post for session {}: {}", sessionId, e.getMessage());
+        }
 
         // 6. Sync call to identity service for XP + level-up detection
         String description = "Hoàn thành nấu: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");

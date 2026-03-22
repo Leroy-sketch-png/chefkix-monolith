@@ -14,6 +14,7 @@ import com.chefkix.shared.event.PostLikeEvent;
 import com.chefkix.shared.event.UserMentionEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
+import com.chefkix.social.api.dto.RecentCookRequest;
 import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
@@ -22,7 +23,10 @@ import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
+import com.chefkix.social.post.dto.response.PollVoteResponse;
 import com.chefkix.social.post.entity.CoChef;
+import com.chefkix.social.post.entity.PollData;
+import com.chefkix.social.post.entity.PollVote;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.entity.PostLike;
 import com.chefkix.social.post.entity.PostSave;
@@ -32,6 +36,11 @@ import com.chefkix.social.post.mapper.PostMapper;
 import com.chefkix.social.post.repository.PostLikeRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.PostSaveRepository;
+import com.chefkix.social.post.repository.PollVoteRepository;
+import com.chefkix.social.post.repository.PlateRatingRepository;
+import com.chefkix.social.post.entity.PlateRating;
+import com.chefkix.social.post.dto.request.PlateRateRequest;
+import com.chefkix.social.post.dto.response.PlateRateResponse;
 import com.chefkix.shared.util.UploadImageFile;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -60,10 +69,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
@@ -79,6 +85,8 @@ public class PostService {
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
     PostSaveRepository postSaveRepository;
+    PollVoteRepository pollVoteRepository;
+    PlateRatingRepository plateRatingRepository;
     MongoTemplate mongoTemplate;
     GroupMemberRepository groupMemberRepository;
 
@@ -107,11 +115,12 @@ public class PostService {
     // 1A. CREATE PERSONAL POST
     // ========================================================================
     public PostResponse createPersonalPost(PostCreationRequest request, String userId) {
-        log.info("Bắt đầu tạo PERSONAL post cho user: {}", userId);
+        PostType type = request.getPostType() != null ? request.getPostType() : PostType.PERSONAL;
+        log.info("Bắt đầu tạo {} post cho user: {}", type, userId);
 
-        // Personal posts go straight to ACTIVE.
+        // Personal/Quick posts go straight to ACTIVE.
         // We pull the isHidden value directly from the DTO.
-        return processAndSavePost(request, userId, PostType.PERSONAL, null, PostStatus.ACTIVE, request.getIsPrivateRecipe());
+        return processAndSavePost(request, userId, type, null, PostStatus.ACTIVE, request.getIsPrivateRecipe());
     }
 
     // ========================================================================
@@ -258,6 +267,17 @@ public class PostService {
         post.setGroupId(groupId);
         post.setStatus(status);
         post.setHidden(isHidden);
+
+        // POLL DATA
+        if (type == PostType.POLL && request.getPollQuestion() != null) {
+            post.setPollData(PollData.builder()
+                    .question(request.getPollQuestion())
+                    .optionA(request.getPollOptionA())
+                    .optionB(request.getPollOptionB())
+                    .votesA(0)
+                    .votesB(0)
+                    .build());
+        }
 
         // LINK TO SESSION
         if (session != null) {
@@ -497,6 +517,11 @@ public class PostService {
     // ========================================================================
 
     public Page<PostResponse> getAllPosts(int mode, Pageable pageable, String currentUserId) {
+        // mode = 2: For You (personalized taste-based feed)
+        if (mode == 2 && currentUserId != null && !currentUserId.isBlank()) {
+            return getForYouFeed(pageable, currentUserId);
+        }
+
         // mode = 1: Trending, mode = 0: Latest
         Sort sort = (mode == 1) ? Sort.by("hotScore").descending() : Sort.by("createdAt").descending();
 
@@ -510,6 +535,182 @@ public class PostService {
                 .map(postMapper::toPostResponse);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
+    }
+
+    /**
+     * Personalized "For You" feed using content-based taste scoring.
+     * Algorithm:
+     * 1. Build taste profile from user's recent liked/saved post tags
+     * 2. Query posts matching taste tags, exclude user's own posts and already-interacted posts
+     * 3. Sort by hotScore (social proof + recency built-in)
+     * 4. Supplement with trending if not enough taste-matched posts
+     * 5. Cold start: fall back to trending entirely
+     */
+    private Page<PostResponse> getForYouFeed(Pageable pageable, String currentUserId) {
+        Set<String> tasteTags = buildTasteProfile(currentUserId);
+
+        // Cold start: no interaction history → trending fallback
+        if (tasteTags.isEmpty()) {
+            return getAllPosts(1, pageable, currentUserId);
+        }
+
+        Set<String> interactedPostIds = getInteractedPostIds(currentUserId);
+
+        // Build taste-matching query
+        Criteria tasteCriteria = Criteria.where("hidden").is(false)
+                .and("userId").ne(currentUserId)
+                .and("postStatus").is(PostStatus.ACTIVE.name())
+                .and("tags").in(tasteTags);
+
+        if (!interactedPostIds.isEmpty()) {
+            tasteCriteria = tasteCriteria.and("_id").nin(interactedPostIds);
+        }
+
+        long tasteTotal = mongoTemplate.count(Query.query(tasteCriteria), Post.class);
+
+        Query tasteQuery = new Query(tasteCriteria)
+                .with(Sort.by(Sort.Direction.DESC, "hotScore").and(Sort.by(Sort.Direction.DESC, "createdAt")))
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize());
+
+        List<Post> tastePosts = mongoTemplate.find(tasteQuery, Post.class);
+
+        // Supplement with trending if not enough taste-matched posts
+        if (tastePosts.size() < pageable.getPageSize()) {
+            int needed = pageable.getPageSize() - tastePosts.size();
+            Set<String> excludeIds = new java.util.HashSet<>(interactedPostIds);
+            tastePosts.forEach(p -> excludeIds.add(p.getId()));
+
+            Criteria supplementCriteria = Criteria.where("hidden").is(false)
+                    .and("userId").ne(currentUserId)
+                    .and("postStatus").is(PostStatus.ACTIVE.name());
+
+            if (!excludeIds.isEmpty()) {
+                supplementCriteria = supplementCriteria.and("_id").nin(excludeIds);
+            }
+
+            List<Post> supplementPosts = mongoTemplate.find(
+                    new Query(supplementCriteria)
+                            .with(Sort.by(Sort.Direction.DESC, "hotScore"))
+                            .limit(needed),
+                    Post.class);
+            tastePosts.addAll(supplementPosts);
+        }
+
+        long total = Math.max(tasteTotal, tastePosts.size());
+
+        // Content diversity: deduplicate by author (max 2 per author per page)
+        // and ensure PostType variety (interleave QUICK posts)
+        List<Post> diversifiedPosts = applyContentDiversity(tastePosts, pageable.getPageSize());
+
+        List<PostResponse> responses = diversifiedPosts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+
+        Page<PostResponse> page = new PageImpl<>(responses, pageable, total);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
+    }
+
+    /**
+     * Enforces content diversity on a candidate list:
+     * - Max 2 posts per author (prevents feed monopolization by popular accounts)
+     * - Interleaves QUICK posts for variety (every 5th slot is QUICK if available)
+     */
+    private List<Post> applyContentDiversity(List<Post> candidates, int pageSize) {
+        Map<String, Integer> authorCounts = new java.util.HashMap<>();
+        List<Post> quickPosts = new java.util.ArrayList<>();
+        List<Post> regularPosts = new java.util.ArrayList<>();
+
+        for (Post p : candidates) {
+            int count = authorCounts.getOrDefault(p.getUserId(), 0);
+            if (count >= 2) continue; // skip 3rd+ post from same author
+            authorCounts.put(p.getUserId(), count + 1);
+
+            if (PostType.QUICK.equals(p.getPostType())) {
+                quickPosts.add(p);
+            } else {
+                regularPosts.add(p);
+            }
+        }
+
+        // Interleave: every 5th slot is a QUICK post (if available)
+        List<Post> result = new java.util.ArrayList<>();
+        int quickIdx = 0;
+        int regularIdx = 0;
+        int slot = 0;
+
+        while (result.size() < pageSize && (quickIdx < quickPosts.size() || regularIdx < regularPosts.size())) {
+            boolean pickQuick = (slot % 5 == 4) && quickIdx < quickPosts.size();
+            if (pickQuick) {
+                result.add(quickPosts.get(quickIdx++));
+            } else if (regularIdx < regularPosts.size()) {
+                result.add(regularPosts.get(regularIdx++));
+            } else {
+                result.add(quickPosts.get(quickIdx++));
+            }
+            slot++;
+        }
+
+        return result;
+    }
+
+    private Set<String> buildTasteProfile(String currentUserId) {
+        // Get recent liked posts (last 100)
+        Query likeQuery = new Query(Criteria.where("userId").is(currentUserId))
+                .with(Sort.by(Sort.Direction.DESC, "createdDate"))
+                .limit(100);
+        likeQuery.fields().include("postId");
+        List<PostLike> recentLikes = mongoTemplate.find(likeQuery, PostLike.class);
+
+        // Get recent saved posts (last 50)
+        Query saveQuery = new Query(Criteria.where("userId").is(currentUserId))
+                .with(Sort.by(Sort.Direction.DESC, "createdDate"))
+                .limit(50);
+        saveQuery.fields().include("postId");
+        List<PostSave> recentSaves = mongoTemplate.find(saveQuery, PostSave.class);
+
+        // Collect post IDs
+        Set<String> postIds = new java.util.HashSet<>();
+        recentLikes.forEach(l -> postIds.add(l.getPostId()));
+        recentSaves.forEach(s -> postIds.add(s.getPostId()));
+
+        if (postIds.isEmpty()) return Set.of();
+
+        // Extract tags from interacted posts
+        Query tagQuery = new Query(Criteria.where("_id").in(postIds));
+        tagQuery.fields().include("tags");
+        List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
+
+        Map<String, Integer> tagFreq = new java.util.HashMap<>();
+        posts.forEach(p -> {
+            if (p.getTags() != null) {
+                p.getTags().forEach(tag ->
+                        tagFreq.merge(tag.toLowerCase().trim(), 1, Integer::sum));
+            }
+        });
+
+        // Top 20 most frequent tags
+        return tagFreq.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(20)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> getInteractedPostIds(String currentUserId) {
+        Query likeQuery = new Query(Criteria.where("userId").is(currentUserId)).limit(500);
+        likeQuery.fields().include("postId");
+        List<PostLike> likes = mongoTemplate.find(likeQuery, PostLike.class);
+
+        Query saveQuery = new Query(Criteria.where("userId").is(currentUserId)).limit(500);
+        saveQuery.fields().include("postId");
+        List<PostSave> saves = mongoTemplate.find(saveQuery, PostSave.class);
+
+        Set<String> ids = new java.util.HashSet<>();
+        likes.forEach(l -> ids.add(l.getPostId()));
+        saves.forEach(s -> ids.add(s.getPostId()));
+        return ids;
     }
 
     public Page<PostResponse> getAllPostsByUserId(String userId, Pageable pageable, String currentUserId) {
@@ -616,9 +817,31 @@ public class PostService {
                 .map(save -> save.getPostId())
                 .collect(Collectors.toSet());
 
+        // Batch poll vote lookup for poll posts
+        List<String> pollPostIds = content.stream()
+                .filter(p -> p.getPostType() == PostType.POLL)
+                .map(PostResponse::getId)
+                .collect(Collectors.toList());
+        Map<String, String> pollVoteMap = new HashMap<>();
+        if (!pollPostIds.isEmpty()) {
+            for (String pid : pollPostIds) {
+                pollVoteRepository.findByPostIdAndUserId(pid, currentUserId)
+                        .ifPresent(v -> pollVoteMap.put(pid, v.getOption()));
+            }
+        }
+
+        // Batch plate rating lookup
+        var plateRatings = plateRatingRepository.findByPostIdInAndUserId(postIds, currentUserId);
+        var plateRatingMap = plateRatings.stream()
+                .collect(Collectors.toMap(PlateRating::getPostId, PlateRating::getRating));
+
         content.forEach(post -> {
             post.setIsLiked(likedPostIds.contains(post.getId()));
             post.setIsSaved(savedPostIds.contains(post.getId()));
+            if (post.getPostType() == PostType.POLL) {
+                post.setUserVote(pollVoteMap.get(post.getId()));
+            }
+            post.setUserPlateRating(plateRatingMap.get(post.getId()));
         });
     }
     
@@ -633,8 +856,134 @@ public class PostService {
         } else {
             post.setIsLiked(postLikeRepository.existsByPostIdAndUserId(post.getId(), currentUserId));
             post.setIsSaved(postSaveRepository.existsByPostIdAndUserId(post.getId(), currentUserId));
+            if (post.getPostType() == PostType.POLL) {
+                pollVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                        .ifPresent(v -> post.setUserVote(v.getOption()));
+            }
+            plateRatingRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                    .ifPresent(pr -> post.setUserPlateRating(pr.getRating()));
         }
         return post;
+    }
+
+    // ========================================================================
+    // POLL VOTING
+    // ========================================================================
+
+    public PollVoteResponse votePoll(String postId, String option, String userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        if (post.getPostType() != PostType.POLL || post.getPollData() == null) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION, "This post is not a poll");
+        }
+
+        var existingVote = pollVoteRepository.findByPostIdAndUserId(postId, userId);
+        PollData poll = post.getPollData();
+
+        if (existingVote.isPresent()) {
+            PollVote vote = existingVote.get();
+            if (vote.getOption().equals(option)) {
+                // Same vote — remove it (toggle off)
+                pollVoteRepository.delete(vote);
+                if ("A".equals(option)) poll.setVotesA(Math.max(0, poll.getVotesA() - 1));
+                else poll.setVotesB(Math.max(0, poll.getVotesB() - 1));
+                post.setPollData(poll);
+                postRepository.save(post);
+                return PollVoteResponse.builder()
+                        .userVote(null)
+                        .votesA(poll.getVotesA())
+                        .votesB(poll.getVotesB())
+                        .build();
+            } else {
+                // Switch vote
+                String oldOption = vote.getOption();
+                vote.setOption(option);
+                pollVoteRepository.save(vote);
+                if ("A".equals(oldOption)) poll.setVotesA(Math.max(0, poll.getVotesA() - 1));
+                else poll.setVotesB(Math.max(0, poll.getVotesB() - 1));
+                if ("A".equals(option)) poll.setVotesA(poll.getVotesA() + 1);
+                else poll.setVotesB(poll.getVotesB() + 1);
+                post.setPollData(poll);
+                postRepository.save(post);
+                return PollVoteResponse.builder()
+                        .userVote(option)
+                        .votesA(poll.getVotesA())
+                        .votesB(poll.getVotesB())
+                        .build();
+            }
+        }
+
+        // New vote
+        pollVoteRepository.save(PollVote.builder()
+                .postId(postId)
+                .userId(userId)
+                .option(option)
+                .build());
+        if ("A".equals(option)) poll.setVotesA(poll.getVotesA() + 1);
+        else poll.setVotesB(poll.getVotesB() + 1);
+        post.setPollData(poll);
+        postRepository.save(post);
+
+        return PollVoteResponse.builder()
+                .userVote(option)
+                .votesA(poll.getVotesA())
+                .votesB(poll.getVotesB())
+                .build();
+    }
+
+    public PlateRateResponse ratePlate(String postId, String rating, String userId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        var existing = plateRatingRepository.findByPostIdAndUserId(postId, userId);
+
+        if (existing.isPresent()) {
+            PlateRating pr = existing.get();
+            if (pr.getRating().equals(rating)) {
+                // Same rating — toggle off
+                plateRatingRepository.delete(pr);
+                if ("FIRE".equals(rating)) post.setFireCount(Math.max(0, post.getFireCount() - 1));
+                else post.setCringeCount(Math.max(0, post.getCringeCount() - 1));
+                postRepository.save(post);
+                return PlateRateResponse.builder()
+                        .userRating(null)
+                        .fireCount(post.getFireCount())
+                        .cringeCount(post.getCringeCount())
+                        .build();
+            } else {
+                // Switch rating
+                String old = pr.getRating();
+                pr.setRating(rating);
+                plateRatingRepository.save(pr);
+                if ("FIRE".equals(old)) post.setFireCount(Math.max(0, post.getFireCount() - 1));
+                else post.setCringeCount(Math.max(0, post.getCringeCount() - 1));
+                if ("FIRE".equals(rating)) post.setFireCount(post.getFireCount() + 1);
+                else post.setCringeCount(post.getCringeCount() + 1);
+                postRepository.save(post);
+                return PlateRateResponse.builder()
+                        .userRating(rating)
+                        .fireCount(post.getFireCount())
+                        .cringeCount(post.getCringeCount())
+                        .build();
+            }
+        }
+
+        // New rating
+        plateRatingRepository.save(PlateRating.builder()
+                .postId(postId)
+                .userId(userId)
+                .rating(rating)
+                .build());
+        if ("FIRE".equals(rating)) post.setFireCount(post.getFireCount() + 1);
+        else post.setCringeCount(post.getCringeCount() + 1);
+        postRepository.save(post);
+
+        return PlateRateResponse.builder()
+                .userRating(rating)
+                .fireCount(post.getFireCount())
+                .cringeCount(post.getCringeCount())
+                .build();
     }
 
     // --- UTILS ---
@@ -801,5 +1150,38 @@ public class PostService {
 
         PostResponse response = postMapper.toPostResponse(post);
         return enrichWithUserStatus(response, currentUserId);
+    }
+
+    /**
+     * Auto-create a lightweight RECENT_COOK post when a cooking session completes.
+     * No photos, no moderation — just metadata visible to followers in the feed.
+     */
+    @Transactional
+    public void createRecentCookPost(RecentCookRequest request) {
+        Post post = Post.builder()
+                .userId(request.getUserId())
+                .content(request.getDisplayName() + " cooked " + request.getRecipeTitle()
+                        + " \uD83C\uDF73 " + request.getDurationMinutes() + " min")
+                .displayName(request.getDisplayName())
+                .avatarUrl(request.getAvatarUrl())
+                .sessionId(request.getSessionId())
+                .recipeId(request.getRecipeId())
+                .recipeTitle(request.getRecipeTitle())
+                .postType(PostType.RECENT_COOK)
+                .status(PostStatus.ACTIVE)
+                .likes(0)
+                .commentCount(0)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+        post.generateSlug();
+
+        // Store cover image URL as a single-element photoUrls for card rendering
+        if (request.getCoverImageUrl() != null && !request.getCoverImageUrl().isBlank()) {
+            post.setPhotoUrls(List.of(request.getCoverImageUrl()));
+        }
+
+        postRepository.save(post);
+        log.info("Auto-created RECENT_COOK post for user {} (recipe: {})", request.getUserId(), request.getRecipeTitle());
     }
 }
