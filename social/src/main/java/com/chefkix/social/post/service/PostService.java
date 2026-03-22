@@ -11,6 +11,7 @@ import com.chefkix.shared.event.PostLikeEvent;
 import com.chefkix.shared.event.UserMentionEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
+import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
@@ -45,6 +46,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -77,6 +79,7 @@ public class PostService {
     MongoTemplate mongoTemplate;
 
     KafkaTemplate<String, Object> kafkaTemplate;
+    ApplicationEventPublisher eventPublisher;
 
     // Services & Providers
     UploadImageFile uploadImageFile;
@@ -279,6 +282,9 @@ public class PostService {
                         .postId(post.getId())
                         .build());
 
+        // Real-time Typesense indexing
+        eventPublisher.publishEvent(PostIndexEvent.index(post));
+
         return postMapper.toPostResponse(post);
     }
 
@@ -329,6 +335,9 @@ public class PostService {
         }
 
         postRepository.delete(post);
+
+        // Real-time Typesense removal
+        eventPublisher.publishEvent(PostIndexEvent.remove(postId));
 
         PostDeletedEvent postDeletedEvent = PostDeletedEvent.builder()
                 .userId(userId)

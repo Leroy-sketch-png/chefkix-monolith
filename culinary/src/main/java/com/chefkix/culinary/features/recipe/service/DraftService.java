@@ -14,12 +14,14 @@ import com.chefkix.culinary.features.ai.service.AiIntegrationService;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.common.helper.AsyncHelper;
+import com.chefkix.culinary.features.recipe.events.RecipeIndexEvent;
 import com.chefkix.culinary.features.recipe.mapper.IngredientMapper;
 import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.mapper.StepMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,7 @@ public class DraftService {
     private final IngredientMapper ingredientMapper;
     private final AsyncHelper asyncHelper;
     private final AiIntegrationService aiIntegrationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public RecipeDetailResponse createDraft() {
@@ -244,6 +247,9 @@ public class DraftService {
         if (recipe.getLikeCount() == 0) recipe.setLikeCount(0);
 
         var savedRecipe = recipeRepository.save(recipe);
+
+        // Real-time Typesense indexing — fires synchronously after MongoDB save
+        eventPublisher.publishEvent(RecipeIndexEvent.index(savedRecipe));
 
         log.info("Recipe {} published successfully by user {}", id, currentUserId);
 

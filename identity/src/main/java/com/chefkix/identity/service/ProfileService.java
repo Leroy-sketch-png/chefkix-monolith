@@ -13,6 +13,7 @@ import com.chefkix.identity.entity.ResetPasswordRequest;
 import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserProfile;
+import com.chefkix.identity.events.UserIndexEvent;
 import com.chefkix.identity.enums.RelationshipStatus;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -24,6 +25,7 @@ import com.chefkix.social.api.PostProvider;
 import com.chefkix.social.api.dto.PostSummary;
 import com.chefkix.identity.utils.SecurityUtils;
 import com.chefkix.identity.utils.SocialUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 // Feign removed in monolith
 import java.time.Instant;
@@ -69,6 +71,7 @@ public class ProfileService {
   BlockService blockService;
   SecurityUtils securityUtils;
   SocialUtils socialUtils;
+  ApplicationEventPublisher eventPublisher;
 
   // === Configuration ===
   @Qualifier("taskExecutor")
@@ -259,6 +262,9 @@ public class ProfileService {
     // 3. Lưu profile đã cập nhật
     UserProfile updatedProfile = profileRepository.save(userProfile);
 
+    // Real-time Typesense indexing
+    eventPublisher.publishEvent(UserIndexEvent.index(updatedProfile));
+
     // 4. Map sang DTO và gán các trường động
     ProfileResponse response = profileMapper.toProfileResponse(updatedProfile);
     response.setRelationshipStatus(RelationshipStatus.SELF);
@@ -424,7 +430,12 @@ public class ProfileService {
     Statistics initialStats = Statistics.builder().build();
     profile.setStatistics(initialStats);
 
-    return profileRepository.save(profile);
+    UserProfile saved = profileRepository.save(profile);
+
+    // Real-time Typesense indexing
+    eventPublisher.publishEvent(UserIndexEvent.index(saved));
+
+    return saved;
   }
 
   // --- Helpers cho Đặt lại Mật khẩu (resetPassword) ---
