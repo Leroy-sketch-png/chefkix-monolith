@@ -24,6 +24,9 @@ Thumbs.db
 *.log
 logs/
 
+# === Dev build artifacts (temp terminal output files) ===
+_*.txt
+
 # === Environment ===
 .env
 *.env.local
