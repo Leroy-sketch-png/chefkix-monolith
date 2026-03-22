@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.chat.dto.request.ChatMessageRequest;
+import com.chefkix.social.chat.dto.request.ChatReactionRequest;
 import com.chefkix.social.chat.dto.response.ChatMessageResponse;
 import com.chefkix.social.chat.entity.ChatMessage;
 import com.chefkix.social.chat.entity.ParticipantInfo;
@@ -190,6 +192,19 @@ public class ChatMessageService {
         chatMessage.setType(msgType);
         chatMessage.setRelatedId(request.getRelatedId());
 
+        // Handle reply-to: cache replied message context for display
+        if (request.getReplyToId() != null && !request.getReplyToId().isBlank()) {
+            final ChatMessage msgRef = chatMessage;
+            chatMessageRepository.findById(request.getReplyToId()).ifPresent(repliedMsg -> {
+                msgRef.setReplyToId(repliedMsg.getId());
+                String content = repliedMsg.getMessage();
+                msgRef.setReplyToContent(content != null && content.length() > 100 
+                    ? content.substring(0, 100) + "..." : content);
+                msgRef.setReplyToSenderName(
+                    repliedMsg.getSender() != null ? repliedMsg.getSender().getUsername() : "Unknown");
+            });
+        }
+
         // NEW: Set cached post snapshot for POST_SHARE
         if (msgType == MessageType.POST_SHARE) {
             chatMessage.setSharedPostImage(cachedPostImage);
@@ -221,20 +236,48 @@ public class ChatMessageService {
         String currentUserId =
                 SecurityContextHolder.getContext().getAuthentication().getName();
 
+        // Handle soft-deleted messages: clear content but preserve structure
+        String displayMessage = Boolean.TRUE.equals(message.getDeleted()) 
+            ? "This message was deleted" : message.getMessage();
+
+        // Map reactions with current user context
+        List<ChatMessageResponse.ReactionInfo> reactionInfos = new ArrayList<>();
+        if (message.getReactions() != null) {
+            for (ChatMessage.Reaction reaction : message.getReactions()) {
+                reactionInfos.add(ChatMessageResponse.ReactionInfo.builder()
+                    .emoji(reaction.getEmoji())
+                    .count(reaction.getUserIds() != null ? reaction.getUserIds().size() : 0)
+                    .userReacted(reaction.getUserIds() != null && reaction.getUserIds().contains(currentUserId))
+                    .build());
+            }
+        }
+
+        // Map reply-to context
+        ChatMessageResponse.ReplyInfo replyInfo = null;
+        if (message.getReplyToId() != null) {
+            replyInfo = ChatMessageResponse.ReplyInfo.builder()
+                .messageId(message.getReplyToId())
+                .content(message.getReplyToContent())
+                .senderName(message.getReplyToSenderName())
+                .build();
+        }
+
         ChatMessageResponse response = ChatMessageResponse.builder()
                 .id(message.getId())
                 .conversationId(message.getConversationId())
                 .me(message.getSender().getUserId().equals(currentUserId))
-                .message(message.getMessage())
+                .message(displayMessage)
                 .sender(message.getSender())
                 .createdDate(message.getCreatedDate())
-                .type(message.getType()) // ✅ Must be populated
-                .relatedId(message.getRelatedId()) // ✅ Must be populated
-                .sharedPostImage(message.getSharedPostImage()) // ✅ NEW
-                .sharedPostTitle(message.getSharedPostTitle()) // ✅ NEW
+                .type(message.getType())
+                .relatedId(message.getRelatedId())
+                .sharedPostImage(message.getSharedPostImage())
+                .sharedPostTitle(message.getSharedPostTitle())
+                .replyTo(replyInfo)
+                .reactions(reactionInfos)
+                .deleted(message.getDeleted())
                 .build();
 
-        // Debug log to verify data
         if (message.getType() == MessageType.POST_SHARE) {
             log.debug(
                     "Built POST_SHARE response - image: {}, title: {}",
@@ -243,5 +286,84 @@ public class ChatMessageService {
         }
 
         return response;
+    }
+
+    // ======================== Reactions ========================
+
+    /**
+     * Toggle a reaction on a message. If the user already reacted with this emoji,
+     * remove it. Otherwise, add it. Returns the updated message.
+     */
+    public ChatMessageResponse reactToMessage(String messageId, ChatReactionRequest request) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new AppException(ErrorCode.MESSAGE_NOT_FOUND));
+
+        // Verify user has access to this conversation
+        validateConversationAccess(message.getConversationId());
+
+        if (message.getReactions() == null) {
+            message.setReactions(new ArrayList<>());
+        }
+
+        String emoji = request.getEmoji();
+
+        // Find existing reaction for this emoji
+        ChatMessage.Reaction existingReaction = message.getReactions().stream()
+                .filter(r -> emoji.equals(r.getEmoji()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingReaction != null) {
+            if (existingReaction.getUserIds().contains(userId)) {
+                // User already reacted — toggle off
+                existingReaction.getUserIds().remove(userId);
+                if (existingReaction.getUserIds().isEmpty()) {
+                    message.getReactions().remove(existingReaction);
+                }
+            } else {
+                // Add user to existing emoji
+                existingReaction.getUserIds().add(userId);
+            }
+        } else {
+            // New emoji reaction
+            List<String> userIds = new ArrayList<>();
+            userIds.add(userId);
+            message.getReactions().add(ChatMessage.Reaction.builder()
+                    .emoji(emoji)
+                    .userIds(userIds)
+                    .build());
+        }
+
+        chatMessageRepository.save(message);
+        log.info("User {} toggled reaction {} on message {}", userId, emoji, messageId);
+        return toChatMessageResponse(message);
+    }
+
+    // ======================== Delete ========================
+
+    /**
+     * Soft-delete a message. Only the sender can delete their own messages.
+     * Content is cleared but metadata (timestamp, sender) is preserved for thread context.
+     */
+    public ChatMessageResponse deleteMessage(String messageId) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new AppException(ErrorCode.MESSAGE_NOT_FOUND));
+
+        // Only sender can delete their own message
+        if (!message.getSender().getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        message.setDeleted(true);
+        message.setMessage(null); // Clear actual content
+        message.setReactions(new ArrayList<>()); // Clear reactions on deleted message
+
+        chatMessageRepository.save(message);
+        log.info("User {} deleted message {}", userId, messageId);
+        return toChatMessageResponse(message);
     }
 }

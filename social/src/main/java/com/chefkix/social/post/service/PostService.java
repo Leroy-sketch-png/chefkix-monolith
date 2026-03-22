@@ -11,8 +11,10 @@ import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.event.PostLikeEvent;
+import com.chefkix.shared.event.UserMentionEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
+import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
@@ -41,9 +43,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -73,9 +79,11 @@ public class PostService {
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
     PostSaveRepository postSaveRepository;
+    MongoTemplate mongoTemplate;
     GroupMemberRepository groupMemberRepository;
 
     KafkaTemplate<String, Object> kafkaTemplate;
+    ApplicationEventPublisher eventPublisher;
 
     // Services & Providers
     UploadImageFile uploadImageFile;
@@ -280,68 +288,34 @@ public class PostService {
 
         post = postRepository.save(post);
 
-        kafkaTemplate.send("post-delivery",
-                PostCreatedEvent.builder()
-                        .userId(userId)
-                        .postId(post.getId())
-                        .build());
+        // Send mention notifications for tagged users
+        final Post savedPost = post;
+        if (request.getTaggedUserIds() != null && !request.getTaggedUserIds().isEmpty()) {
+            String actorDisplayName = profile != null ? profile.getDisplayName() : "Chef User";
+            String actorAvatarUrl = profile != null ? profile.getAvatarUrl() : null;
+            String contentPreview = request.getContent() != null && request.getContent().length() > 50
+                    ? request.getContent().substring(0, 50) + "..."
+                    : request.getContent();
 
-        return postMapper.toPostResponse(post);
-    }
-
-    @Transactional
-    protected PostResponse savePostToDb(PostCreationRequest request, String userId,
-                                        BasicProfileInfo profile,
-                                        List<String> photoUrls,
-                                        SessionInfo session) {
-
-        Post post = postMapper.toPost(request);
-        post.setUserId(userId);
-
-        post.setDisplayName(profile != null ? profile.getDisplayName() : "Chef User");
-        post.setAvatarUrl(profile != null ? profile.getAvatarUrl() : null);
-
-        post.setPhotoUrls(photoUrls);
-        post.generateSlug();
-        post.setLikes(0);
-        post.setCommentCount(0);
-        post.setCreatedAt(Instant.now());
-        post.setUpdatedAt(Instant.now());
-
-        // LINK TO SESSION (if provided)
-        // NOTE: XP is NOT calculated here. XP is awarded when FE calls
-        // recipe-service's POST /{sessionId}/link-post endpoint.
-        // This just stores the session reference for display purposes.
-        if (session != null) {
-            post.setSessionId(session.getId());
-            post.setRecipeId(session.getRecipeId());
-            post.setRecipeTitle(session.getRecipeTitle());
-            post.setPrivateRecipe(Boolean.TRUE.equals(request.getIsPrivateRecipe()));
-            // xpEarned will be updated by recipe-service via Kafka or internal API
-            // after FE calls link-post endpoint
-            post.setXpEarned(0.0);
-
-            // Co-cooking attribution — populate co-chefs from room participants
-            if (session.getRoomCode() != null && !session.getRoomCode().isBlank()) {
-                post.setRoomCode(session.getRoomCode());
+            for (String taggedUserId : request.getTaggedUserIds()) {
+                if (taggedUserId.equals(userId)) continue; // Skip self-mentions
                 try {
-                    var coChefProfiles = sessionProvider.getCoChefs(session.getRoomCode(), userId);
-                    if (coChefProfiles != null && !coChefProfiles.isEmpty()) {
-                        post.setCoChefs(coChefProfiles.stream()
-                                .map(p -> CoChef.builder()
-                                        .userId(p.getUserId())
-                                        .displayName(p.getDisplayName())
-                                        .avatarUrl(p.getAvatarUrl())
-                                        .build())
-                                .collect(Collectors.toList()));
-                    }
+                    UserMentionEvent event = UserMentionEvent.builder()
+                            .recipientId(taggedUserId)
+                            .sourceId(savedPost.getId())
+                            .sourceType("POST")
+                            .postId(savedPost.getId())
+                            .actorId(userId)
+                            .actorDisplayName(actorDisplayName)
+                            .actorAvatarUrl(actorAvatarUrl)
+                            .contentPreview(contentPreview)
+                            .build();
+                    kafkaTemplate.send("tag-delivery", event);
                 } catch (Exception e) {
-                    log.warn("Failed to populate co-chefs for room {}: {}", session.getRoomCode(), e.getMessage());
+                    log.error("Failed to send post mention notification to user {}: {}", taggedUserId, e.getMessage());
                 }
             }
         }
-
-        post = postRepository.save(post);
 
         // Publish event so identity module can increment totalRecipesPublished
         kafkaTemplate.send("post-delivery",
@@ -349,6 +323,9 @@ public class PostService {
                         .userId(userId)
                         .postId(post.getId())
                         .build());
+
+        // Real-time Typesense indexing
+        eventPublisher.publishEvent(PostIndexEvent.index(post));
 
         return postMapper.toPostResponse(post);
     }
@@ -400,6 +377,9 @@ public class PostService {
         }
 
         postRepository.delete(post);
+
+        // Real-time Typesense removal
+        eventPublisher.publishEvent(PostIndexEvent.remove(postId));
 
         PostDeletedEvent postDeletedEvent = PostDeletedEvent.builder()
                 .userId(userId)
@@ -540,6 +520,45 @@ public class PostService {
         );
         Page<PostResponse> page = postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
                 .map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(page, currentUserId);
+        return page;
+    }
+
+    /**
+     * Search posts by content, display name, or tags.
+     * Uses case-insensitive regex matching (same pattern as RecipeSpecification).
+     */
+    public Page<PostResponse> searchPosts(String query, Pageable pageable, String currentUserId) {
+        if (query == null || query.isBlank()) {
+            return Page.empty(pageable);
+        }
+
+        String regex = ".*" + java.util.regex.Pattern.quote(query.trim()) + ".*";
+
+        Criteria searchCriteria = new Criteria().andOperator(
+                Criteria.where("hidden").is(false),
+                new Criteria().orOperator(
+                        Criteria.where("content").regex(regex, "i"),
+                        Criteria.where("displayName").regex(regex, "i"),
+                        Criteria.where("tags").regex(regex, "i"),
+                        Criteria.where("recipeTitle").regex(regex, "i")
+                )
+        );
+
+        Query countQuery = new Query(searchCriteria);
+        long total = mongoTemplate.count(countQuery, Post.class);
+
+        Query searchQuery = new Query(searchCriteria)
+                .with(Sort.by("createdAt").descending())
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize());
+
+        List<Post> posts = mongoTemplate.find(searchQuery, Post.class);
+        List<PostResponse> responses = posts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+
+        Page<PostResponse> page = new PageImpl<>(responses, pageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
     }

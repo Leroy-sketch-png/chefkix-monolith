@@ -119,6 +119,7 @@ public enum ErrorCode {
     // ─── CHAT ───────────────────────────────────────────────────────
 
     CONVERSATION_NOT_FOUND(404, "Conversation not found", HttpStatus.NOT_FOUND),
+    MESSAGE_NOT_FOUND(404, "Message not found", HttpStatus.NOT_FOUND),
     INVALID_MESSAGE(400, "Invalid message", HttpStatus.BAD_REQUEST),
 
     // ─── COOKING ROOM ───────────────────────────────────────────────

@@ -218,10 +218,14 @@ public class CookingSessionService {
 
         // 6. Sync call to identity service for XP + level-up detection
         String description = "Hoàn thành nấu: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");
+        // Deterministic idempotency key: same key used by both sync and Kafka paths
+        // so that if sync succeeds, the Kafka fallback event is deduped in Redis.
+        String idempotencyKey = "xp:COOKING_SESSION:" + userId + ":" + sessionId;
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount((int) baseXp)
                 .newBadges(null) // Badges only on post, not on complete
+                .idempotencyKey(idempotencyKey)
                 .build();
 
         CompletionResult profileResult = null;
@@ -284,7 +288,7 @@ public class CookingSessionService {
         helper.sendXpEventWithBadges(userId, finalXpToAward, "LINKING_POST", sessionId, 
                 "Linking Post ID: " + request.getPostId(), badgesEarned);
         
-        boolean creatorBonusAwarded = helper.processCreatorBonus(recipe, userId);
+        boolean creatorBonusAwarded = helper.processCreatorBonus(recipe, userId, sessionId);
 
         // 4.5. CRITICAL: Update Post's xpEarned in post-service database
         // This ensures the XP displays correctly when fetching posts later.

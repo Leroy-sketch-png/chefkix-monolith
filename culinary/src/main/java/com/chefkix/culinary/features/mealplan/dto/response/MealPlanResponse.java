@@ -21,4 +21,6 @@ public class MealPlanResponse {
     LocalDate weekStartDate;
     List<PlannedDay> days;
     List<ShoppingItem> shoppingList;
+    String reasoning;
+    Double pantryUtilizationPercent;
 }

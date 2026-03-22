@@ -37,6 +37,8 @@ public class PostResponse {
     String roomCode;                // Co-cooking room this post originated from
     List<CoChef> coChefs;           // Co-chefs who cooked together (userId, displayName, avatarUrl)
 
+    List<String> taggedUserIds;      // @mentioned users in this post
+
     Integer likes;
     Integer commentCount;
     

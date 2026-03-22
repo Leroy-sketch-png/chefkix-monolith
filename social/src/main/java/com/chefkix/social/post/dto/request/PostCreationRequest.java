@@ -32,6 +32,9 @@ public class PostCreationRequest {
   @Builder.Default
   Boolean isPrivateRecipe = false;
 
-    @Builder.Default
-    Boolean isHidden = false;
+  @Size(max = 10, message = "Maximum 10 tagged users")
+  List<String> taggedUserIds;
+
+  @Builder.Default
+  Boolean isHidden = false;
 }

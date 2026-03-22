@@ -154,4 +154,19 @@ public class PostController {
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
+
+    /**
+     * Search posts by content, tags, or display name.
+     * GET /api/v1/posts/search?q=keyword
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<PostResponse>>> searchPosts(
+            @RequestParam("q") String query,
+            @PageableDefault(size = 20) Pageable pageable,
+            Authentication authentication) {
+
+        String currentUserId = authentication != null ? authentication.getName() : null;
+        Page<PostResponse> result = postService.searchPosts(query, pageable, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 }

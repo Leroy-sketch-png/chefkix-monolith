@@ -36,7 +36,7 @@ public class KafkaConsumerConfig {
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-    props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.chefkix.shared.event");
+    props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.chefkix.shared.event,com.chefkix.identity.entity,com.chefkix.identity.enums");
 
     ConsumerFactory<String, T> consumerFactory =
         new DefaultKafkaConsumerFactory<>(
@@ -75,5 +75,11 @@ public class KafkaConsumerConfig {
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.XpRewardEvent>
       xpRewardedKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
     return createFactory(com.chefkix.shared.event.XpRewardEvent.class, "xp-rewarded-group", kafkaOperations);
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.identity.entity.UserEvent>
+      userEventKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
+    return createFactory(com.chefkix.identity.entity.UserEvent.class, "user-events-group", kafkaOperations);
   }
 }

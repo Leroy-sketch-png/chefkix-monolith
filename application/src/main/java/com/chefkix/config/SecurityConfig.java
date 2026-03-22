@@ -51,6 +51,13 @@ public class SecurityConfig {
 
             // --- Shopping list share links (public) ---
             "/shopping-lists/shared/**",
+
+            // --- Typesense search + autocomplete (public — typo-tolerant, no user data) ---
+            "/search",
+            "/search/autocomplete",
+
+            // --- Knowledge graph (public — ingredient/technique lookups, no PII) ---
+            "/knowledge/**",
     };
 
     @Bean

@@ -12,7 +12,9 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -63,8 +65,12 @@ public class Recipe {
     List<String> videoUrl = new ArrayList<>();
 
     // --- BASIC INFO ---
+    @TextIndexed(weight = 10)
     String title;
+
+    @TextIndexed(weight = 5)
     String description;
+
     Difficulty difficulty; // Enum: BEGINNER, INTERMEDIATE...
 
     int prepTimeMinutes;
@@ -76,6 +82,7 @@ public class Recipe {
     Double trendingScore = 0.0;
 
     @Indexed
+    @TextIndexed(weight = 3)
     String cuisineType;
 
     @Builder.Default

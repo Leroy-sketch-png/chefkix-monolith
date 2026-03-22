@@ -35,8 +35,13 @@ public class XpRewardListener {
       log.error("Received XP event with null/blank userId, skipping. eventId={}", event.getEventId());
       return;
     }
-    if (event.getAmount() <= 0) {
-      log.error("Received XP event with invalid amount={}, skipping. userId={}", event.getAmount(), event.getUserId());
+    if (event.getAmount() < 0) {
+      // Negative XP is a data integrity violation — throw so it hits DLQ for investigation
+      throw new IllegalArgumentException(
+          "XP event has negative amount=" + event.getAmount() + " for userId=" + event.getUserId());
+    }
+    if (event.getAmount() == 0 && (event.getBadges() == null || event.getBadges().isEmpty()) && !event.isChallengeCompleted()) {
+      log.warn("Received zero-XP event with no badges and no challenge for userId={}, skipping", event.getUserId());
       return;
     }
 

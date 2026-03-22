@@ -16,9 +16,11 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.common.helper.AsyncHelper;
 import com.chefkix.culinary.common.helper.RecipeHelper;
+import com.chefkix.culinary.features.recipe.events.RecipeIndexEvent;
 import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.identity.api.ProfileProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import com.chefkix.culinary.features.interaction.service.InteractionService; // Import Service mới
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
@@ -51,8 +53,9 @@ public class RecipeService {
     RecipeMapper recipeMapper;
     RecipeRepository recipeRepository;
     RecipeHelper recipeHelper;
-    InteractionService interactionService; // Inject Service mới
+    InteractionService interactionService;
     CookingSessionRepository cookingSessionRepository;
+    ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public RecipeDetailResponse updateRecipe(String recipeId, RecipeRequest request) {
@@ -116,6 +119,8 @@ public class RecipeService {
         // Soft-delete: archive instead of hard delete to preserve data integrity
         recipe.setStatus(RecipeStatus.ARCHIVED);
         recipeRepository.save(recipe);
+        // Real-time Typesense removal — archived recipes must not appear in search
+        eventPublisher.publishEvent(RecipeIndexEvent.remove(recipeId));
         log.info("[RECIPE_DELETE] User {} archived recipe {}", currentUserId, recipeId);
     }
 

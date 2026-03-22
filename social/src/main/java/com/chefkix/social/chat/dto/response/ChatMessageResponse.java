@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.dto.response;
 
 import java.time.Instant;
+import java.util.List;
 
 import com.chefkix.social.chat.entity.ParticipantInfo;
 import com.chefkix.social.chat.enums.MessageType;
@@ -25,4 +26,33 @@ public class ChatMessageResponse {
     String relatedId;
     String sharedPostImage;
     String sharedPostTitle;
+
+    // Reply context
+    ReplyInfo replyTo;
+
+    // Reactions
+    List<ReactionInfo> reactions;
+
+    // Soft delete
+    Boolean deleted;
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReplyInfo {
+        String messageId;
+        String content;
+        String senderName;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReactionInfo {
+        String emoji;
+        int count;
+        boolean userReacted;
+    }
 }

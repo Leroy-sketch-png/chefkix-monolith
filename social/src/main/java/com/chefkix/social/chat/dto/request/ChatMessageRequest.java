@@ -20,4 +20,7 @@ public class ChatMessageRequest {
 
     MessageType type;
     String relatedId;
+
+    /** ID of the message being replied to (null if not a reply) */
+    String replyToId;
 }

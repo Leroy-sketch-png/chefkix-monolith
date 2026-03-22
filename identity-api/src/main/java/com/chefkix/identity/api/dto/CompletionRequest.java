@@ -32,4 +32,11 @@ public class CompletionRequest {
     int xpAmount;
 
     List<String> newBadges;
+
+    /**
+     * Deterministic idempotency key for this completion.
+     * Used to prevent double XP award when sync path succeeds but fallback Kafka also fires.
+     * Format: "xp:COOKING_SESSION:{sessionId}" — same key used by the fallback XpRewardEvent.
+     */
+    String idempotencyKey;
 }

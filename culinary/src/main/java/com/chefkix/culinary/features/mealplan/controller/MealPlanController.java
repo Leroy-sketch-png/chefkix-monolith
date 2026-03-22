@@ -25,10 +25,12 @@ public class MealPlanController {
     private final MealPlanService mealPlanService;
 
     @PostMapping("/generate")
-    public ApiResponse<MealPlanResponse> generate(@Valid @RequestBody GenerateMealPlanRequest request) {
+    public ApiResponse<MealPlanResponse> generate(
+            @Valid @RequestBody GenerateMealPlanRequest request,
+            @RequestParam(defaultValue = "false") boolean useAI) {
         return ApiResponse.<MealPlanResponse>builder()
                 .success(true).statusCode(200)
-                .data(mealPlanService.generate(userId(), request))
+                .data(mealPlanService.generate(userId(), request, useAI))
                 .build();
     }
 
