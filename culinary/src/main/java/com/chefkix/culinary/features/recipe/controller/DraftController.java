@@ -43,7 +43,7 @@ public class DraftController {
     }
 
     // 4. DISCARD DRAFT (Xóa nháp)
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/draft/{id}")
     public ApiResponse<Void> discardDraft(@PathVariable String id) {
         draftService.discardDraft(id);
         return ApiResponse.success(null, "Draft discarded");

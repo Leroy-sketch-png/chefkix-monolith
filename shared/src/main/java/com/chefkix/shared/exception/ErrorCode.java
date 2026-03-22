@@ -77,7 +77,7 @@ public enum ErrorCode {
     CANNOT_FOLLOW_SELF(400, "Cannot follow yourself", HttpStatus.BAD_REQUEST),
     CANNOT_BLOCK_SELF(400, "Cannot block yourself", HttpStatus.BAD_REQUEST),
     BLOCK_NOT_FOUND(404, "Block not found", HttpStatus.NOT_FOUND),
-    REQUEST_NOT_FOUND(404, "Friend request not found", HttpStatus.NOT_FOUND),
+    REQUEST_NOT_FOUND(404, "Request not found", HttpStatus.NOT_FOUND),
     DO_NOT_HAVE_PERMISSION(403, "You do not have this permission", HttpStatus.FORBIDDEN),
     INVALID_OPERATION(400, "Invalid operation", HttpStatus.BAD_REQUEST),
     TOO_MANY_REQUESTS_FROM_IP(429, "Too many requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
@@ -152,7 +152,11 @@ public enum ErrorCode {
     APPEAL_NOT_FOUND(404, "Appeal not found", HttpStatus.NOT_FOUND),
     APPEAL_ALREADY_EXISTS(409, "An active appeal already exists for this ban", HttpStatus.CONFLICT),
     CONTENT_MODERATION_FAILED(400, "Content was flagged by moderation and cannot be posted", HttpStatus.BAD_REQUEST),
-    ;
+    GROUP_NOT_FOUND(404, "Group not found", HttpStatus.NOT_FOUND),
+    GROUP_MEMBER_NOT_FOUND(404, "Group member not found", HttpStatus.NOT_FOUND),
+    GROUP_BANNED(409, "You are restricted from joining this group.", HttpStatus.CONFLICT),
+    GROUP_ALREADY_IN(409, "You are already in this group.", HttpStatus.CONFLICT),
+    PENDING_NOT_FOUND(404, "User is not in PENDING status", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final String message;

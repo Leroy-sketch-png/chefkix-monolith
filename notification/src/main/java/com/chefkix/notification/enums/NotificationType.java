@@ -25,5 +25,10 @@ public enum NotificationType {
 
     // Co-Cooking (spec 24-advanced-multiplayer.txt)
     ROOM_INVITE,
-    CO_CHEF_TAGGED
+    CO_CHEF_TAGGED,
+
+    // Group
+    JOIN_REQUESTED,
+    MEMBER_JOINED,
+    JOIN_REQUEST_APPROVED,
 }

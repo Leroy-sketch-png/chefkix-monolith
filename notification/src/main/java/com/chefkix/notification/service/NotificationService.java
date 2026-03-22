@@ -313,6 +313,87 @@ public class NotificationService {
     }
 
     // ===============================================
+    // GROUP EVENT HANDLERS (REFACTORED)
+    // ===============================================
+
+    public void handleGroupJoinRequestedEvent(GroupJoinRequestedEvent event) {
+        String displayName = safeDisplayName(event.getRequesterDisplayName());
+        String content = String.format("%s requested to join your private group: %s",
+                displayName, event.getGroupName());
+
+        createAndBroadcastNotification(
+                event.getUserId(), // adminId
+                event.getRequesterId(),
+                displayName,
+                event.getRequesterAvatarUrl(),
+                event.getGroupId(),
+                content,
+                NotificationType.JOIN_REQUESTED,
+                "Created group join request notification"
+        );
+    }
+
+    public void handleGroupMemberJoinedEvent(GroupMemberJoinedEvent event) {
+        String displayName = safeDisplayName(event.getMemberDisplayName());
+        String content = String.format("%s just joined your group: %s!",
+                displayName, event.getGroupName());
+
+        createAndBroadcastNotification(
+                event.getUserId(), // adminId
+                event.getMemberId(),
+                displayName,
+                event.getMemberAvatarUrl(),
+                event.getGroupId(),
+                content,
+                NotificationType.MEMBER_JOINED,
+                "Created new group member notification"
+        );
+    }
+
+    public void handleGroupRequestApprovedEvent(GroupRequestApprovedEvent event) {
+
+        String content = String.format("Your request to join the group '%s' has been approved!",
+                event.getGroupName());
+
+        createAndBroadcastNotification(
+                event.getRequesterId(),        // recipient: The user
+                event.getGroupId(),            // actorId: Make the GROUP the actor!
+                event.getGroupName(),          // actorName: The Group's name
+                event.getGroupCoverImageUrl(), // actorAvatar: The Group's cover photo!
+                event.getGroupId(),            // targetEntityId: The Group
+                content,
+                NotificationType.JOIN_REQUEST_APPROVED,
+                "Created join request approved notification"
+        );
+    }
+
+    private void createAndBroadcastNotification(
+            String recipientId, String actorId, String actorName, String actorAvatarUrl,
+            String targetEntityId, String content, NotificationType type, String logMessagePrefix) {
+
+        Notification notification = Notification.builder()
+                .recipientId(recipientId)
+                .type(type)
+                .isRead(false)
+                .content(content)
+                .targetEntityId(targetEntityId)
+                .latestActorId(actorId)
+                .latestActorName(actorName)
+                .latestActorAvatarUrl(actorAvatarUrl)
+                .count(1)
+                .actorIds(Set.of(actorId))
+                .createdAt(Instant.now())
+                .build();
+
+        notificationRepository.save(notification);
+
+        NotificationResponse response = notificationMapper.toNotificationResponse(notification);
+        broadcastNotification(recipientId, response, "CREATE");
+
+        log.info("{} for recipient: {} regarding target: {}", logMessagePrefix, recipientId, targetEntityId);
+    }
+
+    // ===============================================
     // INTERNAL HELPERS
     // ===============================================
 
@@ -452,8 +533,7 @@ public class NotificationService {
     private void sendPushNotification(String recipientId, NotificationResponse response) {
         String title = "ChefKix";
         String body = response.getContent();
-        
-        // Customize title based on notification type
+
         if (response.getType() != null) {
             switch (response.getType()) {
                 case POST_LIKE -> title = "❤️ New Like";
@@ -463,6 +543,10 @@ public class NotificationService {
                 case BADGE_EARNED -> title = "🏆 Badge Earned!";
                 case STREAK_WARNING -> title = "🔥 Streak Alert";
                 case USER_MENTION -> title = "📝 You were mentioned";
+                // Added new push notification titles for Groups!
+                case JOIN_REQUESTED -> title = "🚪 Group Request";
+                case MEMBER_JOINED -> title = "👋 New Group Member";
+                case JOIN_REQUEST_APPROVED -> title = "✅ Request Approved";
                 default -> title = "ChefKix";
             }
         }

@@ -1,12 +1,15 @@
 package com.chefkix.social.post.entity;
 
 import com.chefkix.shared.util.SlugUtils;
+import com.chefkix.social.post.enums.PostStatus;
+import com.chefkix.social.post.enums.PostType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,8 +18,12 @@ import java.time.Instant;
 import java.util.List;
 
 @Document(collection = "post")
-@CompoundIndex(def = "{'userId': 1, 'createdAt': -1}", name = "idx_userId_createdAt")
-@Data
+@CompoundIndexes({
+        // 1. For lighting-fast Personal Profile feeds
+        @CompoundIndex(def = "{'userId': 1, 'createdAt': -1}", name = "idx_userId_createdAt"),
+        // 2. For lightning-fast Group feeds
+        @CompoundIndex(def = "{'groupId': 1, 'createdAt': -1}", name = "idx_groupId_createdAt")
+})@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -57,6 +64,14 @@ public class Post {
   // List<String> taggedUserIds;
   List<String> taggedUserIds;
   List<String> commentIds;
+
+
+  // this is for group posts
+  PostType postType; // Enum: PERSONAL, GROUP
+    @Indexed
+    String groupId;
+    @Builder.Default
+    PostStatus status = PostStatus.ACTIVE;
 
   public void generateSlug() {
     if (this.content != null) {

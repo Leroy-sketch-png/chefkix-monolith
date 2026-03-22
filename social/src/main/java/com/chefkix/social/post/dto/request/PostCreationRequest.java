@@ -34,4 +34,7 @@ public class PostCreationRequest {
 
   @Size(max = 10, message = "Maximum 10 tagged users")
   List<String> taggedUserIds;
+
+  @Builder.Default
+  Boolean isHidden = false;
 }
