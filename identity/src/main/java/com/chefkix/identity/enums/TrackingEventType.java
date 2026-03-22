@@ -1,0 +1,34 @@
+package com.chefkix.identity.enums;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum TrackingEventType {
+
+    RECIPE_VIEWED("RECIPE_VIEWED"),
+    RECIPE_SEARCH("RECIPE_SEARCH"),
+    FEED_SCROLLED("FEED_SCROLLED"),
+    POST_DWELLED("POST_DWELLED"),
+    RECIPE_SAVED("RECIPE_SAVED"),
+    RECIPE_UNSAVED("RECIPE_UNSAVED"),
+    COOKING_STARTED("COOKING_STARTED"),
+    COOKING_ABANDONED("COOKING_ABANDONED"),
+    COOKING_COMPLETED("COOKING_COMPLETED"),
+    POST_LIKED("POST_LIKED"),
+    POST_COMMENTED("POST_COMMENTED"),
+    USER_FOLLOWED("USER_FOLLOWED"),
+    POST_SHARED("POST_SHARED"),
+    SHOPPING_LIST_CREATED("SHOPPING_LIST_CREATED"),
+    INGREDIENT_CHECKED("INGREDIENT_CHECKED"),
+    RECIPE_SKIPPED("RECIPE_SKIPPED"),
+    SEARCH_REFINED("SEARCH_REFINED"),
+    PAGE_VIEWED("PAGE_VIEWED"),
+    POST_CREATED("POST_CREATED"),
+    RECIPE_CREATED("RECIPE_CREATED");
+
+    @JsonValue
+    private final String value;
+}
