@@ -381,8 +381,12 @@ public class PostService {
         }
 
         post.setUpdatedAt(Instant.now());
-        postRepository.save(post);
-        return postMapper.toPostResponse(post);
+        Post savedPost = postRepository.save(post);
+
+        // Real-time Typesense re-indexing
+        eventPublisher.publishEvent(PostIndexEvent.index(savedPost));
+
+        return postMapper.toPostResponse(savedPost);
     }
 
     @Transactional
@@ -538,78 +542,193 @@ public class PostService {
     }
 
     /**
-     * Personalized "For You" feed using content-based taste scoring.
-     * Algorithm:
-     * 1. Build taste profile from user's recent liked/saved post tags
-     * 2. Query posts matching taste tags, exclude user's own posts and already-interacted posts
-     * 3. Sort by hotScore (social proof + recency built-in)
-     * 4. Supplement with trending if not enough taste-matched posts
+     * Personalized "For You" feed using weighted 5-signal scoring.
+     * Algorithm (from Master Plan):
+     *   feed_score = (taste_affinity * 0.35) + (recency * 0.25) + (social_proof * 0.20)
+     *                + (diversity_bonus * 0.10) + (seasonal_boost * 0.10)
+     *
+     * 1. Build weighted taste profile from user's recent liked/saved post tags
+     * 2. Fetch broad candidate pool (unseen, non-own posts)
+     * 3. Score each candidate with 5-signal formula
+     * 4. Sort by composite score, apply content diversity, paginate
      * 5. Cold start: fall back to trending entirely
      */
     private Page<PostResponse> getForYouFeed(Pageable pageable, String currentUserId) {
-        Set<String> tasteTags = buildTasteProfile(currentUserId);
+        Map<String, Double> tasteWeights = buildWeightedTasteProfile(currentUserId);
 
-        // Cold start: no interaction history → trending fallback
-        if (tasteTags.isEmpty()) {
+        // Cold start: no interaction history -> trending fallback
+        if (tasteWeights.isEmpty()) {
             return getAllPosts(1, pageable, currentUserId);
         }
 
         Set<String> interactedPostIds = getInteractedPostIds(currentUserId);
 
-        // Build taste-matching query
-        Criteria tasteCriteria = Criteria.where("hidden").is(false)
+        // Fetch a broad candidate pool (3x page size for scoring + diversity)
+        int candidatePoolSize = pageable.getPageSize() * 3;
+        int skipCount = pageable.getPageNumber() * pageable.getPageSize();
+
+        Criteria baseCriteria = Criteria.where("hidden").is(false)
                 .and("userId").ne(currentUserId)
-                .and("postStatus").is(PostStatus.ACTIVE.name())
-                .and("tags").in(tasteTags);
+                .and("postStatus").is(PostStatus.ACTIVE.name());
 
         if (!interactedPostIds.isEmpty()) {
-            tasteCriteria = tasteCriteria.and("_id").nin(interactedPostIds);
+            baseCriteria = baseCriteria.and("_id").nin(interactedPostIds);
         }
 
-        long tasteTotal = mongoTemplate.count(Query.query(tasteCriteria), Post.class);
+        // Get candidates sorted by createdAt desc (recent bias in candidate selection)
+        Query candidateQuery = new Query(baseCriteria)
+                .with(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .limit(candidatePoolSize + skipCount);
 
-        Query tasteQuery = new Query(tasteCriteria)
-                .with(Sort.by(Sort.Direction.DESC, "hotScore").and(Sort.by(Sort.Direction.DESC, "createdAt")))
-                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
-                .limit(pageable.getPageSize());
+        List<Post> candidates = mongoTemplate.find(candidateQuery, Post.class);
 
-        List<Post> tastePosts = mongoTemplate.find(tasteQuery, Post.class);
-
-        // Supplement with trending if not enough taste-matched posts
-        if (tastePosts.size() < pageable.getPageSize()) {
-            int needed = pageable.getPageSize() - tastePosts.size();
-            Set<String> excludeIds = new java.util.HashSet<>(interactedPostIds);
-            tastePosts.forEach(p -> excludeIds.add(p.getId()));
-
-            Criteria supplementCriteria = Criteria.where("hidden").is(false)
-                    .and("userId").ne(currentUserId)
-                    .and("postStatus").is(PostStatus.ACTIVE.name());
-
-            if (!excludeIds.isEmpty()) {
-                supplementCriteria = supplementCriteria.and("_id").nin(excludeIds);
-            }
-
-            List<Post> supplementPosts = mongoTemplate.find(
-                    new Query(supplementCriteria)
-                            .with(Sort.by(Sort.Direction.DESC, "hotScore"))
-                            .limit(needed),
-                    Post.class);
-            tastePosts.addAll(supplementPosts);
+        if (candidates.isEmpty()) {
+            return getAllPosts(1, pageable, currentUserId);
         }
 
-        long total = Math.max(tasteTotal, tastePosts.size());
+        // Find max hotScore for normalization
+        double maxHotScore = candidates.stream()
+                .mapToDouble(p -> p.getHotScore() != null ? p.getHotScore() : 0.0)
+                .max().orElse(1.0);
+        if (maxHotScore <= 0) maxHotScore = 1.0;
 
-        // Content diversity: deduplicate by author (max 2 per author per page)
-        // and ensure PostType variety (interleave QUICK posts)
-        List<Post> diversifiedPosts = applyContentDiversity(tastePosts, pageable.getPageSize());
+        // Current month seasonal tags
+        Set<String> seasonalTags = getSeasonalTags();
 
-        List<PostResponse> responses = diversifiedPosts.stream()
+        // Score each candidate
+        final double normalizer = maxHotScore;
+        List<ScoredPost> scoredPosts = new java.util.ArrayList<>();
+        Set<String> seenAuthors = new java.util.HashSet<>();
+
+        for (Post post : candidates) {
+            double tasteAffinity = computeTasteAffinity(post, tasteWeights);
+            double recency = computeRecencyScore(post);
+            double socialProof = computeSocialProof(post, normalizer);
+            boolean isNewAuthor = !seenAuthors.contains(post.getUserId());
+            seenAuthors.add(post.getUserId());
+            double diversityBonus = computeDiversityBonus(post, isNewAuthor);
+            double seasonalBoost = computeSeasonalBoost(post, seasonalTags);
+
+            double feedScore = (tasteAffinity * 0.35)
+                    + (recency * 0.25)
+                    + (socialProof * 0.20)
+                    + (diversityBonus * 0.10)
+                    + (seasonalBoost * 0.10);
+
+            scoredPosts.add(new ScoredPost(post, feedScore));
+        }
+
+        // Sort by composite score descending
+        scoredPosts.sort((a, b) -> Double.compare(b.score, a.score));
+
+        // Extract posts, apply diversity, then paginate
+        List<Post> rankedPosts = scoredPosts.stream()
+                .map(sp -> sp.post)
+                .collect(Collectors.toList());
+
+        List<Post> diversifiedPosts = applyContentDiversity(rankedPosts, candidatePoolSize);
+
+        // Manual pagination over scored results
+        int fromIdx = Math.min(skipCount, diversifiedPosts.size());
+        int toIdx = Math.min(skipCount + pageable.getPageSize(), diversifiedPosts.size());
+        List<Post> pageSlice = diversifiedPosts.subList(fromIdx, toIdx);
+
+        List<PostResponse> responses = pageSlice.stream()
                 .map(postMapper::toPostResponse)
                 .collect(Collectors.toList());
 
+        long total = diversifiedPosts.size();
         Page<PostResponse> page = new PageImpl<>(responses, pageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
+    }
+
+    private record ScoredPost(Post post, double score) {}
+
+    /**
+     * Taste affinity: sum of tag weights for matching tags, capped at 1.0.
+     */
+    private double computeTasteAffinity(Post post, Map<String, Double> tasteWeights) {
+        if (post.getTags() == null || post.getTags().isEmpty()) return 0.0;
+        double score = 0.0;
+        for (String tag : post.getTags()) {
+            Double w = tasteWeights.get(tag.toLowerCase().trim());
+            if (w != null) score += w;
+        }
+        return Math.min(score, 1.0);
+    }
+
+    /**
+     * Recency score: exponential decay. Posts from last hour = ~1.0, 1 day = ~0.5, 7 days = ~0.1.
+     */
+    private double computeRecencyScore(Post post) {
+        if (post.getCreatedAt() == null) return 0.0;
+        long ageMinutes = java.time.Duration.between(post.getCreatedAt(), Instant.now()).toMinutes();
+        if (ageMinutes < 0) ageMinutes = 0;
+        // Half-life of ~24 hours (1440 minutes)
+        return Math.exp(-0.000481 * ageMinutes); // ln(2)/1440 ≈ 0.000481
+    }
+
+    /**
+     * Social proof: normalized hotScore (0..1).
+     */
+    private double computeSocialProof(Post post, double maxHotScore) {
+        double hs = post.getHotScore() != null ? post.getHotScore() : 0.0;
+        return hs / maxHotScore;
+    }
+
+    /**
+     * Diversity bonus: rewards underrepresented content types and new authors.
+     */
+    private double computeDiversityBonus(Post post, boolean isNewAuthor) {
+        double bonus = 0.0;
+        // QUICK posts get a small boost to ensure feed variety
+        if (PostType.QUICK.equals(post.getPostType())) bonus += 0.3;
+        // POLL posts get engagement boost
+        if (PostType.POLL.equals(post.getPostType())) bonus += 0.4;
+        // RECENT_COOK is social proof of real cooking
+        if (PostType.RECENT_COOK.equals(post.getPostType())) bonus += 0.2;
+        // First appearance of this author in the feed gets a boost
+        if (isNewAuthor) bonus += 0.3;
+        return Math.min(bonus, 1.0);
+    }
+
+    /**
+     * Seasonal boost: rewards posts with tags matching current food season.
+     */
+    private double computeSeasonalBoost(Post post, Set<String> seasonalTags) {
+        if (post.getTags() == null || seasonalTags.isEmpty()) return 0.0;
+        long matches = post.getTags().stream()
+                .filter(t -> seasonalTags.contains(t.toLowerCase().trim()))
+                .count();
+        if (matches == 0) return 0.0;
+        return Math.min(matches * 0.3, 1.0);
+    }
+
+    /**
+     * Returns seasonal food tags based on current month (Northern Hemisphere).
+     */
+    private Set<String> getSeasonalTags() {
+        int month = java.time.LocalDate.now().getMonthValue();
+        Set<String> tags = new java.util.HashSet<>();
+
+        // Spring: March-May
+        if (month >= 3 && month <= 5) {
+            tags.addAll(Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light"));
+        }
+        // Summer: June-August
+        else if (month >= 6 && month <= 8) {
+            tags.addAll(Set.of("summer", "bbq", "grilling", "watermelon", "berries", "ice cream", "smoothie", "corn"));
+        }
+        // Autumn: September-November
+        else if (month >= 9 && month <= 11) {
+            tags.addAll(Set.of("fall", "autumn", "pumpkin", "squash", "apple", "cinnamon", "soup", "stew", "thanksgiving", "harvest"));
+        }
+        // Winter: December-February
+        else {
+            tags.addAll(Set.of("winter", "holiday", "christmas", "comfort food", "hot chocolate", "baking", "cookies", "roast"));
+        }
+        return tags;
     }
 
     /**
@@ -624,7 +743,7 @@ public class PostService {
 
         for (Post p : candidates) {
             int count = authorCounts.getOrDefault(p.getUserId(), 0);
-            if (count >= 2) continue; // skip 3rd+ post from same author
+            if (count >= 2) continue;
             authorCounts.put(p.getUserId(), count + 1);
 
             if (PostType.QUICK.equals(p.getPostType())) {
@@ -634,7 +753,6 @@ public class PostService {
             }
         }
 
-        // Interleave: every 5th slot is a QUICK post (if available)
         List<Post> result = new java.util.ArrayList<>();
         int quickIdx = 0;
         int regularIdx = 0;
@@ -655,7 +773,11 @@ public class PostService {
         return result;
     }
 
-    private Set<String> buildTasteProfile(String currentUserId) {
+    /**
+     * Builds a weighted taste profile: tag -> normalized weight (0..1).
+     * Saves (2x weight) signal stronger intent than likes.
+     */
+    private Map<String, Double> buildWeightedTasteProfile(String currentUserId) {
         // Get recent liked posts (last 100)
         Query likeQuery = new Query(Criteria.where("userId").is(currentUserId))
                 .with(Sort.by(Sort.Direction.DESC, "createdDate"))
@@ -663,39 +785,47 @@ public class PostService {
         likeQuery.fields().include("postId");
         List<PostLike> recentLikes = mongoTemplate.find(likeQuery, PostLike.class);
 
-        // Get recent saved posts (last 50)
+        // Get recent saved posts (last 50) — saves signal stronger intent (2x weight)
         Query saveQuery = new Query(Criteria.where("userId").is(currentUserId))
                 .with(Sort.by(Sort.Direction.DESC, "createdDate"))
                 .limit(50);
         saveQuery.fields().include("postId");
         List<PostSave> recentSaves = mongoTemplate.find(saveQuery, PostSave.class);
 
-        // Collect post IDs
-        Set<String> postIds = new java.util.HashSet<>();
-        recentLikes.forEach(l -> postIds.add(l.getPostId()));
-        recentSaves.forEach(s -> postIds.add(s.getPostId()));
+        Set<String> likedPostIds = new java.util.HashSet<>();
+        recentLikes.forEach(l -> likedPostIds.add(l.getPostId()));
+        Set<String> savedPostIds = new java.util.HashSet<>();
+        recentSaves.forEach(s -> savedPostIds.add(s.getPostId()));
 
-        if (postIds.isEmpty()) return Set.of();
+        Set<String> allPostIds = new java.util.HashSet<>(likedPostIds);
+        allPostIds.addAll(savedPostIds);
 
-        // Extract tags from interacted posts
-        Query tagQuery = new Query(Criteria.where("_id").in(postIds));
-        tagQuery.fields().include("tags");
+        if (allPostIds.isEmpty()) return Map.of();
+
+        Query tagQuery = new Query(Criteria.where("_id").in(allPostIds));
+        tagQuery.fields().include("tags").include("_id");
         List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
 
-        Map<String, Integer> tagFreq = new java.util.HashMap<>();
-        posts.forEach(p -> {
-            if (p.getTags() != null) {
-                p.getTags().forEach(tag ->
-                        tagFreq.merge(tag.toLowerCase().trim(), 1, Integer::sum));
+        Map<String, Double> tagWeights = new java.util.HashMap<>();
+        for (Post p : posts) {
+            if (p.getTags() == null) continue;
+            double weight = savedPostIds.contains(p.getId()) ? 2.0 : 1.0;
+            for (String tag : p.getTags()) {
+                tagWeights.merge(tag.toLowerCase().trim(), weight, Double::sum);
             }
-        });
+        }
 
-        // Top 20 most frequent tags
-        return tagFreq.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(20)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+        if (tagWeights.isEmpty()) return Map.of();
+
+        // Normalize to 0..1 range
+        double maxWeight = tagWeights.values().stream().mapToDouble(Double::doubleValue).max().orElse(1.0);
+        Map<String, Double> normalized = new java.util.HashMap<>();
+        tagWeights.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(30) // Top 30 taste tags
+                .forEach(e -> normalized.put(e.getKey(), e.getValue() / maxWeight));
+
+        return normalized;
     }
 
     private Set<String> getInteractedPostIds(String currentUserId) {
@@ -728,7 +858,11 @@ public class PostService {
     /**
      * Search posts by content, display name, or tags.
      * Uses case-insensitive regex matching (same pattern as RecipeSpecification).
+     *
+     * @deprecated FE now uses Typesense via SearchController (/api/v1/search).
+     *             This MongoDB regex fallback is kept for backward compatibility.
      */
+    @Deprecated
     public Page<PostResponse> searchPosts(String query, Pageable pageable, String currentUserId) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
