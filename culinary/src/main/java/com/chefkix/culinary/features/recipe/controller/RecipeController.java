@@ -98,6 +98,24 @@ public class RecipeController {
     }
 
     // ===============================================
+    // RECOMMENDATIONS
+    // ===============================================
+
+    // 10. TONIGHT'S PICK — personalized daily recommendation
+    @GetMapping("/tonight-pick")
+    public ApiResponse<RecipeDetailResponse> getTonightsPick() {
+        return ApiResponse.success(recipeService.getTonightsPick());
+    }
+
+    // 11. SIMILAR RECIPES — content-based recommendations by cuisine, difficulty, ingredients
+    @GetMapping("/{id}/similar")
+    public ApiResponse<List<RecipeDetailResponse>> getSimilarRecipes(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "6") int size) {
+        return ApiResponse.successPage(recipeService.getSimilarRecipes(id, size));
+    }
+
+    // ===============================================
     // CREATOR ANALYTICS (spec: 21-creator-analytics.txt)
     // ===============================================
 
