@@ -241,6 +241,7 @@ public class NotificationService {
             case STREAK_WARNING -> "streakWarning";
             case POST_DEADLINE -> "postDeadline";
             case CHALLENGE_REMINDER, CHALLENGE_AVAILABLE -> "dailyChallenge";
+            case WEEKEND_NUDGE -> "weekendNudge";
             default -> "social";
         };
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, prefCategory)) {
