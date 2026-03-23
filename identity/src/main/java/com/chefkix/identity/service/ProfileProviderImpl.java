@@ -1,6 +1,7 @@
 package com.chefkix.identity.service;
 
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.AchievementStatsSnapshot;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
@@ -8,8 +9,11 @@ import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
 import com.chefkix.identity.entity.User;
+import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.entity.UserSettings;
+import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.repository.UserRepository;
+import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.repository.UserSettingsRepository;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -39,6 +43,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     SocialService socialService;
     UserStatusService userStatusService;
     UserRepository userRepository;
+    UserProfileRepository userProfileRepository;
     UserSettingsRepository userSettingsRepository;
     private final KeycloakService keycloakService;
     BlockService blockService;
@@ -136,5 +141,24 @@ public class ProfileProviderImpl implements ProfileProvider {
                         ? settings.getPrivacy().getShowCookingActivity()
                         : true)
                 .orElse(true); // Default: broadcast cooking activity
+    }
+
+    @Override
+    public AchievementStatsSnapshot getAchievementStats(String userId) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
+        Statistics stats = profile.getStatistics();
+        if (stats == null) {
+            return AchievementStatsSnapshot.builder()
+                    .streakCount(0)
+                    .followerCount(0)
+                    .totalRecipesPublished(0)
+                    .build();
+        }
+        return AchievementStatsSnapshot.builder()
+                .streakCount(stats.getStreakCount() != null ? stats.getStreakCount() : 0)
+                .followerCount(stats.getFollowerCount() != null ? stats.getFollowerCount() : 0)
+                .totalRecipesPublished(stats.getTotalRecipesPublished() != null ? stats.getTotalRecipesPublished() : 0)
+                .build();
     }
 }

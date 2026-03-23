@@ -37,4 +37,8 @@ public interface RecipeRepository extends MongoRepository<Recipe,String>, Recipe
     // Creator insights queries
     Optional<Recipe> findTopByUserIdOrderByCookCountDesc(String userId);
     List<Recipe> findByUserIdAndCookCountGreaterThanEqual(String userId, int i);
+
+    // Achievement system queries
+    long countByUserIdAndStatus(String userId, RecipeStatus status);
+    List<Recipe> findByUserId(String userId);
 }

@@ -9,6 +9,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
+import com.chefkix.culinary.features.recipe.dto.response.StepHeatmapResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.common.enums.RecipeVisibility;
@@ -25,6 +26,7 @@ import com.chefkix.culinary.features.interaction.service.InteractionService; // 
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.common.enums.SessionStatus;
+import com.chefkix.culinary.common.enums.TimerEventType;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -504,6 +506,157 @@ public class RecipeService {
         return RecentCookResponse.builder()
                 .cooks(cooks)
                 .totalCount(sessionsPage.getTotalElements())
+                .build();
+    }
+
+    // ===============================================
+    // STEP HEATMAP (Wave 4 — Creator unique value)
+    // ===============================================
+
+    /**
+     * Step-level analytics for a recipe: completion rate, skip rate, avg time, struggle points.
+     * Only the recipe owner can access this (creator-only endpoint).
+     * Aggregates data from all terminal sessions (COMPLETED, POSTED, ABANDONED).
+     */
+    @Transactional(readOnly = true)
+    public StepHeatmapResponse getStepHeatmap(String recipeId) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        if (!recipe.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        int totalSteps = recipe.getSteps().size();
+        if (totalSteps == 0) {
+            return StepHeatmapResponse.builder()
+                    .recipeId(recipeId)
+                    .recipeTitle(recipe.getTitle())
+                    .totalSessions(0)
+                    .steps(List.of())
+                    .build();
+        }
+
+        List<CookingSession> sessions = cookingSessionRepository.findByRecipeIdAndStatusIn(
+                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED));
+
+        int totalSessions = sessions.size();
+        if (totalSessions == 0) {
+            // Return step structure with zero data
+            List<StepHeatmapResponse.StepAnalytics> emptySteps = recipe.getSteps().stream()
+                    .map(step -> StepHeatmapResponse.StepAnalytics.builder()
+                            .stepNumber(step.getStepNumber())
+                            .title(step.getTitle() != null ? step.getTitle() : "Step " + step.getStepNumber())
+                            .completionRate(0)
+                            .skipRate(0)
+                            .avgTimeSeconds(null)
+                            .estimatedTimeSeconds(step.getTimerSeconds())
+                            .strugglePoint(false)
+                            .abandonedAtCount(0)
+                            .build())
+                    .toList();
+
+            return StepHeatmapResponse.builder()
+                    .recipeId(recipeId)
+                    .recipeTitle(recipe.getTitle())
+                    .totalSessions(0)
+                    .steps(emptySteps)
+                    .build();
+        }
+
+        // Per-step counters
+        int[] completionCount = new int[totalSteps + 1]; // 1-indexed
+        int[] skipCount = new int[totalSteps + 1];
+        long[] totalTimeMs = new long[totalSteps + 1];
+        int[] timeEntryCount = new int[totalSteps + 1];
+        int[] abandonedAt = new int[totalSteps + 1];
+
+        for (CookingSession session : sessions) {
+            // Track step completions
+            if (session.getCompletedSteps() != null) {
+                for (Integer stepNum : session.getCompletedSteps()) {
+                    if (stepNum >= 1 && stepNum <= totalSteps) {
+                        completionCount[stepNum]++;
+                    }
+                }
+            }
+
+            // Track timer events (skip/complete + timing)
+            if (session.getTimerEvents() != null) {
+                // Group timer events by step to compute duration per step
+                Map<Integer, List<CookingSession.TimerEvent>> eventsByStep = session.getTimerEvents().stream()
+                        .filter(e -> e.getStepNumber() != null && e.getStepNumber() >= 1 && e.getStepNumber() <= totalSteps)
+                        .collect(Collectors.groupingBy(CookingSession.TimerEvent::getStepNumber));
+
+                for (var entry : eventsByStep.entrySet()) {
+                    int stepNum = entry.getKey();
+                    List<CookingSession.TimerEvent> events = entry.getValue();
+
+                    CookingSession.TimerEvent startEvent = events.stream()
+                            .filter(e -> e.getEvent() == TimerEventType.START)
+                            .findFirst().orElse(null);
+                    CookingSession.TimerEvent endEvent = events.stream()
+                            .filter(e -> e.getEvent() == TimerEventType.COMPLETE || e.getEvent() == TimerEventType.SKIP)
+                            .findFirst().orElse(null);
+
+                    if (endEvent != null && endEvent.getEvent() == TimerEventType.SKIP) {
+                        skipCount[stepNum]++;
+                    }
+
+                    if (startEvent != null && endEvent != null
+                            && startEvent.getServerTimestamp() != null && endEvent.getServerTimestamp() != null) {
+                        long durationMs = java.time.Duration.between(
+                                startEvent.getServerTimestamp(), endEvent.getServerTimestamp()).toMillis();
+                        if (durationMs > 0 && durationMs < 7200000) { // Cap at 2 hours to exclude outliers
+                            totalTimeMs[stepNum] += durationMs;
+                            timeEntryCount[stepNum]++;
+                        }
+                    }
+                }
+            }
+
+            // Track where sessions were abandoned
+            if (session.getStatus() == SessionStatus.ABANDONED && session.getCurrentStep() != null) {
+                int step = session.getCurrentStep();
+                if (step >= 1 && step <= totalSteps) {
+                    abandonedAt[step]++;
+                }
+            }
+        }
+
+        // Build analytics per step
+        List<StepHeatmapResponse.StepAnalytics> stepAnalytics = recipe.getSteps().stream()
+                .map(step -> {
+                    int sn = step.getStepNumber();
+                    double compRate = totalSessions > 0 ? (completionCount[sn] * 100.0 / totalSessions) : 0;
+                    double skRate = totalSessions > 0 ? (skipCount[sn] * 100.0 / totalSessions) : 0;
+                    Double avgTime = timeEntryCount[sn] > 0
+                            ? (totalTimeMs[sn] / (double) timeEntryCount[sn]) / 1000.0
+                            : null;
+
+                    // Struggle point: skip rate > 30% OR completion rate < 60% (with meaningful data)
+                    boolean struggle = totalSessions >= 3 && (skRate > 30 || compRate < 60);
+
+                    return StepHeatmapResponse.StepAnalytics.builder()
+                            .stepNumber(sn)
+                            .title(step.getTitle() != null ? step.getTitle() : "Step " + sn)
+                            .completionRate(Math.round(compRate * 10.0) / 10.0)
+                            .skipRate(Math.round(skRate * 10.0) / 10.0)
+                            .avgTimeSeconds(avgTime != null ? Math.round(avgTime * 10.0) / 10.0 : null)
+                            .estimatedTimeSeconds(step.getTimerSeconds())
+                            .strugglePoint(struggle)
+                            .abandonedAtCount(abandonedAt[sn])
+                            .build();
+                })
+                .toList();
+
+        return StepHeatmapResponse.builder()
+                .recipeId(recipeId)
+                .recipeTitle(recipe.getTitle())
+                .totalSessions(totalSessions)
+                .steps(stepAnalytics)
                 .build();
     }
 

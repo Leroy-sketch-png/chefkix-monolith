@@ -28,6 +28,13 @@ public enum NotificationType {
     ROOM_INVITE,
     CO_CHEF_TAGGED,
 
+    // Cooking Duels (1v1)
+    DUEL_INVITE,
+    DUEL_ACCEPTED,
+    DUEL_DECLINED,
+    DUEL_COMPLETED,
+    DUEL_EXPIRED,
+
     // Group
     JOIN_REQUESTED,
     MEMBER_JOINED,

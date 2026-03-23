@@ -24,6 +24,7 @@ import com.chefkix.culinary.features.session.repository.ActiveCookingRedisReposi
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
+import com.chefkix.culinary.features.duel.service.DuelService;
 import com.chefkix.culinary.features.room.model.CookingRoom;
 import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,8 @@ public class CookingSessionService {
     private final PostProvider postProvider;
     private final CookingRoomRedisRepository roomRepository;
     private final ActiveCookingRedisRepository activeCookingRepository;
+    private final com.chefkix.culinary.features.achievement.service.AchievementService achievementService;
+    private final DuelService duelService;
 
     @Transactional
     public StartSessionResponse startSession(String userId, StartSessionRequest request) {
@@ -264,7 +267,22 @@ public class CookingSessionService {
             helper.sendXpEventWithChallenge(userId, baseXp, "COOKING_SESSION", sessionId, description, challengeResult.isPresent());
         }
 
-        // 7. Build response with level-up info (round to integers for clean XP values)
+        // 7. Achievement evaluation (fire-and-forget — never blocks completion)
+        List<String> newAchievements = List.of();
+        try {
+            newAchievements = achievementService.evaluateAfterCookingCompletion(userId, session, recipe);
+        } catch (Exception e) {
+            log.warn("Achievement evaluation failed for user {}: {}", userId, e.getMessage());
+        }
+
+        // 8. Duel linkage (fire-and-forget — never blocks completion)
+        try {
+            duelService.onSessionCompleted(userId, session);
+        } catch (Exception e) {
+            log.warn("Duel linkage failed for user {}: {}", userId, e.getMessage());
+        }
+
+        // 9. Build response with level-up info (round to integers for clean XP values)
         int baseXpInt = (int) Math.round(baseXp);
         int pendingXpInt = (int) Math.round(pendingXp);
         SessionCompletionResponse.SessionCompletionResponseBuilder responseBuilder = SessionCompletionResponse.builder()
@@ -275,6 +293,7 @@ public class CookingSessionService {
                 .postDeadline(session.getPostDeadline())
                 .xpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null)
                 .xpMultiplierReason(coOpReason)
+                .newAchievements(newAchievements)
                 .message("Chúc mừng! + " + baseXpInt + " XP. Đăng bài để nhận thêm " + pendingXpInt + " XP!");
 
         if (profileResult != null) {
@@ -659,5 +678,83 @@ public class CookingSessionService {
         } catch (Exception e) {
             log.warn("Failed to remove cooking presence for user {}: {}", userId, e.getMessage());
         }
+    }
+
+    // ======================== Cook Card ========================
+
+    /**
+     * Aggregates session + recipe + profile data into a single DTO
+     * for the shareable cook card feature.
+     */
+    public CookCardDataResponse getCookCardData(String sessionId) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        CookingSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
+
+        if (!session.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
+
+        if (session.getStatus() != SessionStatus.COMPLETED && session.getStatus() != SessionStatus.POSTED) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
+        // Recipe info for difficulty + total steps
+        String difficulty = null;
+        Integer totalSteps = null;
+        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        if (recipe != null) {
+            difficulty = recipe.getDifficulty() != null ? recipe.getDifficulty().getValue() : null;
+            totalSteps = recipe.getSteps() != null ? recipe.getSteps().size() : null;
+        }
+
+        // Profile info
+        String displayName = null;
+        String avatarUrl = null;
+        try {
+            BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
+            if (profile != null) {
+                displayName = profile.getDisplayName();
+                avatarUrl = profile.getAvatarUrl();
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch profile for cook card: userId={}", userId);
+        }
+
+        // Cooking time
+        Long cookingTimeMinutes = null;
+        if (session.getStartedAt() != null && session.getCompletedAt() != null) {
+            cookingTimeMinutes = java.time.Duration.between(session.getStartedAt(), session.getCompletedAt()).toMinutes();
+        }
+
+        // Total XP (base + remaining/post bonus)
+        int xpEarned = 0;
+        if (session.getBaseXpAwarded() != null) {
+            xpEarned += session.getBaseXpAwarded().intValue();
+        }
+        if (session.getRemainingXpAwarded() != null) {
+            xpEarned += session.getRemainingXpAwarded().intValue();
+        }
+
+        String shareUrl = "https://chefkix.com/recipes/" + session.getRecipeId();
+
+        return CookCardDataResponse.builder()
+                .sessionId(session.getId())
+                .completedAt(session.getCompletedAt())
+                .xpEarned(xpEarned)
+                .stepsCompleted(session.getCompletedSteps() != null ? session.getCompletedSteps().size() : 0)
+                .totalSteps(totalSteps)
+                .cookingTimeMinutes(cookingTimeMinutes)
+                .rating(session.getRating())
+                .recipeId(session.getRecipeId())
+                .recipeTitle(session.getRecipeTitle())
+                .coverImageUrl(session.getCoverImageUrl())
+                .difficulty(difficulty)
+                .userId(userId)
+                .displayName(displayName)
+                .avatarUrl(avatarUrl)
+                .shareUrl(shareUrl)
+                .build();
     }
 }

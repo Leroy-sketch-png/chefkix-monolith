@@ -1,5 +1,6 @@
 package com.chefkix.identity.api;
 
+import com.chefkix.identity.api.dto.AchievementStatsSnapshot;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
@@ -106,4 +107,14 @@ public interface ProfileProvider {
      * @return true if cooking activity should be broadcast to followers
      */
     boolean isShowCookingActivity(String userId);
+
+    /**
+     * Get lightweight stats snapshot for achievement evaluation.
+     * Used by culinary module's AchievementService to check streak days,
+     * follower count, and recipe count without a full profile load.
+     *
+     * @param userId the user's ID
+     * @return stats snapshot (never null)
+     */
+    AchievementStatsSnapshot getAchievementStats(String userId);
 }
