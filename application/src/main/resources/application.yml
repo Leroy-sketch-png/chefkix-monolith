@@ -118,3 +118,8 @@ chefkix:
     port: ${TYPESENSE_PORT:8108}
     protocol: ${TYPESENSE_PROTOCOL:http}
     api-key: ${TYPESENSE_API_KEY:chefkix-typesense-dev-key}
+  grocery:
+    affiliate:
+      enabled: ${GROCERY_AFFILIATE_ENABLED:false}
+      partner-tag: ${GROCERY_AFFILIATE_PARTNER_TAG:chefkix-app}
+      base-url: ${GROCERY_AFFILIATE_BASE_URL:https://www.instacart.com}
