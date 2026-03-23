@@ -113,8 +113,3 @@ springdoc:
 chefkix:
   push:
     enabled: ${PUSH_ENABLED:false}  # Set to true and provide FIREBASE_SERVICE_ACCOUNT_JSON to enable
-  typesense:
-    host: ${TYPESENSE_HOST:localhost}
-    port: ${TYPESENSE_PORT:8108}
-    protocol: ${TYPESENSE_PROTOCOL:http}
-    api-key: ${TYPESENSE_API_KEY:chefkix-typesense-dev-key}
