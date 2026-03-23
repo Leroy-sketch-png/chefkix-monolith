@@ -28,12 +28,12 @@ public class AsyncHelper {
      */
     @Async("taskExecutor")
     public CompletableFuture<AuthorResponse> getProfileAsync(String userId) {
-        log.info("[ASYNC-Profile] Lấy profile user {}", userId);
+        log.info("[ASYNC-Profile] Fetching profile for user {}", userId);
 
         BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
 
         if (profile == null) {
-            log.warn("[ASYNC-Profile] Không tìm thấy user {}", userId);
+            log.warn("[ASYNC-Profile] User not found {}", userId);
             return CompletableFuture.completedFuture(null);
         }
 
