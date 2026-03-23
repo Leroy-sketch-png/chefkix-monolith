@@ -187,4 +187,13 @@ public class CookingSessionController {
         SessionAbandonResponse response = sessionService.abandonSession(sessionId);
         return ApiResponse.success(response);
     }
+
+    /**
+     * Get aggregated cook card data for a completed session.
+     * Powers the shareable cook card feature (download/share cooking achievements).
+     */
+    @GetMapping("/{sessionId}/cook-card")
+    public ApiResponse<CookCardDataResponse> getCookCardData(@PathVariable String sessionId) {
+        return ApiResponse.success(sessionService.getCookCardData(sessionId));
+    }
 }

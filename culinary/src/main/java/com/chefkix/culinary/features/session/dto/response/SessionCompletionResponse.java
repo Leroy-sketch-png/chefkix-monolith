@@ -3,6 +3,7 @@ package com.chefkix.culinary.features.session.dto.response;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -24,4 +25,7 @@ public class SessionCompletionResponse {
     // Co-op multiplier — only set when cooking in a room with 2+ cooks
     private Double xpMultiplier;          // 1.2 (duo) or 1.1 (group), null if solo
     private String xpMultiplierReason;    // "CO_OP_DUO" or "CO_OP_GROUP"
+
+    // Achievements unlocked by this cooking session
+    private List<String> newAchievements; // achievement codes newly unlocked
 }
