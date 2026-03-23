@@ -186,7 +186,14 @@ public enum ErrorCode {
     SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),
     SUBSCRIPTION_ALREADY_ACTIVE(409, "An active subscription already exists", HttpStatus.CONFLICT),
     SUBSCRIPTION_EXPIRED(410, "Subscription has expired", HttpStatus.GONE),
-    PREMIUM_FEATURE_REQUIRED(403, "This feature requires a premium subscription", HttpStatus.FORBIDDEN);
+    PREMIUM_FEATURE_REQUIRED(403, "This feature requires a premium subscription", HttpStatus.FORBIDDEN),
+
+    // ─── VERIFICATION ───────────────────────────────────────────────
+
+    VERIFICATION_REQUEST_NOT_FOUND(404, "Verification request not found", HttpStatus.NOT_FOUND),
+    VERIFICATION_ALREADY_PENDING(409, "A verification request is already pending", HttpStatus.CONFLICT),
+    VERIFICATION_ALREADY_VERIFIED(409, "Account is already verified", HttpStatus.CONFLICT),
+    VERIFICATION_REQUIREMENTS_NOT_MET(400, "Verification requirements not met", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String message;

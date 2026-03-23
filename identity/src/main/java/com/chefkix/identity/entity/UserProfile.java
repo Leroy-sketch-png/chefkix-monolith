@@ -62,6 +62,10 @@ public class UserProfile {
 
   List<Friendship> friends;
 
+  /** Verified creator badge — paid feature, approved by admin */
+  @Builder.Default
+  boolean verified = false;
+
   @CreatedDate Instant createdAt;
 
   @LastModifiedDate Instant updatedAt;
