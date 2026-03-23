@@ -156,7 +156,37 @@ public enum ErrorCode {
     GROUP_MEMBER_NOT_FOUND(404, "Group member not found", HttpStatus.NOT_FOUND),
     GROUP_BANNED(409, "You are restricted from joining this group.", HttpStatus.CONFLICT),
     GROUP_ALREADY_IN(409, "You are already in this group.", HttpStatus.CONFLICT),
-    PENDING_NOT_FOUND(404, "User is not in PENDING status", HttpStatus.NOT_FOUND);
+    PENDING_NOT_FOUND(404, "User is not in PENDING status", HttpStatus.NOT_FOUND),
+
+    // ─── ACHIEVEMENTS / SKILL TREE ─────────────────────────────────
+
+    ACHIEVEMENT_NOT_FOUND(404, "Achievement not found", HttpStatus.NOT_FOUND),
+    ACHIEVEMENT_ALREADY_UNLOCKED(409, "Achievement already unlocked", HttpStatus.CONFLICT),
+    ACHIEVEMENT_PREREQUISITE_NOT_MET(400, "Prerequisite achievement not yet unlocked", HttpStatus.BAD_REQUEST),
+
+    // ─── COOKING DUELS ─────────────────────────────────
+
+    DUEL_NOT_FOUND(404, "Duel not found", HttpStatus.NOT_FOUND),
+    DUEL_ALREADY_EXISTS(409, "An active duel already exists between these users for this recipe", HttpStatus.CONFLICT),
+    DUEL_CANNOT_CHALLENGE_SELF(400, "Cannot challenge yourself", HttpStatus.BAD_REQUEST),
+    DUEL_NOT_PENDING(400, "Duel is not in pending state", HttpStatus.BAD_REQUEST),
+    DUEL_NOT_PARTICIPANT(403, "You are not a participant in this duel", HttpStatus.FORBIDDEN),
+    DUEL_ALREADY_HAS_SESSION(409, "You already have a cooking session for this duel", HttpStatus.CONFLICT),
+    DUEL_NOT_ACCEPTED(400, "Duel has not been accepted yet", HttpStatus.BAD_REQUEST),
+
+    // ─── REFERRAL ───────────────────────────────────────────────────
+
+    REFERRAL_CODE_NOT_FOUND(404, "Referral code not found", HttpStatus.NOT_FOUND),
+    REFERRAL_SELF_REDEEM(400, "Cannot redeem your own referral code", HttpStatus.BAD_REQUEST),
+    REFERRAL_ALREADY_REDEEMED(409, "You have already redeemed a referral code", HttpStatus.CONFLICT),
+    REFERRAL_CODE_EXHAUSTED(409, "This referral code has reached its maximum uses", HttpStatus.CONFLICT),
+
+    // ─── SUBSCRIPTION / PREMIUM ─────────────────────────────────────
+
+    SUBSCRIPTION_NOT_FOUND(404, "Subscription not found", HttpStatus.NOT_FOUND),
+    SUBSCRIPTION_ALREADY_ACTIVE(409, "An active subscription already exists", HttpStatus.CONFLICT),
+    SUBSCRIPTION_EXPIRED(410, "Subscription has expired", HttpStatus.GONE),
+    PREMIUM_FEATURE_REQUIRED(403, "This feature requires a premium subscription", HttpStatus.FORBIDDEN);
 
     private final int code;
     private final String message;
