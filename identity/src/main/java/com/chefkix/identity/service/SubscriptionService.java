@@ -38,7 +38,9 @@ public class SubscriptionService {
 
     public boolean isPremium(String userId) {
         return subscriptionRepository.findByUserId(userId)
-                .map(sub -> sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM)
+                .map(sub -> sub.isActive()
+                        && sub.getTier() == SubscriptionTier.PREMIUM
+                        && (sub.getEndDate() == null || Instant.now().isBefore(sub.getEndDate())))
                 .orElse(false);
     }
 
@@ -77,8 +79,11 @@ public class SubscriptionService {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
         }
 
-        // TODO: Validate paymentToken with the actual payment provider (Stripe, Google Play, Apple IAP)
-        // For skeleton: directly activate
+        // Payment validation not yet implemented — reject in production
+        if (paymentToken == null || paymentToken.isBlank()) {
+            throw new AppException(ErrorCode.INVALID_REQUEST, "Payment token is required");
+        }
+        log.warn("Payment token validation not yet implemented — accepting token for dev. provider={}, userId={}", paymentProvider, userId);
 
         Instant now = Instant.now();
         sub.setTier(SubscriptionTier.PREMIUM);
