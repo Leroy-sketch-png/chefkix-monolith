@@ -156,6 +156,7 @@ public class TypesenseService {
             restClient.get().uri("/health").retrieve().toBodilessEntity();
             return true;
         } catch (Exception e) {
+            log.debug("Typesense health check failed: {}", e.getMessage());
             return false;
         }
     }

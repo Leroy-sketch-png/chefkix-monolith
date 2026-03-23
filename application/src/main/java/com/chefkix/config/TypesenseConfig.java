@@ -17,7 +17,7 @@ public class TypesenseConfig {
     String host = "localhost";
     int port = 8108;
     String protocol = "http";
-    String apiKey = "chefkix-typesense-dev-key";
+    String apiKey;
 
     @Bean("typesenseRestClient")
     public RestClient typesenseRestClient() {
