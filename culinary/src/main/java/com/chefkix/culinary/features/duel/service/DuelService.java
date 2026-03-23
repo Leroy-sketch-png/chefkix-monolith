@@ -201,17 +201,20 @@ public class DuelService {
 
     private int computeScore(CookingSession session) {
         int score = 0;
+        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        int totalSteps = recipe != null && recipe.getSteps() != null ? recipe.getSteps().size() : 0;
+        int estimatedTimeMinutes = recipe != null ? recipe.getTotalTimeMinutes() : 0;
 
         // Base: step completion (max 60 points)
-        if (session.getTotalSteps() > 0 && session.getCompletedSteps() != null) {
-            double ratio = (double) session.getCompletedSteps().size() / session.getTotalSteps();
+        if (totalSteps > 0 && session.getCompletedSteps() != null) {
+            double ratio = (double) session.getCompletedSteps().size() / totalSteps;
             score += (int) (ratio * 60);
         }
 
         // Time bonus: faster = better (max 25 points)
-        if (session.getEstimatedTimeMinutes() > 0 && session.getStartedAt() != null && session.getCompletedAt() != null) {
+        if (estimatedTimeMinutes > 0 && session.getStartedAt() != null && session.getCompletedAt() != null) {
             long actualMinutes = Duration.between(session.getStartedAt(), session.getCompletedAt()).toMinutes();
-            double timeRatio = (double) session.getEstimatedTimeMinutes() / Math.max(1, actualMinutes);
+            double timeRatio = (double) estimatedTimeMinutes / Math.max(1, actualMinutes);
             int timeScore = (int) Math.min(25, timeRatio * 25);
             score += timeScore;
         }
