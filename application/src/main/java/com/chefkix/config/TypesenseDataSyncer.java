@@ -43,13 +43,6 @@ public class TypesenseDataSyncer {
             return;
         }
 
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
-
         syncRecipes();
         syncPosts();
         syncUsers();

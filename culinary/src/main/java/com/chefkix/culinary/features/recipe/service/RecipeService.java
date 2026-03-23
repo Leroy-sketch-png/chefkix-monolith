@@ -50,6 +50,10 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RecipeService {
 
+    private static final int MIN_SESSIONS_FOR_STRUGGLE = 3;
+    private static final double SKIP_RATE_THRESHOLD = 30.0;
+    private static final double COMPLETION_RATE_THRESHOLD = 60.0;
+
     AsyncHelper asyncHelper;
     ProfileProvider profileProvider;
     RecipeMapper recipeMapper;
@@ -62,7 +66,7 @@ public class RecipeService {
     @Transactional
     public RecipeDetailResponse updateRecipe(String recipeId, RecipeRequest request) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("[RECIPE_UPDATE] User {} yêu cầu cập nhật recipe {}", currentUserId, recipeId);
+        log.info("[RECIPE_UPDATE] User {} requested update for recipe {}", currentUserId, recipeId);
 
         try {
             CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(currentUserId);
@@ -85,7 +89,7 @@ public class RecipeService {
             RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(existingRecipe);
             response.setAuthor(authorFuture.get());
 
-            // Logic cũ: Author tự like bài mình thì sao? -> Gọi InteractionService check cho chắc
+            // Check like/save status via InteractionService
             response.setIsLiked(interactionService.isLiked(recipeId, currentUserId));
             response.setIsSaved(interactionService.isSaved(recipeId, currentUserId));
 
@@ -94,12 +98,12 @@ public class RecipeService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("[RECIPE_UPDATE] Lỗi", e);
-            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Lỗi khi cập nhật recipe");
+            log.error("[RECIPE_UPDATE] Failed to update recipe", e);
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to update recipe");
         }
     }
 
-    // --- CÁC HÀM TOGGLE ĐÃ CHUYỂN SANG INTERACTION SERVICE ---
+    // --- TOGGLE METHODS MOVED TO INTERACTION SERVICE ---
 
     @Transactional
     public void deleteRecipe(String recipeId) {
@@ -145,7 +149,7 @@ public class RecipeService {
 
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(recipe.getUserId())
                 .exceptionally(ex -> {
-                    log.error("[AUTHOR] Lỗi Profile Service: {}", ex.getMessage());
+                    log.error("[AUTHOR] Failed to fetch profile: {}", ex.getMessage());
                     return AuthorResponse.builder().userId(recipe.getUserId()).displayName("Unknown Chef").build();
                 });
 
@@ -175,7 +179,7 @@ public class RecipeService {
             query.setCurrentUserId(currentUserId);
             query.setFriendIds(profileProvider.getFriendIds(currentUserId));
         } catch (Exception e) {
-            // Unauthenticated or error — will only see PUBLIC recipes (handled by RecipeSpecification)
+            log.debug("Could not resolve user context for recipe search: {}", e.getMessage());
         }
         return recipeRepository.searchRecipes(query, pageable).map(recipeMapper::toRecipeDetailResponse);
     }
@@ -637,7 +641,8 @@ public class RecipeService {
                             : null;
 
                     // Struggle point: skip rate > 30% OR completion rate < 60% (with meaningful data)
-                    boolean struggle = totalSessions >= 3 && (skRate > 30 || compRate < 60);
+                    boolean struggle = totalSessions >= MIN_SESSIONS_FOR_STRUGGLE
+                            && (skRate > SKIP_RATE_THRESHOLD || compRate < COMPLETION_RATE_THRESHOLD);
 
                     return StepHeatmapResponse.StepAnalytics.builder()
                             .stepNumber(sn)

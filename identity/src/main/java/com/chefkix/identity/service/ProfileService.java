@@ -159,29 +159,29 @@ public class ProfileService {
     return response;
   }
 
-  /** Lấy profile của một user BẤT KỲ (chỉ profile, không kèm posts) */
+  /** Get profile for any user (profile only, no posts) */
   public ProfileResponse getProfileByUserId(String targetUserId, Authentication authentication) {
-    log.info("[PROFILE_GET] Bắt đầu xử lý getProfileByUserId cho target: {}", targetUserId);
+    log.info("[PROFILE_GET] Fetching profile for target: {}", targetUserId);
     String currentUserId = securityUtils.getCurrentUserId(authentication);
 
     var targetProfile =
         profileRepository
             .findByUserId(targetUserId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    log.info("[PROFILE_GET] Đã tìm thấy profile: {}", targetProfile.getDisplayName());
+    log.info("[PROFILE_GET] Found profile: {}", targetProfile.getDisplayName());
 
     ProfileResponse response = profileMapper.toProfileResponse(targetProfile);
 
-    // Xác định trạng thái mối quan hệ và follow
+    // Determine relationship status and follow state
     RelationshipStatus status =
         socialUtils.determineRelationshipStatus(currentUserId, targetProfile);
     response.setRelationshipStatus(status);
-    log.info("[PROFILE_GET] Đã xác định status: {}", status);
+    log.info("[PROFILE_GET] Determined relationship status: {}", status);
 
     boolean isFollowing =
         followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
     response.setFollowing(isFollowing);
-    log.info("[PROFILE_GET] Đã kiểm tra following. Hoàn tất.");
+    log.info("[PROFILE_GET] Follow check complete.");
 
     // Check if current user has blocked this profile
     boolean isBlocked = blockService.hasBlocked(currentUserId, targetUserId);
@@ -205,9 +205,6 @@ public class ProfileService {
   @Transactional
   public ProfileResponse verifyOtpAndCreateUser(String email, String otp) {
     // 1. Xác thực OTP
-      log.info("HHHHHH");
-      log.info("clientId: {}", clientId);
-      log.info("clientSecret: {}", clientSecret);
     SignupRequest req = validateSignupOtp(email, otp);
 
     // 2. Tạo user trên Keycloak
@@ -335,15 +332,13 @@ public class ProfileService {
       return new ProfileWithPostsResponse(profile, posts);
 
     } catch (Exception e) {
-      log.error("Lỗi khi tải song song profile và posts: {}", e.getMessage(), e);
-      // Bắt lỗi Profile
+      log.error("Failed to load profile and posts in parallel: {}", e.getMessage(), e);
       throw new AppException(
-          ErrorCode.INTERNAL_SERVER_ERROR, "Không thể tải dữ liệu: " + e.getMessage());
+          ErrorCode.INTERNAL_SERVER_ERROR, "Failed to load data: " + e.getMessage());
     }
-    // Không cần khối finally để dọn dẹp ThreadLocal nữa
   }
 
-  /** Helper cập nhật các fields kh null */
+  /** Helper to update fields when non-null */
   private <T> void updateIfNotNull(T value, Consumer<T> setter) {
     if (value != null) {
       setter.accept(value);
@@ -383,8 +378,6 @@ public class ProfileService {
 
   private String createKeycloakUser(SignupRequest req) {
     try {
-        log.info("clientId: {}", clientId);
-        log.info("clientSecret: {}", clientSecret);
       var token =
           keycloakAdminClient.exchangeToken(
               TokenExchangeParam.builder()

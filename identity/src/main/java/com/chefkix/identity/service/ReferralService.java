@@ -31,6 +31,7 @@ public class ReferralService {
     static final String SHARE_URL_BASE = "https://chefkix.app/join?ref=";
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     ReferralCodeRepository referralCodeRepository;
     ReferralRedemptionRepository referralRedemptionRepository;
@@ -175,11 +176,10 @@ public class ReferralService {
     }
 
     private String generateUniqueCode() {
-        SecureRandom random = new SecureRandom();
         for (int attempt = 0; attempt < 10; attempt++) {
             StringBuilder sb = new StringBuilder(CODE_LENGTH);
             for (int i = 0; i < CODE_LENGTH; i++) {
-                sb.append(CODE_CHARS.charAt(random.nextInt(CODE_CHARS.length())));
+                sb.append(CODE_CHARS.charAt(SECURE_RANDOM.nextInt(CODE_CHARS.length())));
             }
             String code = sb.toString();
             if (!referralCodeRepository.existsByCode(code)) {

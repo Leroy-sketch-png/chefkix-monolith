@@ -4,6 +4,7 @@ import com.chefkix.culinary.features.duel.dto.request.CreateDuelRequest;
 import com.chefkix.culinary.features.duel.dto.response.DuelResponse;
 import com.chefkix.culinary.features.duel.service.DuelService;
 import com.chefkix.shared.dto.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class DuelController {
     }
 
     @PostMapping
-    public ApiResponse<DuelResponse> createDuel(@RequestBody CreateDuelRequest request) {
+    public ApiResponse<DuelResponse> createDuel(@Valid @RequestBody CreateDuelRequest request) {
         return ApiResponse.success(duelService.createDuel(getUserId(), request));
     }
 

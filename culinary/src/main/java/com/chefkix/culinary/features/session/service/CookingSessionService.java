@@ -45,6 +45,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CookingSessionService {
 
+    private static final String SHARE_URL_BASE = "https://chefkix.app/recipes/";
+
     private final CookingSessionRepository sessionRepository;
     private final RecipeRepository recipeRepository;
     private final CookingSessionMapper sessionMapper;
@@ -64,10 +66,6 @@ public class CookingSessionService {
                 .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
 
         if (activeSessionOpt.isPresent()) {
-            CookingSession existing = activeSessionOpt.get();
-            Recipe existingRecipe = recipeRepository.findById(existing.getRecipeId()).orElse(null);
-            // Sử dụng helper để map
-            helper.mapToStartResponse(existing, existingRecipe);
             throw new AppException(ErrorCode.SESSION_ALREADY_ACTIVE);
         }
 
@@ -737,7 +735,7 @@ public class CookingSessionService {
             xpEarned += session.getRemainingXpAwarded().intValue();
         }
 
-        String shareUrl = "https://chefkix.com/recipes/" + session.getRecipeId();
+        String shareUrl = SHARE_URL_BASE + session.getRecipeId();
 
         return CookCardDataResponse.builder()
                 .sessionId(session.getId())

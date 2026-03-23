@@ -71,32 +71,27 @@ public class UploadImageFileImpl implements UploadImageFile {
             return List.of();
         }
 
-        log.info("[UPLOAD_MULTI] Bắt đầu upload {} files song song", files.size());
+        log.info("[UPLOAD_MULTI] Starting parallel upload for {} files", files.size());
 
-        // 1. Tạo một danh sách các tác vụ upload (CompletableFuture)
         List<CompletableFuture<String>> uploadTasks = files.stream()
                 .map(file -> CompletableFuture.supplyAsync(() -> {
-                    // Tái sử dụng logic upload 1 file của bạn
-                    // Bạn nên tách logic trong hàm uploadImageFile ra
-                    // một hàm private để tái sử dụng
-                    log.info("Đang upload file: {}", file.getOriginalFilename());
-                    return uploadImageFile(file); // Gọi lại hàm upload 1 file
+                    log.info("Uploading file: {}", file.getOriginalFilename());
+                    return uploadImageFile(file);
                 }))
                 .toList();
 
-        // 2. Chờ TẤT CẢ các tác vụ hoàn thành
+        // Wait for all upload tasks to complete
         CompletableFuture<Void> allOf = CompletableFuture
                 .allOf(uploadTasks.toArray(new CompletableFuture[0]));
 
         try {
-            allOf.join(); // Chờ ở đây
+            allOf.join();
         } catch (Exception e) {
-            // Nếu MỘT file bị lỗi, nó sẽ ném exception ở đây
-            log.error("[UPLOAD_MULTI] Có lỗi xảy ra khi upload song song", e);
-            throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "Một hoặc nhiều file bị lỗi khi upload");
+            log.error("[UPLOAD_MULTI] Error during parallel upload", e);
+            throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "One or more files failed to upload");
         }
 
-        log.info("[UPLOAD_MULTI] Đã upload thành công {} files", files.size());
+        log.info("[UPLOAD_MULTI] Successfully uploaded {} files", files.size());
 
         return uploadTasks.stream()
                 .map(CompletableFuture::join)

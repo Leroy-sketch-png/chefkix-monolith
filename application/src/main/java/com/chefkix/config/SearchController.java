@@ -1,13 +1,16 @@
 package com.chefkix.config;
 
 import com.chefkix.shared.dto.ApiResponse;
+import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/search")
 @RequiredArgsConstructor
@@ -18,7 +21,7 @@ public class SearchController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> unifiedSearch(
-            @RequestParam String q,
+            @RequestParam @Size(max = 200) String q,
             @RequestParam(defaultValue = "all") String type,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page) {
@@ -43,7 +46,7 @@ public class SearchController {
 
     @GetMapping("/autocomplete")
     public ResponseEntity<ApiResponse<Map<String, Object>>> autocomplete(
-            @RequestParam String q,
+            @RequestParam @Size(max = 200) String q,
             @RequestParam(defaultValue = "all") String type,
             @RequestParam(defaultValue = "5") int limit) {
 
