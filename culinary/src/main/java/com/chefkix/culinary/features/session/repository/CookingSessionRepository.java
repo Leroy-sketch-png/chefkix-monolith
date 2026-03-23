@@ -55,4 +55,10 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
      * Recent cooking history for a user (for taste profile / recommendations).
      */
     List<CookingSession> findTop20ByUserIdOrderByCreatedAtDesc(String userId);
+
+    /**
+     * All terminal sessions for a recipe (completed, posted, abandoned).
+     * Used by step heatmap analytics to aggregate per-step metrics.
+     */
+    List<CookingSession> findByRecipeIdAndStatusIn(String recipeId, List<SessionStatus> statuses);
 }

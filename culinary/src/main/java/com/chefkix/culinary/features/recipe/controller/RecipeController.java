@@ -8,6 +8,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
+import com.chefkix.culinary.features.recipe.dto.response.StepHeatmapResponse;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -131,5 +132,11 @@ public class RecipeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(recipeService.getRecentCooksOfMyRecipes(page, size), "Recent cooks retrieved");
+    }
+
+    // 10. STEP HEATMAP — per-step analytics for a recipe (creator-only)
+    @GetMapping("/{id}/step-heatmap")
+    public ApiResponse<StepHeatmapResponse> getStepHeatmap(@PathVariable String id) {
+        return ApiResponse.success(recipeService.getStepHeatmap(id), "Step heatmap retrieved");
     }
 }
