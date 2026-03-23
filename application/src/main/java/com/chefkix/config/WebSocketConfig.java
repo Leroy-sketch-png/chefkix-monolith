@@ -148,6 +148,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 throw new MessageDeliveryException("Cannot subscribe to a room you are not part of");
                             }
                         }
+
+                        // Allow presence topics — /topic/presence/{targetUserId}
+                        // Any authenticated user can subscribe to presence updates
+                        // (no additional authorization needed — public social feature)
                     }
                 }
 
