@@ -1,5 +1,6 @@
 package com.chefkix.social.post.dto.request;
 
+import com.chefkix.social.post.enums.PostType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -37,4 +38,11 @@ public class PostCreationRequest {
 
   @Builder.Default
   Boolean isHidden = false;
+
+  PostType postType; // Optional: QUICK for quick posts, POLL for polls, defaults to PERSONAL
+
+  // Poll fields (only when postType == POLL)
+  String pollQuestion;
+  String pollOptionA;
+  String pollOptionB;
 }

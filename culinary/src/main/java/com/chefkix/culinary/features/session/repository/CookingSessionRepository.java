@@ -50,4 +50,9 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
      * Used to count posts linked to a recipe (status = POSTED).
      */
     long countByRecipeIdAndStatus(String recipeId, SessionStatus status);
+
+    /**
+     * Recent cooking history for a user (for taste profile / recommendations).
+     */
+    List<CookingSession> findTop20ByUserIdOrderByCreatedAtDesc(String userId);
 }

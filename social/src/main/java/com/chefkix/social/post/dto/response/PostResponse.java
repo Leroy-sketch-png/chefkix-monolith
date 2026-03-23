@@ -1,6 +1,8 @@
 package com.chefkix.social.post.dto.response;
 
 import com.chefkix.social.post.entity.CoChef;
+import com.chefkix.social.post.entity.PollData;
+import com.chefkix.social.post.enums.PostType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +26,8 @@ public class PostResponse {
     String videoUrl;
     String postUrl;
     List<String> tags;
+
+    PostType postType;
 
     // --- NEW FIELDS: GAMIFICATION & SESSION INFO ---
     String sessionId;       // Để FE link ngược về trang chi tiết session nấu ăn
@@ -50,4 +54,13 @@ public class PostResponse {
 
     Instant createdAt;
     Instant updatedAt;
+
+    // Poll data (present when postType == POLL)
+    PollData pollData;
+    String userVote; // "A", "B", or null (current user's vote)
+
+    // Rate This Plate data (for posts with photos)
+    Integer fireCount;
+    Integer cringeCount;
+    String userPlateRating; // "FIRE", "CRINGE", or null
 }

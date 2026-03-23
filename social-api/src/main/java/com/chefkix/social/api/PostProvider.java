@@ -3,6 +3,7 @@ package com.chefkix.social.api;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.api.dto.PostSummary;
+import com.chefkix.social.api.dto.RecentCookRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -62,4 +63,13 @@ public interface PostProvider {
      * @return post detail with recipe context, or null if not found
      */
     PostDetail getPostDetail(String postId);
+
+    /**
+     * Auto-create a lightweight RECENT_COOK post after cooking session completion.
+     * The post has no photos — just metadata (recipe title, duration, cover image).
+     * Visible to followers in the feed as a compact activity item.
+     *
+     * @param request the recent cook details (userId, sessionId, recipeId, recipeTitle, etc.)
+     */
+    void createRecentCookPost(RecentCookRequest request);
 }

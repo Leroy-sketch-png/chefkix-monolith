@@ -96,4 +96,14 @@ public interface ProfileProvider {
      * @return list of invisible user IDs (never null, may be empty)
      */
     List<String> getInvisibleUserIds(String userId);
+
+    /**
+     * Check if user has opted-in to broadcasting cooking activity (showCookingActivity).
+     * Used by culinary module to decide whether to auto-create a RECENT_COOK post.
+     * Defaults to true when user has no settings.
+     *
+     * @param userId the user's ID
+     * @return true if cooking activity should be broadcast to followers
+     */
+    boolean isShowCookingActivity(String userId);
 }

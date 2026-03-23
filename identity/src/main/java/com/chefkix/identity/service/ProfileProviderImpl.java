@@ -8,7 +8,9 @@ import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
 import com.chefkix.identity.entity.User;
+import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.repository.UserRepository;
+import com.chefkix.identity.repository.UserSettingsRepository;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
@@ -37,6 +39,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     SocialService socialService;
     UserStatusService userStatusService;
     UserRepository userRepository;
+    UserSettingsRepository userSettingsRepository;
     private final KeycloakService keycloakService;
     BlockService blockService;
 
@@ -123,5 +126,15 @@ public class ProfileProviderImpl implements ProfileProvider {
     public boolean verifyUserPassword(String userName, String confirmationPassword) {
 
         return keycloakService.verifyPassword(userName, confirmationPassword);
+    }
+
+    @Override
+    public boolean isShowCookingActivity(String userId) {
+        return userSettingsRepository.findByUserId(userId)
+                .map(settings -> settings.getPrivacy() != null
+                        && settings.getPrivacy().getShowCookingActivity() != null
+                        ? settings.getPrivacy().getShowCookingActivity()
+                        : true)
+                .orElse(true); // Default: broadcast cooking activity
     }
 }

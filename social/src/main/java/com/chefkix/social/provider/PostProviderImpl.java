@@ -4,6 +4,7 @@ import com.chefkix.social.api.PostProvider;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.api.dto.PostSummary;
+import com.chefkix.social.api.dto.RecentCookRequest;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.service.PostService;
@@ -50,6 +51,11 @@ public class PostProviderImpl implements PostProvider {
     @Override
     public PostDetail getPostDetail(String postId) {
         return postService.getPostDetail(postId);
+    }
+
+    @Override
+    public void createRecentCookPost(RecentCookRequest request) {
+        postService.createRecentCookPost(request);
     }
 
     private PostSummary toPostSummary(PostResponse post) {

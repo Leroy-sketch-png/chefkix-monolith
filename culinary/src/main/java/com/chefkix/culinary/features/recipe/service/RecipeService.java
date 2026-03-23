@@ -249,6 +249,120 @@ public class RecipeService {
         });
     }
 
+    // ===============================================
+    // RECOMMENDATIONS
+    // ===============================================
+
+    /**
+     * Tonight's Pick — personalized daily recipe recommendation.
+     * Algorithm: user's cooking history (cuisine prefs) + trending + easy-to-start recipes.
+     * Cold start: returns highest trending score published recipe.
+     */
+    @Transactional(readOnly = true)
+    public RecipeDetailResponse getTonightsPick() {
+        String rawUserId;
+        try {
+            rawUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+        } catch (Exception e) {
+            rawUserId = null;
+        }
+        final String currentUserId = rawUserId;
+
+        Recipe pick = null;
+
+        // Try personalized recommendation based on cooking history
+        if (currentUserId != null && !"anonymousUser".equals(currentUserId)) {
+            List<CookingSession> recentSessions = cookingSessionRepository
+                    .findTop20ByUserIdOrderByCreatedAtDesc(currentUserId);
+
+            if (!recentSessions.isEmpty()) {
+                // Extract preferred cuisines from cooking history
+                Set<String> cookedRecipeIds = recentSessions.stream()
+                        .map(CookingSession::getRecipeId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                List<Recipe> cookedRecipes = recipeRepository.findAllByIdIn(
+                        new ArrayList<>(cookedRecipeIds));
+
+                List<String> preferredCuisines = cookedRecipes.stream()
+                        .map(Recipe::getCuisineType)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .limit(5)
+                        .toList();
+
+                if (!preferredCuisines.isEmpty()) {
+                    // Find a matching recipe user hasn't cooked, sorted by trending
+                    List<Recipe> candidates = recipeRepository
+                            .findTop5ByCuisineTypeInIgnoreCase(preferredCuisines);
+
+                    pick = candidates.stream()
+                            .filter(r -> r.getStatus() == RecipeStatus.PUBLISHED)
+                            .filter(r -> !cookedRecipeIds.contains(r.getId()))
+                            .filter(r -> !r.getUserId().equals(currentUserId))
+                            .max(Comparator.comparingDouble(r -> r.getTrendingScore() != null ? r.getTrendingScore() : 0.0))
+                            .orElse(null);
+                }
+            }
+        }
+
+        // Fallback: highest trending score
+        if (pick == null) {
+            Page<Recipe> trending = recipeRepository.findByStatus(
+                    RecipeStatus.PUBLISHED,
+                    PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "trendingScore")));
+            if (!trending.isEmpty()) {
+                pick = trending.getContent().get(0);
+            }
+        }
+
+        if (pick == null) {
+            throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+        }
+
+        RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(pick);
+        try {
+            response.setAuthor(asyncHelper.getProfileAsync(pick.getUserId()).join());
+        } catch (Exception e) {
+            response.setAuthor(AuthorResponse.builder()
+                    .userId(pick.getUserId()).displayName("Chef").build());
+        }
+        return response;
+    }
+
+    /**
+     * Similar Recipes — content-based recommendations.
+     * Matches by cuisine type, difficulty, and dietary tags.
+     * Excludes the source recipe itself.
+     */
+    @Transactional(readOnly = true)
+    public Page<RecipeDetailResponse> getSimilarRecipes(String recipeId, int size) {
+        Recipe source = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        // Build search query matching cuisine and/or difficulty
+        RecipeSearchQuery query = new RecipeSearchQuery();
+        if (source.getCuisineType() != null) {
+            query.setCuisineType(source.getCuisineType());
+        }
+        if (source.getDifficulty() != null) {
+            query.setDifficulty(source.getDifficulty());
+        }
+
+        Pageable pageable = PageRequest.of(0, size + 1, Sort.by(Sort.Direction.DESC, "trendingScore"));
+        Page<RecipeDetailResponse> results = recipeRepository.searchRecipes(query, pageable)
+                .map(recipeMapper::toRecipeDetailResponse);
+
+        // Filter out the source recipe
+        List<RecipeDetailResponse> filtered = results.getContent().stream()
+                .filter(r -> !r.getId().equals(recipeId))
+                .limit(size)
+                .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(filtered, PageRequest.of(0, size), filtered.size());
+    }
+
     public InternalCreatorInsightsResponse getRecipeWithAboveTenCooks(String userId) {
         // Get all published recipes for this user
         List<Recipe> allRecipes = recipeRepository.findByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);

@@ -67,11 +67,18 @@ public class Post {
 
 
   // this is for group posts
-  PostType postType; // Enum: PERSONAL, GROUP
+  PostType postType; // Enum: PERSONAL, GROUP, QUICK, POLL
     @Indexed
     String groupId;
     @Builder.Default
     PostStatus status = PostStatus.ACTIVE;
+
+  // Poll data (only present when postType == POLL)
+  PollData pollData;
+
+  // Rate This Plate data (for posts with photos)
+  @Builder.Default Integer fireCount = 0;
+  @Builder.Default Integer cringeCount = 0;
 
   public void generateSlug() {
     if (this.content != null) {
