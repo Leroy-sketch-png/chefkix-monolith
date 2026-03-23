@@ -28,6 +28,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
+  private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60; // 7 days
+  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 30 * 24 * 60 * 60; // 30 days
+
   AuthenticationService authenticationService;
   SignupRequestService signupRequestService;
   ProfileService profileService;
@@ -59,7 +62,7 @@ public class AuthenticationController {
           response,
           "refresh_token",
           authResponse.getRefreshToken(), // Lấy RT mới từ response
-          30 * 24 * 60 * 60 // 30 ngày
+          REFRESH_TOKEN_MAX_AGE_REFRESH
           );
 
       return ApiResponse.<Map<String, String>>builder()
@@ -89,7 +92,7 @@ public class AuthenticationController {
 
     // 2. Lưu refresh token vào HttpOnly cookie
     HttpOnlyCookieUtils.addHttpOnlyCookie(
-        response, "refresh_token", authResponse.getRefreshToken(), 7 * 24 * 60 * 60 // 7 ngày
+        response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN
         );
 
     // 3. Trả body JSON (không cần refreshToken nữa nếu muốn)

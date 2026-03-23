@@ -496,7 +496,9 @@ public class PostService {
                     BasicProfileInfo profile = null;
                 try {
                     profile = profileProvider.getBasicProfile(userId);
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    log.warn("Failed to fetch profile for like notification, userId={}: {}", userId, e.getMessage());
+                }
                 String displayName = profile != null ? profile.getDisplayName() : "Someone";
                 String avatarUrl = profile != null ? profile.getAvatarUrl() : null;
 
