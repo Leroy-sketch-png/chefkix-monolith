@@ -60,7 +60,7 @@ public class AdminController {
      */
     @PostMapping("/reports/{reportId}/review")
     public ResponseEntity<ApiResponse<Report>> reviewReport(
-            @PathVariable String reportId,
+            @PathVariable("reportId") String reportId,
             Authentication authentication,
             @Valid @RequestBody ReviewReportRequest request) {
         String adminId = authentication.getName();
@@ -75,7 +75,7 @@ public class AdminController {
      */
     @PostMapping("/users/{userId}/ban")
     public ResponseEntity<ApiResponse<BanResponse>> banUser(
-            @PathVariable String userId,
+            @PathVariable("userId") String userId,
             Authentication authentication,
             @Valid @RequestBody BanUserRequest request) {
         String adminId = authentication.getName();
@@ -92,7 +92,7 @@ public class AdminController {
      */
     @GetMapping("/users/{userId}/bans")
     public ResponseEntity<ApiResponse<List<BanResponse>>> getBanHistory(
-            @PathVariable String userId) {
+            @PathVariable("userId") String userId) {
         List<BanResponse> bans = moderationService.getBanHistory(userId);
         return ResponseEntity.ok(ApiResponse.ok(bans));
     }
@@ -102,7 +102,7 @@ public class AdminController {
      */
     @DeleteMapping("/bans/{banId}")
     public ResponseEntity<ApiResponse<String>> revokeBan(
-            @PathVariable String banId,
+            @PathVariable("banId") String banId,
             Authentication authentication) {
         String adminId = authentication.getName();
         moderationService.revokeBan(banId, adminId);
@@ -126,7 +126,7 @@ public class AdminController {
      */
     @PostMapping("/appeals/{appealId}/review")
     public ResponseEntity<ApiResponse<Appeal>> reviewAppeal(
-            @PathVariable String appealId,
+            @PathVariable("appealId") String appealId,
             Authentication authentication,
             @Valid @RequestBody ReviewAppealRequest request) {
         String adminId = authentication.getName();

@@ -97,11 +97,11 @@ public class AuthenticationController {
 
     // 3. Trả body JSON (không cần refreshToken nữa nếu muốn)
     authResponse.setRefreshToken(null); // optional, tránh leak vào JS
-    return ApiResponse.<AuthenticationResponse>builder().data(authResponse).build();
+    return ApiResponse.success(authResponse, "Successfully signed in");
   }
 
   @PostMapping("/forgot-password")
-  ApiResponse<String> resetPassword(@RequestParam String email, HttpServletRequest httpServletRequest) {
+  ApiResponse<String> resetPassword(@RequestParam(value = "email") String email, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertForgotPasswordAllowed(clientIp, email);
     resetPasswordService.sendForgotPasswordOtp(email);

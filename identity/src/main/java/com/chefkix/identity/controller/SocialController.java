@@ -121,7 +121,7 @@ public class SocialController {
    */
   @GetMapping("/friends/search-mention")
   public ApiResponse<List<UserMentionResponse>> searchMention(
-      @RequestParam String keyword, Pageable pageable) {
+      @RequestParam("keyword") String keyword, Pageable pageable) {
     String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
     var result = socialService.searchFriendsForMention(currentUserId, keyword, pageable);
     return ApiResponse.success(result);
