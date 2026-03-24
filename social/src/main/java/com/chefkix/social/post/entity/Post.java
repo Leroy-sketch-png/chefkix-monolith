@@ -37,6 +37,7 @@ public class Post {
   @TextIndexed(weight = 5)
   String content;
   String avatarUrl;
+  boolean verified;
   List<String> photoUrls;
   String videoUrl;
   String slug;

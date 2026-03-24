@@ -37,4 +37,6 @@ public class BasicProfileInfo {
     String lastName;
 
     String avatarUrl;
+
+    boolean verified;
 }

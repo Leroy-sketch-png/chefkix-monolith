@@ -20,4 +20,5 @@ public class InternalBasicProfileResponse {
   private String firstName;
   private String lastName;
   private String avatarUrl;
+  private boolean verified;
 }

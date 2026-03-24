@@ -254,6 +254,7 @@ public class PostService {
 
         post.setDisplayName(profile != null ? profile.getDisplayName() : "Chef User");
         post.setAvatarUrl(profile != null ? profile.getAvatarUrl() : null);
+        post.setVerified(profile != null && profile.isVerified());
 
         post.setPhotoUrls(photoUrls);
         post.generateSlug();
