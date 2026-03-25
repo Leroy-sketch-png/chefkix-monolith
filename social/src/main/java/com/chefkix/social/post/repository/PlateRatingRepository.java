@@ -10,4 +10,6 @@ public interface PlateRatingRepository extends MongoRepository<PlateRating, Stri
     Optional<PlateRating> findByPostIdAndUserId(String postId, String userId);
 
     List<PlateRating> findByPostIdInAndUserId(List<String> postIds, String userId);
+
+    void deleteAllByPostId(String postId);
 }

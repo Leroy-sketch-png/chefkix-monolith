@@ -41,9 +41,8 @@ public class ConversationService {
 
     public List<ConversationResponse> myConversations() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        // Sort by modifiedDate descending so most recent conversations appear first
-        Sort sort = Sort.by(Sort.Direction.DESC, "modifiedDate");
-        List<Conversation> conversations = conversationRepository.findAllByParticipantIdsContains(userId, sort);
+        List<Conversation> conversations = conversationRepository.findRecentConversations(
+                userId, org.springframework.data.domain.PageRequest.of(0, 200));
 
         return conversations.stream().map(this::toConversationResponse).toList();
     }

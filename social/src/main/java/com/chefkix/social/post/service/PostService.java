@@ -40,6 +40,11 @@ import com.chefkix.social.post.repository.PostSaveRepository;
 import com.chefkix.social.post.repository.PollVoteRepository;
 import com.chefkix.social.post.repository.PlateRatingRepository;
 import com.chefkix.social.post.repository.CommentRepository;
+import com.chefkix.social.post.repository.ReplyRepository;
+import com.chefkix.social.post.repository.CommentLikeRepository;
+import com.chefkix.social.post.repository.ReplyLikeRepository;
+import com.chefkix.social.post.entity.Reply;
+import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.entity.PlateRating;
 import com.chefkix.social.post.dto.request.PlateRateRequest;
 import com.chefkix.social.post.dto.response.PlateRateResponse;
@@ -91,6 +96,9 @@ public class PostService {
     PollVoteRepository pollVoteRepository;
     PlateRatingRepository plateRatingRepository;
     CommentRepository commentRepository;
+    ReplyRepository replyRepository;
+    CommentLikeRepository commentLikeRepository;
+    ReplyLikeRepository replyLikeRepository;
     MongoTemplate mongoTemplate;
     GroupMemberRepository groupMemberRepository;
 
@@ -410,6 +418,18 @@ public class PostService {
         postLikeRepository.deleteAllByPostId(postId);
         postSaveRepository.deleteAllByPostId(postId);
         pollVoteRepository.deleteAllByPostId(postId);
+        plateRatingRepository.deleteAllByPostId(postId);
+
+        // Cascade comment subtree: reply likes -> replies -> comment likes -> comments
+        List<Comment> comments = commentRepository.findByPostId(postId);
+        for (Comment c : comments) {
+            List<Reply> replies = replyRepository.findByParentCommentId(c.getId());
+            for (Reply r : replies) {
+                replyLikeRepository.deleteAllByReplyId(r.getId());
+            }
+            replyRepository.deleteAllByParentCommentId(c.getId());
+            commentLikeRepository.deleteAllByCommentId(c.getId());
+        }
         commentRepository.deleteAllByPostId(postId);
 
         postRepository.delete(post);
@@ -1035,37 +1055,36 @@ public class PostService {
         }
 
         var existingVote = pollVoteRepository.findByPostIdAndUserId(postId, userId);
-        PollData poll = post.getPollData();
+        Query query = Query.query(Criteria.where("id").is(postId));
 
         if (existingVote.isPresent()) {
             PollVote vote = existingVote.get();
             if (vote.getOption().equals(option)) {
-                // Same vote — remove it (toggle off)
+                // Same vote -- remove it (toggle off)
                 pollVoteRepository.delete(vote);
-                if ("A".equals(option)) poll.setVotesA(Math.max(0, poll.getVotesA() - 1));
-                else poll.setVotesB(Math.max(0, poll.getVotesB() - 1));
-                post.setPollData(poll);
-                postRepository.save(post);
+                String field = "A".equals(option) ? "pollData.votesA" : "pollData.votesB";
+                mongoTemplate.updateFirst(query, new Update().inc(field, -1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                PollData poll = updated.getPollData();
                 return PollVoteResponse.builder()
                         .userVote(null)
-                        .votesA(poll.getVotesA())
-                        .votesB(poll.getVotesB())
+                        .votesA(Math.max(0, poll.getVotesA()))
+                        .votesB(Math.max(0, poll.getVotesB()))
                         .build();
             } else {
                 // Switch vote
                 String oldOption = vote.getOption();
                 vote.setOption(option);
                 pollVoteRepository.save(vote);
-                if ("A".equals(oldOption)) poll.setVotesA(Math.max(0, poll.getVotesA() - 1));
-                else poll.setVotesB(Math.max(0, poll.getVotesB() - 1));
-                if ("A".equals(option)) poll.setVotesA(poll.getVotesA() + 1);
-                else poll.setVotesB(poll.getVotesB() + 1);
-                post.setPollData(poll);
-                postRepository.save(post);
+                String decField = "A".equals(oldOption) ? "pollData.votesA" : "pollData.votesB";
+                String incField = "A".equals(option) ? "pollData.votesA" : "pollData.votesB";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1).inc(incField, 1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                PollData poll = updated.getPollData();
                 return PollVoteResponse.builder()
                         .userVote(option)
-                        .votesA(poll.getVotesA())
-                        .votesB(poll.getVotesB())
+                        .votesA(Math.max(0, poll.getVotesA()))
+                        .votesB(Math.max(0, poll.getVotesB()))
                         .build();
             }
         }
@@ -1076,10 +1095,10 @@ public class PostService {
                 .userId(userId)
                 .option(option)
                 .build());
-        if ("A".equals(option)) poll.setVotesA(poll.getVotesA() + 1);
-        else poll.setVotesB(poll.getVotesB() + 1);
-        post.setPollData(poll);
-        postRepository.save(post);
+        String incField = "A".equals(option) ? "pollData.votesA" : "pollData.votesB";
+        mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
+        Post updated = postRepository.findById(postId).orElse(post);
+        PollData poll = updated.getPollData();
 
         return PollVoteResponse.builder()
                 .userVote(option)
@@ -1093,34 +1112,34 @@ public class PostService {
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
 
         var existing = plateRatingRepository.findByPostIdAndUserId(postId, userId);
+        Query query = Query.query(Criteria.where("id").is(postId));
 
         if (existing.isPresent()) {
             PlateRating pr = existing.get();
             if (pr.getRating().equals(rating)) {
-                // Same rating — toggle off
+                // Same rating -- toggle off
                 plateRatingRepository.delete(pr);
-                if ("FIRE".equals(rating)) post.setFireCount(Math.max(0, post.getFireCount() - 1));
-                else post.setCringeCount(Math.max(0, post.getCringeCount() - 1));
-                postRepository.save(post);
+                String field = "FIRE".equals(rating) ? "fireCount" : "cringeCount";
+                mongoTemplate.updateFirst(query, new Update().inc(field, -1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
                 return PlateRateResponse.builder()
                         .userRating(null)
-                        .fireCount(post.getFireCount())
-                        .cringeCount(post.getCringeCount())
+                        .fireCount(Math.max(0, updated.getFireCount()))
+                        .cringeCount(Math.max(0, updated.getCringeCount()))
                         .build();
             } else {
                 // Switch rating
                 String old = pr.getRating();
                 pr.setRating(rating);
                 plateRatingRepository.save(pr);
-                if ("FIRE".equals(old)) post.setFireCount(Math.max(0, post.getFireCount() - 1));
-                else post.setCringeCount(Math.max(0, post.getCringeCount() - 1));
-                if ("FIRE".equals(rating)) post.setFireCount(post.getFireCount() + 1);
-                else post.setCringeCount(post.getCringeCount() + 1);
-                postRepository.save(post);
+                String decField = "FIRE".equals(old) ? "fireCount" : "cringeCount";
+                String incField = "FIRE".equals(rating) ? "fireCount" : "cringeCount";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1).inc(incField, 1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
                 return PlateRateResponse.builder()
                         .userRating(rating)
-                        .fireCount(post.getFireCount())
-                        .cringeCount(post.getCringeCount())
+                        .fireCount(Math.max(0, updated.getFireCount()))
+                        .cringeCount(Math.max(0, updated.getCringeCount()))
                         .build();
             }
         }
@@ -1131,14 +1150,14 @@ public class PostService {
                 .userId(userId)
                 .rating(rating)
                 .build());
-        if ("FIRE".equals(rating)) post.setFireCount(post.getFireCount() + 1);
-        else post.setCringeCount(post.getCringeCount() + 1);
-        postRepository.save(post);
+        String incField = "FIRE".equals(rating) ? "fireCount" : "cringeCount";
+        mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
+        Post updated = postRepository.findById(postId).orElse(post);
 
         return PlateRateResponse.builder()
                 .userRating(rating)
-                .fireCount(post.getFireCount())
-                .cringeCount(post.getCringeCount())
+                .fireCount(updated.getFireCount())
+                .cringeCount(updated.getCringeCount())
                 .build();
     }
 

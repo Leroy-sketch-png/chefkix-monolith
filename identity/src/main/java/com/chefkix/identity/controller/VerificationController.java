@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/verification")
+@RequestMapping("/verification")
 @RequiredArgsConstructor
 public class VerificationController {
 

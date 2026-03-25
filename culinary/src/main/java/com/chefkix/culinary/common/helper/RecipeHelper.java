@@ -135,7 +135,8 @@ public class RecipeHelper {
         }
 
         if (stepNumber >= session.getCurrentStep()) {
-            session.setCurrentStep(stepNumber + 1);
+            int nextStep = Math.min(stepNumber + 1, recipe.getSteps().size());
+            session.setCurrentStep(nextStep);
         }
     }
 

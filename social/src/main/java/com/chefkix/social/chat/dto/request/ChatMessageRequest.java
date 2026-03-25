@@ -16,6 +16,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessageRequest {
     @NotBlank
+    @Size(max = 100)
     String conversationId;
 
     @NotBlank
@@ -24,8 +25,11 @@ public class ChatMessageRequest {
 
     @NotNull
     MessageType type;
+
+    @Size(max = 100)
     String relatedId;
 
     /** ID of the message being replied to (null if not a reply) */
+    @Size(max = 100)
     String replyToId;
 }

@@ -23,7 +23,9 @@ public class ReplyRequest {
     private String content;
 
     @NotBlank(message = "Cần có ID của comment cha")
+    @Size(max = 100)
     private String parentCommentId;
 
+    @Size(max = 10, message = "Maximum 10 tagged users")
     private List<String> taggedUserIds;
 }

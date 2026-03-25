@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/presence")
+@RequestMapping("/presence")
 @RequiredArgsConstructor
 public class PresenceController {
 

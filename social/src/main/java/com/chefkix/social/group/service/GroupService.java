@@ -71,7 +71,7 @@ public class GroupService {
                     .name(request.getName())
                     .description(request.getDescription())
                     .coverImageUrl(request.getCoverImageUrl())
-                    .privacyType(PrivacyType.valueOf(request.getPrivacyType()))
+                    .privacyType(parsePrivacyType(request.getPrivacyType()))
                     .creatorId(currentUserId)
                     .ownerId(currentUserId)
                     .memberCount(1)
@@ -201,7 +201,7 @@ public class GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
-        if (!group.getOwnerId().equals(currentUserId)) {
+        if (!group.getOwnerId().equals(currentUserId) && !isGroupAdmin(groupId, currentUserId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -245,7 +245,7 @@ public class GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
-        if (!group.getOwnerId().equals(currentUserId)) {
+        if (!group.getOwnerId().equals(currentUserId) && !isGroupAdmin(groupId, currentUserId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -288,7 +288,7 @@ public class GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
-        if (!group.getOwnerId().equals(currentUserId)) {
+        if (!group.getOwnerId().equals(currentUserId) && !isGroupAdmin(groupId, currentUserId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -560,7 +560,7 @@ public class GroupService {
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
         // 3. Check if the privacy is actually changing
-        PrivacyType newPrivacy = PrivacyType.valueOf(request.getPrivacyType().toUpperCase());
+        PrivacyType newPrivacy = parsePrivacyType(request.getPrivacyType());
         PrivacyType oldPrivacy = group.getPrivacyType();
 
         if (oldPrivacy == newPrivacy) {
@@ -586,5 +586,19 @@ public class GroupService {
         }
 
         return mapper.toExploreResponse(group, requester);
+    }
+
+    private PrivacyType parsePrivacyType(String value) {
+        try {
+            return PrivacyType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
+        }
+    }
+
+    private boolean isGroupAdmin(String groupId, String userId) {
+        return memberRepository.findByGroupIdAndUserId(groupId, userId)
+                .map(m -> m.getStatus() == MemberStatus.ACTIVE && m.getRole() == MemberRole.ADMIN)
+                .orElse(false);
     }
 }

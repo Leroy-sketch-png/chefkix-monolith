@@ -25,6 +25,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -214,8 +216,8 @@ public class CommentService {
   }
 
     public List<CommentResponse> getAllCommentsByPostId(String postId, String currentUserId) {
-        // 1. Lấy tất cả comment thô từ DB
-        List<Comment> comments = commentRepository.findByPostId(postId);
+        List<Comment> comments = commentRepository.findByPostId(postId,
+                PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")));
         Map<String, BasicProfileInfo> taggedProfileCache = new HashMap<>();
 
         // 2. Chuyển đổi và "làm giàu" (enrich) từng comment

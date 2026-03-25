@@ -4,12 +4,15 @@ import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.identity.dto.response.LeaderboardResponse;
 import com.chefkix.identity.service.SocialService;
 import com.chefkix.identity.service.StatisticsService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
+@Validated
 public class LeaderboardController {
 
   StatisticsService statisticsService;
@@ -42,7 +46,7 @@ public class LeaderboardController {
   public ApiResponse<LeaderboardResponse> getLeaderboard(
       @RequestParam(defaultValue = "global") String type,
       @RequestParam(defaultValue = "weekly") String timeframe,
-      @RequestParam(defaultValue = "50") int limit) {
+      @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit) {
     String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
     log.info("User {} requesting {} {} leaderboard", currentUserId, type, timeframe);
 

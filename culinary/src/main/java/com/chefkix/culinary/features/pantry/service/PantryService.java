@@ -69,8 +69,12 @@ public class PantryService {
                 .toList();
     }
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "category", "ingredientName", "expiryDate", "addedDate", "quantity");
+
     public List<PantryItemResponse> getAll(String userId, String category, String sortField) {
-        Sort sort = Sort.by(Sort.Direction.ASC, sortField != null ? sortField : "category");
+        String safeSortField = ALLOWED_SORT_FIELDS.contains(sortField) ? sortField : "category";
+        Sort sort = Sort.by(Sort.Direction.ASC, safeSortField);
         List<PantryItem> items = category != null
                 ? pantryRepo.findByUserIdAndCategory(userId, category.toLowerCase(), sort)
                 : pantryRepo.findByUserId(userId, sort);

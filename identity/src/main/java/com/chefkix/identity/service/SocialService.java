@@ -76,6 +76,9 @@ public class SocialService {
     if (followerId.equals(followingId)) {
       throw new AppException(ErrorCode.INVALID_REQUEST);
     }
+    if (blockRepository.existsBlockBetween(followerId, followingId)) {
+      throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+    }
     UserProfile targetProfile =
         userProfileRepository
             .findByUserId(followingId)
@@ -207,6 +210,9 @@ public class SocialService {
 
     // --- VALIDATION ---
     if (senderId.equals(receiverId)) {
+      throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+    }
+    if (blockRepository.existsBlockBetween(senderId, receiverId)) {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
     UserProfile targetProfile =

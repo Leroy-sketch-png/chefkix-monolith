@@ -98,7 +98,7 @@ public class SignupRequestService {
             .displayName(request.getDisplayName())
             .dob(request.getDob())
             .accountType(request.getAccountType())
-            .attempts(request.getAttempts())
+            .attempts(0)
             .location(request.getLocation())
             .preferences(request.getPreferences())
             .build();

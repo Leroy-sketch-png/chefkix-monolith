@@ -41,5 +41,6 @@ public class RecentCookResponse {
         String cookUsername;
         LocalDateTime completedAt;
         Integer rating;
+        Double xpEarned; // XP the cook earned from this session (shown as creator insight)
     }
 }

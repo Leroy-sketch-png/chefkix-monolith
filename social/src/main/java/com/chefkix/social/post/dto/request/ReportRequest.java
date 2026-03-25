@@ -2,6 +2,7 @@ package com.chefkix.social.post.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -21,11 +22,13 @@ public class ReportRequest {
     String targetType;
 
     @NotBlank(message = "Target ID is required")
+    @Size(max = 100, message = "Target ID must be at most 100 characters")
     String targetId;
 
     @NotBlank(message = "Reason is required")
     @Pattern(regexp = "^(fraud|spam|inappropriate|harassment|copyright|other)$", message = "Reason must be 'fraud', 'spam', 'inappropriate', 'harassment', 'copyright', or 'other'")
     String reason;
 
+    @Size(max = 2000, message = "Details must be at most 2000 characters")
     String details; // Optional explanation
 }

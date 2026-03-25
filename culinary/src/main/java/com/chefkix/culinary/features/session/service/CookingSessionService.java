@@ -102,6 +102,11 @@ public class CookingSessionService {
         CookingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
 
+        // Only allow timer events on active sessions
+        if (session.getStatus() != SessionStatus.IN_PROGRESS) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
         // 1. Validate & Parse Event qua Helper
         TimerEventType eventType = helper.validateAndParseTimerEvent(userId, session, request);
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
@@ -142,6 +147,11 @@ public class CookingSessionService {
 
         // 1. Anti-cheat check
         helper.validateAntiCheat(session, recipe);
+
+        // 1b. Require at least 1 completed step to prevent zero-effort XP farming
+        if (session.getCompletedSteps() == null || session.getCompletedSteps().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
 
         // 2. Tính toán Mastery & Base XP
         double masteryMult = helper.calculateMasteryMultiplier(userId, session.getRecipeId());
@@ -569,8 +579,8 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        // Can't abandon already completed or already abandoned sessions
-        if (session.getStatus() == SessionStatus.COMPLETED) {
+        // Can't abandon already completed, posted, or already abandoned sessions
+        if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus() == SessionStatus.POSTED) {
             throw new AppException(ErrorCode.SESSION_COMPLETED);
         }
         if (session.getStatus() == SessionStatus.ABANDONED) {

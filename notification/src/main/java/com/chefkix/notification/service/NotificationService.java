@@ -7,6 +7,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +40,7 @@ public class NotificationService {
     SimpMessagingTemplate messagingTemplate;
     PushNotificationService pushNotificationService;
     NotificationPreferencesProvider notificationPreferencesProvider;
+    MongoTemplate mongoTemplate;
 
     private static final String USER_TOPIC_PREFIX = "/topic/user/";
     private static final int POST_PREVIEW_LENGTH = 50;
@@ -561,15 +566,14 @@ public class NotificationService {
     }
 
     public void markAllAsRead(String userId) {
-        List<Notification> unreadNotifications = notificationRepository.findAllByRecipientIdAndIsReadFalse(userId);
+        long updated = mongoTemplate.updateMulti(
+                Query.query(Criteria.where("recipientId").is(userId).and("isRead").is(false)),
+                Update.update("isRead", true),
+                Notification.class
+        ).getModifiedCount();
 
-        for (Notification notification : unreadNotifications) {
-            notification.setIsRead(true);
-        }
-
-        if (!unreadNotifications.isEmpty()) {
-            notificationRepository.saveAll(unreadNotifications);
-            log.info("Marked {} notifications as read for user {}", unreadNotifications.size(), userId);
+        if (updated > 0) {
+            log.info("Marked {} notifications as read for user {}", updated, userId);
         }
     }
 
@@ -644,8 +648,11 @@ public class NotificationService {
      * Powers the "Welcome Back" dashboard card.
      */
     public NotificationSummaryResponse getActivitySummary(String userId, Instant since) {
+        Instant maxLookback = Instant.now().minus(90, java.time.temporal.ChronoUnit.DAYS);
+        Instant cappedSince = since.isBefore(maxLookback) ? maxLookback : since;
+
         List<Notification> notifications = notificationRepository
-                .findAllByRecipientIdAndCreatedAtAfter(userId, since);
+                .findAllByRecipientIdAndCreatedAtAfter(userId, cappedSince);
 
         Map<NotificationType, Long> counts = notifications.stream()
                 .collect(Collectors.groupingBy(Notification::getType, Collectors.counting()));

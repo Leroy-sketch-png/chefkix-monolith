@@ -16,5 +16,6 @@ public class VerificationApplyRequest {
   String reason;
 
   /** Optional payment reference for paid verification */
+  @Size(max = 200)
   String paymentId;
 }

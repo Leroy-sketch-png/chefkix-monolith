@@ -21,6 +21,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -108,7 +110,8 @@ public class ReplyService {
     }
 
     public List<ReplyResponse> getAllRepliesByCommentId(String commentId, String currentUserId) {
-        List<Reply> replies = replyRepository.findByParentCommentId(commentId);
+        List<Reply> replies = replyRepository.findByParentCommentId(commentId,
+                PageRequest.of(0, 200, Sort.by(Sort.Direction.ASC, "createdAt")));
 
         return replies.stream()
                 .map(reply -> mapToReplyResponse(reply, currentUserId))

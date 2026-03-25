@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PostCreationRequest {
-  String avatarUrl;
+  @Size(max = 500) String avatarUrl;
 
   @NotBlank(message = "Post content is required")
   @Size(min = 1, max = 5000, message = "Content must be between 1 and 5000 characters")
@@ -24,12 +24,12 @@ public class PostCreationRequest {
   @Size(max = 10, message = "Maximum 10 photos allowed")
   List<MultipartFile> photoUrls;
 
-  String videoUrl;
+  @Size(max = 500) String videoUrl;
 
   @Size(max = 20, message = "Maximum 20 tags allowed")
   List<String> tags;
   
-  String sessionId; // Optional: ID của session nấu ăn
+  @Size(max = 100) String sessionId;
   @Builder.Default
   Boolean isPrivateRecipe = false;
 
@@ -42,7 +42,7 @@ public class PostCreationRequest {
   PostType postType; // Optional: QUICK for quick posts, POLL for polls, defaults to PERSONAL
 
   // Poll fields (only when postType == POLL)
-  String pollQuestion;
-  String pollOptionA;
-  String pollOptionB;
+  @Size(max = 500) String pollQuestion;
+  @Size(max = 200) String pollOptionA;
+  @Size(max = 200) String pollOptionB;
 }

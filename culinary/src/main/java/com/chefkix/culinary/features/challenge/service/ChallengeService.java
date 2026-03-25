@@ -348,11 +348,11 @@ public class ChallengeService {
                 .map(dto -> recipeRepository.findById(dto.getId()).orElse(null))
                 .filter(Objects::nonNull)
                 .toList();
-        List<String> matchingRecipeIds = matchingRecipes.isEmpty()
-                ? recipeRepository.findAll().stream().map(Recipe::getId).toList()
-                : matchingRecipes.stream().map(Recipe::getId).toList();
+        List<String> matchingRecipeIds = matchingRecipes.stream()
+                .map(Recipe::getId).toList();
 
         // Count user's completed sessions this week with matching recipes
+        // If no recipes match, progress is 0 (don't fallback to all recipes)
         long progress = matchingRecipeIds.isEmpty() ? 0 :
                 cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
                         userId, matchingRecipeIds, SessionStatus.COMPLETED, weekStartDt, weekEndDt);
@@ -688,36 +688,41 @@ public class ChallengeService {
         String type = (String) criteria.get("type");
         if ("COOK_ANY".equals(type)) return true;
 
-        // Check cuisineType
+        boolean hasAnyCriteria = false;
+
+        // Check cuisineType (must match if present)
         if (criteria.containsKey("cuisineType")) {
+            hasAnyCriteria = true;
             @SuppressWarnings("unchecked")
             List<String> cuisines = (List<String>) criteria.get("cuisineType");
-            if (recipe.getCuisineType() != null &&
-                    cuisines.stream().anyMatch(c -> c.equalsIgnoreCase(recipe.getCuisineType()))) {
-                return true;
+            if (recipe.getCuisineType() == null ||
+                    cuisines.stream().noneMatch(c -> c.equalsIgnoreCase(recipe.getCuisineType()))) {
+                return false;
             }
         }
 
-        // Check skillTags
+        // Check skillTags (must match if present)
         if (criteria.containsKey("skillTags")) {
+            hasAnyCriteria = true;
             @SuppressWarnings("unchecked")
             List<String> tags = (List<String>) criteria.get("skillTags");
-            if (recipe.getSkillTags() != null &&
-                    recipe.getSkillTags().stream().anyMatch(t ->
+            if (recipe.getSkillTags() == null ||
+                    recipe.getSkillTags().stream().noneMatch(t ->
                             tags.stream().anyMatch(ct -> ct.equalsIgnoreCase(t)))) {
-                return true;
+                return false;
             }
         }
 
-        // Check difficulty
+        // Check difficulty (must match if present)
         if (criteria.containsKey("difficulty")) {
+            hasAnyCriteria = true;
             String difficulty = (String) criteria.get("difficulty");
-            if (recipe.getDifficulty() != null &&
-                    recipe.getDifficulty().name().equalsIgnoreCase(difficulty)) {
-                return true;
+            if (recipe.getDifficulty() == null ||
+                    !recipe.getDifficulty().name().equalsIgnoreCase(difficulty)) {
+                return false;
             }
         }
 
-        return false;
+        return hasAnyCriteria;
     }
 }

@@ -10,4 +10,6 @@ public interface FriendRequestRepository extends MongoRepository<FriendRequest, 
   Optional<FriendRequest> findBySenderIdAndReceiverId(String senderId, String receiverId);
 
   boolean existsBySenderIdAndReceiverId(String currentUserId, String targetUserId);
+
+  void deleteBySenderIdAndReceiverId(String senderId, String receiverId);
 }

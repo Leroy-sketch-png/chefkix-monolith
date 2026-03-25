@@ -493,7 +493,8 @@ public class RecipeService {
                                     .coverImageUrl(session.getCoverImageUrl())
                                     .cookUserId(session.getUserId())
                                     .completedAt(session.getCompletedAt())
-                                    .rating(session.getRating());
+                                    .rating(session.getRating())
+                                    .xpEarned(session.getBaseXpAwarded());
 
                     // Resolve cooker profile (fail-safe)
                     try {
@@ -549,7 +550,8 @@ public class RecipeService {
         }
 
         List<CookingSession> sessions = cookingSessionRepository.findByRecipeIdAndStatusIn(
-                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED));
+                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED),
+                PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "completedAt"))).getContent();
 
         int totalSessions = sessions.size();
         if (totalSessions == 0) {
@@ -680,8 +682,20 @@ public class RecipeService {
      */
     @Transactional(readOnly = true)
     public RecipeSocialProofResponse getRecipeSocialProof(String recipeId) {
+        String viewerId = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        boolean isOwner = recipe.getUserId().equals(viewerId);
+        if (!isOwner) {
+            if (recipe.getStatus() == RecipeStatus.DRAFT || recipe.getStatus() == RecipeStatus.ARCHIVED) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+            if (recipe.getRecipeVisibility() == RecipeVisibility.PRIVATE) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+        }
 
         // Post count = sessions that successfully linked a post
         long postCount = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.POSTED);

@@ -28,8 +28,8 @@ public interface PushTokenRepository extends MongoRepository<PushToken, String> 
 
     /** Soft-delete: mark tokens as inactive */
     default void deactivateByUserId(String userId) {
-        findByUserIdAndActiveTrue(userId).forEach(token -> {
-            token.setActive(false);
-        });
+        List<PushToken> tokens = findByUserIdAndActiveTrue(userId);
+        tokens.forEach(token -> token.setActive(false));
+        saveAll(tokens);
     }
 }
