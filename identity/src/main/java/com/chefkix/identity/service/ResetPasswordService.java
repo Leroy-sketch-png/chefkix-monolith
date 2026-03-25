@@ -34,7 +34,7 @@ public class ResetPasswordService {
   @Transactional
   public void sendForgotPasswordOtp(String email) {
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email cannot be null or empty");
+      throw new AppException(ErrorCode.INVALID_INPUT);
     }
 
     String otp = emailService.generateOtpCode();

@@ -1,6 +1,8 @@
 package com.chefkix.identity.service;
 
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +74,7 @@ public class KeycloakService {
                                 ">>> [KEYCLOAK] Login failed for user '{}'. Error: {}",
                                 usernameOrEmail,
                                 respBody);
-                            return Mono.error(new RuntimeException(respBody));
+                            return Mono.error(new AppException(ErrorCode.INVALID_CREDENTIALS));
                           }
 
                           try {
@@ -84,8 +86,7 @@ public class KeycloakService {
                           } catch (Exception e) {
                             log.error(">>> [KEYCLOAK] Failed to parse token response", e);
                             return Mono.error(
-                                new RuntimeException(
-                                    "Failed to parse token response: " + e.getMessage()));
+                                new AppException(ErrorCode.INVALID_CREDENTIALS));
                           }
                         });
               })
@@ -94,7 +95,7 @@ public class KeycloakService {
     } catch (Exception e) {
       log.error(
           ">>> [KEYCLOAK] Login exception for user '{}': {}", usernameOrEmail, e.getMessage());
-      throw new RuntimeException(e.getMessage());
+      throw new AppException(ErrorCode.INVALID_CREDENTIALS);
     }
   }
 
@@ -105,14 +106,19 @@ public class KeycloakService {
     body.add("client_secret", clientSecret);
     body.add("refresh_token", refreshToken);
 
-    return webClient
-        .post()
-        .uri("/token")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .bodyValue(body)
-        .retrieve()
-        .bodyToMono(TokenExchangeResponse.class)
-        .block();
+    try {
+      return webClient
+          .post()
+          .uri("/token")
+          .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+          .bodyValue(body)
+          .retrieve()
+          .bodyToMono(TokenExchangeResponse.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Token refresh failed: status={}", e.getStatusCode());
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
   }
 
   public void logout(String refreshToken) {
@@ -121,14 +127,18 @@ public class KeycloakService {
     body.add("client_secret", clientSecret);
     body.add("refresh_token", refreshToken);
 
-    webClient
-        .post()
-        .uri("/logout")
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .bodyValue(body)
-        .retrieve()
-        .bodyToMono(Void.class)
-        .block();
+    try {
+      webClient
+          .post()
+          .uri("/logout")
+          .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+          .bodyValue(body)
+          .retrieve()
+          .bodyToMono(Void.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Keycloak logout failed: status={}", e.getStatusCode());
+    }
   }
 
     /**
@@ -161,7 +171,7 @@ public class KeycloakService {
             return false;
         } catch (Exception e) {
             log.error("Error communicating with Keycloak for password verification", e);
-            throw new RuntimeException("Authentication service unavailable");
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 }

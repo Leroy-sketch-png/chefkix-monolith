@@ -9,7 +9,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -55,7 +54,7 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
     Slice<GroupMember> findByUserIdAndStatusNot(String userId, MemberStatus status, Pageable pageable);
 
     // BULK UPDATE: Instantly updates thousands of documents in 1 millisecond!
-    @Query("{ 'groupId': myTargetGroup, 'status': 'PENDING' }")
+    @Query("{ 'groupId': ?0, 'status': 'PENDING' }")
     @Update("{ '$set': { 'status': 'ACTIVE' } }")
-    void approveAllPendingMembers(@Param("myTargetGroup") String groupId);
+    void approveAllPendingMembers(String groupId);
 }

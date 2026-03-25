@@ -56,6 +56,11 @@ public class NotificationService {
         String recipientId = event.getPostOwnerId();
         String targetId = event.getPostId();
 
+        // Skip self-like notifications
+        if (event.getLikerId().equals(recipientId)) {
+            return;
+        }
+
         // PREFERENCE CHECK: respect user's social notification toggle
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
             log.debug("Skipping POST_LIKE notification for user {} — social notifications disabled", recipientId);
@@ -119,6 +124,11 @@ public class NotificationService {
     public void handleCommentEvent(CommentEvent event) {
         String recipientId = event.getPostOwnerId();
         String displayName = safeDisplayName(event.getCommenterDisplayName());
+
+        // Skip self-comment notifications
+        if (event.getCommenterId().equals(recipientId)) {
+            return;
+        }
 
         // PREFERENCE CHECK: respect user's social notification toggle
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
@@ -242,6 +252,7 @@ public class NotificationService {
             case POST_DEADLINE -> "postDeadline";
             case CHALLENGE_REMINDER, CHALLENGE_AVAILABLE -> "dailyChallenge";
             case WEEKEND_NUDGE -> "weekendNudge";
+            case PANTRY_EXPIRING -> "pantryReminder";
             default -> "social";
         };
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, prefCategory)) {
@@ -311,6 +322,55 @@ public class NotificationService {
         broadcastNotification(recipientId, response, "CREATE");
 
         log.info("Created mention notification for user: {} in source: {}", recipientId, event.getSourceType());
+    }
+
+    // ===============================================
+    // DUEL EVENT HANDLER
+    // ===============================================
+
+    public void handleDuelEvent(DuelEvent event) {
+        String recipientId = event.getUserId();
+
+        NotificationType duelType = switch (event.getDuelAction()) {
+            case "INVITE" -> NotificationType.DUEL_INVITE;
+            case "ACCEPTED" -> NotificationType.DUEL_ACCEPTED;
+            case "DECLINED" -> NotificationType.DUEL_DECLINED;
+            case "COMPLETED" -> NotificationType.DUEL_COMPLETED;
+            case "EXPIRED" -> NotificationType.DUEL_EXPIRED;
+            default -> {
+                log.warn("Unknown duel action '{}', skipping", event.getDuelAction());
+                yield null;
+            }
+        };
+
+        if (duelType == null) return;
+
+        String content = switch (duelType) {
+            case DUEL_INVITE -> String.format("%s challenged you to a cooking duel: %s!",
+                    event.getChallengerName(), event.getRecipeTitle());
+            case DUEL_ACCEPTED -> String.format("%s accepted your duel challenge: %s!",
+                    event.getOpponentName(), event.getRecipeTitle());
+            case DUEL_DECLINED -> String.format("%s declined your duel challenge: %s.",
+                    event.getOpponentName(), event.getRecipeTitle());
+            case DUEL_COMPLETED -> event.getWinnerId() != null
+                    ? String.format("Duel complete! Winner: %s (+%dXP) — %s",
+                    event.getWinnerId().equals(recipientId) ? "You" : event.getOpponentName(),
+                    event.getBonusXp(), event.getRecipeTitle())
+                    : String.format("Duel complete: %s — It's a tie!", event.getRecipeTitle());
+            case DUEL_EXPIRED -> String.format("Your duel challenge for %s has expired.", event.getRecipeTitle());
+            default -> "Cooking duel update";
+        };
+
+        createAndBroadcastNotification(
+                recipientId,
+                event.getDuelId(),
+                event.getChallengerName(),
+                event.getRecipeCoverUrl(),
+                event.getDuelId(),
+                content,
+                duelType,
+                "Created duel notification"
+        );
     }
 
     // ===============================================
@@ -463,11 +523,13 @@ public class NotificationService {
     }
 
     public void updateReadStatus(String userId, NotificationUpdateRequest request) {
-        Iterable<Notification> notificationsToUpdate = notificationRepository.findAllById(request.getNotificationIds());
+        Iterable<Notification> allNotifications = notificationRepository.findAllById(request.getNotificationIds());
 
-        for (Notification notification : notificationsToUpdate) {
+        List<Notification> ownedNotifications = new java.util.ArrayList<>();
+        for (Notification notification : allNotifications) {
             if (notification.getRecipientId().equals(userId)) {
                 notification.setIsRead(request.getIsRead());
+                ownedNotifications.add(notification);
             } else {
                 log.warn(
                         "User {} attempted to update notification {} which belongs to {}",
@@ -477,7 +539,9 @@ public class NotificationService {
             }
         }
 
-        notificationRepository.saveAll(notificationsToUpdate);
+        if (!ownedNotifications.isEmpty()) {
+            notificationRepository.saveAll(ownedNotifications);
+        }
     }
 
     public void markAsRead(String userId, String notificationId) {

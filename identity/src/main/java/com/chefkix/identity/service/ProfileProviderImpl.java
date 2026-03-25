@@ -58,6 +58,7 @@ public class ProfileProviderImpl implements ProfileProvider {
                 .firstName(response.getFirstName())
                 .lastName(response.getLastName())
                 .avatarUrl(response.getAvatarUrl())
+                .verified(response.isVerified())
                 .build();
     }
 

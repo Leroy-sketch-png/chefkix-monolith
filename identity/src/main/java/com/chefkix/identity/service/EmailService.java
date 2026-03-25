@@ -1,5 +1,7 @@
 package com.chefkix.identity.service;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.HexFormat;
@@ -42,7 +44,7 @@ public class EmailService {
       byte[] raw = mac.doFinal(otp.getBytes(StandardCharsets.UTF_8));
       return HexFormat.of().formatHex(raw);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to HMAC OTP", e);
+      throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 }

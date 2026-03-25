@@ -210,10 +210,12 @@ public class MediaCleanupScheduler {
             }
         });
 
-        // Posts: photoUrls[]
+        // Posts: photoUrls[], videoUrl
         mongoTemplate.find(new Query(), org.bson.Document.class, "posts").forEach(doc -> {
             List<String> photoUrls = doc.getList("photoUrls", String.class);
             if (photoUrls != null) urls.addAll(photoUrls);
+            String videoUrl = doc.getString("videoUrl");
+            if (videoUrl != null) urls.add(videoUrl);
         });
 
         // User profiles: avatarUrl

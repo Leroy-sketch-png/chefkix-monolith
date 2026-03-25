@@ -51,6 +51,10 @@ public class ConversationService {
     public ConversationResponse create(ConversationRequest request) {
         // Fetch user infos
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (request.getParticipantIds() == null || request.getParticipantIds().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
+        }
         String targetUserId = request.getParticipantIds().getFirst();
         log.info(
                 "Creating conversation for user {} with participant {}",

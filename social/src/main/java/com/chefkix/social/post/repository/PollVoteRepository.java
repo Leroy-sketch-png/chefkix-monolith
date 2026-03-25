@@ -11,4 +11,5 @@ import com.chefkix.social.post.entity.PollVote;
 public interface PollVoteRepository extends MongoRepository<PollVote, String> {
     Optional<PollVote> findByPostIdAndUserId(String postId, String userId);
     boolean existsByPostIdAndUserId(String postId, String userId);
+    void deleteAllByPostId(String postId);
 }

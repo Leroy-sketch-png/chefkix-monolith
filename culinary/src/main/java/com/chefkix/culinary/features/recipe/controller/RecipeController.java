@@ -11,6 +11,7 @@ import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
 import com.chefkix.culinary.features.recipe.dto.response.StepHeatmapResponse;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,7 +77,7 @@ public class RecipeController {
     @GetMapping("/trending")
     public ApiResponse<List<RecipeDetailResponse>> getTrending(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") @Max(100) int size
     ) {
         return ApiResponse.successPage(recipeService.getTrendingRecipes(page, size));
     }
@@ -85,7 +86,7 @@ public class RecipeController {
     @GetMapping("/feed")
     public ApiResponse<List<RecipeSummaryResponse>> getFriendsFeed(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") @Max(100) int size) {
         return ApiResponse.successPage(recipeService.getFriendsFeed(page, size));
     }
 
@@ -94,7 +95,7 @@ public class RecipeController {
     public ApiResponse<List<RecipeSummaryResponse>> getRecipesByUser(
             @PathVariable String userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") @Max(100) int size) {
         return ApiResponse.successPage(recipeService.getRecipesByUser(userId, page, size));
     }
 
@@ -112,7 +113,7 @@ public class RecipeController {
     @GetMapping("/{id}/similar")
     public ApiResponse<List<RecipeDetailResponse>> getSimilarRecipes(
             @PathVariable String id,
-            @RequestParam(defaultValue = "6") int size) {
+            @RequestParam(defaultValue = "6") @Max(100) int size) {
         return ApiResponse.successPage(recipeService.getSimilarRecipes(id, size));
     }
 
@@ -130,7 +131,7 @@ public class RecipeController {
     @GetMapping("/creator/recent-cooks")
     public ApiResponse<RecentCookResponse> getRecentCooks(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") @Max(100) int size) {
         return ApiResponse.success(recipeService.getRecentCooksOfMyRecipes(page, size), "Recent cooks retrieved");
     }
 

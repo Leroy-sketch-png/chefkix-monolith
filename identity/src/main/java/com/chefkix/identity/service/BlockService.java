@@ -34,6 +34,7 @@ public class BlockService {
   BlockRepository blockRepository;
   FollowRepository followRepository;
   UserProfileRepository userProfileRepository;
+  StatisticsService statisticsService;
   SecurityUtils securityUtils;
 
   /** Block a user. Also removes any follow relationships between the two users. */
@@ -63,6 +64,8 @@ public class BlockService {
         .ifPresent(
             follow -> {
               followRepository.delete(follow);
+              statisticsService.incrementCounter(blockerId, "followingCount", -1);
+              statisticsService.incrementCounter(blockedUserId, "followerCount", -1);
               log.info("Removed follow: {} -> {} due to block", blockerId, blockedUserId);
             });
     followRepository
@@ -70,6 +73,8 @@ public class BlockService {
         .ifPresent(
             follow -> {
               followRepository.delete(follow);
+              statisticsService.incrementCounter(blockedUserId, "followingCount", -1);
+              statisticsService.incrementCounter(blockerId, "followerCount", -1);
               log.info("Removed follow: {} -> {} due to block", blockedUserId, blockerId);
             });
 

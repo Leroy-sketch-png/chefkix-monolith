@@ -12,6 +12,7 @@ import com.chefkix.identity.enums.RelationshipStatus;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.mapper.ProfileMapper;
+import com.chefkix.identity.repository.BlockRepository;
 import com.chefkix.identity.repository.FollowRepository;
 import com.chefkix.identity.repository.FriendRequestRepository;
 import com.chefkix.identity.repository.FriendshipRepository;
@@ -21,6 +22,7 @@ import com.chefkix.identity.utils.SocialUtils;
 import com.mongodb.client.result.UpdateResult;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +48,7 @@ public class SocialService {
   FriendRequestRepository friendRequestRepository;
   UserProfileRepository userProfileRepository;
   FriendshipRepository friendshipRepository;
+  BlockRepository blockRepository;
   ProfileMapper profileMapper;
   MongoTemplate mongoTemplate;
   SecurityUtils securityUtils;
@@ -254,6 +257,11 @@ public class SocialService {
   public ProfileResponse acceptFriendRequest(String senderId, Authentication authentication) {
     String currentUserId = securityUtils.getCurrentUserId(authentication); // Đây là BẠN (Receiver)
 
+    // Block check: cannot accept friendship if either user has blocked the other
+    if (blockRepository.existsBlockBetween(senderId, currentUserId)) {
+      throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+    }
+
     // 1. Tìm lời mời (Code của bạn đã đúng)
     FriendRequest friendRequest =
         friendRequestRepository
@@ -460,8 +468,10 @@ public class SocialService {
 
     // 3. Tìm kiếm trong Database những ID đó có tên khớp keyword
     // Giới hạn 10 kết quả để autocomplete nhanh
+    // Escape regex special chars to prevent ReDoS from user-controlled input
+    String safeKeyword = Pattern.quote(keyword);
     List<UserProfile> matchedFriends =
-        friendshipRepository.findFriendsForMention(friendIds, keyword, pageable);
+        friendshipRepository.findFriendsForMention(friendIds, safeKeyword, pageable);
 
     // 4. Map sang DTO nhẹ để trả về Frontend
     return matchedFriends.stream()

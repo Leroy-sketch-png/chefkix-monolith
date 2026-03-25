@@ -78,6 +78,10 @@ public class RecipeService {
                 throw new AppException(ErrorCode.UNAUTHORIZED);
             }
 
+            if (existingRecipe.getStatus() != RecipeStatus.DRAFT) {
+                throw new AppException(ErrorCode.INVALID_ACTION);
+            }
+
             recipeMapper.updateRecipeFromRequest(existingRecipe, request);
 
             // NOTE: isPublished bypass removed — publishing only via DraftService.publishRecipe()
@@ -117,7 +121,8 @@ public class RecipeService {
         }
 
         // Prevent deleting recipes that have active cooking sessions
-        long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS);
+        long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS)
+                + cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.PAUSED);
         if (activeSessions > 0) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }

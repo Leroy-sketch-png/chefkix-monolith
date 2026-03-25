@@ -7,6 +7,7 @@ import com.chefkix.culinary.features.challenge.dto.response.CommunityChallengeRe
 import com.chefkix.culinary.features.challenge.dto.response.SeasonalChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeResponse;
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
+import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,7 @@ public class ChallengeController {
     @GetMapping("/history")
     public ApiResponse<ChallengeHistoryResponse> getHistory(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "7") int size
+            @RequestParam(defaultValue = "7") @Max(100) int size
     ) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 

@@ -56,6 +56,10 @@ public class ProfileResponse {
   @JsonProperty("isBlocked")
   Boolean isBlocked;    // Current user has blocked this profile
 
+  /** Verified creator badge */
+  @JsonProperty("isVerified")
+  boolean verified;
+
   // Metadata
   Instant createdAt;
   Instant updatedAt;

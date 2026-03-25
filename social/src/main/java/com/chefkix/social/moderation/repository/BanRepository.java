@@ -20,4 +20,6 @@ public interface BanRepository extends MongoRepository<Ban, String> {
     Optional<Ban> findFirstByUserIdAndActiveTrueOrderByIssuedAtDesc(String userId);
 
     List<Ban> findByActiveTrueAndExpiresAtBefore(Instant now);
+
+    List<Ban> findByUserIdOrderByIssuedAtDesc(String userId);
 }

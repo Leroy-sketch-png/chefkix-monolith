@@ -5,6 +5,7 @@ import com.chefkix.culinary.features.interaction.dto.response.RecipeLikeResponse
 import com.chefkix.culinary.features.interaction.dto.response.RecipeSaveResponse;
 import com.chefkix.culinary.features.interaction.service.InteractionService;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
+import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,7 @@ public class InteractionController {
     @GetMapping("/liked")
     public ApiResponse<List<RecipeSummaryResponse>> getLikedRecipes(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") @Max(100) int size) {
         return ApiResponse.successPage(interactionService.getLikedRecipes(page, size));
     }
 
@@ -45,7 +46,7 @@ public class InteractionController {
     @GetMapping("/saved")
     public ApiResponse<List<RecipeSummaryResponse>> getSavedRecipes(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") @Max(100) int size) {
         return ApiResponse.successPage(interactionService.getSavedRecipes(page, size));
     }
 }

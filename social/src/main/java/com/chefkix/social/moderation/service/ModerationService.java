@@ -67,6 +67,10 @@ public class ModerationService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPORT_NOT_FOUND));
 
+        if (!"pending".equals(report.getStatus())) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
         report.setStatus(request.getDecision());
         report.setReviewedBy(adminId);
         report.setReviewNotes(request.getNotes());
@@ -150,7 +154,7 @@ public class ModerationService {
      * Get ban history for a user.
      */
     public List<BanResponse> getBanHistory(String userId) {
-        return banRepository.findByUserIdAndActiveTrue(userId).stream()
+        return banRepository.findByUserIdOrderByIssuedAtDesc(userId).stream()
                 .map(this::toBanResponse)
                 .toList();
     }
@@ -172,9 +176,12 @@ public class ModerationService {
      * User submits an appeal against their ban.
      */
     public Appeal createAppeal(String userId, AppealRequest request) {
-        // Verify ban exists
-        banRepository.findById(request.getBanId())
+        // Verify ban exists and belongs to the requesting user
+        Ban ban = banRepository.findById(request.getBanId())
                 .orElseThrow(() -> new AppException(ErrorCode.BAN_NOT_FOUND));
+        if (!ban.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        }
 
         // Check for existing pending appeal
         appealRepository.findByBanIdAndStatus(request.getBanId(), "pending")
@@ -199,6 +206,10 @@ public class ModerationService {
     public Appeal reviewAppeal(String appealId, String adminId, ReviewAppealRequest request) {
         Appeal appeal = appealRepository.findById(appealId)
                 .orElseThrow(() -> new AppException(ErrorCode.APPEAL_NOT_FOUND));
+
+        if (!"pending".equals(appeal.getStatus())) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
 
         appeal.setStatus(request.getDecision());
         appeal.setReviewedBy(adminId);

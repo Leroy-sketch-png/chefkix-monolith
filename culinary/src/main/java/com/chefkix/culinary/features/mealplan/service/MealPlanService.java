@@ -99,7 +99,7 @@ public class MealPlanService {
         if (aiResponse.getMealPlan() != null) {
             for (var aiDay : aiResponse.getMealPlan()) {
                 plannedDays.add(PlannedDay.builder()
-                        .dayOfWeek(DAY_NAMES[Math.min(aiDay.getDay() - 1, DAY_NAMES.length - 1)])
+                        .dayOfWeek(DAY_NAMES[Math.max(0, Math.min(aiDay.getDay() - 1, DAY_NAMES.length - 1))])
                         .breakfast(mapAiMealSlot(aiDay.getBreakfast(), requestedServings))
                         .lunch(mapAiMealSlot(aiDay.getLunch(), requestedServings))
                         .dinner(mapAiMealSlot(aiDay.getDinner(), requestedServings))
@@ -228,8 +228,10 @@ public class MealPlanService {
                 .aiGenerated(req.isAiGenerated())
                 .build();
 
+        boolean dayFound = false;
         for (PlannedDay d : plan.getDays()) {
             if (d.getDayOfWeek().equalsIgnoreCase(day)) {
+                dayFound = true;
                 switch (mealType.toLowerCase()) {
                     case "breakfast" -> d.setBreakfast(meal);
                     case "lunch" -> d.setLunch(meal);
@@ -238,6 +240,10 @@ public class MealPlanService {
                 }
                 break;
             }
+        }
+
+        if (!dayFound) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
         }
 
         return toResponse(mealPlanRepo.save(plan));

@@ -1,6 +1,8 @@
 package com.chefkix.social.chat.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import com.chefkix.social.chat.enums.MessageType;
 
@@ -16,8 +18,11 @@ public class ChatMessageRequest {
     @NotBlank
     String conversationId;
 
+    @NotBlank
+    @Size(max = 5000)
     String message;
 
+    @NotNull
     MessageType type;
     String relatedId;
 

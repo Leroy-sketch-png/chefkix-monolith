@@ -13,9 +13,11 @@ import com.chefkix.social.post.entity.TaggedUserInfo;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.mapper.CommentMapper;
+import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.repository.CommentLikeRepository;
 import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.PostRepository;
+import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
@@ -23,6 +25,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -47,12 +53,14 @@ public class CommentService {
   PostRepository postRepository;
   CommentLikeRepository commentLikeRepository;
   ReplyRepository replyRepository;
+  ReplyLikeRepository replyLikeRepository;
   KafkaTemplate<String, Object> kafkaTemplate;
     // Regex bắt format: @[userId|displayName
     static Pattern TAG_PATTERN = Pattern.compile("@\\[([^|]+)\\|([^]]+)\\]");
   CommentMapper commentMapper;
     private final ProfileProvider profileProvider;
     private final ContentModerationProvider contentModerationProvider;
+    private final MongoTemplate mongoTemplate;
 
     public CommentResponse createComment(
       Authentication authentication, String postId, CommentRequest req) {
@@ -114,8 +122,11 @@ public class CommentService {
 
     commentRepository.save(comment);
 
-    post.setCommentCount(post.getCommentCount() + 1);
-    postRepository.save(post);
+    // Atomic increment to prevent race conditions
+    mongoTemplate.updateFirst(
+            Query.query(Criteria.where("id").is(postId)),
+            new Update().inc("commentCount", 1),
+            Post.class);
 
     // Send notification to post owner (only if commenter is not the post owner)
     if (!userId.equals(post.getUserId())) {
@@ -284,6 +295,12 @@ public class CommentService {
             throw new AppException(ErrorCode.COMMENT_NOT_FOUND);
         }
 
+        // Delete all reply likes for replies on this comment
+        List<Reply> replies = replyRepository.findByParentCommentId(commentId);
+        for (Reply reply : replies) {
+            replyLikeRepository.deleteAllByReplyId(reply.getId());
+        }
+
         // Delete all replies to this comment
         replyRepository.deleteAllByParentCommentId(commentId);
 
@@ -293,11 +310,10 @@ public class CommentService {
         // Delete the comment
         commentRepository.delete(comment);
 
-        // Decrement comment count on post
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
-        post.setCommentCount(Math.max(0, post.getCommentCount() - 1));
-        postRepository.save(post);
+        // Atomically decrement comment count on post
+        Query postQuery = Query.query(Criteria.where("id").is(postId));
+        Update postUpdate = new Update().inc("commentCount", -1);
+        mongoTemplate.updateFirst(postQuery, postUpdate, Post.class);
 
         log.info("Comment {} deleted by user {}", commentId, userId);
     }
@@ -317,7 +333,7 @@ public class CommentService {
         if (alreadyLiked) {
             // Unlike
             commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
-            comment.setLikes(Math.max(0, comment.getLikes() - 1));
+            incrementCommentLikes(commentId, -1);
         } else {
             // Like
             CommentLike like = CommentLike.builder()
@@ -326,14 +342,19 @@ public class CommentService {
                     .createdAt(Instant.now())
                     .build();
             commentLikeRepository.save(like);
-            comment.setLikes(comment.getLikes() + 1);
+            incrementCommentLikes(commentId, 1);
         }
 
-        commentRepository.save(comment);
-
+        long likeCount = commentLikeRepository.countByCommentId(commentId);
         return CommentLikeResponse.builder()
                 .isLiked(!alreadyLiked)
-                .likes(comment.getLikes())
+                .likes((int) likeCount)
                 .build();
+    }
+
+    private void incrementCommentLikes(String commentId, int amount) {
+        Query query = Query.query(Criteria.where("id").is(commentId));
+        Update update = new Update().inc("likes", amount);
+        mongoTemplate.updateFirst(query, update, Comment.class);
     }
 }

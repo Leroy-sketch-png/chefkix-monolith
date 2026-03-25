@@ -25,6 +25,8 @@ public interface PostSaveRepository extends MongoRepository<PostSave, String> {
     
     long countByPostId(String postId);
 
+    void deleteAllByPostId(String postId);
+
     /**
      * Batch: find all saves by a user for a set of posts (eliminates N+1).
      */

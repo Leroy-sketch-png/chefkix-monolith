@@ -96,7 +96,7 @@ public class ReplyService {
         reply.setCreatedAt(Instant.now());
         Reply savedReply = replyRepository.save(reply);
 
-        incrementCounter(savedReply.getParentCommentId(), "comments", 1);
+        incrementCounter(savedReply.getParentCommentId(), "replyCount", 1);
 
         // Send notification to tagged users
         if (savedReply.getTaggedUserIds() != null && !savedReply.getTaggedUserIds().isEmpty()) {
@@ -212,7 +212,7 @@ public class ReplyService {
         }
 
         // Decrement reply count on parent comment
-        incrementCounter(reply.getParentCommentId(), "comments", -1);
+        incrementCounter(reply.getParentCommentId(), "replyCount", -1);
 
         // Delete all likes for this reply
         replyLikeRepository.deleteAllByReplyId(replyId);

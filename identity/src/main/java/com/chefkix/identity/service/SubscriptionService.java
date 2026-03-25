@@ -75,6 +75,9 @@ public class SubscriptionService {
         UserSubscription sub = subscriptionRepository.findByUserId(userId)
                 .orElseGet(() -> createFreeSubscription(userId));
 
+        // Auto-expire stale subscriptions so users can re-activate
+        deactivateIfExpired(sub);
+
         if (sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM) {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
         }
@@ -112,6 +115,9 @@ public class SubscriptionService {
         if (sub.isTrialUsed()) {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
         }
+
+        // Auto-expire stale subscriptions so users can start trial
+        deactivateIfExpired(sub);
 
         if (sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM) {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
@@ -151,6 +157,17 @@ public class SubscriptionService {
         log.info("Premium subscription cancelled for user={}, expires={}", userId, sub.getEndDate());
         subscriptionRepository.save(sub);
         return toResponse(sub);
+    }
+
+    private void deactivateIfExpired(UserSubscription sub) {
+        if (sub.isActive()
+                && sub.getEndDate() != null
+                && Instant.now().isAfter(sub.getEndDate())) {
+            sub.setActive(false);
+            sub.setTier(SubscriptionTier.FREE);
+            subscriptionRepository.save(sub);
+            log.info("Auto-deactivated expired subscription for user={}", sub.getUserId());
+        }
     }
 
     private UserSubscription createFreeSubscription(String userId) {
