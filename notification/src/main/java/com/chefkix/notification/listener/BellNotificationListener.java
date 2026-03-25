@@ -172,6 +172,18 @@ public class BellNotificationListener {
             } catch (Exception e) {
                 log.error("Failed to handle ReminderEvent for user {}, type {}: {}", reminderEvent.getUserId(), reminderEvent.getReminderType(), e.getMessage(), e);
             }
+        } else if (event instanceof DuelEvent duelEvent) {
+            if (!hasText(duelEvent.getUserId()) || !hasText(duelEvent.getDuelId())) {
+                log.error("Skipping invalid DuelEvent: userId={}, duelId={}", duelEvent.getUserId(), duelEvent.getDuelId());
+                return;
+            }
+            try {
+                log.info("Received DuelEvent: user={}, action={}, duel={}",
+                        duelEvent.getUserId(), duelEvent.getDuelAction(), duelEvent.getDuelId());
+                notificationService.handleDuelEvent(duelEvent);
+            } catch (Exception e) {
+                log.error("Failed to handle DuelEvent for user {}, duel {}: {}", duelEvent.getUserId(), duelEvent.getDuelId(), e.getMessage(), e);
+            }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
         }
@@ -211,30 +223,51 @@ public class BellNotificationListener {
             containerFactory = "notificationEventListenerFactory")
     public void listenGroupDelivery(BaseEvent event) {
 
-        // 1. Your standard idempotency check
-        if (!idempotencyService.tryProcess(event.getEventId(), "group-delivery")) {
+        // 1. Null-safe idempotency check (consistent with all other listeners)
+        if (!shouldProcess(event, "group-delivery")) {
             return;
         }
 
         // 2. Java 21 Pattern Matching Switch to handle the specific group events
         switch (event) {
             case GroupJoinRequestedEvent requestEvent -> {
-                log.info("Received GroupJoinRequestedEvent for group: {} from user: {}",
-                        requestEvent.getGroupId(), requestEvent.getRequesterId());
-
-                notificationService.handleGroupJoinRequestedEvent(requestEvent);
+                if (!hasText(requestEvent.getGroupId()) || !hasText(requestEvent.getRequesterId())) {
+                    log.error("Skipping invalid GroupJoinRequestedEvent: groupId={}, requesterId={}", requestEvent.getGroupId(), requestEvent.getRequesterId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupJoinRequestedEvent for group: {} from user: {}",
+                            requestEvent.getGroupId(), requestEvent.getRequesterId());
+                    notificationService.handleGroupJoinRequestedEvent(requestEvent);
+                } catch (Exception e) {
+                    log.error("Failed to handle GroupJoinRequestedEvent for group {}: {}", requestEvent.getGroupId(), e.getMessage(), e);
+                }
             }
             case GroupMemberJoinedEvent joinEvent -> {
-                log.info("Received GroupMemberJoinedEvent for group: {} from user: {}",
-                        joinEvent.getGroupId(), joinEvent.getMemberId());
-
-                notificationService.handleGroupMemberJoinedEvent(joinEvent);
+                if (!hasText(joinEvent.getGroupId()) || !hasText(joinEvent.getMemberId())) {
+                    log.error("Skipping invalid GroupMemberJoinedEvent: groupId={}, memberId={}", joinEvent.getGroupId(), joinEvent.getMemberId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupMemberJoinedEvent for group: {} from user: {}",
+                            joinEvent.getGroupId(), joinEvent.getMemberId());
+                    notificationService.handleGroupMemberJoinedEvent(joinEvent);
+                } catch (Exception e) {
+                    log.error("Failed to handle GroupMemberJoinedEvent for group {}: {}", joinEvent.getGroupId(), e.getMessage(), e);
+                }
             }
             case GroupRequestApprovedEvent approveEvent -> {
-                log.info("Received GroupRequestApprovedEvent for group: {} from user: {}",
-                        approveEvent.getGroupId(), approveEvent.getRequesterId());
-
-                notificationService.handleGroupRequestApprovedEvent(approveEvent);
+                if (!hasText(approveEvent.getGroupId()) || !hasText(approveEvent.getRequesterId())) {
+                    log.error("Skipping invalid GroupRequestApprovedEvent: groupId={}, requesterId={}", approveEvent.getGroupId(), approveEvent.getRequesterId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupRequestApprovedEvent for group: {} from user: {}",
+                            approveEvent.getGroupId(), approveEvent.getRequesterId());
+                    notificationService.handleGroupRequestApprovedEvent(approveEvent);
+                } catch (Exception e) {
+                    log.error("Failed to handle GroupRequestApprovedEvent for group {}: {}", approveEvent.getGroupId(), e.getMessage(), e);
+                }
             }
             default -> {
                 log.warn("Received unexpected event type on 'group-delivery': {}",

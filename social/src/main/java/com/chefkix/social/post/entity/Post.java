@@ -22,7 +22,11 @@ import java.util.List;
         // 1. For lighting-fast Personal Profile feeds
         @CompoundIndex(def = "{'userId': 1, 'createdAt': -1}", name = "idx_userId_createdAt"),
         // 2. For lightning-fast Group feeds
-        @CompoundIndex(def = "{'groupId': 1, 'createdAt': -1}", name = "idx_groupId_createdAt")
+        @CompoundIndex(def = "{'groupId': 1, 'createdAt': -1}", name = "idx_groupId_createdAt"),
+        // 3. For global "Hot" feed (hidden=false filtered by hotScore desc)
+        @CompoundIndex(def = "{'hidden': 1, 'hotScore': -1}", name = "idx_hidden_hotScore"),
+        // 4. For global "New" feed (hidden=false filtered by createdAt desc)
+        @CompoundIndex(def = "{'hidden': 1, 'createdAt': -1}", name = "idx_hidden_createdAt")
 })@Data
 @NoArgsConstructor
 @AllArgsConstructor

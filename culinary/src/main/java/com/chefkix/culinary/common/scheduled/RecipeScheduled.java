@@ -58,10 +58,8 @@ public class RecipeScheduled {
             // Dùng Bulk Operations để update hàng nghìn record cực nhanh
             var bulkOps = mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, Recipe.class);
 
-            // Reset điểm của TOÀN BỘ Recipe về 0 trước (để những món hết hot sẽ rớt hạng)
-            // Lưu ý: Cách này đơn giản nhưng có thể gây flick nhẹ. 
-            // Cách tốt hơn là update những món có trong map, và set 0 cho những món không có trong map.
-            // Ở đây mình demo cách update những món CÓ điểm.
+            // Reset ALL trending scores to 0 first so recipes that lost activity decay naturally
+            mongoTemplate.updateMulti(new Query(), new Update().set("trendingScore", 0.0), Recipe.class);
 
             for (Map.Entry<String, Double> entry : scoreMap.entrySet()) {
                 Query query = new Query(Criteria.where("_id").is(entry.getKey()));
@@ -85,8 +83,8 @@ public class RecipeScheduled {
                 Aggregation.match(Criteria.where(dateField).gte(fromDate)),
                 // 2. Gom nhóm theo recipeId và đếm
                 Aggregation.group(groupField).count().as("count"),
-                // 3. Map field _id (là recipeId) ra field "id" của DTO
-                Aggregation.project("count").and("_id").as("id")
+                // 3. Map field _id (là recipeId) ra field "recipeId" của DTO
+                Aggregation.project("count").and("_id").as("recipeId")
         );
 
         return mongoTemplate.aggregate(aggregation, collectionClass, RecipeStatDto.class).getMappedResults();

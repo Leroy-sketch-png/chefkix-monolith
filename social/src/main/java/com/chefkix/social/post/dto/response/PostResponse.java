@@ -18,6 +18,7 @@ import java.util.List;
 public class PostResponse {
     String id;
     String userId;
+    String groupId;
     String displayName; // Tên hiển thị của người post
     String avatarUrl;   // Avatar của người post
     @JsonProperty("isVerified")

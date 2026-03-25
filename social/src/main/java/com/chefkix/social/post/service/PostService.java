@@ -38,6 +38,7 @@ import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.PostSaveRepository;
 import com.chefkix.social.post.repository.PollVoteRepository;
 import com.chefkix.social.post.repository.PlateRatingRepository;
+import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.entity.PlateRating;
 import com.chefkix.social.post.dto.request.PlateRateRequest;
 import com.chefkix.social.post.dto.response.PlateRateResponse;
@@ -55,6 +56,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,6 +89,7 @@ public class PostService {
     PostSaveRepository postSaveRepository;
     PollVoteRepository pollVoteRepository;
     PlateRatingRepository plateRatingRepository;
+    CommentRepository commentRepository;
     MongoTemplate mongoTemplate;
     GroupMemberRepository groupMemberRepository;
 
@@ -401,6 +404,12 @@ public class PostService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
+        // Cascade: delete all related data before post
+        postLikeRepository.deleteAllByPostId(postId);
+        postSaveRepository.deleteAllByPostId(postId);
+        pollVoteRepository.deleteAllByPostId(postId);
+        commentRepository.deleteAllByPostId(postId);
+
         postRepository.delete(post);
 
         // Real-time Typesense removal
@@ -460,13 +469,18 @@ public class PostService {
         postLike.setCreatedDate(LocalDateTime.now());
         postLikeRepository.save(postLike);
 
-        post.setLikes(post.getLikes() + 1);
-        post.setUpdatedAt(Instant.now()); // Update time để thuật toán trending tính lại
-        postRepository.save(post);
+        // Atomic increment to prevent race conditions
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(postId)),
+                new Update().inc("likes", 1).set("updatedAt", Instant.now()),
+                Post.class);
 
-        sendLikeNotification(userId, post);
+        if (!userId.equals(post.getUserId())) {
+            sendLikeNotification(userId, post);
+        }
 
-        return PostLikeResponse.builder().isLiked(true).likeCount(post.getLikes()).build();
+        long likeCount = postLikeRepository.countByPostId(postId);
+        return PostLikeResponse.builder().isLiked(true).likeCount((int) likeCount).build();
     }
 
     @Transactional
@@ -483,11 +497,14 @@ public class PostService {
 
         postLikeRepository.delete(postLike);
 
-        post.setLikes(Math.max(post.getLikes() - 1, 0));
-        post.setUpdatedAt(Instant.now());
-        postRepository.save(post);
+        // Atomic decrement to prevent race conditions
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(postId)),
+                new Update().inc("likes", -1).set("updatedAt", Instant.now()),
+                Post.class);
 
-        return PostLikeResponse.builder().isLiked(false).likeCount(post.getLikes()).build();
+        long likeCount = postLikeRepository.countByPostId(postId);
+        return PostLikeResponse.builder().isLiked(false).likeCount((int) likeCount).build();
     }
 
     private void sendLikeNotification(String userId, Post post) {
@@ -572,7 +589,7 @@ public class PostService {
 
         Criteria baseCriteria = Criteria.where("hidden").is(false)
                 .and("userId").ne(currentUserId)
-                .and("postStatus").is(PostStatus.ACTIVE.name());
+                .and("status").is(PostStatus.ACTIVE.name());
 
         if (!interactedPostIds.isEmpty()) {
             baseCriteria = baseCriteria.and("_id").nin(interactedPostIds);

@@ -12,6 +12,7 @@ import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResul
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.model.ActiveCookingPresence;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
+import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.enums.TimerEventType;
 import com.chefkix.shared.exception.AppException;
@@ -63,15 +64,20 @@ public class CookingSessionService {
     public StartSessionResponse startSession(String userId, StartSessionRequest request) {
         // 1. Check existing session
         Optional<CookingSession> activeSessionOpt = sessionRepository
-                .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
+                .findFirstByUserIdAndStatusIn(userId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED));
 
         if (activeSessionOpt.isPresent()) {
             throw new AppException(ErrorCode.SESSION_ALREADY_ACTIVE);
         }
 
-        // 2. Create new session
+        // 2. Fetch and validate recipe
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        // Block cooking unpublished/archived/draft recipes (unless owner)
+        if (recipe.getStatus() != RecipeStatus.PUBLISHED && !userId.equals(recipe.getUserId())) {
+            throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+        }
 
         CookingSession session = CookingSession.builder()
                 .userId(userId)
@@ -438,7 +444,7 @@ public class CookingSessionService {
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         if (!session.getActiveTimers().isEmpty()) throw new AppException(ErrorCode.CANNOT_PAUSE_WITH_ACTIVE_TIMERS);
-        if (session.getStatus().equals(SessionStatus.COMPLETED)) throw new AppException(ErrorCode.SESSION_COMPLETED);
+        if (session.getStatus() != SessionStatus.IN_PROGRESS) throw new AppException(ErrorCode.INVALID_ACTION);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime deadline = now.plusHours(3);

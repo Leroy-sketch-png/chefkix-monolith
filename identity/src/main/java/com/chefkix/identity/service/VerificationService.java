@@ -65,20 +65,22 @@ public class VerificationService {
     VerificationRequest req =
         verificationRepo.findById(requestId).orElseThrow(() -> new AppException(ErrorCode.VERIFICATION_REQUEST_NOT_FOUND));
 
+    if (!"PENDING".equals(req.getStatus())) {
+      throw new AppException(ErrorCode.INVALID_ACTION);
+    }
+
     req.setStatus("APPROVED");
     req.setReviewedBy(adminUserId);
     req.setAdminNotes(notes);
     req.setReviewedAt(Instant.now());
     verificationRepo.save(req);
 
-    // Set verified on profile
-    profileRepo
+    // Set verified on profile — must exist, otherwise data is inconsistent
+    UserProfile profile = profileRepo
         .findByUserId(req.getUserId())
-        .ifPresent(
-            profile -> {
-              profile.setVerified(true);
-              profileRepo.save(profile);
-            });
+        .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
+    profile.setVerified(true);
+    profileRepo.save(profile);
 
     log.info("Verification APPROVED for userId={}, by admin={}", req.getUserId(), adminUserId);
     return toResponse(req);
@@ -88,6 +90,10 @@ public class VerificationService {
   public VerificationResponse rejectVerification(String requestId, String adminUserId, String notes) {
     VerificationRequest req =
         verificationRepo.findById(requestId).orElseThrow(() -> new AppException(ErrorCode.VERIFICATION_REQUEST_NOT_FOUND));
+
+    if (!"PENDING".equals(req.getStatus())) {
+      throw new AppException(ErrorCode.INVALID_ACTION);
+    }
 
     req.setStatus("REJECTED");
     req.setReviewedBy(adminUserId);

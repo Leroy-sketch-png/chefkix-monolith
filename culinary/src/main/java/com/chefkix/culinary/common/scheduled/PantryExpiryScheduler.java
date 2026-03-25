@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -35,10 +36,10 @@ public class PantryExpiryScheduler {
     /**
      * Every day at 08:00 UTC — check for pantry items expiring within 3 days.
      */
-    @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(cron = "0 0 8 * * *", zone = "UTC")
     public void checkExpiringItems() {
         try {
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.now(ZoneOffset.UTC);
             LocalDate threeDaysOut = today.plusDays(3);
 
             // Find distinct users with expiring items

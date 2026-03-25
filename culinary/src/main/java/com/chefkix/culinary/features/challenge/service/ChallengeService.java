@@ -66,7 +66,8 @@ public class ChallengeService {
         Optional<ChallengeLog> logOpt = challengeLogRepository.findByUserIdAndChallengeDate(userId, todayStr);
 
         boolean isCompleted = logOpt.isPresent();
-        String completedAt = isCompleted ? logOpt.get().getCompletedAt().toString() : null;
+        String completedAt = isCompleted && logOpt.get().getCompletedAt() != null
+                ? logOpt.get().getCompletedAt().toString() : null;
 
         // 3. Tìm món ăn gợi ý (Matching Recipes)
         // Đây là phần logic tìm kiếm cơ bản dựa trên Metadata
@@ -312,7 +313,8 @@ public class ChallengeService {
                 .title(log.getChallengeTitle())
                 .date(LocalDate.parse(log.getChallengeDate())) // Convert String back to LocalDate
                 .completed(true) // If it's in the log, it is completed
-                .completedAt(LocalDateTime.ofInstant(log.getCompletedAt(), ZoneId.of("UTC")))
+                .completedAt(log.getCompletedAt() != null
+                        ? LocalDateTime.ofInstant(log.getCompletedAt(), ZoneId.of("UTC")) : null)
                 .bonusXpEarned(log.getBonusXp())
                 .recipeCooked(recipeInfo)
                 .build();
@@ -363,7 +365,7 @@ public class ChallengeService {
         String completedAt = null;
         if (isCompleted) {
             completedAt = challengeLogRepository.findByUserIdAndChallengeDate(userId, weekKey)
-                    .map(log -> log.getCompletedAt().toString())
+                    .map(log -> log.getCompletedAt() != null ? log.getCompletedAt().toString() : null)
                     .orElse(null);
         }
 
@@ -567,7 +569,8 @@ public class ChallengeService {
                         .findByUserIdAndChallengeDate(userId, seasonalKey);
                 if (logOpt.isPresent()) {
                     userCompleted = true;
-                    userCompletedAt = logOpt.get().getCompletedAt().toString();
+                    userCompletedAt = logOpt.get().getCompletedAt() != null
+                            ? logOpt.get().getCompletedAt().toString() : null;
                 }
             }
 

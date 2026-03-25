@@ -33,7 +33,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -54,6 +57,7 @@ public class GroupService {
     final GroupMemberRepository memberRepository;
     final GroupMapper mapper;
     final GroupEventPublisher eventPublisher;
+    final MongoTemplate mongoTemplate;
 
     // Simulating a call to your identity-api to ensure the user isn't banned globally
     final ProfileProvider profileProvider;
@@ -124,9 +128,12 @@ public class GroupService {
             assignedStatus = MemberStatus.ACTIVE;
             message = "Successfully joined the group!";
 
-            // Increase member count ONLY if they are fully active
-            group.setMemberCount(group.getMemberCount() + 1);
-            groupRepository.save(group);
+            // Atomic increment to prevent race conditions
+            mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("id").is(groupId)),
+                    new Update().inc("memberCount", 1),
+                    Group.class
+            );
         } else {
             assignedStatus = MemberStatus.PENDING;
             message = "Join request sent. Waiting for admin approval.";
@@ -166,16 +173,19 @@ public class GroupService {
 
         // Rule: The Owner cannot abandon the group.
         if (group.getOwnerId().equals(currentUserId)) {
-            throw new IllegalStateException("You are the owner. You must transfer ownership before leaving.");
+            throw new AppException(ErrorCode.INVALID_OPERATION);
         }
 
         // If they were an ACTIVE member, we must decrease the count
         if (member.getStatus() == MemberStatus.ACTIVE) {
-            // Math.max ensures we never get a negative count due to race conditions
-            group.setMemberCount(Math.max(0, group.getMemberCount() - 1));
-            groupRepository.save(group);
+            // Atomic decrement to prevent race conditions
+            mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("id").is(groupId).and("memberCount").gt(0)),
+                    new Update().inc("memberCount", -1),
+                    Group.class
+            );
         } else if (member.getStatus() == MemberStatus.BANNED) {
-            throw new IllegalStateException("Action not permitted.");
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
         // Delete the record completely so they can re-apply in the future if they want
@@ -255,9 +265,12 @@ public class GroupService {
             pendingMember.setJoinedAt(LocalDateTime.now());
             memberRepository.save(pendingMember);
 
-            // Increment the group's active member count
-            group.setMemberCount(group.getMemberCount() + 1);
-            groupRepository.save(group);
+            // Atomic increment to prevent race conditions
+            mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("id").is(groupId)),
+                    new Update().inc("memberCount", 1),
+                    Group.class
+            );
 
             // KAFKA EVENT: Notify the target user they were accepted!
             eventPublisher.publishRequestApprovedEvent(group, currentUserId, pendingMember.getId());
@@ -281,17 +294,20 @@ public class GroupService {
 
         // 2. Prevent the Owner from kicking themselves
         if (group.getOwnerId().equals(targetUserId)) {
-            throw new IllegalStateException("The group owner cannot be kicked.");
+            throw new AppException(ErrorCode.INVALID_OPERATION);
         }
 
         // 3. Fetch the target member
         GroupMember targetMember = memberRepository.findByGroupIdAndUserId(groupId, targetUserId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
 
-        // 4. Decrease member count ONLY if they were an ACTIVE member
+        // 4. Atomic decrement ONLY if they were an ACTIVE member
         if (targetMember.getStatus() == MemberStatus.ACTIVE) {
-            group.setMemberCount(Math.max(0, group.getMemberCount() - 1));
-            groupRepository.save(group);
+            mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("id").is(groupId).and("memberCount").gt(0)),
+                    new Update().inc("memberCount", -1),
+                    Group.class
+            );
         }
 
         // 5. Hard Delete: Remove the record from MongoDB
@@ -326,7 +342,7 @@ public class GroupService {
 
         // 3. Prevent transferring to self
         if (currentUserId.equals(targetUserId)) {
-            throw new IllegalStateException("You are already the owner of this group.");
+            throw new AppException(ErrorCode.INVALID_OPERATION);
         }
 
         // 4. Fetch Target Member & Ensure they are ACTIVE
@@ -337,7 +353,7 @@ public class GroupService {
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBER_NOT_FOUND));
 
         if (targetMember.getStatus() != MemberStatus.ACTIVE) {
-            throw new IllegalStateException("Only active members can receive group ownership.");
+            throw new AppException(ErrorCode.INVALID_OPERATION);
         }
 
         // 5. ATOMIC UPDATES
@@ -346,9 +362,10 @@ public class GroupService {
 
         if (targetMember.getRole() != MemberRole.ADMIN) {
             targetMember.setRole(MemberRole.ADMIN);
-            previousAdmin.setRole(MemberRole.MEMBER);
             memberRepository.save(targetMember);
         }
+        previousAdmin.setRole(MemberRole.MEMBER);
+        memberRepository.save(previousAdmin);
 
         // 6. Fire Notification Event!
         eventPublisher.publishOwnershipTransferredEvent(group, targetUserId, currentUserId);
@@ -562,6 +579,10 @@ public class GroupService {
              * Mongo bulk updates are fast enough to run synchronously!
              */
             memberRepository.approveAllPendingMembers(groupId);
+            // Update memberCount to reflect newly approved members
+            long activeCount = memberRepository.countByGroupIdAndStatus(groupId, MemberStatus.ACTIVE);
+            group.setMemberCount((int) activeCount);
+            group = groupRepository.save(group);
         }
 
         return mapper.toExploreResponse(group, requester);

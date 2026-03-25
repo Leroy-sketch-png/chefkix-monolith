@@ -19,6 +19,9 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/chefkix}
       auto-index-creation: true
+    web:
+      pageable:
+        max-page-size: 100
 
   # ── Redis (OTP rate limiting, token blacklisting) ──
     redis:

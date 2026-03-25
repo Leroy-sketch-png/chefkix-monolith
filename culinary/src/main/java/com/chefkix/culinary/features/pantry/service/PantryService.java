@@ -145,7 +145,8 @@ public class PantryService {
                 }
             }
 
-            double matchPct = (double) matched.size() / recipe.getFullIngredientList().size();
+            double matchPct = recipe.getFullIngredientList().isEmpty() ? 0.0
+                    : (double) matched.size() / recipe.getFullIngredientList().size();
             if (matchPct >= minMatch) {
                 matches.add(PantryRecipeMatchResponse.builder()
                         .recipeId(recipe.getId())

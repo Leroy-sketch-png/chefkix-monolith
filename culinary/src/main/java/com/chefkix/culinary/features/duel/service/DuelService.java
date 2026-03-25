@@ -11,6 +11,7 @@ import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.DuelEvent;
+import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -247,6 +248,18 @@ public class DuelService {
         duel.setStatus(DuelStatus.COMPLETED);
         duel.setCompletedAt(Instant.now());
         duelRepository.save(duel);
+
+        // Award bonus XP to winner
+        if (duel.getWinnerId() != null) {
+            XpRewardEvent xpEvent = XpRewardEvent.builder()
+                    .userId(duel.getWinnerId())
+                    .amount(duel.getBonusXp())
+                    .source("DUEL_WIN")
+                    .description("Duel victory bonus")
+                    .build();
+            kafkaTemplate.send("xp-delivery", xpEvent);
+            log.info("Awarded {} bonus XP to duel winner {}", duel.getBonusXp(), duel.getWinnerId());
+        }
 
         // Notify both
         sendDuelNotification(duel, "COMPLETED", duel.getChallengerId());

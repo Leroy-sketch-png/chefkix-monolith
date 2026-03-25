@@ -25,7 +25,7 @@ public class AIController {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (request.getRawText() == null) {
-            throw new RuntimeException("rawText must not be null");
+            throw new AppException(ErrorCode.INVALID_INPUT);
         }
         RecipeDetailResponse response = aiIntegrationService.createRecipeFromText(request.getRawText(), userId);
         return ApiResponse.success(response);

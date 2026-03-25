@@ -114,7 +114,10 @@ public class ReportService {
                 }
             });
         }
-        // Comments could be hidden similarly in the future
+        // Comments and recipes: logged for manual admin review (no hidden field on Comment yet)
+        if ("comment".equals(targetType) || "recipe".equals(targetType)) {
+            log.warn("{} {} reached report threshold — needs admin review", targetType, targetId);
+        }
     }
 
     /**

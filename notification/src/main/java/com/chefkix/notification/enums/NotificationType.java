@@ -23,6 +23,7 @@ public enum NotificationType {
     CHALLENGE_AVAILABLE,
     CHALLENGE_REMINDER,
     WEEKEND_NUDGE,
+    PANTRY_EXPIRING,
 
     // Co-Cooking (spec 24-advanced-multiplayer.txt)
     ROOM_INVITE,

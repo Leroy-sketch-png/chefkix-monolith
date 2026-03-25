@@ -226,7 +226,14 @@ public class StatisticsService {
     return (int) (1000 * Math.pow(1.1, currentLevel));
   }
 
+  private static final Set<String> ALLOWED_COUNTER_FIELDS = Set.of(
+      "totalRecipesPublished", "friendCount", "followerCount", "followingCount",
+      "friendRequestCount", "recipesCookedCount", "postsCreatedCount");
+
   public void incrementCounter(String userId, String fieldName, int amount) {
+    if (!ALLOWED_COUNTER_FIELDS.contains(fieldName)) {
+      throw new AppException(ErrorCode.INVALID_OPERATION);
+    }
     Query query = Query.query(Criteria.where("userId").is(userId));
     Update update = new Update().inc("statistics." + fieldName, amount);
     mongoTemplate.updateFirst(query, update, "user_profiles");
