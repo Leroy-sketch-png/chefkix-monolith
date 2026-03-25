@@ -284,7 +284,7 @@ public class RecipeService {
         // Try personalized recommendation based on cooking history
         if (currentUserId != null && !"anonymousUser".equals(currentUserId)) {
             List<CookingSession> recentSessions = cookingSessionRepository
-                    .findTop20ByUserIdOrderByCreatedAtDesc(currentUserId);
+                    .findTop20ByUserIdOrderByStartedAtDesc(currentUserId);
 
             if (!recentSessions.isEmpty()) {
                 // Extract preferred cuisines from cooking history

@@ -32,7 +32,7 @@ public class OtpController {
 
   @PostMapping("/resend-otp")
   public ApiResponse<String> resendOtp(
-      @RequestParam String email, HttpServletRequest httpServletRequest) {
+      @RequestParam("email") String email, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     signupRequestService.resendOtp(email, clientIp);
     return ApiResponse.success("Successfully resent OTP");

@@ -45,7 +45,8 @@ public class SecurityConfig {
             "/auth/resend-otp",             // OtpController POST /resend-otp
             "/auth/forgot-password",        // AuthenticationController POST /forgot-password
             "/auth/verify-otp-password",    // AuthenticationController PUT /verify-otp-password (reset)
-
+            "/auth/**",
+            "/error",
             // --- WebSocket ---
             "/ws/**",
 

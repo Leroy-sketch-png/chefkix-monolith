@@ -5,6 +5,7 @@ import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.post.enums.PostStatus;
 import com.chefkix.social.post.enums.PostType;
+import lombok.experimental.NonFinal;
 import org.springframework.context.annotation.Lazy;
 import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.api.ProfileProvider;
@@ -105,6 +106,7 @@ public class PostService {
     @Qualifier("taskExecutor")
     Executor taskExecutor;
 
+    @NonFinal
     @Value("${app.public-base-url:http://localhost:3000}")
     String publicBaseUrl;
 

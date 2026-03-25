@@ -30,7 +30,6 @@ public class ProfileController {
   @PostMapping("/verify-otp-user")
   public ApiResponse<ProfileResponse> register(
       @RequestBody @Valid EmailVerificationRequest request) {
-    // Uses ApiResponse.created() to automatically set Status 201 Created
     return ApiResponse.created(
         profileService.verifyOtpAndCreateUser(request.getEmail(), request.getOtp()));
   }

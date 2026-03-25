@@ -296,7 +296,7 @@ public class AchievementService {
     private int countSessionsByCuisine(String userId, String cuisineType) {
         // Get all completed session recipe IDs, then check cuisine
         List<CookingSession> sessions = cookingSessionRepository
-                .findTop20ByUserIdOrderByCreatedAtDesc(userId);
+                .findTop20ByUserIdOrderByStartedAtDesc(userId);
 
         // Expand to all completed sessions via paginated query
         long totalCompleted = countAllCompletedSessions(userId);
@@ -322,7 +322,7 @@ public class AchievementService {
 
     private int countSessionsByTechnique(String userId, String technique) {
         List<CookingSession> sessions = cookingSessionRepository
-                .findTop20ByUserIdOrderByCreatedAtDesc(userId);
+                .findTop20ByUserIdOrderByStartedAtDesc(userId);
         Set<String> recipeIds = sessions.stream()
                 .filter(s -> s.getStatus() == SessionStatus.COMPLETED || s.getStatus() == SessionStatus.POSTED)
                 .map(CookingSession::getRecipeId)
@@ -346,7 +346,7 @@ public class AchievementService {
 
     private int countMidnightCooks(String userId) {
         List<CookingSession> sessions = cookingSessionRepository
-                .findTop20ByUserIdOrderByCreatedAtDesc(userId);
+                .findTop20ByUserIdOrderByStartedAtDesc(userId);
         return (int) sessions.stream()
                 .filter(s -> s.getStartedAt() != null)
                 .filter(s -> {
@@ -358,7 +358,7 @@ public class AchievementService {
 
     private int countBeatEstimatedTime(String userId) {
         List<CookingSession> sessions = cookingSessionRepository
-                .findTop20ByUserIdOrderByCreatedAtDesc(userId);
+                .findTop20ByUserIdOrderByStartedAtDesc(userId);
         Set<String> recipeIds = sessions.stream()
                 .map(CookingSession::getRecipeId)
                 .collect(Collectors.toSet());

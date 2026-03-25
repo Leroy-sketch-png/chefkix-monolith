@@ -38,7 +38,7 @@ public class LikeController {
      */
     @PostMapping("/toggle-like/{postId}")
     public ApiResponse<PostLikeResponse> toggleLike(
-            @PathVariable String postId
+            @PathVariable("postId") String postId
     ) {
         PostLikeResponse response = postService.toggleLike(postId);
         return ApiResponse.success(response);
@@ -55,7 +55,7 @@ public class LikeController {
      */
     @PostMapping("/toggle-save/{postId}")
     public ApiResponse<PostSaveResponse> toggleSave(
-            @PathVariable String postId
+            @PathVariable("postId") String postId
     ) {
         PostSaveResponse response = postService.toggleSave(postId);
         return ApiResponse.success(response);
@@ -73,7 +73,7 @@ public class LikeController {
      */
     @PostMapping("/{postId}/vote")
     public ApiResponse<PollVoteResponse> votePoll(
-            @PathVariable String postId,
+            @PathVariable("postId") String postId,
             @Valid @RequestBody PollVoteRequest request
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -94,7 +94,7 @@ public class LikeController {
      */
     @PostMapping("/{postId}/rate-plate")
     public ApiResponse<PlateRateResponse> ratePlate(
-            @PathVariable String postId,
+            @PathVariable("postId") String postId,
             @Valid @RequestBody PlateRateRequest request
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
