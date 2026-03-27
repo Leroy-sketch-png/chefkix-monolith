@@ -304,6 +304,7 @@ public class CookingSessionService {
                 .status("COMPLETED")
                 .baseXpAwarded(baseXpInt)
                 .pendingXp(pendingXpInt)
+                .xpBreakdown(recipe.getXpBreakdown())
                 .postDeadline(session.getPostDeadline())
                 .xpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null)
                 .xpMultiplierReason(coOpReason)
