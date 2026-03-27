@@ -22,12 +22,10 @@ import com.chefkix.social.group.mapper.GroupMapper;
 import com.chefkix.social.group.publisher.GroupEventPublisher;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.group.repository.GroupRepository;
-import com.chefkix.social.group.specification.GroupSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,14 +35,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service

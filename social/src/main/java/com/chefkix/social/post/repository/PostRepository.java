@@ -1,6 +1,5 @@
 package com.chefkix.social.post.repository;
 
-import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {

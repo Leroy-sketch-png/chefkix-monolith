@@ -2,7 +2,6 @@ package com.chefkix.culinary.features.shoppinglist.service;
 
 import com.chefkix.culinary.features.mealplan.entity.MealPlan;
 import com.chefkix.culinary.features.mealplan.entity.PlannedDay;
-import com.chefkix.culinary.features.mealplan.entity.PlannedMeal;
 import com.chefkix.culinary.features.mealplan.repository.MealPlanRepository;
 import com.chefkix.culinary.features.pantry.entity.PantryItem;
 import com.chefkix.culinary.features.pantry.repository.PantryItemRepository;
