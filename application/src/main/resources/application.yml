@@ -17,7 +17,7 @@ spring:
   # ── MongoDB (single database, consolidated from 5) ──
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/chefkix}
+      uri: ${MONGODB_URI:mongodb://chefkix:chefkix-dev-password@localhost:27017/chefkix?authSource=admin}
       auto-index-creation: true
     web:
       pageable:
@@ -27,7 +27,7 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      password: ${SPRING_DATA_REDIS_PASSWORD:chefkix-dev-password}
       database: 0
 
   # ── Kafka ──
@@ -55,23 +55,23 @@ spring:
 idp:
   url: ${IDP_URL:http://localhost:8180}
   client-id: ${IDP_CLIENT_ID:chefkix-be}
-  client-secret: ${IDP_CLIENT_SECRET:CHANGE_ME_KEYCLOAK_SECRET}
+  client-secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
 
 keycloak:
   auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}
   realm: nottisn
   resource: chefkix-be
   credentials:
-    secret: ${IDP_CLIENT_SECRET:CHANGE_ME_KEYCLOAK_SECRET}
+    secret: ${IDP_CLIENT_SECRET:PxyXoeJ7HSkw94ZU3eBpqdbG3P0PnOfL}
 
 # ── OTP Configuration (identity module) ──
 app:
   public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:3000}
   cookie:
     domain: ${APP_COOKIE_DOMAIN:localhost}
-    secure: ${APP_COOKIE_SECURE:true}
+    secure: ${APP_COOKIE_SECURE:false}
   otp:
-    secret: ${APP_OTP_SECRET}
+    secret: ${APP_OTP_SECRET:chefkix-dev-otp-secret-change-in-prod}
     ttl-seconds: 600
     max-attempts: 5
     max-resend-per-hour: 3
@@ -88,7 +88,7 @@ app:
 notification:
   email:
     brevo-url: https://api.brevo.com
-    brevo-apikey: ${BREVO_API_KEY}
+    brevo-apikey: ${BREVO_API_KEY:}
 
 # ── Cloudinary (culinary module — image uploads) ──
 cloudinary:
