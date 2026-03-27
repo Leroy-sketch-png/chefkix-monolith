@@ -49,7 +49,7 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "authorId", "type", "string", "optional", true),
                         Map.of("name", "authorName", "type", "string", "optional", true),
                         Map.of("name", "coverImageUrl", "type", "string", "optional", true),
-                        Map.of("name", "createdAt", "type", "int64", "optional", true)
+                        Map.of("name", "createdAt", "type", "int64")
                 ),
                 "default_sorting_field", "createdAt",
                 "token_separators", List.of("-", "'")
@@ -67,7 +67,7 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "likeCount", "type", "int32", "optional", true),
                         Map.of("name", "commentCount", "type", "int32", "optional", true),
                         Map.of("name", "recipeTitle", "type", "string", "optional", true),
-                        Map.of("name", "createdAt", "type", "int64", "optional", true)
+                        Map.of("name", "createdAt", "type", "int64")
                 ),
                 "default_sorting_field", "createdAt"
         ));
