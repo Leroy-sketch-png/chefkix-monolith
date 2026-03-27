@@ -539,8 +539,20 @@ public class PostService {
                 sort
         );
 
-        Page<PostResponse> page = postRepository.findByHiddenFalse(sortedPageable)
-                .map(postMapper::toPostResponse);
+        // Exclude GROUP posts from home/main feed (Facebook pattern: group posts only in groups)
+        Criteria criteria = Criteria.where("hidden").is(false).and("postType").ne(PostType.GROUP.name());
+        Query query = new Query(criteria).with(sort);
+        query.skip((long) sortedPageable.getPageNumber() * sortedPageable.getPageSize());
+        query.limit(sortedPageable.getPageSize());
+        
+        List<Post> posts = mongoTemplate.find(query, Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+        
+        List<PostResponse> responses = posts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+        
+        Page<PostResponse> page = new PageImpl<>(responses, sortedPageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
     }
@@ -573,7 +585,8 @@ public class PostService {
 
         Criteria baseCriteria = Criteria.where("hidden").is(false)
                 .and("userId").ne(currentUserId)
-                .and("postStatus").is(PostStatus.ACTIVE.name());
+                .and("postStatus").is(PostStatus.ACTIVE.name())
+                .and("postType").ne(PostType.GROUP.name()); // Exclude GROUP posts from personalized feed
 
         if (!interactedPostIds.isEmpty()) {
             baseCriteria = baseCriteria.and("_id").nin(interactedPostIds);
@@ -853,8 +866,24 @@ public class PostService {
                 pageable.getPageSize(),
                 Sort.by("createdAt").descending()
         );
-        Page<PostResponse> page = postRepository.findByUserIdAndHiddenFalseOrderByCreatedAtDesc(userId, sortedPageable)
-                .map(postMapper::toPostResponse);
+        
+        // Exclude GROUP posts from user profile (Facebook pattern: group posts only in groups)
+        Criteria criteria = Criteria.where("userId").is(userId)
+                .and("hidden").is(false)
+                .and("postType").ne(PostType.GROUP.name());
+        
+        Query query = new Query(criteria).with(Sort.by("createdAt").descending());
+        query.skip((long) sortedPageable.getPageNumber() * sortedPageable.getPageSize());
+        query.limit(sortedPageable.getPageSize());
+        
+        List<Post> posts = mongoTemplate.find(query, Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+        
+        List<PostResponse> responses = posts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+        
+        Page<PostResponse> page = new PageImpl<>(responses, sortedPageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
     }
@@ -862,6 +891,7 @@ public class PostService {
     /**
      * Search posts by content, display name, or tags.
      * Uses case-insensitive regex matching (same pattern as RecipeSpecification).
+     * Excludes GROUP posts from search results (Facebook pattern: group posts only in groups).
      *
      * @deprecated FE now uses Typesense via SearchController (/api/v1/search).
      *             This MongoDB regex fallback is kept for backward compatibility.
@@ -876,6 +906,7 @@ public class PostService {
 
         Criteria searchCriteria = new Criteria().andOperator(
                 Criteria.where("hidden").is(false),
+                Criteria.where("postType").ne(PostType.GROUP.name()), // Exclude GROUP posts from search
                 new Criteria().orOperator(
                         Criteria.where("content").regex(regex, "i"),
                         Criteria.where("displayName").regex(regex, "i"),
@@ -905,6 +936,7 @@ public class PostService {
     /**
      * Personalized "Following" feed — posts from users the current user follows, plus their own.
      * Uses one-directional follow list (not mutual-only), matching Instagram/Twitter behavior.
+     * Excludes GROUP posts (Facebook pattern: group posts only displayed in groups).
      *
      * @param mode 0 = latest (createdAt desc), 1 = trending (hotScore desc)
      * @param pageable pagination params
@@ -922,11 +954,24 @@ public class PostService {
             return Page.empty(pageable);
         }
 
-        Page<Post> posts = (mode == 1)
-                ? postRepository.findByUserIdInAndHiddenFalseOrderByHotScoreDesc(followingIds, pageable)
-                : postRepository.findByUserIdInAndHiddenFalseOrderByCreatedAtDesc(followingIds, pageable);
+        // Exclude GROUP posts (only show in group context)
+        Sort sort = (mode == 1) ? Sort.by("hotScore").descending() : Sort.by("createdAt").descending();
+        Criteria criteria = Criteria.where("userId").in(followingIds)
+                .and("hidden").is(false)
+                .and("postType").ne(PostType.GROUP.name());
 
-        Page<PostResponse> page = posts.map(postMapper::toPostResponse);
+        Query query = new Query(criteria).with(sort);
+        query.skip((long) pageable.getPageNumber() * pageable.getPageSize());
+        query.limit(pageable.getPageSize());
+
+        List<Post> posts = mongoTemplate.find(query, Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+
+        List<PostResponse> responses = posts.stream()
+                .map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+
+        Page<PostResponse> page = new PageImpl<>(responses, pageable, total);
         enrichPageWithUserStatus(page, currentUserId);
         return page;
     }
