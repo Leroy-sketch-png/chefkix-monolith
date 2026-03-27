@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +28,27 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BlockService {
 
   BlockRepository blockRepository;
   FollowRepository followRepository;
   UserProfileRepository userProfileRepository;
-  StatisticsService statisticsService;
+  @Lazy StatisticsService statisticsService;
   SecurityUtils securityUtils;
+
+  public BlockService(
+      BlockRepository blockRepository,
+      FollowRepository followRepository,
+      UserProfileRepository userProfileRepository,
+      @Lazy StatisticsService statisticsService,
+      SecurityUtils securityUtils) {
+    this.blockRepository = blockRepository;
+    this.followRepository = followRepository;
+    this.userProfileRepository = userProfileRepository;
+    this.statisticsService = statisticsService;
+    this.securityUtils = securityUtils;
+  }
 
   /** Block a user. Also removes any follow relationships between the two users. */
   @Transactional
