@@ -4,8 +4,11 @@ import java.time.Instant;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.chefkix.notification.dto.request.NotificationUpdateRequest;
@@ -17,6 +20,7 @@ import com.chefkix.shared.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Validated
 @RestController
 @RequestMapping("/notification")
 @RequiredArgsConstructor
@@ -33,7 +37,7 @@ public class BellNotificationController {
 
     @GetMapping
     public ApiResponse<List<NotificationResponse>> getNotifications(
-            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
             @RequestParam(defaultValue = "false") boolean unreadOnly) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(notificationService.getNotifications(userId, limit, unreadOnly));

@@ -1,6 +1,8 @@
 package com.chefkix.config;
 
 import com.chefkix.shared.dto.ApiResponse;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.AccessLevel;
@@ -23,8 +25,8 @@ public class SearchController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> unifiedSearch(
             @RequestParam @Size(max = 200) String q,
             @RequestParam(defaultValue = "all") String type,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
+            @RequestParam(defaultValue = "1") @Min(1) int page) {
 
         Map<String, Object> results = new LinkedHashMap<>();
 
@@ -48,7 +50,7 @@ public class SearchController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> autocomplete(
             @RequestParam @Size(max = 200) String q,
             @RequestParam(defaultValue = "all") String type,
-            @RequestParam(defaultValue = "5") int limit) {
+            @RequestParam(defaultValue = "5") @Min(1) @Max(20) int limit) {
 
         Map<String, Object> results = new LinkedHashMap<>();
 

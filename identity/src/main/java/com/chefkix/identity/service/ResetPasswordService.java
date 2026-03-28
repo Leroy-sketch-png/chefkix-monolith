@@ -5,6 +5,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.entity.ResetPasswordRequest;
 import com.chefkix.identity.repository.ResetPasswordRepository;
+import com.chefkix.identity.repository.UserProfileRepository;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
@@ -25,6 +26,7 @@ public class ResetPasswordService {
   SignupRequestService signupRequestService;
   EmailService emailService;
   ResetPasswordRepository resetPasswordRepository;
+  UserProfileRepository userProfileRepository;
   KafkaTemplate<String, EmailEvent> kafkaTemplate;
 
   @NonFinal
@@ -34,7 +36,13 @@ public class ResetPasswordService {
   @Transactional
   public void sendForgotPasswordOtp(String email) {
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email cannot be null or empty");
+      throw new AppException(ErrorCode.INVALID_INPUT);
+    }
+
+    // Silently return if email not registered — prevents email enumeration
+    if (userProfileRepository.findByEmail(email).isEmpty()) {
+      log.debug("Forgot-password request for unregistered email, silently ignoring");
+      return;
     }
 
     String otp = emailService.generateOtpCode();

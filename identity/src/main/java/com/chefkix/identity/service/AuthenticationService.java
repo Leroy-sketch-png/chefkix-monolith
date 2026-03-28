@@ -146,8 +146,13 @@ public class AuthenticationService {
    */
   public void changePassword(String email, String oldPassword, String newPassword) {
     // Verify old password by attempting login
-    TokenExchangeResponse tokenResponse = keycloakService.login(email, oldPassword);
-    if (tokenResponse.getAccessToken() == null) {
+    TokenExchangeResponse tokenResponse;
+    try {
+      tokenResponse = keycloakService.login(email, oldPassword);
+    } catch (Exception e) {
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
+    if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
       throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
@@ -175,7 +180,10 @@ public class AuthenticationService {
               .value(newPassword)
               .build());
 
-      log.info("Password successfully reset for userId={}", userId);
+      // Revoke all existing sessions — force re-authentication on all devices
+      keycloakAdminClient.logoutUser("Bearer " + token.getAccessToken(), userId);
+
+      log.info("Password successfully changed for userId={}", userId);
 
     } catch (Exception e) {
       log.error("Failed to reset password in Keycloak for userId={}", userId, e);

@@ -24,8 +24,8 @@ public interface CookingDuelRepository extends MongoRepository<CookingDuel, Stri
     // Pending duels I sent
     List<CookingDuel> findByChallengerIdAndStatus(String challengerId, DuelStatus status);
 
-    // Active between two users on same recipe (prevent duplicates)
-    @Query("{ 'challengerId': ?0, 'opponentId': ?1, 'recipeId': ?2, 'status': { '$in': ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] } }")
+    // Active between two users on same recipe (prevent duplicates) — bidirectional
+    @Query("{ '$or': [ {'challengerId': ?0, 'opponentId': ?1}, {'challengerId': ?1, 'opponentId': ?0} ], 'recipeId': ?2, 'status': { '$in': ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] } }")
     Optional<CookingDuel> findActiveBetween(String challengerId, String opponentId, String recipeId);
 
     // Link session to duel

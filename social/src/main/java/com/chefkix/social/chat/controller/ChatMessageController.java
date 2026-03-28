@@ -3,6 +3,7 @@ package com.chefkix.social.chat.controller;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.chat.dto.request.ChatMessageRequest;
@@ -46,7 +47,7 @@ public class ChatMessageController {
     ApiResponse<Page<ChatMessageResponse>> getMessagesPaginated(
             @RequestParam("conversationId") String conversationId,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "50") int size) {
+            @RequestParam(value = "size", defaultValue = "50") @Max(100) int size) {
         return ApiResponse.success(chatMessageService.getMessagesPaginated(conversationId, page, size));
     }
 

@@ -63,7 +63,8 @@ public class EmailNotificationListener {
                     .htmlContent(message.getBody())
                     .build());
         } catch (Exception e) {
-            log.error("Failed to send OTP email to {}: {}", message.getRecipientEmail(), e.getMessage(), e);
+            idempotencyService.removeProcessed(message.getEventId());
+            throw e;
         }
     }
 }

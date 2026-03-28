@@ -21,6 +21,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -96,7 +98,7 @@ public class ReplyService {
         reply.setCreatedAt(Instant.now());
         Reply savedReply = replyRepository.save(reply);
 
-        incrementCounter(savedReply.getParentCommentId(), "comments", 1);
+        incrementCounter(savedReply.getParentCommentId(), "replyCount", 1);
 
         // Send notification to tagged users
         if (savedReply.getTaggedUserIds() != null && !savedReply.getTaggedUserIds().isEmpty()) {
@@ -108,7 +110,8 @@ public class ReplyService {
     }
 
     public List<ReplyResponse> getAllRepliesByCommentId(String commentId, String currentUserId) {
-        List<Reply> replies = replyRepository.findByParentCommentId(commentId);
+        List<Reply> replies = replyRepository.findByParentCommentId(commentId,
+                PageRequest.of(0, 200, Sort.by(Sort.Direction.ASC, "createdAt")));
 
         return replies.stream()
                 .map(reply -> mapToReplyResponse(reply, currentUserId))
@@ -212,7 +215,7 @@ public class ReplyService {
         }
 
         // Decrement reply count on parent comment
-        incrementCounter(reply.getParentCommentId(), "comments", -1);
+        incrementCounter(reply.getParentCommentId(), "replyCount", -1);
 
         // Delete all likes for this reply
         replyLikeRepository.deleteAllByReplyId(replyId);

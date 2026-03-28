@@ -166,7 +166,7 @@ public class GroupController {
     @PatchMapping("/{groupId}")
     public ApiResponse<GroupResponse> updateGroup(
             @PathVariable("groupId") String groupId,
-            @RequestBody GroupUpdateRequest request
+            @RequestBody @Valid GroupUpdateRequest request
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 

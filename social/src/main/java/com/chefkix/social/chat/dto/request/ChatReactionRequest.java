@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,5 +12,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatReactionRequest {
     @NotBlank
+    @Size(max = 20, message = "Emoji must be at most 20 characters")
     String emoji;
 }

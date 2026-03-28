@@ -50,7 +50,8 @@ public class ChatMessageService {
      */
     public List<ChatMessageResponse> getMessages(String conversationId) {
         validateConversationAccess(conversationId);
-        var messages = chatMessageRepository.findAllByConversationIdOrderByCreatedDateAsc(conversationId);
+        var messages = chatMessageRepository.findAllByConversationIdOrderByCreatedDateAsc(
+                conversationId, PageRequest.of(0, 500));
         return messages.stream().map(this::toChatMessageResponse).toList();
     }
 
@@ -151,8 +152,10 @@ public class ChatMessageService {
             if (finalMessageContent == null || finalMessageContent.trim().isEmpty()) {
                 throw new AppException(ErrorCode.INVALID_MESSAGE);
             }
+        }
 
-            // AI CONTENT MODERATION — fail-open for chat
+        // AI CONTENT MODERATION — applies to ALL message types with user-supplied text
+        if (finalMessageContent != null && !finalMessageContent.isBlank()) {
             var moderationResult = contentModerationProvider.moderate(finalMessageContent, "chat");
             if (moderationResult.isBlocked()) {
                 log.warn("Chat message blocked by AI moderation for user {}: {}", userId, moderationResult.reason());

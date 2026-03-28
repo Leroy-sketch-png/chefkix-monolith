@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -226,10 +228,25 @@ public class StatisticsService {
     return (int) (1000 * Math.pow(1.1, currentLevel));
   }
 
+  private static final Set<String> ALLOWED_COUNTER_FIELDS = Set.of(
+      "totalRecipesPublished", "friendCount", "followerCount", "followingCount",
+      "friendRequestCount", "recipesCookedCount", "postsCreatedCount");
+
   public void incrementCounter(String userId, String fieldName, int amount) {
+    if (!ALLOWED_COUNTER_FIELDS.contains(fieldName)) {
+      throw new AppException(ErrorCode.INVALID_OPERATION);
+    }
+    String field = "statistics." + fieldName;
     Query query = Query.query(Criteria.where("userId").is(userId));
-    Update update = new Update().inc("statistics." + fieldName, amount);
+    Update update = new Update().inc(field, amount);
     mongoTemplate.updateFirst(query, update, "user_profiles");
+
+    // Floor at 0 to prevent negative counters from data inconsistencies
+    if (amount < 0) {
+      Query floorQuery = Query.query(Criteria.where("userId").is(userId).and(field).lt(0));
+      Update floorUpdate = new Update().set(field, 0);
+      mongoTemplate.updateFirst(floorQuery, floorUpdate, "user_profiles");
+    }
   }
 
     @Transactional
@@ -565,20 +582,30 @@ public class StatisticsService {
      * @return LeaderboardResponse with entries and user's rank
      */
     public LeaderboardResponse getLeaderboard(String type, String timeframe, int limit, String currentUserId, List<String> friendIds) {
+        limit = Math.min(limit, 100);
         log.info("Fetching {} {} leaderboard (limit: {}) for user {}", type, timeframe, limit, currentUserId);
 
-        // 1. Get all user profiles (for global) or filter by friends
+        String sortField = switch (timeframe) {
+            case "monthly" -> "statistics.xpMonthly";
+            case "all_time" -> "statistics.currentXP";
+            default -> "statistics.xpWeekly";
+        };
+
+        // 1. Get user profiles sorted by XP, with a ceiling to prevent DoS
         List<UserProfile> profiles;
         if ("friends".equals(type) && friendIds != null && !friendIds.isEmpty()) {
-            profiles = userProfileRepository.findAllById(friendIds)
+            profiles = userProfileRepository.findAllByUserIdIn(friendIds)
                     .stream()
                     .filter(p -> p.getStatistics() != null)
                     .collect(Collectors.toList());
             // Add current user to friends list for comparison
             userProfileRepository.findByUserId(currentUserId).ifPresent(profiles::add);
         } else {
-            // Global leaderboard - all users with stats
-            profiles = userProfileRepository.findAll()
+            // Global leaderboard - top N users sorted by XP (fetch extra for privacy/block filtering)
+            int fetchLimit = limit * 3;
+            profiles = userProfileRepository.findAll(
+                            PageRequest.of(0, fetchLimit, Sort.by(Sort.Direction.DESC, sortField)))
+                    .getContent()
                     .stream()
                     .filter(p -> p.getStatistics() != null)
                     .collect(Collectors.toList());

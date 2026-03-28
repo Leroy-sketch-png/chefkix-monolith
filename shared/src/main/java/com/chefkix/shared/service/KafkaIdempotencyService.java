@@ -54,6 +54,16 @@ public class KafkaIdempotencyService {
     }
 
     /**
+     * Removes the idempotency mark for an event (no topic), allowing it to be retried.
+     */
+    public void removeProcessed(String eventId) {
+        if (eventId == null || eventId.isBlank()) return;
+        String key = KEY_PREFIX + eventId;
+        redisTemplate.delete(key);
+        log.debug("Removed idempotency mark for event {} to allow retry", eventId);
+    }
+
+    /**
      * Attempts to mark an event as processed with a specific topic for debugging.
      *
      * @param eventId unique event identifier
@@ -76,5 +86,19 @@ public class KafkaIdempotencyService {
             log.info("Duplicate event {} on topic {} detected - skipping", eventId, topic);
             return false;
         }
+    }
+
+    /**
+     * Removes the idempotency mark for an event, allowing it to be retried.
+     * Call this when event processing fails and the message should be retried by DefaultErrorHandler.
+     *
+     * @param eventId unique event identifier
+     * @param topic   Kafka topic
+     */
+    public void removeProcessed(String eventId, String topic) {
+        if (eventId == null || eventId.isBlank()) return;
+        String key = KEY_PREFIX + topic + ":" + eventId;
+        redisTemplate.delete(key);
+        log.debug("Removed idempotency mark for event {} on topic {} to allow retry", eventId, topic);
     }
 }

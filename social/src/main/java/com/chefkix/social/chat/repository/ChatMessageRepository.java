@@ -13,6 +13,9 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
     // Return messages in ascending order (oldest first) for natural chat display
     List<ChatMessage> findAllByConversationIdOrderByCreatedDateAsc(String conversationId);
 
+    // Paginated ascending (for backwards compat getMessages with limit)
+    List<ChatMessage> findAllByConversationIdOrderByCreatedDateAsc(String conversationId, Pageable pageable);
+
     // Paginated: descending for "load more older messages" pattern
     Page<ChatMessage> findByConversationIdOrderByCreatedDateDesc(String conversationId, Pageable pageable);
 }

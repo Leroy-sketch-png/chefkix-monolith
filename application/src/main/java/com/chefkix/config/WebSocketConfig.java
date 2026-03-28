@@ -147,6 +147,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 throw new MessageDeliveryException("Cannot subscribe to a room you are not part of");
                             }
                         }
+
+                        // Guard user-specific topics: /topic/user/{userId} and /topic/user/{userId}/*
+                        if (destination.startsWith("/topic/user/")) {
+                            String[] parts = destination.substring("/topic/user/".length()).split("/", 2);
+                            String targetUserId = parts[0];
+                            if (!userId.equals(targetUserId)) {
+                                log.warn("STOMP subscription blocked: user {} tried to subscribe to {}", userId, destination);
+                                throw new MessageDeliveryException("Cannot subscribe to another user's topic");
+                            }
+                        }
+
+                        // Allow presence topics — /topic/presence/{targetUserId}
+                        // Any authenticated user can subscribe to presence updates
+                        // (no additional authorization needed — public social feature)
                     }
                 }
 

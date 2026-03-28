@@ -2,6 +2,7 @@ package com.chefkix.culinary.features.mealplan.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -26,9 +27,11 @@ public class GenerateMealPlanRequest {
     MealPreferences preferences;
 
     /** Sent from FE or enriched from pantry on BE */
+    @Size(max = 200, message = "Maximum 200 pantry items")
     List<String> pantryItems;
 
     /** Existing recipe IDs the AI should prefer */
+    @Size(max = 50, message = "Maximum 50 existing recipe IDs")
     List<String> existingRecipeIds;
 
     @Data
@@ -37,7 +40,9 @@ public class GenerateMealPlanRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class MealPreferences {
+        @Size(max = 20, message = "Maximum 20 dietary preferences")
         List<String> dietary;
+        @Size(max = 20, message = "Maximum 20 cuisine preferences")
         List<String> cuisinePreferences;
         MaxTimePerMeal maxTimePerMeal;
         @Builder.Default

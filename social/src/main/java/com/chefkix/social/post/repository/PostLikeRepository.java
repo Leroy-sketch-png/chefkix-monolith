@@ -16,4 +16,8 @@ public interface PostLikeRepository extends MongoRepository<PostLike, String> {
    * Batch: find all likes by a user for a set of posts (eliminates N+1).
    */
   List<PostLike> findByUserIdAndPostIdIn(String userId, List<String> postIds);
+
+  void deleteAllByPostId(String postId);
+
+  long countByPostId(String postId);
 }

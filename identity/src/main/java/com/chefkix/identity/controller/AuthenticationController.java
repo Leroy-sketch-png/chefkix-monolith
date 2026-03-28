@@ -2,6 +2,8 @@ package com.chefkix.identity.controller;
 
 import com.chefkix.identity.dto.request.*;
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
 import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.service.*;
@@ -52,7 +54,7 @@ public class AuthenticationController {
 
     if (refreshToken == null || refreshToken.isEmpty()) {
       HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token missing.");
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
     try {
@@ -72,8 +74,7 @@ public class AuthenticationController {
     } catch (WebClientResponseException.BadRequest | WebClientResponseException.Unauthorized e) {
       HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
-      throw new ResponseStatusException(
-          HttpStatus.UNAUTHORIZED, "Session expired. Please log in again.");
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
   }
 

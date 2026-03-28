@@ -496,6 +496,7 @@ public class ProfileService {
         .firstName(user.getFirstName())
         .lastName(user.getLastName())
         .avatarUrl(user.getAvatarUrl())
+        .verified(user.isVerified())
         .build();
   }
 

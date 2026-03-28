@@ -78,6 +78,10 @@ public class RecipeService {
                 throw new AppException(ErrorCode.UNAUTHORIZED);
             }
 
+            if (existingRecipe.getStatus() != RecipeStatus.DRAFT) {
+                throw new AppException(ErrorCode.INVALID_ACTION);
+            }
+
             recipeMapper.updateRecipeFromRequest(existingRecipe, request);
 
             // NOTE: isPublished bypass removed — publishing only via DraftService.publishRecipe()
@@ -117,7 +121,8 @@ public class RecipeService {
         }
 
         // Prevent deleting recipes that have active cooking sessions
-        long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS);
+        long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS)
+                + cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.PAUSED);
         if (activeSessions > 0) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
@@ -488,7 +493,8 @@ public class RecipeService {
                                     .coverImageUrl(session.getCoverImageUrl())
                                     .cookUserId(session.getUserId())
                                     .completedAt(session.getCompletedAt())
-                                    .rating(session.getRating());
+                                    .rating(session.getRating())
+                                    .xpEarned(session.getBaseXpAwarded());
 
                     // Resolve cooker profile (fail-safe)
                     try {
@@ -544,7 +550,8 @@ public class RecipeService {
         }
 
         List<CookingSession> sessions = cookingSessionRepository.findByRecipeIdAndStatusIn(
-                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED));
+                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED),
+                PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "completedAt"))).getContent();
 
         int totalSessions = sessions.size();
         if (totalSessions == 0) {
@@ -675,8 +682,20 @@ public class RecipeService {
      */
     @Transactional(readOnly = true)
     public RecipeSocialProofResponse getRecipeSocialProof(String recipeId) {
+        String viewerId = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+        boolean isOwner = recipe.getUserId().equals(viewerId);
+        if (!isOwner) {
+            if (recipe.getStatus() == RecipeStatus.DRAFT || recipe.getStatus() == RecipeStatus.ARCHIVED) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+            if (recipe.getRecipeVisibility() == RecipeVisibility.PRIVATE) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+            }
+        }
 
         // Post count = sessions that successfully linked a post
         long postCount = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.POSTED);

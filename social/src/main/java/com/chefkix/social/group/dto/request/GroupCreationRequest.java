@@ -15,7 +15,7 @@ public class GroupCreationRequest {
 
     private String coverImageUrl;
 
-    // We use an Enum for safety: PUBLIC or PRIVATE
+    @NotBlank(message = "Privacy type is required")
     private String privacyType;
 
     // Optional: Tags for Chefkix gamification/search (e.g., "Vegan", "Baking")

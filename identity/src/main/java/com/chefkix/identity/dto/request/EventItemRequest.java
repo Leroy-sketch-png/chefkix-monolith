@@ -2,6 +2,7 @@ package com.chefkix.identity.dto.request;
 
 import com.chefkix.identity.enums.TrackingEventType;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Map;
 import lombok.*;
@@ -17,11 +18,11 @@ public class EventItemRequest {
     @NotNull(message = "Event type is required")
     TrackingEventType eventType;
 
-    String entityId;
+    @Size(max = 100) String entityId;
 
-    String entityType;
+    @Size(max = 50) String entityType;
 
-    Map<String, Object> metadata;
+    @Size(max = 50) Map<String, Object> metadata;
 
     Instant timestamp;
 }

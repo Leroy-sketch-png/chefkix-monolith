@@ -14,9 +14,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConversationRequest {
-    String type;
+    @Size(max = 10) String type;
 
-    @Size(min = 1)
+    @Size(min = 1, max = 50)
     @NotNull
     List<String> participantIds;
 }

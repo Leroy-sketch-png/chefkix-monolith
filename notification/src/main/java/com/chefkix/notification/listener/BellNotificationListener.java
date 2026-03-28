@@ -48,15 +48,16 @@ public class BellNotificationListener {
             return;
         }
         if (event instanceof PostLikeEvent likeEvent) {
-            if (!hasText(likeEvent.getPostId()) || !hasText(likeEvent.getPostOwnerId())) {
-                log.error("Skipping invalid PostLikeEvent: postId={}, postOwnerId={}", likeEvent.getPostId(), likeEvent.getPostOwnerId());
+            if (!hasText(likeEvent.getPostId()) || !hasText(likeEvent.getPostOwnerId()) || !hasText(likeEvent.getLikerId())) {
+                log.error("Skipping invalid PostLikeEvent: postId={}, postOwnerId={}, likerId={}", likeEvent.getPostId(), likeEvent.getPostOwnerId(), likeEvent.getLikerId());
                 return;
             }
             try {
                 log.info("Received PostLikeEvent for post: {}", likeEvent.getPostId());
                 notificationService.handlePostLikeEvent(likeEvent);
             } catch (Exception e) {
-                log.error("Failed to handle PostLikeEvent for post {}: {}", likeEvent.getPostId(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "post-liked-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
@@ -83,7 +84,8 @@ public class BellNotificationListener {
                         followerEvent.getFollowedUserId());
                 notificationService.handleNewFollowerEvent(followerEvent);
             } catch (Exception e) {
-                log.error("Failed to handle NewFollowerEvent: {} → {}: {}", followerEvent.getFollowerId(), followerEvent.getFollowedUserId(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "new-follower-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
@@ -114,7 +116,8 @@ public class BellNotificationListener {
                         commentEvent.getCommenterId());
                 notificationService.handleCommentEvent(commentEvent);
             } catch (Exception e) {
-                log.error("Failed to handle CommentEvent for post {}: {}", commentEvent.getPostId(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "comment-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
@@ -142,7 +145,8 @@ public class BellNotificationListener {
                         gamificationEvent.getNewBadges());
                 notificationService.handleGamificationEvent(gamificationEvent);
             } catch (Exception e) {
-                log.error("Failed to handle GamificationEvent for user {}: {}", gamificationEvent.getUserId(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "gamification-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
@@ -170,7 +174,21 @@ public class BellNotificationListener {
                         reminderEvent.getPriority());
                 notificationService.handleReminderEvent(reminderEvent);
             } catch (Exception e) {
-                log.error("Failed to handle ReminderEvent for user {}, type {}: {}", reminderEvent.getUserId(), reminderEvent.getReminderType(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "reminder-delivery");
+                throw e;
+            }
+        } else if (event instanceof DuelEvent duelEvent) {
+            if (!hasText(duelEvent.getUserId()) || !hasText(duelEvent.getDuelId())) {
+                log.error("Skipping invalid DuelEvent: userId={}, duelId={}", duelEvent.getUserId(), duelEvent.getDuelId());
+                return;
+            }
+            try {
+                log.info("Received DuelEvent: user={}, action={}, duel={}",
+                        duelEvent.getUserId(), duelEvent.getDuelAction(), duelEvent.getDuelId());
+                notificationService.handleDuelEvent(duelEvent);
+            } catch (Exception e) {
+                idempotencyService.removeProcessed(event.getEventId(), "reminder-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
@@ -198,7 +216,8 @@ public class BellNotificationListener {
                         mentionEvent.getSourceType());
                 notificationService.handleTagEvent(mentionEvent);
             } catch (Exception e) {
-                log.error("Failed to handle UserMentionEvent for user {}: {}", mentionEvent.getUserId(), e.getMessage(), e);
+                idempotencyService.removeProcessed(event.getEventId(), "tag-delivery");
+                throw e;
             }
         } else {
             log.warn("Received unexpected event type on 'tag-delivery': {}", event.getClass().getSimpleName());
@@ -211,30 +230,54 @@ public class BellNotificationListener {
             containerFactory = "notificationEventListenerFactory")
     public void listenGroupDelivery(BaseEvent event) {
 
-        // 1. Your standard idempotency check
-        if (!idempotencyService.tryProcess(event.getEventId(), "group-delivery")) {
+        // 1. Null-safe idempotency check (consistent with all other listeners)
+        if (!shouldProcess(event, "group-delivery")) {
             return;
         }
 
         // 2. Java 21 Pattern Matching Switch to handle the specific group events
         switch (event) {
             case GroupJoinRequestedEvent requestEvent -> {
-                log.info("Received GroupJoinRequestedEvent for group: {} from user: {}",
-                        requestEvent.getGroupId(), requestEvent.getRequesterId());
-
-                notificationService.handleGroupJoinRequestedEvent(requestEvent);
+                if (!hasText(requestEvent.getGroupId()) || !hasText(requestEvent.getRequesterId())) {
+                    log.error("Skipping invalid GroupJoinRequestedEvent: groupId={}, requesterId={}", requestEvent.getGroupId(), requestEvent.getRequesterId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupJoinRequestedEvent for group: {} from user: {}",
+                            requestEvent.getGroupId(), requestEvent.getRequesterId());
+                    notificationService.handleGroupJoinRequestedEvent(requestEvent);
+                } catch (Exception e) {
+                    idempotencyService.removeProcessed(event.getEventId(), "group-delivery");
+                    throw e;
+                }
             }
             case GroupMemberJoinedEvent joinEvent -> {
-                log.info("Received GroupMemberJoinedEvent for group: {} from user: {}",
-                        joinEvent.getGroupId(), joinEvent.getMemberId());
-
-                notificationService.handleGroupMemberJoinedEvent(joinEvent);
+                if (!hasText(joinEvent.getGroupId()) || !hasText(joinEvent.getMemberId())) {
+                    log.error("Skipping invalid GroupMemberJoinedEvent: groupId={}, memberId={}", joinEvent.getGroupId(), joinEvent.getMemberId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupMemberJoinedEvent for group: {} from user: {}",
+                            joinEvent.getGroupId(), joinEvent.getMemberId());
+                    notificationService.handleGroupMemberJoinedEvent(joinEvent);
+                } catch (Exception e) {
+                    idempotencyService.removeProcessed(event.getEventId(), "group-delivery");
+                    throw e;
+                }
             }
             case GroupRequestApprovedEvent approveEvent -> {
-                log.info("Received GroupRequestApprovedEvent for group: {} from user: {}",
-                        approveEvent.getGroupId(), approveEvent.getRequesterId());
-
-                notificationService.handleGroupRequestApprovedEvent(approveEvent);
+                if (!hasText(approveEvent.getGroupId()) || !hasText(approveEvent.getRequesterId())) {
+                    log.error("Skipping invalid GroupRequestApprovedEvent: groupId={}, requesterId={}", approveEvent.getGroupId(), approveEvent.getRequesterId());
+                    return;
+                }
+                try {
+                    log.info("Received GroupRequestApprovedEvent for group: {} from user: {}",
+                            approveEvent.getGroupId(), approveEvent.getRequesterId());
+                    notificationService.handleGroupRequestApprovedEvent(approveEvent);
+                } catch (Exception e) {
+                    idempotencyService.removeProcessed(event.getEventId(), "group-delivery");
+                    throw e;
+                }
             }
             default -> {
                 log.warn("Received unexpected event type on 'group-delivery': {}",

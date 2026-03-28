@@ -51,7 +51,9 @@ public class GamificationService {
 
         // Account age-based rate limiting: new accounts (< 7 days) get stricter limits
         java.time.Instant accountCreatedAt = profileProvider.getAccountCreatedAt(userId);
-        long accountAgeDays = java.time.temporal.ChronoUnit.DAYS.between(accountCreatedAt, java.time.Instant.now());
+        long accountAgeDays = accountCreatedAt != null
+                ? java.time.temporal.ChronoUnit.DAYS.between(accountCreatedAt, java.time.Instant.now())
+                : Long.MAX_VALUE;
         int dailyLimit = accountAgeDays < 7 ? 2 : 5;
         if (completedToday >= dailyLimit) {
             throw new AppException(ErrorCode.RATE_LIMIT_EXCEEDED,
@@ -59,9 +61,11 @@ public class GamificationService {
         }
 
         // 4. TIME VALIDATION (Anti-Cheat)
-        long totalElapsedSeconds = request.getTimerLogs().stream()
-                .mapToLong(RecipeCompletionRequest.TimerLog::getElapsedSeconds)
-                .sum();
+        long totalElapsedSeconds = request.getTimerLogs() != null
+                ? request.getTimerLogs().stream()
+                    .mapToLong(RecipeCompletionRequest.TimerLog::getElapsedSeconds)
+                    .sum()
+                : 0;
         validateCookingTime(recipe.getTotalTimeMinutes(), totalElapsedSeconds);
 
         // 5. LOGIC TÍNH ĐIỂM (HYBRID XP & BADGE)

@@ -3,6 +3,8 @@ package com.chefkix.culinary.features.recipe.dto.request;
 import com.chefkix.culinary.common.enums.Difficulty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -37,13 +39,13 @@ public class RecipeRequest {
     @NotNull(message = "Difficulty is required")
     Difficulty difficulty;
 
-    int prepTimeMinutes;
-    int cookTimeMinutes;
-    int totalTimeMinutes;
-    int servings;
-    String cuisineType;
-    List<String> dietaryTags;
-    Integer caloriesPerServing;
+    @Min(0) @Max(1440) int prepTimeMinutes;
+    @Min(0) @Max(1440) int cookTimeMinutes;
+    @Min(0) @Max(2880) int totalTimeMinutes;
+    @Min(0) @Max(100) int servings;
+    @Size(max = 100) String cuisineType;
+    @Size(max = 30) List<String> dietaryTags;
+    @Min(0) @Max(50000) Integer caloriesPerServing;
 
     // --- STRUCTURE (Nested DTOs) ---
     @Valid
@@ -55,10 +57,10 @@ public class RecipeRequest {
     List<StepRequest> steps;
 
     // --- GAMIFICATION (Config) ---
-    int xpReward;
-    double difficultyMultiplier;
-    List<String> rewardBadges;
-    List<String> skillTags;
+    @Min(0) @Max(10000) int xpReward;
+    @Min(0) @Max(10) double difficultyMultiplier;
+    @Size(max = 20) List<String> rewardBadges;
+    @Size(max = 30) List<String> skillTags;
     Boolean isPublished;
 
     // --- AI METADATA (Dữ liệu từ AI Service trả về để lưu lại) ---

@@ -17,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -65,24 +66,23 @@ public class ReferralService {
             throw new AppException(ErrorCode.REFERRAL_SELF_REDEEM);
         }
 
-        // One-time redemption per user
-        if (referralRedemptionRepository.existsByReferredUserId(userId)) {
-            throw new AppException(ErrorCode.REFERRAL_ALREADY_REDEEMED);
-        }
-
         // Check max uses
         if (!referralCode.getActive() || referralCode.getUsageCount() >= referralCode.getMaxUses()) {
             throw new AppException(ErrorCode.REFERRAL_CODE_EXHAUSTED);
         }
 
-        // Save redemption
+        // Save redemption first — unique index on referredUserId prevents double redemption atomically
         ReferralRedemption redemption = ReferralRedemption.builder()
                 .referrerUserId(referralCode.getUserId())
                 .referredUserId(userId)
                 .referralCodeId(referralCode.getId())
                 .xpAwarded(REFERRAL_XP)
                 .build();
-        referralRedemptionRepository.save(redemption);
+        try {
+            referralRedemptionRepository.save(redemption);
+        } catch (DuplicateKeyException e) {
+            throw new AppException(ErrorCode.REFERRAL_ALREADY_REDEEMED);
+        }
 
         // Increment usage count
         referralCode.setUsageCount(referralCode.getUsageCount() + 1);
@@ -186,7 +186,7 @@ public class ReferralService {
                 return code;
             }
         }
-        throw new IllegalStateException("Could not generate unique referral code after 10 attempts");
+        throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     private ReferralCodeResponse toCodeResponse(ReferralCode code) {

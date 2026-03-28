@@ -1,5 +1,7 @@
 package com.chefkix.culinary.features.room.service;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.features.room.dto.request.CreateRoomRequest;
 import com.chefkix.culinary.features.room.dto.request.InviteToRoomRequest;
 import com.chefkix.culinary.features.room.dto.request.JoinRoomRequest;
@@ -499,7 +501,7 @@ public class CookingRoomService {
                 return roomCode;
             }
         }
-        throw new RuntimeException("Failed to generate unique room code after 10 attempts");
+        throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     private String resolveDisplayName(BasicProfileInfo profile) {
