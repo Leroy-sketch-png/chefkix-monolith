@@ -48,6 +48,7 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
                 case "join":
                     handleJoin(session, conversationId);
                     break;
+                case "ring":
                 case "offer":
                 case "answer":
                 case "ice-candidate":
