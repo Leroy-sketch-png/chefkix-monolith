@@ -2,11 +2,11 @@ package com.chefkix.notification.controller;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -44,24 +44,24 @@ public class BellNotificationController {
     }
 
     @PutMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateNotificationReadStatus(@Valid @RequestBody NotificationUpdateRequest request) {
+    public ApiResponse<Void> updateNotificationReadStatus(@Valid @RequestBody NotificationUpdateRequest request) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         notificationService.updateReadStatus(userId, request);
+        return ApiResponse.success(null);
     }
 
     @PostMapping("/{notificationId}/read")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void markAsRead(@PathVariable String notificationId) {
+    public ApiResponse<Map<String, Boolean>> markAsRead(@PathVariable String notificationId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         notificationService.markAsRead(userId, notificationId);
+        return ApiResponse.success(Map.of("read", true));
     }
 
     @PostMapping("/read-all")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void markAllAsRead() {
+    public ApiResponse<Map<String, Long>> markAllAsRead() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        notificationService.markAllAsRead(userId);
+        long readCount = notificationService.markAllAsRead(userId);
+        return ApiResponse.success(Map.of("readCount", readCount));
     }
 
     /**
