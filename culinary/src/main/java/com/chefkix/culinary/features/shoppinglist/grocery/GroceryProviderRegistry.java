@@ -1,7 +1,5 @@
 package com.chefkix.culinary.features.shoppinglist.grocery;
 
-import com.chefkix.shared.exception.AppException;
-import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;

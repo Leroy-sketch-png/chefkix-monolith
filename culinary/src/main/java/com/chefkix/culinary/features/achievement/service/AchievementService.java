@@ -13,8 +13,6 @@ import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.identity.api.ProfileProvider;
-import com.chefkix.shared.exception.AppException;
-import com.chefkix.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,6 @@
 package com.chefkix.culinary.features.session.dto.response;
 
+import com.chefkix.culinary.features.recipe.entity.Recipe;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ public class SessionCompletionResponse {
     private String status;
     private Integer baseXpAwarded; // XP earned immediately (30%) - integer for game systems
     private Integer pendingXp;     // XP pending until post (70%) - integer for game systems
+    private Recipe.XpBreakdown xpBreakdown; // How XP was calculated (base/steps/time/techniques)
     private String message;
     private LocalDateTime postDeadline;
     

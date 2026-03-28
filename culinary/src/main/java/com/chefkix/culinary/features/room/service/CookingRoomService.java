@@ -21,8 +21,6 @@ import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.ReminderEvent;
-import com.chefkix.shared.exception.AppException;
-import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -363,11 +361,6 @@ public class CookingRoomService {
                 .filter(room -> room.getParticipants().stream()
                         .anyMatch(p -> followingSet.contains(p.getUserId())))
                 .map(room -> {
-                    List<String> friendNames = room.getParticipants().stream()
-                            .filter(p -> followingSet.contains(p.getUserId()))
-                            .map(RoomParticipant::getDisplayName)
-                            .toList();
-
                     long minutesAgo = java.time.Duration.between(room.getCreatedAt(), Instant.now()).toMinutes();
 
                     return FriendsActiveRoomResponse.builder()
