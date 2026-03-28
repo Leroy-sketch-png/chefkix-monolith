@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
@@ -103,6 +105,30 @@ public class GlobalExceptionHandler {
     }
 
     // ─── Catch-all ──────────────────────────────────────────────────
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+        String message = String.format("Invalid value for parameter '%s'. Expected type: %s", paramName, requiredType);
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .statusCode(400)
+                .message(message)
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    ResponseEntity<ApiResponse<?>> handleMissingParam(MissingServletRequestParameterException ex) {
+        String message = String.format("Required parameter '%s' is missing", ex.getParameterName());
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .statusCode(400)
+                .message(message)
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
 
     @ExceptionHandler(RuntimeException.class)
     ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException ex) {

@@ -49,6 +49,13 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
+        <!-- Servlet API: required for MethodArgumentTypeMismatchException hierarchy in GlobalExceptionHandler -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Lombok: @Data, @Builder, @Getter, @Slf4j on all shared classes -->
         <dependency>
             <groupId>org.projectlombok</groupId>
