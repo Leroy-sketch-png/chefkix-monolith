@@ -201,23 +201,26 @@ public class ProfileService {
     return response;
   }
 
-  /** Xác thực OTP và tạo user (Keycloak + Mongo) */
+  /** Xac thuc OTP va tao user (Keycloak + Mongo). Returns plaintext password for auto-login. */
   @Transactional
-  public ProfileResponse verifyOtpAndCreateUser(String email, String otp) {
-    // 1. Xác thực OTP
+  public String verifyOtpAndCreateUser(String email, String otp) {
+    // 1. Xac thuc OTP
     SignupRequest req = validateSignupOtp(email, otp);
 
-    // 2. Tạo user trên Keycloak
+    // 2. Capture password before deletion (needed for auto-login in controller)
+    String plainPassword = req.getPassword();
+
+    // 3. Tao user tren Keycloak
     String userId = createKeycloakUser(req);
 
-    // 3. Lưu profile vào MongoDB
+    // 4. Luu profile vao MongoDB
     UserProfile profile = createMongoProfile(req, userId);
 
-    // 4. Xóa request đăng ký
+    // 5. Xoa request dang ky
     signupRequestRepository.delete(req);
     log.info("Signup verified and created user in Keycloak + Mongo, userId={}", userId);
 
-    return profileMapper.toProfileResponse(profile);
+    return plainPassword;
   }
 
   /** Xác thực OTP và đặt lại mật khẩu (Keycloak) */
