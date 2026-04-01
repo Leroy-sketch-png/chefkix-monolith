@@ -50,9 +50,8 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public List<StoryResponse> getMyActiveStories(String userId) {
-//        return storyRepository.findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(userId, Instant.now())
-//                .stream().map(storyMapper::toStoryResponse).toList();
-        return null;
+        return storyRepository.findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(userId, Instant.now())
+                .stream().map(storyMapper::toStoryResponse).toList();
     }
 
     @Override
