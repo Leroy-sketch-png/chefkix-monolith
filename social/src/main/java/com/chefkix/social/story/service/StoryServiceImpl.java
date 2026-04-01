@@ -57,9 +57,8 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public Page<StoryResponse> getMyArchivedStories(String userId, int page, int size) {
-//        return storyRepository.findByUserIdAndIsDeletedFalseAndExpiresAtBeforeOrderByCreatedAtDesc(
-//                        userId, Instant.now(), PageRequest.of(page, size))
-//                .map(storyMapper::toStoryResponse);
-        return null;
+        return storyRepository.findByUserIdAndIsDeletedFalseAndExpiresAtBeforeOrderByCreatedAtDesc(
+                        userId, Instant.now(), PageRequest.of(page, size))
+                .map(storyMapper::toStoryResponse);
     }
 }
