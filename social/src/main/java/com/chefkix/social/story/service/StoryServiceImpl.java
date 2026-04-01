@@ -39,13 +39,13 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public void deleteStory(String userId, String storyId) {
-//        // Fallback: Nếu không tìm thấy hoặc đã xóa rồi thì báo lỗi 404
-//        Story story = storyRepository.findByIdAndUserIdAndIsDeletedFalse(storyId, userId)
-//                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
-//
-//        // Thực hiện Soft Delete: Đưa vào trạng thái 'mất hẳn' đối với người dùng
-//        story.setIsDeleted(true);
-//        storyRepository.save(story);
+        // Fallback: Nếu không tìm thấy hoặc đã xóa rồi thì báo lỗi 404
+        Story story = storyRepository.findByIdAndUserIdAndIsDeletedFalse(storyId, userId)
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        // Thực hiện Soft Delete: Đưa vào trạng thái 'mất hẳn' đối với người dùng
+        story.setIsDeleted(true);
+        storyRepository.save(story);
     }
 
     @Override
