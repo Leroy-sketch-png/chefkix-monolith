@@ -554,7 +554,6 @@ public class NotificationService {
             if (notification.getRecipientId().equals(userId)) {
                 notification.setIsRead(true);
                 notificationRepository.save(notification);
-                log.info("Marked notification {} as read for user {}", notificationId, userId);
             } else {
                 log.warn(
                         "User {} attempted to mark notification {} which belongs to {}",
@@ -565,7 +564,7 @@ public class NotificationService {
         });
     }
 
-    public void markAllAsRead(String userId) {
+    public long markAllAsRead(String userId) {
         long updated = mongoTemplate.updateMulti(
                 Query.query(Criteria.where("recipientId").is(userId).and("isRead").is(false)),
                 Update.update("isRead", true),
@@ -575,6 +574,7 @@ public class NotificationService {
         if (updated > 0) {
             log.info("Marked {} notifications as read for user {}", updated, userId);
         }
+        return updated;
     }
 
     // ===============================================
