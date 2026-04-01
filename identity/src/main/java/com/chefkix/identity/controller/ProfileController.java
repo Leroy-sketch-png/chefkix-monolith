@@ -28,7 +28,7 @@ public class ProfileController {
   ProfileService profileService;
 
   @PostMapping("/verify-otp-user")
-  public ApiResponse<ProfileResponse> register(
+  public ApiResponse<String> register(
       @RequestBody @Valid EmailVerificationRequest request) {
     return ApiResponse.created(
         profileService.verifyOtpAndCreateUser(request.getEmail(), request.getOtp()));

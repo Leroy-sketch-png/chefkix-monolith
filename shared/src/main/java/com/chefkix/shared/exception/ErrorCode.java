@@ -193,7 +193,9 @@ public enum ErrorCode {
     VERIFICATION_REQUEST_NOT_FOUND(404, "Verification request not found", HttpStatus.NOT_FOUND),
     VERIFICATION_ALREADY_PENDING(409, "A verification request is already pending", HttpStatus.CONFLICT),
     VERIFICATION_ALREADY_VERIFIED(409, "Account is already verified", HttpStatus.CONFLICT),
-    VERIFICATION_REQUIREMENTS_NOT_MET(400, "Verification requirements not met", HttpStatus.BAD_REQUEST);
+    VERIFICATION_REQUIREMENTS_NOT_MET(400, "Verification requirements not met", HttpStatus.BAD_REQUEST),
+    STORY_NOT_FOUND(404, "Story not found", HttpStatus.NOT_FOUND ),
+    ;
 
     private final int code;
     private final String message;
