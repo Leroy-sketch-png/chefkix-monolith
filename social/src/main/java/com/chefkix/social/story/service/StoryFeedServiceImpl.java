@@ -56,26 +56,25 @@ public class StoryFeedServiceImpl implements StoryFeedService {
 
     @Override
     public List<StoryResponse> getUserActiveStories(String currentUserId, String targetUserId) {
-//        // 1. Lấy tất cả active story của targetUser
-//        List<Story> stories = storyRepository
-//                .findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(targetUserId, Instant.now());
-//
-//        // Nếu họ không có story, trả về rỗng
-//        if (stories.isEmpty()) return List.of();
-//
-//        // 2. Nếu currentUserId đang tự xem mình, trả về hết (không cần lọc bạn thân)
-//        if (currentUserId.equals(targetUserId)) {
-//            return stories.stream().map(storyMapper::toStoryResponse).toList();
-//        }
-//
-//        // 3. Nếu đang xem người khác, phải kiểm tra xem mình có phải bạn thân không
-//        //Set<String> closeFriendOfUserIds = profileProvider.getUsersWhoAddedMeAsCloseFriend(currentUserId);
-//        //boolean amICloseFriend = closeFriendOfUserIds.contains(targetUserId);
-//
-//        return stories.stream()
-//                //.filter(story -> !story.getIsCloseFriendsOnly() || amICloseFriend)
-//                .map(storyMapper::toStoryResponse)
-//                .toList();
-        return null;
+        // 1. Lấy tất cả active story của targetUser
+        List<Story> stories = storyRepository
+                .findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(targetUserId, Instant.now());
+
+        // Nếu họ không có story, trả về rỗng
+        if (stories.isEmpty()) return List.of();
+
+        // 2. Nếu currentUserId đang tự xem mình, trả về hết (không cần lọc bạn thân)
+        if (currentUserId.equals(targetUserId)) {
+            return stories.stream().map(storyMapper::toStoryResponse).toList();
+        }
+
+        // 3. Nếu đang xem người khác, phải kiểm tra xem mình có phải bạn thân không
+        //Set<String> closeFriendOfUserIds = profileProvider.getUsersWhoAddedMeAsCloseFriend(currentUserId);
+        //boolean amICloseFriend = closeFriendOfUserIds.contains(targetUserId);
+
+        return stories.stream()
+                //.filter(story -> !story.getIsCloseFriendsOnly() || amICloseFriend)
+                .map(storyMapper::toStoryResponse)
+                .toList();
     }
 }
