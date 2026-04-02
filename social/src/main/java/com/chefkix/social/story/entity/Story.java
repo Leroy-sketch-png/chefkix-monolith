@@ -25,6 +25,7 @@ public class Story {
 
     // Danh sách các "lớp phủ" trên Story (Text, Hashtag, Location, Link, Sticker)
     List<StoryItem> items;
+    //Boolean isCloseFriendsOnly;
 
     // Các liên kết đặc thù cho MXH nấu ăn
     String recipeId; // Link nhanh tới công thức nấu ăn

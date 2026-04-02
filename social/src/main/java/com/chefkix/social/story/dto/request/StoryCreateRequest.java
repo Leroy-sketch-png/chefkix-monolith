@@ -15,7 +15,7 @@ public record StoryCreateRequest(
         @NotBlank(message = "Media Type không được để trống")
         String mediaType, // Có thể dùng Enum, ở đây dùng String cho đơn giản
 
-        boolean isCloseFriendsOnly,
+        //boolean isCloseFriendsOnly,
 
         String linkedRecipeId,
 

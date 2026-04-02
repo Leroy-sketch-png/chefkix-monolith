@@ -10,7 +10,7 @@ public record StoryResponse(
         String userId,
         String mediaUrl,
         String mediaType,
-        boolean isCloseFriendsOnly,
+        //boolean isCloseFriendsOnly,
         String linkedRecipeId,
         List<StoryItemDto> items,
         String createdAt,
