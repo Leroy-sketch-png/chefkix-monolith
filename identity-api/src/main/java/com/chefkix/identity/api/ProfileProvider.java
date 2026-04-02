@@ -7,6 +7,7 @@ import com.chefkix.identity.api.dto.CompletionResult;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Cross-module contract for identity/profile operations.
@@ -117,4 +118,41 @@ public interface ProfileProvider {
      * @return stats snapshot (never null)
      */
     AchievementStatsSnapshot getAchievementStats(String userId);
+
+    /**
+     * Get user's cuisine/interest preferences from onboarding or profile settings.
+     * Used by culinary module for Tonight's Pick personalization.
+     *
+     * @param userId the user's ID
+     * @return list of preference IDs (e.g., "italian", "bbq", "vegan"), never null
+     */
+    List<String> getUserPreferences(String userId);
+
+    /**
+     * Get user's current gamification level.
+     * Used by culinary module for difficulty-appropriate recipe recommendations.
+     *
+     * @param userId the user's ID
+     * @return current level (1+), defaults to 1 for new users
+     */
+    int getUserLevel(String userId);
+
+    /**
+     * Get post IDs from recent behavioral events (views 0.5x, dwell 1.5x)
+     * with their associated weights for taste vector enrichment.
+     * Used by social module's feed algorithm to enrich the taste vector
+     * beyond likes/saves (2-signal) to include views and dwell.
+     *
+     * @param userId the user whose behavioral signals to extract
+     * @return map of postId → weight (views=0.5, dwell=1.5), never null
+     */
+    Map<String, Double> getBehavioralPostWeights(String userId);
+
+    /**
+     * Delete all event tracking data for a user (GDPR compliance).
+     *
+     * @param userId the user whose event data to delete
+     * @return number of events deleted
+     */
+    long deleteUserEventData(String userId);
 }

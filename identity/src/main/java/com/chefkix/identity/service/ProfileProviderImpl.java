@@ -12,9 +12,12 @@ import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.entity.Statistics;
+import com.chefkix.identity.entity.UserEvent;
+import com.chefkix.identity.enums.TrackingEventType;
 import com.chefkix.identity.repository.UserRepository;
 import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.repository.UserSettingsRepository;
+import com.chefkix.identity.repository.UserEventRepository;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.AccessLevel;
@@ -24,7 +27,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of the cross-module {@link ProfileProvider} contract.
@@ -45,6 +50,7 @@ public class ProfileProviderImpl implements ProfileProvider {
     UserRepository userRepository;
     UserProfileRepository userProfileRepository;
     UserSettingsRepository userSettingsRepository;
+    UserEventRepository userEventRepository;
     private final KeycloakService keycloakService;
     BlockService blockService;
 
@@ -161,5 +167,41 @@ public class ProfileProviderImpl implements ProfileProvider {
                 .followerCount(stats.getFollowerCount() != null ? stats.getFollowerCount() : 0)
                 .totalRecipesPublished(stats.getTotalRecipesPublished() != null ? stats.getTotalRecipesPublished() : 0)
                 .build();
+    }
+
+    @Override
+    public List<String> getUserPreferences(String userId) {
+        return userProfileRepository.findByUserId(userId)
+                .map(UserProfile::getPreferences)
+                .map(prefs -> prefs != null ? prefs : List.<String>of())
+                .orElse(List.of());
+    }
+
+    @Override
+    public int getUserLevel(String userId) {
+        return userProfileRepository.findByUserId(userId)
+                .map(UserProfile::getStatistics)
+                .map(stats -> stats.getCurrentLevel() != null ? stats.getCurrentLevel() : 1)
+                .orElse(1);
+    }
+
+    @Override
+    public Map<String, Double> getBehavioralPostWeights(String userId) {
+        List<UserEvent> events = userEventRepository.findByUserIdAndEventTypeInOrderByTimestampDesc(
+                userId,
+                List.of(TrackingEventType.RECIPE_VIEWED, TrackingEventType.POST_DWELLED));
+
+        Map<String, Double> postWeights = new HashMap<>();
+        for (UserEvent event : events) {
+            if (event.getEntityId() == null) continue;
+            double weight = event.getEventType() == TrackingEventType.POST_DWELLED ? 1.5 : 0.5;
+            postWeights.merge(event.getEntityId(), weight, Double::sum);
+        }
+        return postWeights;
+    }
+
+    @Override
+    public long deleteUserEventData(String userId) {
+        return userEventRepository.deleteByUserId(userId);
     }
 }

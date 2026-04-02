@@ -3,6 +3,7 @@ package com.chefkix.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -59,6 +60,7 @@ public class SecurityConfig {
             // --- Typesense search + autocomplete (public -- typo-tolerant, no user data) ---
             "/search",
             "/search/autocomplete",
+            "/search/trending",
 
             // --- Knowledge graph (public -- ingredient/technique lookups, no PII) ---
             "/knowledge/**",
@@ -68,6 +70,31 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
+    };
+
+    /**
+     * Guest-browsable GET endpoints. Gate ACTIONS (like, save, comment, follow), not VIEWING.
+     * Controllers already handle null/anonymous auth gracefully for these paths.
+     */
+    private static final String[] GUEST_GET_ENDPOINTS = {
+            // --- Recipes (culinary module) ---
+            "/recipes",                     // RecipeController GET / (search & filter)
+            "/recipes/search",              // RecipeController GET /search (alias)
+            "/recipes/trending",            // RecipeController GET /trending
+            "/recipes/*",                   // RecipeController GET /{id} (recipe detail)
+            "/recipes/*/social-proof",      // RecipeController GET /{id}/social-proof
+            "/recipes/*/similar",           // RecipeController GET /{id}/similar
+            "/recipes/user/*",              // RecipeController GET /user/{userId}
+
+            // --- Posts/Feed (social module) ---
+            "/posts/all",                   // PostController GET /all (global feed)
+            "/posts/search",                // PostController GET /search
+            "/posts/*",                     // PostController GET /{postId} (single post)
+            "/posts/feed",                  // PostController GET /feed?userId= (user posts)
+
+            // --- Public profiles (identity module) ---
+            "/auth/profile-only/*",         // ProfileController GET /profile-only/{userId}
+            "/auth/leaderboard",            // LeaderboardController GET /leaderboard
     };
 
     private String[] getPublicEndpoints() {
@@ -92,6 +119,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(getPublicEndpoints()).permitAll()
+                        .requestMatchers(HttpMethod.GET, GUEST_GET_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))

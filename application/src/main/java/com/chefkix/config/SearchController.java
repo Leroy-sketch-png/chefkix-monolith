@@ -4,10 +4,17 @@ import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class SearchController {
 
     TypesenseService typesenseService;
+    MongoTemplate mongoTemplate;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> unifiedSearch(
@@ -65,6 +73,32 @@ public class SearchController {
         }
 
         return ResponseEntity.ok(ApiResponse.success(results));
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<ApiResponse<List<String>>> trendingSearches(
+            @RequestParam(defaultValue = "10") @Min(1) @Max(20) int limit) {
+
+        Instant oneWeekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("eventType").is("RECIPE_SEARCH")
+                        .and("timestamp").gte(oneWeekAgo)
+                        .and("metadata.query").exists(true)),
+                Aggregation.project().and("metadata.query").as("query"),
+                Aggregation.group("query").count().as("count"),
+                Aggregation.sort(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "count")),
+                Aggregation.limit(limit)
+        );
+
+        List<String> trending = mongoTemplate.aggregate(agg, "user_events", Document.class)
+                .getMappedResults().stream()
+                .map(doc -> doc.getString("_id"))
+                .filter(q -> q != null && !q.isBlank())
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(trending));
     }
 
     private Map<String, Object> searchCollection(

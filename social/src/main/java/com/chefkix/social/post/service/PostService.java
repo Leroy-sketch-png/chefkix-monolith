@@ -13,6 +13,7 @@ import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.event.PostLikeEvent;
 import com.chefkix.shared.event.UserMentionEvent;
+import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.api.dto.RecentCookRequest;
@@ -501,6 +502,9 @@ public class PostService {
             sendLikeNotification(userId, post);
         }
 
+        // Award social XP to the liker (1 XP per like)
+        sendSocialXpEvent(userId, 1.0, "SOCIAL_LIKE", post.getId(), "Liked a post");
+
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostLikeResponse.builder().isLiked(true).likeCount((int) likeCount).build();
     }
@@ -558,6 +562,21 @@ public class PostService {
         }, taskExecutor); // Tận dụng lại executor
     }
 
+    private void sendSocialXpEvent(String userId, double amount, String source, String postId, String description) {
+        try {
+            XpRewardEvent xpEvent = XpRewardEvent.builder()
+                    .userId(userId)
+                    .amount(amount)
+                    .source(source)
+                    .postId(postId)
+                    .description(description)
+                    .build();
+            kafkaTemplate.send("xp-delivery", xpEvent);
+        } catch (Exception e) {
+            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+        }
+    }
+
     // ========================================================================
     // 4. FEED / GET POSTS
     // ========================================================================
@@ -610,7 +629,25 @@ public class PostService {
     private Page<PostResponse> getForYouFeed(Pageable pageable, String currentUserId) {
         Map<String, Double> tasteWeights = buildWeightedTasteProfile(currentUserId);
 
-        // Cold start: no interaction history -> trending fallback
+        // Cold start: use onboarding preferences as taste bootstrap
+        if (tasteWeights.isEmpty()) {
+            try {
+                List<String> prefs = profileProvider.getUserPreferences(currentUserId);
+                if (prefs != null && !prefs.isEmpty()) {
+                    // Convert preferences to equal-weight taste profile
+                    double weight = 1.0 / prefs.size();
+                    Map<String, Double> bootstrapWeights = new java.util.HashMap<>();
+                    for (String pref : prefs) {
+                        bootstrapWeights.put(pref.toLowerCase().trim(), weight);
+                    }
+                    tasteWeights = bootstrapWeights;
+                }
+            } catch (Exception e) {
+                log.debug("[FEED] Could not load preferences for cold start: {}", e.getMessage());
+            }
+        }
+
+        // Still no taste signal? Pure trending fallback
         if (tasteWeights.isEmpty()) {
             return getAllPosts(1, pageable, currentUserId);
         }
@@ -831,7 +868,7 @@ public class PostService {
 
     /**
      * Builds a weighted taste profile: tag -> normalized weight (0..1).
-     * Saves (2x weight) signal stronger intent than likes.
+     * 5-signal: saves (2x), likes (1x), dwell (1.5x), views (0.5x), search (implicit via views).
      */
     private Map<String, Double> buildWeightedTasteProfile(String currentUserId) {
         // Get recent liked posts (last 100)
@@ -853,8 +890,12 @@ public class PostService {
         Set<String> savedPostIds = new java.util.HashSet<>();
         recentSaves.forEach(s -> savedPostIds.add(s.getPostId()));
 
+        // Behavioral signals from event tracking (views=0.5x, dwell=1.5x)
+        Map<String, Double> behavioralWeights = profileProvider.getBehavioralPostWeights(currentUserId);
+
         Set<String> allPostIds = new java.util.HashSet<>(likedPostIds);
         allPostIds.addAll(savedPostIds);
+        allPostIds.addAll(behavioralWeights.keySet());
 
         if (allPostIds.isEmpty()) return Map.of();
 
@@ -865,9 +906,16 @@ public class PostService {
         Map<String, Double> tagWeights = new java.util.HashMap<>();
         for (Post p : posts) {
             if (p.getTags() == null) continue;
-            double weight = savedPostIds.contains(p.getId()) ? 2.0 : 1.0;
+            // Explicit signals: saves (2x), likes (1x)
+            double explicitWeight = savedPostIds.contains(p.getId()) ? 2.0
+                    : likedPostIds.contains(p.getId()) ? 1.0 : 0.0;
+            // Behavioral signals: views (0.5x), dwell (1.5x)
+            double behavioralWeight = behavioralWeights.getOrDefault(p.getId(), 0.0);
+            double totalWeight = explicitWeight + behavioralWeight;
+            if (totalWeight <= 0) continue;
+
             for (String tag : p.getTags()) {
-                tagWeights.merge(tag.toLowerCase().trim(), weight, Double::sum);
+                tagWeights.merge(tag.toLowerCase().trim(), totalWeight, Double::sum);
             }
         }
 
@@ -1294,6 +1342,9 @@ public class PostService {
                 .createdDate(LocalDateTime.now())
                 .build();
         postSaveRepository.save(postSave);
+
+        // Award social XP to the saver (1 XP per save)
+        sendSocialXpEvent(userId, 1.0, "SOCIAL_SAVE", postId, "Saved a post");
         
         long saveCount = postSaveRepository.countByPostId(postId);
         return PostSaveResponse.builder()
