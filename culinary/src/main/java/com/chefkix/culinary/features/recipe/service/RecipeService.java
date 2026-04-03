@@ -26,6 +26,7 @@ import com.chefkix.culinary.features.interaction.service.InteractionService; // 
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.common.enums.SessionStatus;
+import com.chefkix.culinary.common.enums.Difficulty;
 import com.chefkix.culinary.common.enums.TimerEventType;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import lombok.AccessLevel;
@@ -264,10 +265,44 @@ public class RecipeService {
     // RECOMMENDATIONS
     // ===============================================
 
+    /** Seasonal tags by month range (Northern Hemisphere). */
+    private static final Map<Integer, Set<String>> SEASONAL_TAGS = Map.ofEntries(
+            Map.entry(3, Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light")),
+            Map.entry(4, Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light")),
+            Map.entry(5, Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light")),
+            Map.entry(6, Set.of("summer", "bbq", "grilling", "watermelon", "berries", "ice cream", "smoothie", "corn")),
+            Map.entry(7, Set.of("summer", "bbq", "grilling", "watermelon", "berries", "ice cream", "smoothie", "corn")),
+            Map.entry(8, Set.of("summer", "bbq", "grilling", "watermelon", "berries", "ice cream", "smoothie", "corn")),
+            Map.entry(9, Set.of("fall", "autumn", "pumpkin", "squash", "apple", "cinnamon", "soup", "stew", "thanksgiving", "harvest")),
+            Map.entry(10, Set.of("fall", "autumn", "pumpkin", "squash", "apple", "cinnamon", "soup", "stew", "thanksgiving", "harvest")),
+            Map.entry(11, Set.of("fall", "autumn", "pumpkin", "squash", "apple", "cinnamon", "soup", "stew", "thanksgiving", "harvest")),
+            Map.entry(12, Set.of("winter", "holiday", "christmas", "comfort food", "hot chocolate", "baking", "cookies", "roast")),
+            Map.entry(1, Set.of("winter", "holiday", "christmas", "comfort food", "hot chocolate", "baking", "cookies", "roast")),
+            Map.entry(2, Set.of("winter", "holiday", "christmas", "comfort food", "hot chocolate", "baking", "cookies", "roast"))
+    );
+
+    /** Map user gamification level to appropriate recipe difficulties. */
+    private static Set<Difficulty> appropriateDifficulties(int userLevel) {
+        if (userLevel <= 3) return Set.of(Difficulty.BEGINNER);
+        if (userLevel <= 7) return Set.of(Difficulty.BEGINNER, Difficulty.INTERMEDIATE);
+        if (userLevel <= 15) return Set.of(Difficulty.INTERMEDIATE, Difficulty.ADVANCED);
+        return Set.of(Difficulty.ADVANCED, Difficulty.EXPERT);
+    }
+
     /**
-     * Tonight's Pick — personalized daily recipe recommendation.
-     * Algorithm: user's cooking history (cuisine prefs) + trending + easy-to-start recipes.
-     * Cold start: returns highest trending score published recipe.
+     * Tonight's Pick — multi-signal personalized recipe recommendation.
+     * <p>
+     * Scoring algorithm (5 signals):
+     * <ul>
+     *   <li><b>Taste match (0.30)</b>: user preferences + cuisine from cooking history</li>
+     *   <li><b>Trending (0.20)</b>: trendingScore (social proof)</li>
+     *   <li><b>Seasonal (0.20)</b>: month-appropriate tags</li>
+     *   <li><b>Difficulty fit (0.15)</b>: matches user's skill level</li>
+     *   <li><b>Quality (0.15)</b>: averageRating + cookCount</li>
+     * </ul>
+     * <p>
+     * Filters: published only, not user's own, not recently cooked.
+     * Cold start: preferences (if any) + seasonal + trending. Degrades gracefully.
      */
     @Transactional(readOnly = true)
     public RecipeDetailResponse getTonightsPick() {
@@ -278,58 +313,83 @@ public class RecipeService {
             rawUserId = null;
         }
         final String currentUserId = rawUserId;
+        final boolean authenticated = currentUserId != null && !"anonymousUser".equals(currentUserId);
 
-        Recipe pick = null;
+        // --- Gather user signals (all nullable/empty-safe) ---
+        Set<String> userPreferences = Set.of();
+        Set<String> cookedRecipeIds = Set.of();
+        Set<String> historyCuisines = Set.of();
+        int userLevel = 1;
 
-        // Try personalized recommendation based on cooking history
-        if (currentUserId != null && !"anonymousUser".equals(currentUserId)) {
+        if (authenticated) {
+            try {
+                List<String> prefs = profileProvider.getUserPreferences(currentUserId);
+                userPreferences = new HashSet<>(prefs);
+            } catch (Exception e) {
+                log.debug("[TONIGHTS_PICK] Could not load preferences for {}: {}", currentUserId, e.getMessage());
+            }
+
+            try {
+                userLevel = profileProvider.getUserLevel(currentUserId);
+            } catch (Exception e) {
+                log.debug("[TONIGHTS_PICK] Could not load level for {}: {}", currentUserId, e.getMessage());
+            }
+
             List<CookingSession> recentSessions = cookingSessionRepository
                     .findTop20ByUserIdOrderByStartedAtDesc(currentUserId);
-
             if (!recentSessions.isEmpty()) {
-                // Extract preferred cuisines from cooking history
-                Set<String> cookedRecipeIds = recentSessions.stream()
+                cookedRecipeIds = recentSessions.stream()
                         .map(CookingSession::getRecipeId)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
 
-                List<Recipe> cookedRecipes = recipeRepository.findAllByIdIn(
-                        new ArrayList<>(cookedRecipeIds));
-
-                List<String> preferredCuisines = cookedRecipes.stream()
+                List<Recipe> cookedRecipes = recipeRepository.findAllByIdIn(new ArrayList<>(cookedRecipeIds));
+                historyCuisines = cookedRecipes.stream()
                         .map(Recipe::getCuisineType)
                         .filter(Objects::nonNull)
-                        .distinct()
-                        .limit(5)
-                        .toList();
-
-                if (!preferredCuisines.isEmpty()) {
-                    // Find a matching recipe user hasn't cooked, sorted by trending
-                    List<Recipe> candidates = recipeRepository
-                            .findTop5ByCuisineTypeInIgnoreCase(preferredCuisines);
-
-                    pick = candidates.stream()
-                            .filter(r -> r.getStatus() == RecipeStatus.PUBLISHED)
-                            .filter(r -> !cookedRecipeIds.contains(r.getId()))
-                            .filter(r -> !r.getUserId().equals(currentUserId))
-                            .max(Comparator.comparingDouble(r -> r.getTrendingScore() != null ? r.getTrendingScore() : 0.0))
-                            .orElse(null);
-                }
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toSet());
             }
         }
 
-        // Fallback: highest trending score
-        if (pick == null) {
-            Page<Recipe> trending = recipeRepository.findByStatus(
-                    RecipeStatus.PUBLISHED,
-                    PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "trendingScore")));
-            if (!trending.isEmpty()) {
-                pick = trending.getContent().get(0);
-            }
-        }
+        // --- Seasonal tags for current month ---
+        int currentMonth = java.time.LocalDate.now().getMonthValue();
+        Set<String> seasonalTags = SEASONAL_TAGS.getOrDefault(currentMonth, Set.of());
 
-        if (pick == null) {
+        // --- Fetch candidate pool (top 50 published by trending, broad enough for scoring) ---
+        Page<Recipe> candidatePage = recipeRepository.findByStatus(
+                RecipeStatus.PUBLISHED,
+                PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "trendingScore")));
+
+        if (candidatePage.isEmpty()) {
             throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+        }
+
+        // --- Filter & score candidates ---
+        final Set<String> finalCookedIds = cookedRecipeIds;
+        final Set<String> finalPrefs = userPreferences;
+        final Set<String> finalHistoryCuisines = historyCuisines;
+        final Set<Difficulty> targetDifficulties = appropriateDifficulties(userLevel);
+
+        // Normalize trending scores for this batch
+        double maxTrending = candidatePage.getContent().stream()
+                .mapToDouble(r -> r.getTrendingScore() != null ? r.getTrendingScore() : 0.0)
+                .max().orElse(1.0);
+        if (maxTrending == 0.0) maxTrending = 1.0;
+        final double normTrending = maxTrending;
+
+        Recipe pick = candidatePage.getContent().stream()
+                // Exclude user's own recipes and recently cooked
+                .filter(r -> !authenticated || !r.getUserId().equals(currentUserId))
+                .filter(r -> !finalCookedIds.contains(r.getId()))
+                .max(Comparator.comparingDouble(r -> scoreTonightsPick(
+                        r, finalPrefs, finalHistoryCuisines, seasonalTags,
+                        targetDifficulties, normTrending)))
+                .orElse(null);
+
+        // Last fallback: just the top trending recipe
+        if (pick == null) {
+            pick = candidatePage.getContent().get(0);
         }
 
         RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(pick);
@@ -340,6 +400,71 @@ public class RecipeService {
                     .userId(pick.getUserId()).displayName("Chef").build());
         }
         return response;
+    }
+
+    /**
+     * Multi-signal scoring for Tonight's Pick candidate.
+     *
+     * @return score between 0.0 and 1.0
+     */
+    private double scoreTonightsPick(Recipe recipe, Set<String> userPrefs,
+                                     Set<String> historyCuisines, Set<String> seasonalTags,
+                                     Set<Difficulty> targetDifficulties, double maxTrending) {
+
+        // 1. Taste match (0.30) — user preferences + cooking history cuisines
+        double tasteScore = 0.0;
+        String cuisine = recipe.getCuisineType() != null ? recipe.getCuisineType().toLowerCase() : "";
+        List<String> recipeTags = new ArrayList<>();
+        if (recipe.getDietaryTags() != null) recipeTags.addAll(recipe.getDietaryTags());
+        if (recipe.getSkillTags() != null) recipeTags.addAll(recipe.getSkillTags());
+        if (!cuisine.isEmpty()) recipeTags.add(cuisine);
+
+        if (!userPrefs.isEmpty()) {
+            long prefMatches = recipeTags.stream()
+                    .filter(tag -> userPrefs.contains(tag.toLowerCase()))
+                    .count();
+            // Also check cuisine against preferences
+            if (userPrefs.contains(cuisine)) prefMatches++;
+            tasteScore = Math.min(prefMatches * 0.4, 1.0);
+        }
+        if (!historyCuisines.isEmpty() && historyCuisines.contains(cuisine)) {
+            tasteScore = Math.max(tasteScore, 0.6); // Cuisine history is strong signal
+        }
+
+        // 2. Trending (0.20) — normalized trending score
+        double trendingScore = (recipe.getTrendingScore() != null ? recipe.getTrendingScore() : 0.0) / maxTrending;
+
+        // 3. Seasonal (0.20) — month-appropriate tag matching
+        double seasonalScore = 0.0;
+        if (!seasonalTags.isEmpty()) {
+            long seasonMatches = recipeTags.stream()
+                    .filter(tag -> seasonalTags.contains(tag.toLowerCase()))
+                    .count();
+            seasonalScore = Math.min(seasonMatches * 0.4, 1.0);
+        }
+
+        // 4. Difficulty fit (0.15) — match user's skill level
+        double difficultyScore = 0.0;
+        if (recipe.getDifficulty() != null && targetDifficulties.contains(recipe.getDifficulty())) {
+            difficultyScore = 1.0;
+        } else if (recipe.getDifficulty() == Difficulty.BEGINNER) {
+            difficultyScore = 0.5; // Beginner recipes are universally accessible
+        }
+
+        // 5. Quality (0.15) — rating + cook count as social proof
+        double qualityScore = 0.0;
+        if (recipe.getAverageRating() != null && recipe.getAverageRating() > 0) {
+            qualityScore += (recipe.getAverageRating() / 5.0) * 0.6;
+        }
+        if (recipe.getCookCount() > 0) {
+            qualityScore += Math.min(recipe.getCookCount() / 50.0, 1.0) * 0.4;
+        }
+
+        return (tasteScore * 0.30)
+                + (trendingScore * 0.20)
+                + (seasonalScore * 0.20)
+                + (difficultyScore * 0.15)
+                + (qualityScore * 0.15);
     }
 
     /**

@@ -2,6 +2,8 @@ package com.chefkix.culinary.provider;
 
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.dto.CreatorInsightsInfo;
+import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
+import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
 import com.chefkix.culinary.features.report.dto.internal.InternalCreatorInsightsResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 public class RecipeProviderImpl implements RecipeProvider {
 
     private final RecipeService recipeService;
+    private final RecipeRepository recipeRepository;
 
     @Override
     public CreatorInsightsInfo getCreatorInsights(String userId) {
@@ -47,5 +50,19 @@ public class RecipeProviderImpl implements RecipeProvider {
                 .difficulty(dto.getDifficulty())
                 .averageRating(dto.getAverageRating())
                 .build();
+    }
+
+    @Override
+    public RecipeSummaryInfo getRecipeSummary(String recipeId) {
+        return recipeRepository.findById(recipeId)
+                .map(recipe -> RecipeSummaryInfo.builder()
+                        .id(recipe.getId())
+                        .title(recipe.getTitle())
+                        .coverImageUrl(recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()
+                                ? recipe.getCoverImageUrl().get(0)
+                                : null)
+                        .authorId(recipe.getUserId())
+                        .build())
+                .orElse(null);
     }
 }

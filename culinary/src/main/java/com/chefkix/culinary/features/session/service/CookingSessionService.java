@@ -385,7 +385,8 @@ public class CookingSessionService {
         if (sessionOpt.isEmpty()) return null;
 
         CookingSession session = sessionOpt.get();
-        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        Recipe recipe = recipeRepository.findById(session.getRecipeId())
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
         helper.calculateRemainingTime(session); // Use helper
         return helper.mapToCurrentSessionResponse(session, recipe); // Use helper
@@ -397,7 +398,8 @@ public class CookingSessionService {
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.UNAUTHORIZED);
 
-        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        Recipe recipe = recipeRepository.findById(session.getRecipeId())
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
         helper.calculateRemainingTime(session);
         return helper.mapToCurrentSessionResponse(session, recipe);
     }
