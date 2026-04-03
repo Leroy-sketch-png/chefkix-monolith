@@ -62,6 +62,21 @@ public class PostResponse {
     PollData pollData;
     String userVote; // "A", "B", or null (current user's vote)
 
+    // Recipe Review data (present when postType == RECIPE_REVIEW)
+    Integer reviewRating; // 1-5 star rating for the recipe
+
+    // Recipe Battle data (present when postType == RECIPE_BATTLE)
+    String battleRecipeIdA;
+    String battleRecipeIdB;
+    String battleRecipeTitleA;
+    String battleRecipeTitleB;
+    String battleRecipeImageA;
+    String battleRecipeImageB;
+    Integer battleVotesA;
+    Integer battleVotesB;
+    Instant battleEndsAt;
+    String userBattleVote; // "A", "B", or null (current user's vote)
+
     // Rate This Plate data (for posts with photos)
     Integer fireCount;
     Integer cringeCount;

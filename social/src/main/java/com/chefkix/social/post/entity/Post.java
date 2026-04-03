@@ -26,7 +26,11 @@ import java.util.List;
         // 3. For global "Hot" feed (hidden=false filtered by hotScore desc)
         @CompoundIndex(def = "{'hidden': 1, 'hotScore': -1}", name = "idx_hidden_hotScore"),
         // 4. For global "New" feed (hidden=false filtered by createdAt desc)
-        @CompoundIndex(def = "{'hidden': 1, 'createdAt': -1}", name = "idx_hidden_createdAt")
+        @CompoundIndex(def = "{'hidden': 1, 'createdAt': -1}", name = "idx_hidden_createdAt"),
+        // 5. For recipe reviews lookup (by recipe, newest first)
+        @CompoundIndex(def = "{'recipeId': 1, 'postType': 1, 'createdAt': -1}", name = "idx_recipeId_postType_createdAt"),
+        // 6. For active recipe battles (ending soonest first)
+        @CompoundIndex(def = "{'postType': 1, 'battleEndsAt': 1}", name = "idx_postType_battleEndsAt")
 })@Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -80,6 +84,20 @@ public class Post {
 
   // Poll data (only present when postType == POLL)
   PollData pollData;
+
+  // Recipe Review data (only present when postType == RECIPE_REVIEW)
+  Integer reviewRating; // 1-5 star rating for the recipe
+
+  // Recipe Battle data (only present when postType == RECIPE_BATTLE)
+  String battleRecipeIdA;     // First recipe in the battle
+  String battleRecipeIdB;     // Second recipe in the battle
+  String battleRecipeTitleA;
+  String battleRecipeTitleB;
+  String battleRecipeImageA;  // Cover image for recipe A
+  String battleRecipeImageB;  // Cover image for recipe B
+  @Builder.Default Integer battleVotesA = 0;
+  @Builder.Default Integer battleVotesB = 0;
+  Instant battleEndsAt;       // 48h countdown from creation
 
   // Rate This Plate data (for posts with photos)
   @Builder.Default Integer fireCount = 0;
