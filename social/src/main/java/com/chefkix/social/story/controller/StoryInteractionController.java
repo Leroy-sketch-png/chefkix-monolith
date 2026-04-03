@@ -26,11 +26,11 @@ public class StoryInteractionController {
         return ApiResponse.success("success");
     }
 
-//    @GetMapping("/stories/{storyId}/views")
-//    public ApiResponse<List<String>> getStoryViewers(@PathVariable String storyId) {
-//        // Trả về danh sách userId, Mobile App sẽ dùng danh sách này gọi UserService lấy tên/avatar
-//        return ApiResponse.success(interactionService.getViewerIds(storyId, getCurrentUserId()));
-//    }
+    @GetMapping("/stories/{storyId}/views")
+    public ApiResponse<List<String>> getStoryViewers(@PathVariable String storyId) {
+        // Trả về danh sách userId, Mobile App sẽ dùng danh sách này gọi UserService lấy tên/avatar
+        return ApiResponse.success(interactionService.getViewerIds(storyId, getCurrentUserId()));
+    }
 
     @PostMapping("/stories/{storyId}/reactions")
     public ApiResponse<String> reactToStory(

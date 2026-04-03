@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,17 +53,17 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
         interactionRepo.save(interaction);
         publisher.publishStoryInteractionEvent(storyId, story.getUserId(), userId ,reactionType);
     }
-//
-//    @Override
-//    public List<String> getViewerIds(String storyId, String ownerId) {
-//        // Fallback Bảo mật: Chỉ chủ nhân Story mới được xem danh sách này
-//        Story story = storyRepo.findById(storyId)
-//                .orElseThrow(() -> new RuntimeException("Story không tồn tại"));
-//        if (!story.getUserId().equals(ownerId)) {
-//            throw new RuntimeException("Chỉ chủ nhân mới được xem người xem");
-//        }
-//
-//        return interactionRepo.findByStoryIdAndIsViewedTrueOrderByLastViewedAtDesc(storyId)
-//                .stream().map(StoryInteraction::getUserId).toList();
-//    }
+
+    @Override
+    public List<String> getViewerIds(String storyId, String ownerId) {
+        // Fallback Bảo mật: Chỉ chủ nhân Story mới được xem danh sách này
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story không tồn tại"));
+        if (!story.getUserId().equals(ownerId)) {
+            throw new RuntimeException("Chỉ chủ nhân mới được xem người xem");
+        }
+
+        return interactionRepo.findByStoryIdAndIsViewedTrueOrderByLastViewedAtDesc(storyId)
+                .stream().map(StoryInteraction::getUserId).toList();
+    }
 }
