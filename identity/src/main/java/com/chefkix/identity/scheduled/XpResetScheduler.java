@@ -67,13 +67,4 @@ public class XpResetScheduler {
     }
   }
 
-  /**
-   * Archive and prepare leaderboard snapshot before reset (optional enhancement). Called right
-   * before reset to preserve historical data.
-   */
-  // @Scheduled(cron = "0 59 23 * * SUN")  // Sunday 23:59 - before Monday reset
-  // public void archiveWeeklyLeaderboard() {
-  //     log.info("Archiving weekly leaderboard...");
-  //     // Future enhancement: Save top 100 to history collection
-  // }
 }

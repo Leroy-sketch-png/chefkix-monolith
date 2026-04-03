@@ -30,7 +30,9 @@ import org.springframework.context.annotation.Lazy;
 // Feign removed in monolith
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -162,7 +164,6 @@ public class ProfileService {
   /** Get profile for any user (profile only, no posts) */
   public ProfileResponse getProfileByUserId(String targetUserId, Authentication authentication) {
     log.info("[PROFILE_GET] Fetching profile for target: {}", targetUserId);
-    String currentUserId = securityUtils.getCurrentUserId(authentication);
 
     var targetProfile =
         profileRepository
@@ -171,6 +172,26 @@ public class ProfileService {
     log.info("[PROFILE_GET] Found profile: {}", targetProfile.getDisplayName());
 
     ProfileResponse response = profileMapper.toProfileResponse(targetProfile);
+
+    // Guest viewer: no relationship, no follow, no block — just public profile data
+    boolean isGuest = authentication == null
+        || !authentication.isAuthenticated()
+        || "anonymousUser".equals(authentication.getName());
+
+    if (isGuest) {
+      response.setRelationshipStatus(RelationshipStatus.NOT_FRIENDS);
+      response.setFollowing(false);
+      response.setIsBlocked(false);
+      response.setEmail(null);
+      response.setPhoneNumber(null);
+      response.setDob(null);
+      if (response.getFriends() == null) {
+        response.setFriends(Collections.emptyList());
+      }
+      return response;
+    }
+
+    String currentUserId = securityUtils.getCurrentUserId(authentication);
 
     // Determine relationship status and follow state
     RelationshipStatus status =
@@ -276,6 +297,114 @@ public class ProfileService {
       response.setFriends(Collections.emptyList());
     }
     return response;
+  }
+
+  /**
+   * Delete user account (GDPR right to erasure).
+   * 1. Delete from Keycloak (prevents login)
+   * 2. Remove all follows
+   * 3. Anonymize profile in MongoDB (preserves referential integrity for posts/comments)
+   * 4. Publish user deletion event for cross-module cleanup
+   */
+  @Transactional
+  public void deleteAccount(Authentication authentication) {
+    String userId = securityUtils.getCurrentUserId(authentication);
+
+    UserProfile profile = profileRepository.findByUserId(userId)
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    // 1. Delete from Keycloak
+    try {
+      var token = keycloakAdminClient.exchangeToken(
+          TokenExchangeParam.builder()
+              .grant_type("client_credentials")
+              .client_id(clientId)
+              .client_secret(clientSecret)
+              .scope("openid")
+              .build());
+      keycloakAdminClient.deleteUser("Bearer " + token.getAccessToken(), userId);
+    } catch (Exception e) {
+      log.error("Failed to delete Keycloak user {}: {}", userId, e.getMessage(), e);
+      throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete account from identity provider");
+    }
+
+    // 2. Remove all follows (both directions)
+    followRepository.deleteAllByFollowerId(userId);
+    followRepository.deleteAllByFollowingId(userId);
+
+    // 3. Anonymize profile (keeps document for referential integrity)
+    profile.setEmail("[deleted]");
+    profile.setUsername("[deleted_" + userId.substring(0, 8) + "]");
+    profile.setDisplayName("Deleted User");
+    profile.setFirstName(null);
+    profile.setLastName(null);
+    profile.setFullName(null);
+    profile.setPhoneNumber(null);
+    profile.setAvatarUrl(null);
+    profile.setCoverImageUrl(null);
+    profile.setBio(null);
+    profile.setLocation(null);
+    profile.setDob(null);
+    profile.setPreferences(null);
+    profile.setFriends(null);
+    profile.setVerified(false);
+    profileRepository.save(profile);
+
+    // 4. Remove from search index
+    eventPublisher.publishEvent(UserIndexEvent.remove(userId));
+
+    log.info("Account deleted for userId={}", userId);
+  }
+
+  /**
+   * Export all user data (GDPR right to data portability).
+   * Returns a structured map of all PII and user-generated content references.
+   */
+  public Map<String, Object> exportUserData(Authentication authentication) {
+    String userId = securityUtils.getCurrentUserId(authentication);
+
+    UserProfile profile = profileRepository.findByUserId(userId)
+        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+    Map<String, Object> data = new LinkedHashMap<>();
+    data.put("exportDate", Instant.now().toString());
+    data.put("userId", profile.getUserId());
+
+    // Personal info
+    Map<String, Object> personalInfo = new LinkedHashMap<>();
+    personalInfo.put("username", profile.getUsername());
+    personalInfo.put("email", profile.getEmail());
+    personalInfo.put("displayName", profile.getDisplayName());
+    personalInfo.put("firstName", profile.getFirstName());
+    personalInfo.put("lastName", profile.getLastName());
+    personalInfo.put("phoneNumber", profile.getPhoneNumber());
+    personalInfo.put("bio", profile.getBio());
+    personalInfo.put("location", profile.getLocation());
+    personalInfo.put("dateOfBirth", profile.getDob() != null ? profile.getDob().toString() : null);
+    personalInfo.put("accountType", profile.getAccountType());
+    personalInfo.put("verified", profile.isVerified());
+    personalInfo.put("createdAt", profile.getCreatedAt() != null ? profile.getCreatedAt().toString() : null);
+    data.put("personalInfo", personalInfo);
+
+    // Statistics
+    if (profile.getStatistics() != null) {
+      data.put("statistics", profile.getStatistics());
+    }
+
+    // Preferences
+    if (profile.getPreferences() != null) {
+      data.put("preferences", profile.getPreferences());
+    }
+
+    // Social connections
+    long followersCount = followRepository.countByFollowingId(userId);
+    long followingCount = followRepository.countByFollowerId(userId);
+    Map<String, Object> social = new LinkedHashMap<>();
+    social.put("followersCount", followersCount);
+    social.put("followingCount", followingCount);
+    data.put("socialConnections", social);
+
+    return data;
   }
 
   // ===================================================================

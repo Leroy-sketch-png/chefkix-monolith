@@ -66,8 +66,8 @@ public class SubscriptionService {
 
     /**
      * Activate a premium subscription.
-     * In production, this would validate the payment token with the provider.
-     * For now, it's a skeleton that activates the subscription directly.
+     * Payment integration not yet implemented — blocks activation until a real
+     * payment provider (Stripe, etc.) is wired. Only the 7-day trial path works.
      */
     public SubscriptionResponse activateSubscription(String paymentProvider, String paymentToken) {
         String userId = getCurrentUserId();
@@ -82,25 +82,14 @@ public class SubscriptionService {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
         }
 
-        // Payment validation not yet implemented — reject in production
         if (paymentToken == null || paymentToken.isBlank()) {
             throw new AppException(ErrorCode.INVALID_REQUEST, "Payment token is required");
         }
-        log.warn("Payment token validation not yet implemented — accepting token for dev. provider={}, userId={}", paymentProvider, userId);
 
-        Instant now = Instant.now();
-        sub.setTier(SubscriptionTier.PREMIUM);
-        sub.setActive(true);
-        sub.setPaymentProvider(paymentProvider);
-        sub.setExternalSubscriptionId(paymentToken); // In production, exchange token for subscription ID
-        sub.setStartDate(now);
-        sub.setEndDate(now.plus(30, ChronoUnit.DAYS)); // 30-day billing cycle
-        sub.setCancelledAtPeriodEnd(false);
-        sub.setCancelledAt(null);
-
-        log.info("Premium subscription activated for user={}, provider={}", userId, paymentProvider);
-        subscriptionRepository.save(sub);
-        return toResponse(sub);
+        // Payment validation — no provider integration yet.
+        // Block until we wire Stripe/RevenueCat so nobody self-activates premium.
+        throw new AppException(ErrorCode.INVALID_REQUEST,
+                "Payment processing is not yet available. Start a free trial instead.");
     }
 
     /**

@@ -6,6 +6,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
 import com.chefkix.identity.entity.SignupRequest;
+import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.service.*;
 import com.chefkix.identity.utils.ClientIpUtils;
 import com.chefkix.identity.utils.HttpOnlyCookieUtils;
@@ -38,6 +39,29 @@ public class AuthenticationController {
   ProfileService profileService;
   ResetPasswordService resetPasswordService;
   AuthRateLimitService authRateLimitService;
+  UserProfileRepository userProfileRepository;
+
+  /**
+   * Check if a username is available for registration.
+   * Returns { available: true/false } to support live validation on sign-up form.
+   */
+  @GetMapping("/check-username")
+  ApiResponse<Map<String, Boolean>> checkUsernameAvailability(
+      @RequestParam(value = "username") String username) {
+    // Validate username format (same rules as registration)
+    if (username == null || username.length() < 2 || username.length() > 30) {
+      return ApiResponse.<Map<String, Boolean>>builder()
+          .data(Map.of("available", false))
+          .message("Username must be between 2 and 30 characters")
+          .build();
+    }
+    
+    // Check if username exists
+    boolean exists = userProfileRepository.findByUsername(username).isPresent();
+    return ApiResponse.<Map<String, Boolean>>builder()
+        .data(Map.of("available", !exists))
+        .build();
+  }
 
   @PostMapping(path = "/register")
   ApiResponse<String> register(

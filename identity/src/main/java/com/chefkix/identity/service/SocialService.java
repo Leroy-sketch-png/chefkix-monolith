@@ -593,4 +593,81 @@ public class SocialService {
   public boolean isFollowing(String userId, String targetId) {
     return followRepository.findByFollowerIdAndFollowingId(userId, targetId).isPresent();
   }
+
+  /**
+   * Get suggested follow profiles for a user based on preference overlap and popularity.
+   * Excludes: self, already following, blocked users.
+   * Scoring: preference overlap (0.4) + follower count (0.2) + post count (0.2) + level (0.2).
+   */
+  public List<ProfileResponse> getSuggestedFollows(String userId, int limit) {
+    // Gather exclusion sets
+    Set<String> followingIds = new HashSet<>(getFollowingIds(userId));
+    followingIds.add(userId); // Exclude self
+
+    // Exclude blocked users (both directions)
+    blockRepository.findAllByBlockerId(userId).forEach(b -> followingIds.add(b.getBlockedId()));
+    blockRepository.findAllByBlockedId(userId).forEach(b -> followingIds.add(b.getBlockerId()));
+
+    // Get current user's preferences for matching
+    UserProfile currentProfile = userProfileRepository.findByUserId(userId).orElse(null);
+    Set<String> myPrefs = (currentProfile != null && currentProfile.getPreferences() != null)
+            ? new HashSet<>(currentProfile.getPreferences()) : Collections.emptySet();
+
+    // Fetch candidate pool: recent active users not in exclusion set
+    // Use Pageable to limit the candidate pool size
+    Query query = new Query()
+            .addCriteria(Criteria.where("userId").nin(followingIds))
+            .with(org.springframework.data.domain.PageRequest.of(0, 200,
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "updatedAt")));
+    List<UserProfile> candidates = mongoTemplate.find(query, UserProfile.class);
+
+    if (candidates.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // Score and rank
+    List<ScoredProfile> scored = candidates.stream()
+            .map(profile -> {
+              double score = 0.0;
+              var stats = profile.getStatistics();
+
+              // Preference overlap (0.4) — shared interests
+              if (!myPrefs.isEmpty() && profile.getPreferences() != null) {
+                long overlap = profile.getPreferences().stream().filter(myPrefs::contains).count();
+                score += 0.4 * ((double) overlap / myPrefs.size());
+              }
+
+              if (stats != null) {
+                // Follower count (0.2) — popularity, normalized log scale
+                long followers = stats.getFollowerCount() != null ? stats.getFollowerCount() : 0;
+                score += 0.2 * Math.min(1.0, Math.log1p(followers) / Math.log1p(1000));
+
+                // Post count (0.2) — content creator signal
+                long posts = stats.getPostCount() != null ? stats.getPostCount() : 0;
+                score += 0.2 * Math.min(1.0, Math.log1p(posts) / Math.log1p(50));
+
+                // Level (0.2) — engagement signal
+                int level = stats.getCurrentLevel() != null ? stats.getCurrentLevel() : 1;
+                score += 0.2 * Math.min(1.0, (double) level / 20);
+              }
+
+              return new ScoredProfile(profile, score);
+            })
+            .sorted(Comparator.comparingDouble(ScoredProfile::score).reversed())
+            .limit(limit)
+            .toList();
+
+    return scored.stream()
+            .map(sp -> {
+              ProfileResponse response = profileMapper.toProfileResponse(sp.profile());
+              response.setFollowing(false);
+              response.setFollowedBy(isFollowing(sp.profile().getUserId(), userId));
+              response.setRelationshipStatus(
+                      response.getFollowedBy() != null && response.getFollowedBy() ? RelationshipStatus.NOT_FRIENDS : RelationshipStatus.NOT_FRIENDS);
+              return response;
+            })
+            .toList();
+  }
+
+  private record ScoredProfile(UserProfile profile, double score) {}
 }

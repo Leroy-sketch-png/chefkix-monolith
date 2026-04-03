@@ -165,7 +165,8 @@ public class StatisticsService {
       Statistics stats = processXpAndStatsUpdate(userId, xpAmount, null, false);
 
       // Fetch lại profile để map ra response
-      UserProfile profile = userProfileRepository.findByUserId(userId).orElseThrow();
+      UserProfile profile = userProfileRepository.findByUserId(userId)
+              .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
       return profileMapper.toProfileResponse(profile);
   }
 
@@ -473,6 +474,34 @@ public class StatisticsService {
             log.info("Creator bonus notification sent to user {}: +{} XP", creatorId, xpAmount);
         } catch (Exception e) {
             log.error("Failed to send creator bonus notification to user {}", creatorId, e);
+        }
+    }
+
+    /**
+     * Awards XP for social engagement (likes, comments, saves).
+     * Applies XP + level logic only — does NOT touch cooking streaks, completionCount, or challenge streak.
+     */
+    @Transactional
+    @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
+    public void rewardSocialXp(String userId, double amount, String source) {
+        log.info("Processing social XP for user {}: +{} XP (source={})", userId, amount, source);
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Statistics stats = (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
+
+        XpLevelResult levelResult = applyXpAndLevelLogic(stats, amount);
+
+        profile.setStatistics(stats);
+        userProfileRepository.save(profile);
+
+        if (levelResult.leveledUp()) {
+            sendGamificationNotification(
+                    userId, profile.getDisplayName(),
+                    amount, stats.getCurrentXP(),
+                    levelResult, null,
+                    source, null, null);
         }
     }
 
