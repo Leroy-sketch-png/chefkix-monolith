@@ -3,7 +3,9 @@ package com.chefkix.social.post.controller;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.social.post.dto.response.BattleVoteResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
+import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
 import com.chefkix.social.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -167,6 +169,64 @@ public class PostController {
 
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.searchPosts(query, pageable, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    // ========================================================================
+    // RECIPE REVIEWS
+    // ========================================================================
+
+    /**
+     * Get all reviews for a specific recipe, newest first.
+     * GET /api/v1/posts/reviews/recipe/{recipeId}
+     */
+    @GetMapping("/reviews/recipe/{recipeId}")
+    public ResponseEntity<ApiResponse<Page<PostResponse>>> getReviewsForRecipe(
+            @PathVariable String recipeId,
+            @PageableDefault(size = 10) Pageable pageable,
+            Authentication authentication) {
+        String currentUserId = authentication != null ? authentication.getName() : null;
+        Page<PostResponse> result = postService.getReviewsForRecipe(recipeId, pageable, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * Get aggregate review stats for a recipe (average rating + total count).
+     * GET /api/v1/posts/reviews/recipe/{recipeId}/stats
+     */
+    @GetMapping("/reviews/recipe/{recipeId}/stats")
+    public ResponseEntity<ApiResponse<RecipeReviewStatsResponse>> getRecipeReviewStats(
+            @PathVariable String recipeId) {
+        RecipeReviewStatsResponse result = postService.getRecipeReviewStats(recipeId);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    // ========================================================================
+    // RECIPE BATTLES
+    // ========================================================================
+
+    /**
+     * Vote in a recipe battle (toggle: same choice removes vote).
+     * POST /api/v1/posts/battles/{postId}/vote?choice=A|B
+     */
+    @PostMapping("/battles/{postId}/vote")
+    public ResponseEntity<ApiResponse<BattleVoteResponse>> voteBattle(
+            @PathVariable String postId,
+            @RequestParam String choice) {
+        BattleVoteResponse result = postService.voteBattle(postId, choice);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * Get active recipe battles (not yet ended), ordered by ending soonest.
+     * GET /api/v1/posts/battles/active
+     */
+    @GetMapping("/battles/active")
+    public ResponseEntity<ApiResponse<Page<PostResponse>>> getActiveBattles(
+            @PageableDefault(size = 10) Pageable pageable,
+            Authentication authentication) {
+        String currentUserId = authentication != null ? authentication.getName() : null;
+        Page<PostResponse> result = postService.getActiveBattles(pageable, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

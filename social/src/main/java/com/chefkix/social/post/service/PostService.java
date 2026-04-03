@@ -1,7 +1,9 @@
 package com.chefkix.social.post.service;
 
 import com.chefkix.culinary.api.ContentModerationProvider;
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.post.enums.PostStatus;
 import com.chefkix.social.post.enums.PostType;
@@ -26,12 +28,15 @@ import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
 import com.chefkix.social.post.dto.response.PollVoteResponse;
+import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
+import com.chefkix.social.post.dto.response.BattleVoteResponse;
 import com.chefkix.social.post.entity.CoChef;
 import com.chefkix.social.post.entity.PollData;
 import com.chefkix.social.post.entity.PollVote;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.entity.PostLike;
 import com.chefkix.social.post.entity.PostSave;
+import com.chefkix.social.post.entity.BattleVote;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.mapper.PostMapper;
@@ -40,6 +45,7 @@ import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.PostSaveRepository;
 import com.chefkix.social.post.repository.PollVoteRepository;
 import com.chefkix.social.post.repository.PlateRatingRepository;
+import com.chefkix.social.post.repository.BattleVoteRepository;
 import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.social.post.repository.CommentLikeRepository;
@@ -96,6 +102,7 @@ public class PostService {
     PostSaveRepository postSaveRepository;
     PollVoteRepository pollVoteRepository;
     PlateRatingRepository plateRatingRepository;
+    BattleVoteRepository battleVoteRepository;
     CommentRepository commentRepository;
     ReplyRepository replyRepository;
     CommentLikeRepository commentLikeRepository;
@@ -111,6 +118,7 @@ public class PostService {
     ProfileProvider profileProvider;
     @Lazy SessionProvider sessionProvider;
     ContentModerationProvider contentModerationProvider;
+    RecipeProvider recipeProvider;
 
     @Qualifier("taskExecutor")
     Executor taskExecutor;
@@ -292,6 +300,41 @@ public class PostService {
                     .votesA(0)
                     .votesB(0)
                     .build());
+        }
+
+        // RECIPE REVIEW DATA
+        if (type == PostType.RECIPE_REVIEW) {
+            if (request.getReviewRating() == null || request.getReviewRating() < 1 || request.getReviewRating() > 5) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Review rating must be between 1 and 5");
+            }
+            if (session == null) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Recipe review requires a cooking session");
+            }
+            post.setReviewRating(request.getReviewRating());
+        }
+
+        // RECIPE BATTLE DATA
+        if (type == PostType.RECIPE_BATTLE) {
+            if (!StringUtils.hasText(request.getBattleRecipeIdA()) || !StringUtils.hasText(request.getBattleRecipeIdB())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Recipe battle requires two recipe IDs");
+            }
+            if (request.getBattleRecipeIdA().equals(request.getBattleRecipeIdB())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Battle recipes must be different");
+            }
+            RecipeSummaryInfo recipeA = recipeProvider.getRecipeSummary(request.getBattleRecipeIdA());
+            RecipeSummaryInfo recipeB = recipeProvider.getRecipeSummary(request.getBattleRecipeIdB());
+            if (recipeA == null || recipeB == null) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND, "One or both battle recipes not found");
+            }
+            post.setBattleRecipeIdA(recipeA.getId());
+            post.setBattleRecipeIdB(recipeB.getId());
+            post.setBattleRecipeTitleA(recipeA.getTitle());
+            post.setBattleRecipeTitleB(recipeB.getTitle());
+            post.setBattleRecipeImageA(recipeA.getCoverImageUrl());
+            post.setBattleRecipeImageB(recipeB.getCoverImageUrl());
+            post.setBattleVotesA(0);
+            post.setBattleVotesB(0);
+            post.setBattleEndsAt(Instant.now().plusSeconds(48 * 60 * 60)); // 48 hours
         }
 
         // LINK TO SESSION
@@ -1111,6 +1154,10 @@ public class PostService {
             if (post.getPostType() == PostType.POLL) {
                 post.setUserVote(pollVoteMap.get(post.getId()));
             }
+            if (post.getPostType() == PostType.RECIPE_BATTLE) {
+                battleVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                        .ifPresent(v -> post.setUserBattleVote(v.getChoice()));
+            }
             post.setUserPlateRating(plateRatingMap.get(post.getId()));
         });
     }
@@ -1129,6 +1176,10 @@ public class PostService {
             if (post.getPostType() == PostType.POLL) {
                 pollVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
                         .ifPresent(v -> post.setUserVote(v.getOption()));
+            }
+            if (post.getPostType() == PostType.RECIPE_BATTLE) {
+                battleVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                        .ifPresent(v -> post.setUserBattleVote(v.getChoice()));
             }
             plateRatingRepository.findByPostIdAndUserId(post.getId(), currentUserId)
                     .ifPresent(pr -> post.setUserPlateRating(pr.getRating()));
@@ -1455,5 +1506,150 @@ public class PostService {
 
         postRepository.save(post);
         log.info("Auto-created RECENT_COOK post for user {} (recipe: {})", request.getUserId(), request.getRecipeTitle());
+    }
+
+    // ========================================================================
+    // RECIPE REVIEWS
+    // ========================================================================
+
+    /**
+     * Get all reviews for a specific recipe, newest first.
+     */
+    public Page<PostResponse> getReviewsForRecipe(String recipeId, Pageable pageable, String currentUserId) {
+        Page<Post> posts = postRepository.findByRecipeIdAndPostTypeAndHiddenFalseOrderByCreatedAtDesc(
+                recipeId, PostType.RECIPE_REVIEW, pageable);
+        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(responses, currentUserId);
+        return responses;
+    }
+
+    /**
+     * Get aggregate review stats for a recipe (average rating, total count).
+     */
+    public RecipeReviewStatsResponse getRecipeReviewStats(String recipeId) {
+        // Use MongoTemplate for aggregation (avg rating)
+        var matchCriteria = Criteria.where("recipeId").is(recipeId)
+                .and("postType").is(PostType.RECIPE_REVIEW)
+                .and("hidden").is(false)
+                .and("reviewRating").ne(null);
+
+        Query countQuery = Query.query(matchCriteria);
+        long totalReviews = mongoTemplate.count(countQuery, Post.class);
+
+        if (totalReviews == 0) {
+            return RecipeReviewStatsResponse.builder()
+                    .recipeId(recipeId)
+                    .averageRating(0.0)
+                    .totalReviews(0)
+                    .build();
+        }
+
+        // Use Spring Data MongoDB aggregation for average
+        var aggregation = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+                org.springframework.data.mongodb.core.aggregation.Aggregation.match(matchCriteria),
+                org.springframework.data.mongodb.core.aggregation.Aggregation.group()
+                        .avg("reviewRating").as("avgRating")
+                        .count().as("count")
+        );
+
+        var results = mongoTemplate.aggregate(aggregation, "post", java.util.Map.class);
+        var firstResult = results.getUniqueMappedResult();
+
+        double avgRating = 0.0;
+        if (firstResult != null && firstResult.get("avgRating") != null) {
+            avgRating = ((Number) firstResult.get("avgRating")).doubleValue();
+            avgRating = Math.round(avgRating * 10.0) / 10.0; // Round to 1 decimal
+        }
+
+        return RecipeReviewStatsResponse.builder()
+                .recipeId(recipeId)
+                .averageRating(avgRating)
+                .totalReviews(totalReviews)
+                .build();
+    }
+
+    // ========================================================================
+    // RECIPE BATTLES
+    // ========================================================================
+
+    /**
+     * Vote in a recipe battle. One vote per user; toggle removes vote.
+     */
+    @Transactional
+    public BattleVoteResponse voteBattle(String postId, String choice) {
+        if (!"A".equals(choice) && !"B".equals(choice)) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Battle vote must be 'A' or 'B'");
+        }
+
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        if (post.getPostType() != PostType.RECIPE_BATTLE) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "This post is not a recipe battle");
+        }
+
+        if (post.getBattleEndsAt() != null && Instant.now().isAfter(post.getBattleEndsAt())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "This battle has ended");
+        }
+
+        Query query = Query.query(Criteria.where("_id").is(postId));
+        Optional<BattleVote> existingVote = battleVoteRepository.findByPostIdAndUserId(postId, userId);
+
+        if (existingVote.isPresent()) {
+            String oldChoice = existingVote.get().getChoice();
+            if (oldChoice.equals(choice)) {
+                // Toggle off — remove vote
+                battleVoteRepository.delete(existingVote.get());
+                String decField = "A".equals(oldChoice) ? "battleVotesA" : "battleVotesB";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                return BattleVoteResponse.builder()
+                        .userVote(null)
+                        .votesA(Math.max(0, updated.getBattleVotesA()))
+                        .votesB(Math.max(0, updated.getBattleVotesB()))
+                        .build();
+            } else {
+                // Switch vote
+                existingVote.get().setChoice(choice);
+                battleVoteRepository.save(existingVote.get());
+                String decField = "A".equals(oldChoice) ? "battleVotesA" : "battleVotesB";
+                String incField = "A".equals(choice) ? "battleVotesA" : "battleVotesB";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1).inc(incField, 1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                return BattleVoteResponse.builder()
+                        .userVote(choice)
+                        .votesA(Math.max(0, updated.getBattleVotesA()))
+                        .votesB(Math.max(0, updated.getBattleVotesB()))
+                        .build();
+            }
+        }
+
+        // New vote
+        battleVoteRepository.save(BattleVote.builder()
+                .postId(postId)
+                .userId(userId)
+                .choice(choice)
+                .build());
+        String incField = "A".equals(choice) ? "battleVotesA" : "battleVotesB";
+        mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
+        Post updated = postRepository.findById(postId).orElse(post);
+
+        return BattleVoteResponse.builder()
+                .userVote(choice)
+                .votesA(updated.getBattleVotesA())
+                .votesB(updated.getBattleVotesB())
+                .build();
+    }
+
+    /**
+     * Get active recipe battles (not yet ended), ordered by ending soonest.
+     */
+    public Page<PostResponse> getActiveBattles(Pageable pageable, String currentUserId) {
+        Page<Post> posts = postRepository.findByPostTypeAndBattleEndsAtAfterAndHiddenFalseOrderByBattleEndsAtAsc(
+                PostType.RECIPE_BATTLE, Instant.now(), pageable);
+        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(responses, currentUserId);
+        return responses;
     }
 }

@@ -3,6 +3,7 @@ package com.chefkix.social.post.service;
 import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.shared.event.CommentEvent;
 import com.chefkix.shared.event.UserMentionEvent;
+import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.social.post.dto.request.CommentRequest;
 import com.chefkix.social.post.dto.response.CommentLikeResponse;
 import com.chefkix.social.post.dto.response.CommentResponse;
@@ -135,6 +136,9 @@ public class CommentService {
         sendCommentNotification(comment, post, userInfo.getDisplayName(), userInfo.getAvatarUrl());
     }
 
+    // Award social XP to the commenter (3 XP per comment, deduped per user+post)
+    sendSocialXpEvent(userId, 3.0, "SOCIAL_COMMENT", postId, "Commented on a post");
+
     // Send notification to the tagged users
     if (!extractedTagIds.isEmpty()) {
         sendTagNotification(comment, post, extractedTagIds);
@@ -169,6 +173,21 @@ public class CommentService {
           log.error("Failed to send comment notification", e);
       }
   }
+
+    private void sendSocialXpEvent(String userId, double amount, String source, String postId, String description) {
+        try {
+            XpRewardEvent xpEvent = XpRewardEvent.builder()
+                    .userId(userId)
+                    .amount(amount)
+                    .source(source)
+                    .postId(postId)
+                    .description(description)
+                    .build();
+            kafkaTemplate.send("xp-delivery", xpEvent);
+        } catch (Exception e) {
+            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+        }
+    }
 
     /**
      * Sends Kafka event to notify tagged user.

@@ -147,7 +147,6 @@ public class GroupService {
 
         memberRepository.save(newMember);
 
-        // TODO: Fire Kafka event here (e.g., alert admins if PENDING)
         eventPublisher.publishMembershipEvent(group, currentUserId, assignedStatus);
 
         return JoinGroupResponse.builder()
