@@ -115,6 +115,13 @@ public enum ErrorCode {
     REPLY_NOT_FOUND(404, "Reply not found", HttpStatus.NOT_FOUND),
     REPORT_LIMIT_EXCEEDED(429, "Report limit exceeded for today", HttpStatus.TOO_MANY_REQUESTS),
     DUPLICATE_REPORT(409, "Already reported this content", HttpStatus.CONFLICT),
+    ACCOUNT_TOO_NEW(403, "Your account must be at least 7 days old to report content", HttpStatus.FORBIDDEN),
+    INSUFFICIENT_ACTIVITY(403, "You need more platform activity before reporting content", HttpStatus.FORBIDDEN),
+
+    // ─── COLLECTIONS ────────────────────────────────────────────────
+
+    COLLECTION_NOT_FOUND(404, "Collection not found", HttpStatus.NOT_FOUND),
+    COLLECTION_LIMIT_EXCEEDED(409, "Maximum number of collections reached", HttpStatus.CONFLICT),
 
     // ─── CHAT ───────────────────────────────────────────────────────
 
