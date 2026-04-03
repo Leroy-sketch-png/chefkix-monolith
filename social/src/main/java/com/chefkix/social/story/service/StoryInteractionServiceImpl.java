@@ -1,6 +1,5 @@
 package com.chefkix.social.story.service;
 
-import com.chefkix.social.story.entity.Story;
 import com.chefkix.social.story.entity.StoryInteraction;
 import com.chefkix.social.story.repository.StoryInteractionRepository;
 import com.chefkix.social.story.repository.StoryRepository;
@@ -8,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,18 +32,18 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
         interactionRepo.save(interaction);
     }
 
-//    @Override
-//    public void recordReaction(String storyId, String userId, String reactionType) {
-//        StoryInteraction interaction = getOrInitializeInteraction(storyId, userId);
-//        interaction.setReaction(reactionType);
-//
-//        // Tùy chọn: Đánh dấu là đã xem luôn nếu user thả tim từ xa
-//        interaction.setViewed(true);
-//        interaction.setLastViewedAt(Instant.now());
-//
-//        interactionRepo.save(interaction);
-//        // TODO: Bắn Event sang Notification Service để báo cho chủ Story biết
-//    }
+    @Override
+    public void recordReaction(String storyId, String userId, String reactionType) {
+        StoryInteraction interaction = getOrInitializeInteraction(storyId, userId);
+        interaction.setReaction(reactionType);
+
+        // Tùy chọn: Đánh dấu là đã xem luôn nếu user thả tim từ xa
+        interaction.setViewed(true);
+        interaction.setLastViewedAt(Instant.now());
+
+        interactionRepo.save(interaction);
+        // TODO: Bắn Event sang Notification Service để báo cho chủ Story biết
+    }
 //
 //    @Override
 //    public List<String> getViewerIds(String storyId, String ownerId) {

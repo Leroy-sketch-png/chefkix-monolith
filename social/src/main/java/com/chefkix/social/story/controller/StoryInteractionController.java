@@ -32,13 +32,13 @@ public class StoryInteractionController {
 //        return ApiResponse.success(interactionService.getViewerIds(storyId, getCurrentUserId()));
 //    }
 
-//    @PostMapping("/stories/{storyId}/reactions")
-//    public ApiResponse<String> reactToStory(
-//            @PathVariable String storyId,
-//            @RequestParam String type) { // type = "FIRE", "HEART"...
-//        interactionService.recordReaction(storyId, getCurrentUserId(), type);
-//        return ApiResponse.success("successfully reacted");
-//    }
+    @PostMapping("/stories/{storyId}/reactions")
+    public ApiResponse<String> reactToStory(
+            @PathVariable String storyId,
+            @RequestParam String type) { // type = "FIRE", "HEART"...
+        interactionService.recordReaction(storyId, getCurrentUserId(), type);
+        return ApiResponse.success("successfully reacted");
+    }
 
     // --- HIGHLIGHTS ---
 
