@@ -1,6 +1,10 @@
 package com.chefkix.social.story.service;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.social.story.entity.Story;
 import com.chefkix.social.story.entity.StoryInteraction;
+import com.chefkix.social.story.publisher.StoryEventPublisher;
 import com.chefkix.social.story.repository.StoryInteractionRepository;
 import com.chefkix.social.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,7 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
 
     private final StoryInteractionRepository interactionRepo;
     private final StoryRepository storyRepo;
+    private final StoryEventPublisher publisher;
 
     // Hàm tiện ích nội bộ để lấy hoặc tạo mới Interaction
     private StoryInteraction getOrInitializeInteraction(String storyId, String userId) {
@@ -41,8 +46,11 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
         interaction.setViewed(true);
         interaction.setLastViewedAt(Instant.now());
 
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
         interactionRepo.save(interaction);
-        // TODO: Bắn Event sang Notification Service để báo cho chủ Story biết
+        publisher.publishStoryInteractionEvent(storyId, story.getUserId(), userId ,reactionType);
     }
 //
 //    @Override

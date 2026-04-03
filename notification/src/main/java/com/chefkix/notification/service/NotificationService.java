@@ -433,6 +433,61 @@ public class NotificationService {
         );
     }
 
+    // ===============================================
+    // STORY EVENT HANDLER
+    // ===============================================
+
+    public void handleStoryInteractedEvent(StoryInteractionEvent event) {
+        String recipientId = event.getStoryOwnerId();
+        String actorId = event.getUserId();
+        String displayName = safeDisplayName(event.getUserDisplayName());
+
+        // 1. Chống tự thông báo
+        if (actorId.equals(recipientId)) {
+            return;
+        }
+
+        // 2. CHỐT CHẶN TỐI ƯU: Bỏ qua hoàn toàn nếu chỉ là lượt Xem (VIEW)
+        if (event.getInteractionType() == null || event.getInteractionType().equalsIgnoreCase("VIEW")) {
+            return;
+        }
+
+        // 3. Chỉ xử lý REACTION: Kiểm tra user có tắt thông báo Social không
+        if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
+            log.debug("Skipping STORY_REACTION notification for user {} — social disabled", recipientId);
+            return;
+        }
+
+        // 4. Mapping Icon cảm xúc
+        String reactionEmoji = switch (event.getInteractionType().toUpperCase()) {
+            case "FIRE" -> "🔥";
+            case "HEART" -> "❤️";
+            case "WOW" -> "😲";
+            case "LAUGH" -> "😂";
+            case "SAD" -> "😢";
+            default -> "thả cảm xúc vào";
+        };
+
+        String content;
+        if (reactionEmoji.length() <= 2) {
+            content = String.format("%s đã thả %s vào tin của bạn.", displayName, reactionEmoji);
+        } else {
+            content = String.format("%s đã %s tin của bạn.", displayName, reactionEmoji);
+        }
+
+        // 5. Lưu vào Database & Broadcast
+        createAndBroadcastNotification(
+                recipientId,
+                actorId,
+                displayName,
+                event.getUserAvatarUrl(),
+                event.getStoryId(),
+                content,
+                NotificationType.STORY_INTERACTION,
+                "Created story reaction notification"
+        );
+    }
+
     private void createAndBroadcastNotification(
             String recipientId, String actorId, String actorName, String actorAvatarUrl,
             String targetEntityId, String content, NotificationType type, String logMessagePrefix) {

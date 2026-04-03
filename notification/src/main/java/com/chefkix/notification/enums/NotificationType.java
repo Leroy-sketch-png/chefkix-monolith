@@ -40,4 +40,7 @@ public enum NotificationType {
     JOIN_REQUESTED,
     MEMBER_JOINED,
     JOIN_REQUEST_APPROVED,
+
+    //Story
+    STORY_INTERACTION
 }

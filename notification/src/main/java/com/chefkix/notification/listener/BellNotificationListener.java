@@ -225,6 +225,45 @@ public class BellNotificationListener {
     }
 
     @KafkaListener(
+            topics = "story-delivery", // Ensure your social module produces to this topic!
+            groupId = "notification-group",
+            containerFactory = "notificationEventListenerFactory")
+    public void listenStoryDelivery(BaseEvent event) {
+        // 1. Kiểm tra Idempotency
+        if (!shouldProcess(event, "story-delivery")) {
+            return; // Đừng quên return ở đây nhé
+        }
+
+        // 2. Pattern Matching cho StoryEvent
+        if (event instanceof StoryInteractionEvent storyEvent) {
+            // Validate các trường bắt buộc
+            if (!hasText(storyEvent.getStoryId()) || !hasText(storyEvent.getUserId()) || !hasText(storyEvent.getInteractionType())) {
+                log.error("Skipping invalid StoryInteractionEvent: storyId={}, userId={}, interactionType={}",
+                        storyEvent.getStoryId(), storyEvent.getUserId(), storyEvent.getInteractionType());
+                return;
+            }
+
+            try {
+                log.info(
+                        "Received StoryInteractionEvent: story={} from user={} type={}",
+                        storyEvent.getStoryId(),
+                        storyEvent.getUserId(),
+                        storyEvent.getInteractionType());
+
+                // Gọi sang Service để xử lý lưu Notification và bắn Push (FCM/WebSocket)
+                notificationService.handleStoryInteractedEvent(storyEvent);
+
+            } catch (Exception e) {
+                // Rollback idempotency để Kafka có thể retry lại sau nếu lỗi
+                idempotencyService.removeProcessed(event.getEventId(), "story-delivery");
+                throw e;
+            }
+        } else {
+            log.warn("Received unexpected event type on 'story-delivery': {}", event.getClass().getSimpleName());
+        }
+    }
+
+    @KafkaListener(
             topics = "group-delivery", // Ensure your social module produces to this topic!
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
