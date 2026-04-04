@@ -55,13 +55,13 @@ public class ChallengeService {
     private final com.chefkix.culinary.common.helper.RecipeHelper recipeHelper;
 
     public ChallengeResponse getTodayChallenge(String userId) {
-        // 1. Lấy Challenge hôm nay từ Pool
+        // 1. Get today's Challenge from Pool
         ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
         if (challenge == null) {
             throw new AppException(ErrorCode.CHALLENGE_NOT_FOUND);
         }
 
-        // 2. Kiểm tra User đã hoàn thành chưa
+        // 2. Check if user has already completed it
         String todayStr = LocalDate.now(ZoneId.of("UTC")).toString(); // "2025-12-13"
         Optional<ChallengeLog> logOpt = challengeLogRepository.findByUserIdAndChallengeDate(userId, todayStr);
 
@@ -69,20 +69,20 @@ public class ChallengeService {
         String completedAt = isCompleted && logOpt.get().getCompletedAt() != null
                 ? logOpt.get().getCompletedAt().toString() : null;
 
-        // 3. Tìm món ăn gợi ý (Matching Recipes)
-        // Đây là phần logic tìm kiếm cơ bản dựa trên Metadata
+        // 3. Find suggested recipes (Matching Recipes)
+        // This is basic search logic based on Metadata
         List<ChallengeResponse.RecipePreviewDto> matchingRecipes = findMatchingRecipes(challenge.getCriteriaMetadata());
 
         LocalDate today = LocalDate.now(ZoneId.of("UTC"));
 
-        // B2: Cộng thêm 1 ngày -> Lấy 00:00:00 của ngày mai
-        // Ví dụ: Hôm nay 13/12 -> Deadline là 14/12 lúc 00:00:00
+        // Step 2: Add 1 day -> Get 00:00:00 of tomorrow
+        // Example: Today is 12/13 -> Deadline is 12/14 at 00:00:00
         java.time.ZonedDateTime endOfDay = today.plusDays(1)
                 .atStartOfDay(ZoneId.of("UTC"));
 
-        // B3: Format sang chuẩn ISO 8601 (VD: "2025-12-14T00:00:00Z")
+        // Step 3: Format to ISO 8601 standard (e.g., "2025-12-14T00:00:00Z")
         String endsAtStr = endOfDay.format(java.time.format.DateTimeFormatter.ISO_INSTANT);
-        // 4. Map sang DTO để trả về
+        // 4. Map to response DTO
         return ChallengeResponse.builder()
                 .id(challenge.getId())
                 .title(challenge.getTitle())
@@ -90,10 +90,10 @@ public class ChallengeService {
             .icon(extractChallengeIcon(challenge.getTitle()))
                 .bonusXp(challenge.getBonusXp())
                 .endsAt(endsAtStr)
-                .criteria(challenge.getCriteriaMetadata()) // Trả về cục JSON criteria
+                .criteria(challenge.getCriteriaMetadata()) // Return the JSON criteria object
                 .completed(isCompleted)
                 .completedAt(completedAt)
-                .matchingRecipes(matchingRecipes) // Bạn nên map sang RecipePreviewDTO để gọn hơn
+                .matchingRecipes(matchingRecipes) // Consider mapping to RecipePreviewDTO for a lighter response
                 .build();
     }
 
@@ -113,45 +113,44 @@ public class ChallengeService {
     }
 
     /**
-     * Logic tìm món ăn gợi ý dựa trên Metadata của Challenge
-     * (Đây là ví dụ đơn giản, bạn có thể viết query Mongo phức tạp hơn)
+     * Find suggested recipes based on Challenge Metadata
      */
     /**
-     * Logic tìm món ăn gợi ý
+     * Find suggested recipes
      */
     private List<ChallengeResponse.RecipePreviewDto> findMatchingRecipes(Map<String, Object> criteria) {
         if (criteria == null || criteria.isEmpty()) {
-            // Fallback: Nếu không có tiêu chí, trả về 5 món bất kỳ (hoặc rỗng)
+            // Fallback: If no criteria, return 5 random recipes (or empty)
             return Collections.emptyList();
         }
 
         List<Recipe> recipes = new ArrayList<>();
 
-        // 1. Ưu tiên tìm theo Cuisine (Vì nó chính xác hơn)
+        // 1. Prioritize search by Cuisine (more precise)
         if (criteria.containsKey("cuisineType")) {
             List<String> cuisines = getStringListCriteria(criteria, "cuisineType");
-            // Gọi Repository
+            // Call Repository
             recipes = recipeRepository.findTop5ByCuisineTypeInIgnoreCase(cuisines);
         }
 
-        // 2. Nếu chưa tìm thấy gì, thử tìm theo Nguyên liệu
+        // 2. If no results found, try searching by Ingredients
         if (recipes.isEmpty() && criteria.containsKey("ingredientContains")) {
             List<String> ingredients = getStringListCriteria(criteria, "ingredientContains");
-            // Gọi Repository
+            // Call Repository
             recipes = recipeRepository.findTop5ByFullIngredientListInIgnoreCase(ingredients);
         }
 
-        // 3. Fallback: Nếu vẫn rỗng (do user nhập liệu sai hoặc không khớp)
-        // Bạn có thể trả về list rỗng hoặc query findAll().stream().limit(3)... tùy ý.
+        // 3. Fallback: If still empty (due to bad user input or no matches)
+        // You can return an empty list or query findAll().stream().limit(3)... as desired.
         if (recipes.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 4. Map từ Entity (Recipe) sang DTO (RecipePreviewDto)
+        // 4. Map from Entity (Recipe) to DTO (RecipePreviewDto)
         return recipes.stream()
                 .map(this::mapToPreviewDto)
                 .toList(); // Java 16+
-        // .collect(Collectors.toList()); // Nếu dùng Java cũ hơn
+        // .collect(Collectors.toList()); // If using older Java
     }
 
     private List<String> getStringListCriteria(Map<String, Object> criteria, String key) {
@@ -168,46 +167,46 @@ public class ChallengeService {
 
     /**
      * Logic: Automatic Completion based on Specs
-     * @param userId ID người dùng
-     * @param recipe Món ăn vừa nấu xong
-     * @return Kết quả thưởng (nếu có)
+     * @param userId User ID
+     * @param recipe Recipe that was just cooked
+     * @return Reward result (if any)
      */
     public Optional<ChallengeRewardResult> checkAndCompleteChallenge(String userId, Recipe recipe) {
 
-        // 0. Lấy Challenge của hôm nay
+        // 0. Get today's Challenge
         ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
         if (challenge == null) return Optional.empty();
 
         String todayStr = LocalDate.now(ZoneId.of("UTC")).toString(); // "2025-12-13"
 
         // =================================================================
-        // LOGIC 1: CHECK ĐÃ LÀM CHƯA? (Duplicate Check)
+        // LOGIC 1: ALREADY COMPLETED CHECK (Duplicate Check)
         // =================================================================
-        // "hôm nay đã thực hiện 1 chellenge nào chưa"
+        // "has the user already completed a challenge today?"
         boolean alreadyCompleted = challengeLogRepository
                 .existsByUserIdAndChallengeDate(userId, todayStr);
 
         if (alreadyCompleted) {
-            return Optional.empty(); // Đã làm rồi -> Dừng lại, không thưởng nữa.
+            return Optional.empty(); // Already done -> Stop, no more rewards.
         }
 
         // =================================================================
-        // LOGIC 2: CHECK RECIPE CÓ KHỚP KHÔNG? (Matching Check)
+        // LOGIC 2: RECIPE MATCH CHECK (Matching Check)
         // =================================================================
-        // "check xem session đang thực hiện có recipeId khớp với recipe trong challenge"
-        // (Ở đây ta check theo Criteria của challenge thay vì list ID cứng để linh hoạt hơn)
+        // "check if the current session's recipeId matches a recipe in the challenge"
+        // (Here we check against the challenge's Criteria instead of a hardcoded ID list for flexibility)
         if (challenge.isSatisfiedBy(recipe)) {
 
             // =============================================================
-            // LOGIC 3: LƯU VÀO HISTORY (Save Log)
+            // LOGIC 3: SAVE TO HISTORY (Save Log)
             // =============================================================
-            // "nếu thỏa các điều kiện... thêm vào Challenge History"
+            // "if conditions are met... add to Challenge History"
             ChallengeLog historyLog = ChallengeLog.builder()
                     .userId(userId)
                     .challengeId(challenge.getId())
-                    .challengeTitle(challenge.getTitle()) // Lưu Snapshot tên challenge
+                    .challengeTitle(challenge.getTitle()) // Save snapshot of challenge title
                     .recipeId(recipe.getId())
-                    .recipeTitle(recipe.getTitle())       // Lưu Snapshot tên món ăn
+                    .recipeTitle(recipe.getTitle())       // Save snapshot of recipe title
                     .challengeDate(todayStr)
                     .bonusXp(challenge.getBonusXp())
                     .completedAt(Instant.now())
@@ -216,7 +215,7 @@ public class ChallengeService {
             try {
                 challengeLogRepository.save(historyLog);
 
-                // Trả về kết quả để báo cho Frontend
+                // Return result to notify Frontend
                 return Optional.of(ChallengeRewardResult.builder()
                         .completed(true)
                         .bonusXp(challenge.getBonusXp())
@@ -224,31 +223,31 @@ public class ChallengeService {
                         .build());
 
             } catch (DuplicateKeyException e) {
-                // Trường hợp 2 request chạy song song -> Chỉ tính 1 cái
+                // Race condition: 2 parallel requests -> Only count 1
                 return Optional.empty();
             }
         }
 
-        // Không khớp điều kiện -> Không thưởng
+        // Conditions not met -> No reward
         return Optional.empty();
     }
 
     /**
-     * Lấy lịch sử Challenge có phân trang
-     * @param userId ID người dùng
-     * @param page Số trang (bắt đầu từ 0)
-     * @param size Số lượng item mỗi trang (limit)
+     * Get paginated Challenge History
+     * @param userId User ID
+     * @param page Page number (starting from 0)
+     * @param size Number of items per page (limit)
      */
     @Transactional(readOnly = true)
     public ChallengeHistoryResponse getChallengeHistory(String userId, int page, int size) {
 
-        // 1. Query DB lấy Page (để limit số lượng record trả về)
+        // 1. Query DB to get Page (to limit number of records returned)
         Pageable pageable = PageRequest.of(page, size, Sort.by("challengeDate").descending());
         Page<ChallengeLog> historyPage = challengeLogRepository.findByUserId(userId, pageable);
 
-        // 2. Map Entity sang DTO
-        // Lưu ý: Kết quả của dòng này là List<Dto>, KHÔNG PHẢI Page<Dto>
-        List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.getContent() // <--- BÓC LẤY LIST
+        // 2. Map Entity to DTO
+        // Note: Result of this line is List<Dto>, NOT Page<Dto>
+        List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.getContent() // <--- EXTRACT LIST
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -264,9 +263,9 @@ public class ChallengeService {
         var sumResult = challengeLogRepository.sumBonusXpByUserId(userId);
         long totalBonusXp = (sumResult != null) ? sumResult.totalXp : 0;
 
-        // 4. Đóng gói Response (Chỉ List và Stats)
+        // 4. Package Response (List and Stats only)
         return ChallengeHistoryResponse.builder()
-                .challenges(challengesList) // Truyền List vào
+                .challenges(challengesList) // Pass List in
                 .stats(ChallengeHistoryResponse.StatsDto.builder()
                         .totalCompleted((long) allDateStrings.size())
                         .currentStreak(streakResult.getCurrentStreak())
@@ -277,14 +276,14 @@ public class ChallengeService {
     }
 
     /**
-     * Helper: Chuyển đổi Recipe Entity -> DTO gọn nhẹ
+     * Helper: Convert Recipe Entity to lightweight DTO
      */
     private ChallengeResponse.RecipePreviewDto mapToPreviewDto(Recipe recipe) {
         return ChallengeResponse.RecipePreviewDto.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
-                .xpReward(recipe.getXpReward()) // Hàm tính XP của bạn, hoặc lấy field xpReward có sẵn
-                .coverImageUrl(recipe.getCoverImageUrl()) // Sửa getter cho đúng với entity của bạn
+                .xpReward(recipe.getXpReward()) // Your XP calculation function, or use the existing xpReward field
+                .coverImageUrl(recipe.getCoverImageUrl()) // Fix getter to match your entity
                 .totalTime(recipe.getTotalTimeMinutes())
                 .difficulty(recipe.getDifficulty())
                 .build();

@@ -179,4 +179,32 @@ public class AIRestClient {
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
+
+    /**
+     * Score recipe quality (RQS) for quality tier assignment.
+     * Calls POST /api/v1/score_recipe_quality on the AI service.
+     * Non-blocking: returns null if AI service is unavailable (does not block publish).
+     */
+    public AIQualityScoreResponse scoreRecipeQuality(AIQualityScoreRequest request) {
+        log.debug("Calling AI service: POST /api/v1/score_recipe_quality");
+        try {
+            AIServiceResponse<AIQualityScoreResponse> wrapper = webClient.post()
+                    .uri("/api/v1/score_recipe_quality")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<AIServiceResponse<AIQualityScoreResponse>>() {})
+                    .block();
+
+            if (wrapper == null || !wrapper.isSuccess() || wrapper.getData() == null) {
+                log.warn("AI quality scoring returned null or unsuccessful response — skipping RQS");
+                return null;
+            }
+
+            return wrapper.getData();
+        } catch (Exception e) {
+            log.warn("AI score_recipe_quality failed — skipping RQS: {}", e.getMessage());
+            return null;
+        }
+    }
 }

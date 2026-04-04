@@ -10,11 +10,11 @@ import java.util.List;
 public class StartSessionResponse {
     private String sessionId;
     private String recipeId;
-    private LocalDateTime startedAt; // Spring tự format ISO-8601
+    private LocalDateTime startedAt; // Spring auto-formats to ISO-8601
     private String status;           // "in_progress"
     private Integer currentStep;
     private Integer totalSteps;
-    private List<Object> activeTimers; // Mảng rỗng []
+    private List<Object> activeTimers; // Empty array []
 
     private RecipeInfo recipe;
 

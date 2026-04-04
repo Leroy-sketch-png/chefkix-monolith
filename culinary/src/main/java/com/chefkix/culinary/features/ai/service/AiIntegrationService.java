@@ -35,15 +35,15 @@ public class AiIntegrationService {
     public RecipeDetailResponse createRecipeFromText(String rawText, String userId) {
         log.info("Starting AI Process for user: {}", userId);
 
-        // B1: Gọi AI lấy DTO
+        // Step 1: Call AI to get DTO
         AIProcessResponse aiData = aiRestClient.processRecipe(
                 AIProcessRequest.builder().rawText(rawText).userId(userId).build()
         );
 
-        // B2: Map DTO -> Entity
+        // Step 2: Map DTO -> Entity
         Recipe draft = mapAiResponseToRecipe(userId, aiData);
 
-        // B3: Save DB & Return
+        // Step 3: Save DB & Return
         Recipe savedDraft = recipeRepository.save(draft);
         log.info("Draft saved with ID: {}", savedDraft.getId());
 
@@ -51,7 +51,7 @@ public class AiIntegrationService {
     }
 
     /**
-     * Logic Mapping chi tiết để đảm bảo không field nào bị NULL
+     * Detailed mapping logic to ensure no field is NULL
      */
     private Recipe mapAiResponseToRecipe(String userId, AIProcessResponse aiData) {
         Recipe draft = new Recipe();
@@ -72,7 +72,7 @@ public class AiIntegrationService {
         draft.setDietaryTags(aiData.getDietaryTags());
         draft.setCaloriesPerServing(aiData.getCaloriesPerServing());
 
-        // --- 3. INGREDIENTS (LIST TỔNG) ---
+        // --- 3. INGREDIENTS (FULL LIST) ---
         if (aiData.getFullIngredientList() != null) {
             draft.setFullIngredientList(aiData.getFullIngredientList().stream()
                     .map(this::mapIngredientDtoToEntity)
@@ -81,7 +81,7 @@ public class AiIntegrationService {
             draft.setFullIngredientList(new ArrayList<>());
         }
 
-        // --- 4. STEPS (CHI TIẾT) ---
+        // --- 4. STEPS (DETAILED) ---
         if (aiData.getSteps() != null) {
             List<Step> steps = aiData.getSteps().stream()
                     .map(dto -> {
@@ -95,17 +95,17 @@ public class AiIntegrationService {
                         step.setTimerSeconds(dto.getTimerSeconds());
                         step.setImageUrl(dto.getImageUrl());
 
-                        // [FIX QUAN TRỌNG] Map Tips
+                        // [IMPORTANT FIX] Map Tips
                         step.setTips(dto.getTips());
 
-                        // [FIX QUAN TRỌNG] Map Ingredients Con trong Step
+                        // [IMPORTANT FIX] Map child Ingredients within Step
                         if (dto.getIngredients() != null) {
                             step.setIngredients(dto.getIngredients().stream()
                                     .map(this::mapIngredientDtoToEntity)
                                     .collect(Collectors.toList()));
                         }
 
-                        // Map Enrichment Fields (Phẳng hóa)
+                        // Map Enrichment Fields (Flattened)
                         step.setChefTip(dto.getChefTip());
                         step.setTechniqueExplanation(dto.getTechniqueExplanation());
                         step.setCommonMistake(dto.getCommonMistake());
@@ -128,7 +128,7 @@ public class AiIntegrationService {
         draft.setSkillTags(aiData.getSkillTags());
 
         // --- 6. ENRICHMENT METADATA ---
-        // Xử lý techniqueGuides (Map -> List Key)
+        // Process techniqueGuides (Map -> List of Keys)
         List<String> techniques = null;
         if (aiData.getTechniqueGuides() != null) {
             techniques = new ArrayList<>(aiData.getTechniqueGuides().keySet());
@@ -162,7 +162,7 @@ public class AiIntegrationService {
     private Difficulty parseDifficulty(String diffStr) {
         try {
             if (diffStr == null) return Difficulty.INTERMEDIATE;
-            // AI trả về: "Beginner", "Intermediate"... -> Chuyển thành UPPERCASE để khớp Enum
+            // AI returns: "Beginner", "Intermediate"... -> Convert to UPPERCASE to match Enum
             return Difficulty.valueOf(diffStr.toUpperCase());
         } catch (IllegalArgumentException e) {
             return Difficulty.INTERMEDIATE;
@@ -171,22 +171,22 @@ public class AiIntegrationService {
 
     @Transactional
     public RecipeDetailResponse calculateAndEnrichRecipe(String recipeId) {
-        // 1. Lấy Recipe từ DB
+        // 1. Fetch Recipe from DB
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
         log.info("Calculating metas for recipe: {}", recipe.getTitle());
 
-        // 2. Build Request gửi sang AI
+        // 2. Build Request to send to AI
         AIMetaRequest request = buildMetaRequest(recipe);
 
-        // 3. Gọi AI
+        // 3. Call AI
         AIMetaResponse response = aiRestClient.calculateMetas(request);
 
-        // 4. Update lại Recipe với dữ liệu mới
+        // 4. Update Recipe with new data
         updateRecipeWithMetas(recipe, response);
 
-        // 5. Lưu & Trả về
+        // 5. Save & Return
         Recipe savedRecipe = recipeRepository.save(recipe);
         return recipeMapper.toRecipeDetailResponse(savedRecipe);
     }
@@ -220,7 +220,7 @@ public class AiIntegrationService {
                                 .action(s.getAction())
                                 .timerSeconds(s.getTimerSeconds())
 
-                                // --- [FIX] Đổ dữ liệu Ingredient từ DB vào Request ---
+                                // --- [FIX] Populate Ingredient data from DB into Request ---
                                 .ingredients(s.getIngredients() != null ?
                                         s.getIngredients().stream()
                                                 .map(i -> AIMetaRequest.MetaIngredientDto.builder()
@@ -232,11 +232,11 @@ public class AiIntegrationService {
                                         : null)
                                 .build())
                         .collect(Collectors.toList()))
-                .includeEnrichment(true) // Luôn bật để lấy story
+                .includeEnrichment(true) // Always enabled to get story
                 .build();
     }
 
-    // --- Helper 2: Update Entity từ AI Response ---
+    // --- Helper 2: Update Entity from AI Response ---
     private void updateRecipeWithMetas(Recipe recipe, AIMetaResponse res) {
         // 1. Gamification
         recipe.setXpReward(res.getXpReward());
@@ -244,7 +244,7 @@ public class AiIntegrationService {
         recipe.setRewardBadges(res.getBadges());
         recipe.setSkillTags(res.getSkillTags());
 
-        // 2. XP Breakdown (Quan trọng để hiển thị minh bạch)
+        // 2. XP Breakdown (Important for transparent display)
         if (res.getXpBreakdown() != null) {
             Recipe.XpBreakdown breakdown = new Recipe.XpBreakdown();
             breakdown.setBase(res.getXpBreakdown().getBase());
@@ -393,5 +393,89 @@ public class AiIntegrationService {
         log.info("Recipe {} passed moderation (action={}, confidence={})",
                 recipe.getId(), response.getAction(), response.getConfidence());
         return response;
+    }
+
+    /**
+     * Score recipe quality (RQS) and store score on the recipe entity.
+     * FAIL-OPEN: If AI service is unavailable, publishing continues without RQS.
+     * Returns true if scoring succeeded, false if skipped.
+     */
+    public boolean scoreRecipeQuality(Recipe recipe) {
+        log.info("Scoring recipe quality: {} (id={})", recipe.getTitle(), recipe.getId());
+        try {
+            List<java.util.Map<String, Object>> stepMaps = new ArrayList<>();
+            if (recipe.getSteps() != null) {
+                for (Step step : recipe.getSteps()) {
+                    java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                    map.put("step_number", step.getStepNumber());
+                    map.put("title", step.getTitle());
+                    map.put("description", step.getDescription());
+                    map.put("action", step.getAction());
+                    map.put("timer", step.getTimerSeconds());
+                    map.put("tips", step.getTips());
+                    map.put("chef_tip", step.getChefTip());
+                    map.put("visual_cues", step.getVisualCues());
+                    map.put("common_mistake", step.getCommonMistake());
+                    map.put("goal", step.getGoal());
+                    map.put("micro_steps", step.getMicroSteps());
+                    if (step.getIngredients() != null) {
+                        map.put("ingredients", step.getIngredients().stream()
+                                .map(ing -> {
+                                    java.util.Map<String, Object> ingMap = new java.util.LinkedHashMap<>();
+                                    ingMap.put("name", ing.getName());
+                                    ingMap.put("quantity", ing.getQuantity());
+                                    ingMap.put("unit", ing.getUnit());
+                                    return ingMap;
+                                }).collect(Collectors.toList()));
+                    }
+                    stepMaps.add(map);
+                }
+            }
+
+            List<java.util.Map<String, Object>> ingredientMaps = new ArrayList<>();
+            if (recipe.getFullIngredientList() != null) {
+                for (Ingredient ing : recipe.getFullIngredientList()) {
+                    java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                    map.put("name", ing.getName());
+                    map.put("quantity", ing.getQuantity());
+                    map.put("unit", ing.getUnit());
+                    ingredientMaps.add(map);
+                }
+            }
+
+            boolean hasCover = recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty();
+            int stepImages = recipe.getSteps() == null ? 0 :
+                    (int) recipe.getSteps().stream().filter(s -> s.getImageUrl() != null).count();
+            boolean hasVideo = recipe.getSteps() != null &&
+                    recipe.getSteps().stream().anyMatch(s -> s.getVideoUrl() != null);
+
+            AIQualityScoreRequest request = AIQualityScoreRequest.builder()
+                    .title(recipe.getTitle())
+                    .description(recipe.getDescription())
+                    .difficulty(recipe.getDifficulty() != null ? recipe.getDifficulty().getValue() : "Intermediate")
+                    .steps(stepMaps)
+                    .ingredients(ingredientMaps)
+                    .prepTimeMinutes(recipe.getPrepTimeMinutes())
+                    .cookTimeMinutes(recipe.getCookTimeMinutes())
+                    .hasCoverImage(hasCover)
+                    .hasStepImages(stepImages)
+                    .hasVideo(hasVideo)
+                    .build();
+
+            AIQualityScoreResponse response = aiRestClient.scoreRecipeQuality(request);
+            if (response != null) {
+                recipe.setQualityScore(response.getOverallScore());
+                recipe.setQualityTier(
+                        com.chefkix.culinary.common.enums.QualityTier.fromValue(response.getTier()));
+                log.info("Recipe {} scored: {} ({})", recipe.getId(),
+                        response.getOverallScore(), response.getTier());
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("RQS scoring failed for recipe {} — continuing without score: {}",
+                    recipe.getId(), e.getMessage());
+            return false;
+        }
     }
 }

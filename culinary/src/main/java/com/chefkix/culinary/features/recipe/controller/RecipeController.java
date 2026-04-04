@@ -5,6 +5,7 @@ import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
 import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecommendationResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
@@ -105,7 +106,7 @@ public class RecipeController {
 
     // 10. TONIGHT'S PICK — personalized daily recommendation
     @GetMapping("/tonight-pick")
-    public ApiResponse<RecipeDetailResponse> getTonightsPick() {
+    public ApiResponse<RecommendationResponse> getTonightsPick() {
         return ApiResponse.success(recipeService.getTonightsPick());
     }
 

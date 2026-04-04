@@ -34,7 +34,7 @@ public class AIMetaRequest {
     private Integer caloriesPerServing;
 
     // --- Ingredients & Steps ---
-    // Python cần List<Dict>, Java dùng List<Object> hoặc tạo DTO con
+    // Python expects List<Dict>, Java uses List<Object> or nested DTOs
     @JsonProperty("full_ingredient_list")
     private List<MetaIngredientDto> fullIngredientList;
 
@@ -43,7 +43,7 @@ public class AIMetaRequest {
     // --- Options (Flags) ---
     @JsonProperty("include_enrichment")
     @Builder.Default
-    private boolean includeEnrichment = true; // Mặc định bật để lấy Story/Tips
+    private boolean includeEnrichment = true; // Enabled by default to fetch Story/Tips
 
     @JsonProperty("include_substitutions")
     @Builder.Default
@@ -57,7 +57,7 @@ public class AIMetaRequest {
     @Builder.Default
     private boolean includeTechniqueGuides = true;
 
-    // --- Inner DTOs cho gọn ---
+    // --- Inner DTOs for compactness ---
     @Data
     @Builder
     public static class MetaIngredientDto {

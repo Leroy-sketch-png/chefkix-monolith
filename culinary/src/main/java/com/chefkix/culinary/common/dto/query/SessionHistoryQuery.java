@@ -8,8 +8,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.AccessLevel;
 
 /**
- * DTO chứa các tham số lọc và phân trang cho Session History.
- * userId được lấy từ JWT, không cần có trong DTO này.
+ * DTO containing filter and pagination parameters for Session History.
+ * userId is extracted from JWT, no need to include in this DTO.
  */
 @Data
 @Builder
@@ -18,7 +18,7 @@ import lombok.AccessLevel;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SessionHistoryQuery {
 
-    // Tham số lọc theo Trạng thái (Ví dụ: "completed", "posted", "all")
+    // Filter by status (e.g.: "completed", "posted", "all")
     private String statusFilter;
 
 }

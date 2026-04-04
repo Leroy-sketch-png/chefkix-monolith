@@ -14,7 +14,7 @@ import org.mapstruct.*;
         collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED)
 public interface RecipeMapper {
 
-    // --- CÁC HÀM CŨ (GIỮ NGUYÊN) ---
+    // --- EXISTING METHODS (UNCHANGED) ---
     Recipe toRecipe(RecipeRequest request);
     RecipeDetailResponse toRecipeDetailResponse(Recipe recipe);
     RecipeSummaryResponse toRecipeSummaryResponse(Recipe recipe);

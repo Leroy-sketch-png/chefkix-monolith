@@ -25,9 +25,9 @@ public class RecipeSearchQuery {
     /** Friend IDs of the current user. Used for FRIENDS_ONLY visibility filter. */
     List<String> friendIds;
 
-    // --- XÓA page, size ---
-    // --- XÓA sortBy (Nếu muốn dùng sort mặc định của Spring ?sort=createdAt,desc) ---
-    // HOẶC GIỮ sortBy (Nếu muốn custom logic như "trending")
+    // --- Removed page, size ---
+    // --- Removed sortBy (If using Spring's default sort via ?sort=createdAt,desc) ---
+    // OR KEEP sortBy (If custom logic like "trending" is needed)
     @Builder.Default
     String sortBy = "newest";
 }

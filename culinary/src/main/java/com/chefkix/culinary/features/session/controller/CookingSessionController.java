@@ -33,7 +33,7 @@ public class CookingSessionController {
         return ApiResponse.success(sessionService.startSession(userId, request));
     }
 
-    // 2. Complete Session (Nhận 30% XP)
+    // 2. Complete Session (Receive 30% XP)
     @PostMapping("/{sessionId}/complete")
     public ApiResponse<SessionCompletionResponse> completeSession(
             @PathVariable String sessionId,
@@ -60,25 +60,25 @@ public class CookingSessionController {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Service trả về Page<SessionItemDto>
+// 1. Service returns Page<SessionItemDto>
         Page<SessionHistoryResponse.SessionItemDto> pageResult =
                 sessionService.getSessionHistory(userId, query, pageable);
 
-        // 2. Tạo Pagination Meta
+        // 2. Create Pagination Meta
         PaginationMeta paginationMeta = PaginationMeta.from(pageResult);
 
-        // 3. Đóng gói dữ liệu và Pagination vào DTO SessionHistoryResponse
+        // 3. Package data and Pagination into SessionHistoryResponse DTO
         SessionHistoryResponse historyResponse = SessionHistoryResponse.builder()
                 .sessions(pageResult.getContent())
-                // NOTE: SessionHistoryResponse cần một trường PaginationMeta để khớp với logic này.
-                // Nếu bạn không muốn thay đổi SessionHistoryResponse, bạn có thể truyền thẳng vào ApiResponse.
+                // NOTE: SessionHistoryResponse needs a PaginationMeta field to match this logic.
+                // If you don't want to modify SessionHistoryResponse, you can pass it directly into ApiResponse.
                 .build();
 
-        // 4. Trả về ApiResponse với DTO và Pagination Meta (Dùng hàm successPage tùy chỉnh)
-        // Chúng ta phải tạo lại hàm successPage để đặt Pagination vào DTO chính.
+        // 4. Return ApiResponse with DTO and Pagination Meta (using custom successPage method)
+        // We need to rebuild the successPage method to place Pagination in the main DTO.
 
-        // DO KHÔNG THỂ THÊM FIELD PAGINATION VÀO SessionHistoryResponse
-        // VÀ KHÔNG THỂ DÙNG HÀM successPage cũ, TA PHẢI TỰ DỰNG BUILDER:
+        // SINCE WE CANNOT ADD A PAGINATION FIELD TO SessionHistoryResponse
+        // AND CANNOT USE THE OLD successPage METHOD, WE MUST BUILD MANUALLY:
 
         return ApiResponse.<SessionHistoryResponse>builder()
                 .success(true)

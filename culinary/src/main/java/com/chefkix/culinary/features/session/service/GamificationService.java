@@ -37,15 +37,15 @@ public class GamificationService {
 
     @Transactional
     public CompletionResponse completeRecipe(String recipeId, RecipeCompletionRequest request) {
-        // 1. LẤY USER ID TỪ TOKEN (Bảo mật - Server tự quyết định danh tính)
+        // 1. GET USER ID FROM TOKEN (Security - server determines identity)
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         LocalDate today = LocalDate.now();
 
-        // 2. TÌM RECIPE GỐC
+        // 2. FIND ORIGINAL RECIPE
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 3. RATE LIMIT CHECK (Logic chống spam 5 lần/ngày)
+        // 3. RATE LIMIT CHECK (Anti-spam: 5 times/day limit)
         long completedToday = completionRepository.countByUserIdAndCompletedAtAfter(
                 userId, today.atStartOfDay());
 
@@ -57,7 +57,7 @@ public class GamificationService {
         int dailyLimit = accountAgeDays < 7 ? 2 : 5;
         if (completedToday >= dailyLimit) {
             throw new AppException(ErrorCode.RATE_LIMIT_EXCEEDED,
-                    "Bạn đã đạt giới hạn nấu ăn trong ngày (" + dailyLimit + " món).");
+                    "You've reached the daily cooking limit (" + dailyLimit + " recipes).");
         }
 
         // 4. TIME VALIDATION (Anti-Cheat)
@@ -68,8 +68,8 @@ public class GamificationService {
                 : 0;
         validateCookingTime(recipe.getTotalTimeMinutes(), totalElapsedSeconds);
 
-        // 5. LOGIC TÍNH ĐIỂM (HYBRID XP & BADGE)
-        // Kiểm tra xem user có gửi ảnh bằng chứng không
+        // 5. SCORING LOGIC (HYBRID XP & BADGE)
+        // Check if user submitted proof photos
         boolean hasProof = request.getProofImageUrls() != null && !request.getProofImageUrls().isEmpty();
 
         int finalXp;
@@ -77,36 +77,36 @@ public class GamificationService {
         List<String> badgesToAward = new ArrayList<>();
 
         if (hasProof) {
-            // CASE A: CÓ ẢNH -> Full XP + Có cơ hội nhận Badge
+            // CASE A: HAS PHOTOS -> Full XP + Eligible for Badges
             finalXp = recipe.getXpReward();
             isPublic = true;
 
-            // Chỉ tặng Badge nếu recipe có cấu hình badge
+            // Only award badges if recipe has badge configuration
             if (recipe.getRewardBadges() != null && !recipe.getRewardBadges().isEmpty()) {
                 badgesToAward.addAll(recipe.getRewardBadges());
             }
-            log.info("[COMPLETION] User {} hoàn thành PUBLIC. Full XP.", userId);
+            log.info("[COMPLETION] User {} completed PUBLIC. Full XP.", userId);
         } else {
-            // CASE B: KHÔNG ẢNH -> Half XP + Không Badge
+            // CASE B: NO PHOTOS -> Half XP + No Badges
             finalXp = (int) Math.ceil(recipe.getXpReward() * 0.5);
             isPublic = false;
-            log.info("[COMPLETION] User {} hoàn thành PRIVATE. Half XP.", userId);
+            log.info("[COMPLETION] User {} completed PRIVATE. Half XP.", userId);
         }
 
-        // 6. LƯU LỊCH SỬ (Vào MongoDB của Recipe Service)
+        // 6. SAVE HISTORY (To Recipe Service MongoDB)
         RecipeCompletion completion = RecipeCompletion.builder()
                 .userId(userId)
                 .recipeId(recipeId)
-                .proofImageUrls(request.getProofImageUrls()) // Lưu ảnh từ request
+                .proofImageUrls(request.getProofImageUrls()) // Save photos from request
                 .actualDurationSeconds((int) totalElapsedSeconds)
-                .xpAwarded(finalXp)      // Lưu số XP thực nhận
+                .xpAwarded(finalXp)      // Save actual XP awarded
                 .isPublic(isPublic)
                 .completedAt(LocalDateTime.now())
                 .build();
         completionRepository.save(completion);
 
-        // 7. GỌI PROFILE SERVICE (Sync)
-        // Tạo DTO Internal để gửi đi (Điền các thông tin Server đã tính toán)
+        // 7. CALL PROFILE SERVICE (Sync)
+        // Create Internal DTO to send (filling in server-calculated values)
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount(finalXp)
@@ -120,15 +120,15 @@ public class GamificationService {
 
             if (profileResult == null) {
                 log.error("Profile Service returned null data for user {}", userId);
-                throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Không nhận được dữ liệu từ Profile Service");
+                throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "No data received from Profile Service");
             }
         } catch (Exception e) {
-            log.error("Lỗi kết nối Profile Service: ", e);
-            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Lỗi đồng bộ hồ sơ người dùng");
+            log.error("Error connecting to Profile Service: ", e);
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Error syncing user profile");
         }
 
-        // 8. MAP DỮ LIỆU VÀ TRẢ VỀ (Cho Frontend)
-        // Ghép data của lần nấu này + data user mới nhất từ Profile Service
+        // 8. MAP DATA AND RETURN (For Frontend)
+        // Combine this completion's data with latest user data from Profile Service
         return CompletionResponse.builder()
                 .completionId(completion.getId())
                 .recipeId(recipeId)
@@ -145,28 +145,28 @@ public class GamificationService {
     }
 
     public SessionResponse getSessionById(String sessionId) {
-        // 1. Tìm Session nấu ăn (RecipeCompletion)
+        // 1. Find cooking session (RecipeCompletion)
         RecipeCompletion session = completionRepository.findById(sessionId)
                 .orElseThrow(() -> new AppException(ErrorCode.COMPLETION_NOT_FOUND));
 
-        // 2. Tìm Recipe gốc (Để lấy thông tin tác giả và Title)
+        // 2. Find original recipe (to get author info and title)
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 3. Map sang DTO trả về cho Post Service
+        // 3. Map to DTO for Post Service
         return SessionResponse.builder()
                 .id(session.getId())
                 .userId(session.getUserId())
                 .completedAt(session.getCompletedAt())
 
-                // Lấy số XP user đã nhận được khi nấu xong (Pending XP)
+                // Get XP user received when cooking was completed (Pending XP)
                 .pendingXp((double) session.getXpAwarded())
 
-                // Thông tin Recipe
+                // Recipe info
                 .recipeId(recipe.getId())
                 .recipeTitle(recipe.getTitle())
 
-                // Quan trọng: Lấy ID tác giả để Post Service tính bonus 4%
+                // Important: Get author ID so Post Service can calculate 4% bonus
                 .recipeAuthorId(recipe.getUserId())
                 .recipeBaseXp((double) recipe.getXpReward())
                 .build();
@@ -176,12 +176,12 @@ public class GamificationService {
 
     private void validateCookingTime(int recipeMinutes, long actualSeconds) {
         double actualMinutes = actualSeconds / 60.0;
-        // Cho phép nhanh hơn tối đa 50% (ví dụ món 60p mà nấu 20p là cheat)
+        // Allow up to 50% faster (e.g. 60min recipe done in 20min is cheating)
         double minTime = recipeMinutes * 0.5;
 
         if (actualMinutes < minTime) {
             throw new AppException(ErrorCode.VALIDATION_ERROR,
-                    String.format("Thời gian nấu quá nhanh (%d phút). Cần tối thiểu %.0f phút.",
+                    String.format("Cooking time too fast (%d minutes). Minimum required: %.0f minutes.",
                             (int)actualMinutes, minTime));
         }
     }

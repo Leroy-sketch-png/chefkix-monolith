@@ -63,7 +63,7 @@ public class RecipeRequest {
     @Size(max = 30) List<String> skillTags;
     Boolean isPublished;
 
-    // --- AI METADATA (Dữ liệu từ AI Service trả về để lưu lại) ---
+    // --- AI METADATA (Data returned from AI Service to persist) ---
     XpBreakdownDto xpBreakdown;
     ValidationMetadataDto validation;
     EnrichmentMetadataDto enrichment;

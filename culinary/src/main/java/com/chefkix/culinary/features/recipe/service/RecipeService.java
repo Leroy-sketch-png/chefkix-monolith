@@ -6,6 +6,7 @@ import com.chefkix.culinary.features.report.dto.internal.InternalCreatorInsights
 import com.chefkix.culinary.features.recipe.dto.request.RecipeRequest;
 import com.chefkix.culinary.features.recipe.dto.response.CreatorPerformanceResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecommendationResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSummaryResponse;
@@ -22,7 +23,7 @@ import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import com.chefkix.culinary.features.interaction.service.InteractionService; // Import Service mới
+import com.chefkix.culinary.features.interaction.service.InteractionService; // InteractionService import
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.common.enums.SessionStatus;
@@ -163,7 +164,7 @@ public class RecipeService {
         boolean isSaved = false;
 
         if (!"anonymousUser".equals(viewerId)) {
-            // Thay vì gọi Repository, ta gọi qua Service
+            // Call through Service instead of Repository directly
             isLiked = interactionService.isLiked(recipeId, viewerId);
             isSaved = interactionService.isSaved(recipeId, viewerId);
         }
@@ -227,7 +228,7 @@ public class RecipeService {
         return pageResult.map(recipe -> {
             RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
 
-            // Gọi qua InteractionService
+            // Call through InteractionService
             response.setIsLiked(interactionService.isLiked(response.getId(), currentUserId));
             response.setIsSaved(interactionService.isSaved(response.getId(), currentUserId));
 
@@ -243,7 +244,7 @@ public class RecipeService {
         });
     }
 
-    // --- CÁC HÀM GET LIKED/SAVED RECIPES ĐÃ CHUYỂN SANG INTERACTION SERVICE ---
+    // --- GET LIKED/SAVED RECIPES METHODS MOVED TO INTERACTION SERVICE ---
 
     public Page<RecipeSummaryResponse> getRecipesByUser(String targetUserId, int page, int size) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -254,7 +255,7 @@ public class RecipeService {
 
         return recipesPage.map(recipe -> {
             RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
-            // Gọi qua InteractionService
+            // Call through InteractionService
             response.setIsLiked(interactionService.isLiked(recipe.getId(), currentUserId));
             response.setIsSaved(interactionService.isSaved(recipe.getId(), currentUserId));
             return response;
@@ -305,7 +306,7 @@ public class RecipeService {
      * Cold start: preferences (if any) + seasonal + trending. Degrades gracefully.
      */
     @Transactional(readOnly = true)
-    public RecipeDetailResponse getTonightsPick() {
+    public RecommendationResponse getTonightsPick() {
         String rawUserId;
         try {
             rawUserId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -399,7 +400,47 @@ public class RecipeService {
             response.setAuthor(AuthorResponse.builder()
                     .userId(pick.getUserId()).displayName("Chef").build());
         }
-        return response;
+
+        // Build recommendation metadata
+        List<String> signals = new ArrayList<>();
+        double totalScore = scoreTonightsPick(pick, finalPrefs, finalHistoryCuisines,
+                seasonalTags, targetDifficulties, normTrending);
+
+        String cuisine = pick.getCuisineType() != null ? pick.getCuisineType() : "";
+        if (!finalPrefs.isEmpty() && finalPrefs.contains(cuisine.toLowerCase())) {
+            signals.add("Matches your taste preferences");
+        }
+        if (!finalHistoryCuisines.isEmpty() && finalHistoryCuisines.contains(cuisine.toLowerCase())) {
+            signals.add("Similar to cuisines you've cooked before");
+        }
+        if (!seasonalTags.isEmpty()) {
+            List<String> recipeTags = new ArrayList<>();
+            if (pick.getDietaryTags() != null) recipeTags.addAll(pick.getDietaryTags());
+            if (pick.getSkillTags() != null) recipeTags.addAll(pick.getSkillTags());
+            boolean seasonal = recipeTags.stream().anyMatch(t -> seasonalTags.contains(t.toLowerCase()));
+            if (seasonal) signals.add("Perfect for the season");
+        }
+        if (pick.getDifficulty() != null && targetDifficulties.contains(pick.getDifficulty())) {
+            signals.add("Right difficulty for your skill level");
+        }
+        if (pick.getTrendingScore() != null && pick.getTrendingScore() > 0) {
+            signals.add("Trending in the community");
+        }
+        if (signals.isEmpty()) {
+            signals.add("Recommended for you");
+        }
+
+        String whyRecommended = signals.get(0);
+        if (signals.size() > 1) {
+            whyRecommended = signals.get(0) + " and " + (signals.size() - 1) + " more reason" + (signals.size() > 2 ? "s" : "");
+        }
+
+        return RecommendationResponse.builder()
+                .recipe(response)
+                .whyRecommended(whyRecommended)
+                .matchSignals(signals)
+                .confidenceScore(totalScore)
+                .build();
     }
 
     /**

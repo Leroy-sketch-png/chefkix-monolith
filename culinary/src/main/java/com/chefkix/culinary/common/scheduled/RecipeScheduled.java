@@ -26,17 +26,17 @@ public class RecipeScheduled {
 
     private final MongoTemplate mongoTemplate;
 
-    // Chạy mỗi 30 phút (đơn vị ms)
+    // Runs every 30 minutes (in ms)
     @Scheduled(fixedRate = 1800000)
     public void updateTrendingScores() {
         try {
-            // 1. Xác định khung thời gian (7 ngày qua)
+            // 1. Define time window (last 7 days)
             LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
-            // 2. Map lưu trữ điểm số tạm tính: Key = recipeId, Value = Score
+            // 2. Map to store temporary scores: Key = recipeId, Value = Score
             Map<String, Double> scoreMap = new HashMap<>();
 
-            // --- BƯỚC A: TÍNH ĐIỂM LIKE (Weight = 1) ---
+            // --- STEP A: CALCULATE LIKE SCORE (Weight = 1) ---
             List<RecipeStatDto> likeStats = aggregateCount(
                     RecipeLike.class, "createdAt", sevenDaysAgo, "recipeId"
             );
@@ -45,7 +45,7 @@ public class RecipeScheduled {
                     scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, Double::sum)
             );
 
-            // --- BƯỚC B: TÍNH ĐIỂM COMPLETION (Weight = 5) ---
+            // --- STEP B: CALCULATE COMPLETION SCORE (Weight = 5) ---
             List<RecipeStatDto> completionStats = aggregateCount(
                     RecipeCompletion.class, "completedAt", sevenDaysAgo, "recipeId"
             );
@@ -54,8 +54,8 @@ public class RecipeScheduled {
                     scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, Double::sum)
             );
 
-            // --- BƯỚC C: UPDATE VÀO DATABASE (Bulk Update) ---
-            // Dùng Bulk Operations để update hàng nghìn record cực nhanh
+            // --- STEP C: UPDATE DATABASE (Bulk Update) ---
+            // Use Bulk Operations to update thousands of records efficiently
             var bulkOps = mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, Recipe.class);
 
             // Reset ALL trending scores to 0 first so recipes that lost activity decay naturally
@@ -67,7 +67,7 @@ public class RecipeScheduled {
                 bulkOps.updateOne(query, update);
             }
 
-            // Thực thi update
+            // Execute update
             if (!scoreMap.isEmpty()) {
                 bulkOps.execute();
             }
@@ -76,14 +76,14 @@ public class RecipeScheduled {
         }
     }
 
-    // Hàm helper để gom nhóm và đếm
+    // Helper method to group and count
     private List<RecipeStatDto> aggregateCount(Class<?> collectionClass, String dateField, LocalDateTime fromDate, String groupField) {
         Aggregation aggregation = Aggregation.newAggregation(
-                // 1. Lọc theo ngày
+                // 1. Filter by date
                 Aggregation.match(Criteria.where(dateField).gte(fromDate)),
-                // 2. Gom nhóm theo recipeId và đếm
+                // 2. Group by recipeId and count
                 Aggregation.group(groupField).count().as("count"),
-                // 3. Map field _id (là recipeId) ra field "recipeId" của DTO
+                // 3. Map _id field (which is recipeId) to the "recipeId" field of DTO
                 Aggregation.project("count").and("_id").as("recipeId")
         );
 

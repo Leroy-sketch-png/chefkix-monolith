@@ -99,7 +99,7 @@ public class UploadImageFileImpl implements UploadImageFile {
     }
 
     /**
-     * Tạo tên file duy nhất (public_id) cho Cloudinary
+     * Generate a unique filename (public_id) for Cloudinary
      */
     public String generatePublicValue(String originalName) {
         String baseName = getBaseName(originalName);

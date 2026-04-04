@@ -14,10 +14,10 @@ import java.util.List;
 @Builder
 public class ChallengeHistoryResponse {
 
-    // ✅ Dùng List để JSON ra dạng mảng: [ {...}, {...} ]
+    // Use List so JSON serializes as array: [ {...}, {...} ]
     private List<ChallengeItemDto> challenges;
 
-    // ✅ Object stats bình thường
+    // Regular stats object
     private StatsDto stats;
 
     @Data
@@ -25,9 +25,9 @@ public class ChallengeHistoryResponse {
     public static class ChallengeItemDto {
         private String id;
         private String title;
-        private LocalDate date;         // Hoặc LocalDate
+        private LocalDate date;         // Or LocalDate
         private boolean completed;
-        private LocalDateTime completedAt;  // Hoặc LocalDateTime
+        private LocalDateTime completedAt;  // Or LocalDateTime
         private int bonusXpEarned;
         private RecipeShortInfo recipeCooked;
     }

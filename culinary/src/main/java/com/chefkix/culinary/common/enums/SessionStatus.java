@@ -10,12 +10,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Uses snake_case for JSON serialization (FE-friendly).
  */
 public enum SessionStatus {
-    IN_PROGRESS("in_progress"),   // Đang nấu
-    PAUSED("paused"),             // Tạm dừng
-    COMPLETED("completed"),       // Đã nấu xong (đã nhận 30% XP)
-    POSTED("posted"),             // Đã đăng bài (đã nhận nốt 70% XP)
-    ABANDONED("abandoned"),       // Bỏ cuộc / Timeout
-    EXPIRED("expired");           // Quá hạn đăng bài (mất 70% XP)
+    IN_PROGRESS("in_progress"),   // Currently cooking
+    PAUSED("paused"),             // Paused
+    COMPLETED("completed"),       // Cooking finished (received 30% XP)
+    POSTED("posted"),             // Post created (received remaining 70% XP)
+    ABANDONED("abandoned"),       // Gave up / Timed out
+    EXPIRED("expired");           // Post deadline passed (lost 70% XP)
 
     private final String value;
 

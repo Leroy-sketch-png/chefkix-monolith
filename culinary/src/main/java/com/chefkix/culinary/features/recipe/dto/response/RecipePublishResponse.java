@@ -1,5 +1,6 @@
 package com.chefkix.culinary.features.recipe.dto.response;
 
+import com.chefkix.culinary.common.enums.QualityTier;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import lombok.Builder;
 import lombok.Data;
@@ -9,4 +10,6 @@ import lombok.Data;
 public class RecipePublishResponse {
     Boolean isPublished;
     RecipeStatus moderationStatus;
+    Integer qualityScore;
+    QualityTier qualityTier;
 }

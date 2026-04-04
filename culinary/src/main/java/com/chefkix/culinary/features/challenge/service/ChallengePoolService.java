@@ -65,7 +65,7 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkCuisine(r, "Japanese", "Chinese", "Thai", "Korean", "Vietnamese"))
                 .build());
 
-        // 5. Comfort Food 🍲 (Kết hợp 2 điều kiện)
+        // 5. Comfort Food 🍲 (Combines 2 conditions)
         // criteria: {"cuisineType": ["American", "British"], "difficulty": ["BEGINNER", "INTERMEDIATE"]}
         pool.add(ChallengeDefinition.builder()
                 .id("comfort-food")
@@ -170,10 +170,10 @@ public class ChallengePoolService {
     }
 
     // =========================================================================
-    // HELPER METHODS (Giúp code clean và tránh NullPointerException)
+    // HELPER METHODS (Keep code clean and prevent NullPointerException)
     // =========================================================================
 
-    // 1. Check Cuisine (So sánh chuỗi, bỏ qua hoa thường)
+    // 1. Check Cuisine (Case-insensitive string comparison)
     private boolean checkCuisine(Recipe r, String... allowedCuisines) {
         if (r.getCuisineType() == null) return false;
         String recipeCuisine = r.getCuisineType().toLowerCase();
@@ -187,7 +187,7 @@ public class ChallengePoolService {
     // 2. Check Difficulty
     private boolean checkDifficulty(Recipe r, String... allowedLevels) {
         if (r.getDifficulty() == null) return false;
-        String recipeDiff = r.getDifficulty().toString().toUpperCase(); // Giả sử Difficulty là Enum hoặc String
+        String recipeDiff = r.getDifficulty().toString().toUpperCase(); // Assuming Difficulty is Enum or String
 
         for (String allowed : allowedLevels) {
             if (recipeDiff.equals(allowed.toUpperCase())) return true;
@@ -195,17 +195,17 @@ public class ChallengePoolService {
         return false;
     }
 
-    // 3. Check Ingredients (Tìm kiếm trong danh sách nguyên liệu)
+    // 3. Check Ingredients (Search within ingredient list)
     private boolean checkIngredients(Recipe r, String... keywords) {
-        // Tùy vào Recipe của bạn lưu ingredients là String hay List<Object>
-        // Đây là cách phổ biến: chuyển tất cả về chuỗi để search
+        // Depending on how your Recipe stores ingredients (String or List<Object>)
+        // Common approach: convert everything to string for search
         String ingredientsStr = "";
 
         if (r.getFullIngredientList() != null) {
-            // Giả sử r.getIngredients() trả về List<Ingredient>
+            // Assuming r.getIngredients() returns List<Ingredient>
             ingredientsStr = r.getFullIngredientList().toString().toLowerCase();
         } else if (r.getDescription() != null) {
-            // Fallback nếu không có ingredients, tìm trong mô tả
+            // Fallback if no ingredients, search in description
             ingredientsStr = r.getDescription().toLowerCase();
         }
 
@@ -217,7 +217,7 @@ public class ChallengePoolService {
 
     // 4. Check Tags/Skills
     private boolean checkTags(Recipe r, String... keywords) {
-        // Giả sử Recipe có field List<String> tags hoặc categories
+        // Assuming Recipe has field List<String> tags or categories
         if (r.getDietaryTags() == null) return false;
 
         for (String tag : r.getDietaryTags()) {

@@ -23,4 +23,16 @@ public class StepResponse {
     private String videoThumbnailUrl;
     private Integer videoDurationSec;
     private String tips;
+
+    // --- Enriched Fields (AI-generated, exposed for CookingPlayer) ---
+    private String chefTip;
+    private String techniqueExplanation;
+    private String commonMistake;
+    private Integer estimatedHandsOnTime;
+    private List<String> equipmentNeeded;
+    private String visualCues;
+
+    // --- Step V2 Fields (Goal-oriented cooking) ---
+    private String goal;
+    private List<String> microSteps;
 }
