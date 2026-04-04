@@ -95,6 +95,9 @@ public class SecurityConfig {
             // --- Public profiles (identity module) ---
             "/auth/profile-only/*",         // ProfileController GET /profile-only/{userId}
             "/auth/leaderboard",            // LeaderboardController GET /leaderboard
+
+            // --- Featured collections (social module) ---
+            "/collections/featured",        // CollectionController GET /featured (Season's Best)
     };
 
     private String[] getPublicEndpoints() {
