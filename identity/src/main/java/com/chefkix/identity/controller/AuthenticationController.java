@@ -15,6 +15,8 @@ import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import java.text.ParseException;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -87,7 +89,7 @@ public class AuthenticationController {
       HttpOnlyCookieUtils.addHttpOnlyCookie(
           response,
           "refresh_token",
-          authResponse.getRefreshToken(), // Lấy RT mới từ response
+          authResponse.getRefreshToken(), // Get new RT from response
           REFRESH_TOKEN_MAX_AGE_REFRESH
           );
 
@@ -106,27 +108,27 @@ public class AuthenticationController {
   ApiResponse<AuthenticationResponse> authenticate(
       @RequestBody @Valid AuthenticationRequest request,
       HttpServletResponse response,
-      HttpServletRequest httpServletRequest) { // thêm response
+      HttpServletRequest httpServletRequest) { // add response
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertLoginAllowed(clientIp);
 
-    // 1. authenticate user và lấy token từ Keycloak
+    // 1. authenticate user and get token from Keycloak
     AuthenticationResponse authResponse = authenticationService.authenticate(request);
 
     authRateLimitService.clearLoginAttempts(clientIp);
 
-    // 2. Lưu refresh token vào HttpOnly cookie
+    // 2. Store refresh token in HttpOnly cookie
     HttpOnlyCookieUtils.addHttpOnlyCookie(
         response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN
         );
 
-    // 3. Trả body JSON (không cần refreshToken nữa nếu muốn)
-    authResponse.setRefreshToken(null); // optional, tránh leak vào JS
+    // 3. Return JSON body (refreshToken no longer needed here)
+    authResponse.setRefreshToken(null); // optional, prevent leaking to JS
     return ApiResponse.success(authResponse, "Successfully signed in");
   }
 
   @PostMapping("/forgot-password")
-  ApiResponse<String> resetPassword(@RequestParam(value = "email") String email, HttpServletRequest httpServletRequest) {
+  ApiResponse<String> resetPassword(@RequestParam(value = "email") @NotBlank @Email String email, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertForgotPasswordAllowed(clientIp, email);
     resetPasswordService.sendForgotPasswordOtp(email);
@@ -150,18 +152,18 @@ public class AuthenticationController {
 
   @PostMapping("/logout")
   ApiResponse<String> logout(
-      // 1. Đọc refresh token từ cookie thay vì RequestBody
+      // 1. Read refresh token from cookie instead of RequestBody
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
-      // 2. Thêm HttpServletResponse để xoá cookie
+      // 2. Add HttpServletResponse to delete cookie
       HttpServletResponse response)
       throws ParseException, JOSEException {
 
-    // 3. Gọi service (nếu có token) để revoke token ở Keycloak
+    // 3. Call service (if token exists) to revoke token at Keycloak
     if (refreshToken != null && !refreshToken.isEmpty()) {
       authenticationService.logout(refreshToken);
     }
 
-    // 4. LUÔN LUÔN xoá HttpOnly cookie ở phía trình duyệt
+    // 4. ALWAYS delete HttpOnly cookie on the browser side
     HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
     return ApiResponse.<String>builder().data("Logged out successfully").build();

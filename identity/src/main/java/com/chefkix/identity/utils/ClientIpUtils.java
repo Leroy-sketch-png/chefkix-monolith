@@ -20,7 +20,7 @@ public class ClientIpUtils {
   public static String getClientIpAddress(HttpServletRequest request) {
     String ipAddress = null;
 
-    // 1. Duyệt qua danh sách các Header phổ biến để tìm IP thật
+    // 1. Iterate through common headers to find the real IP
     for (String header : IP_HEADERS) {
       ipAddress = request.getHeader(header);
       if (isValidIp(ipAddress)) {
@@ -28,18 +28,18 @@ public class ClientIpUtils {
       }
     }
 
-    // 2. Nếu không tìm thấy trong Header, lấy IP kết nối trực tiếp
+    // 2. If not found in headers, get the direct connection IP
     if (!isValidIp(ipAddress)) {
       ipAddress = request.getRemoteAddr();
     }
 
-    // 3. Xử lý trường hợp "X-Forwarded-For" chứa nhiều IP
-    // Ví dụ: "203.113.10.2, 192.168.1.1" -> Lấy cái đầu tiên
+    // 3. Handle the case where "X-Forwarded-For" contains multiple IPs
+    // Example: "203.113.10.2, 192.168.1.1" -> Take the first one
     if (ipAddress != null && ipAddress.contains(",")) {
       ipAddress = ipAddress.split(",")[0].trim();
     }
 
-    // 4. Xử lý trường hợp Localhost (IPv6)
+    // 4. Handle Localhost case (IPv6)
     if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
       return "127.0.0.1";
     }

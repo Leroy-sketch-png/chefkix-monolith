@@ -1,6 +1,6 @@
 package com.chefkix.identity.service;
 
-// Vẫn import, nhưng không dùng trực tiếp
+// Still imported, but not used directly
 import com.chefkix.identity.dto.identity.Credential;
 import com.chefkix.identity.dto.identity.ResetPasswordParam;
 import com.chefkix.identity.dto.identity.TokenExchangeParam;
@@ -96,7 +96,7 @@ public class ProfileService {
   private int maxOtpAttempts;
 
   // ===================================================================
-  // === PUBLIC API (Dành cho Controller) ===
+  // === PUBLIC API (For Controllers) ===
   // ===================================================================
 
   public List<ProfileResponse> getAllProfiles() {
@@ -127,23 +127,23 @@ public class ProfileService {
     return profilePage.map(profileMapper::toProfileResponse);
   }
 
-  /** [HÀM PUBLIC] Lấy profile VÀ posts của user HIỆN TẠI (cho endpoint /me) */
+  /** [PUBLIC] Get profile AND posts of the CURRENT user (for /me endpoint) */
   public ProfileWithPostsResponse getCurrentProfileWithPosts(
       Authentication authentication, Pageable pageable) {
     String currentUserId = securityUtils.getCurrentUserId(authentication);
-    // Khi xem "tôi", targetUserId và currentUserId là MỘT
+    // When viewing "myself", targetUserId and currentUserId are the SAME
     return buildProfileWithPosts(currentUserId, currentUserId, pageable);
   }
 
-  /** [HÀM PUBLIC] Lấy profile VÀ posts của một user BẤT KỲ (cho endpoint /{userId}) */
+  /** [PUBLIC] Get profile AND posts of ANY user (for /{userId} endpoint) */
   public ProfileWithPostsResponse getProfileWithPostsByUserId(
       String targetUserId, Authentication authentication, Pageable pageable) {
     String currentUserId = securityUtils.getCurrentUserId(authentication);
-    // Khi xem "người khác", targetUserId (từ URL) và currentUserId (từ token) khác nhau
+    // When viewing "someone else", targetUserId (from URL) and currentUserId (from token) differ
     return buildProfileWithPosts(targetUserId, currentUserId, pageable);
   }
 
-  /** Lấy profile của user hiện tại (chỉ profile, không kèm posts) */
+  /** Get profile of the current user (profile only, no posts) */
   public ProfileResponse getCurrentProfile(Authentication authentication) {
     String userId = securityUtils.getCurrentUserId(authentication);
     UserProfile userProfile =
@@ -222,56 +222,56 @@ public class ProfileService {
     return response;
   }
 
-  /** Xac thuc OTP va tao user (Keycloak + Mongo). Returns plaintext password for auto-login. */
+  /** Verify OTP and create user (Keycloak + Mongo). Returns plaintext password for auto-login. */
   @Transactional
   public String verifyOtpAndCreateUser(String email, String otp) {
-    // 1. Xac thuc OTP
+    // 1. Verify OTP
     SignupRequest req = validateSignupOtp(email, otp);
 
     // 2. Capture password before deletion (needed for auto-login in controller)
     String plainPassword = req.getPassword();
 
-    // 3. Tao user tren Keycloak
+    // 3. Create user on Keycloak
     String userId = createKeycloakUser(req);
 
-    // 4. Luu profile vao MongoDB
+    // 4. Save profile to MongoDB
     UserProfile profile = createMongoProfile(req, userId);
 
-    // 5. Xoa request dang ky
+    // 5. Delete signup request
     signupRequestRepository.delete(req);
     log.info("Signup verified and created user in Keycloak + Mongo, userId={}", userId);
 
     return plainPassword;
   }
 
-  /** Xác thực OTP và đặt lại mật khẩu (Keycloak) */
+  /** Verify OTP and reset password (Keycloak) */
   @Transactional
   public void resetPassword(String email, String otp, String newPassword) {
-    // 1. Xác thực OTP
+    // 1. Verify OTP
     ResetPasswordRequest req = validateResetPasswordOtp(email, otp);
 
-    // 2. Cập nhật mật khẩu trên Keycloak
+    // 2. Update password on Keycloak
     updateKeycloakPassword(email, newPassword);
 
-    // 3. Xóa request reset
+    // 3. Delete reset request
     resetPasswordRepository.delete(req);
   }
 
-  /** Cập nhật Profile của userId hiện tại */
+  /** Update the current user's Profile */
   @Transactional
   public ProfileResponse updateProfile(
       Authentication authentication, ProfileUpdateRequest request) {
 
     String userId = securityUtils.getCurrentUserId(authentication);
 
-    // 1. Tìm profile hiện tại
+    // 1. Find current profile
     UserProfile userProfile =
         profileRepository
             .findByUserId(userId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. Cập nhật các trường nếu chúng được cung cấp (không null)
-    //    (Bạn cũng sẽ cần hàm private `updateIfNotNull` ở dưới)
+    // 2. Update fields if provided (not null)
+    //    (Also need the private `updateIfNotNull` helper below)
     updateIfNotNull(request.getFirstName(), userProfile::setFirstName);
     updateIfNotNull(request.getLastName(), userProfile::setLastName);
     updateIfNotNull(request.getDisplayName(), userProfile::setDisplayName);
@@ -283,13 +283,13 @@ public class ProfileService {
     updateIfNotNull(request.getLocation(), userProfile::setLocation);
     updateIfNotNull(request.getPreferences(), userProfile::setPreferences);
 
-    // 3. Lưu profile đã cập nhật
+    // 3. Save updated profile
     UserProfile updatedProfile = profileRepository.save(userProfile);
 
     // Real-time Typesense indexing
     eventPublisher.publishEvent(UserIndexEvent.index(updatedProfile));
 
-    // 4. Map sang DTO và gán các trường động
+    // 4. Map to DTO and set dynamic fields
     ProfileResponse response = profileMapper.toProfileResponse(updatedProfile);
     response.setRelationshipStatus(RelationshipStatus.SELF);
     response.setFollowing(false);
@@ -408,17 +408,17 @@ public class ProfileService {
   }
 
   // ===================================================================
-  // === PRIVATE HELPERS (Logic nội bộ) ===
+  // === PRIVATE HELPERS (Internal logic) ===
   // ===================================================================
 
   /**
-   * [HÀM LÕI] Xây dựng đối tượng ProfileWithPostsResponse.
+   * [CORE] Build a ProfileWithPostsResponse object.
    * Uses PostProvider for cross-module post retrieval.
    */
   private ProfileWithPostsResponse buildProfileWithPosts(
       String targetUserId, String currentUserId, Pageable pageable) {
 
-    // 1. CHUẨN BỊ TÁC VỤ A (Profile - CPU) - Chạy song song
+    // 1. PREPARE TASK A (Profile - CPU) - Run in parallel
     CompletableFuture<ProfileResponse> profileFuture =
         CompletableFuture.supplyAsync(
             () -> {
@@ -429,7 +429,7 @@ public class ProfileService {
 
               ProfileResponse localResponse = profileMapper.toProfileResponse(userProfile);
 
-              // Logic xác định mối quan hệ
+              // Determine relationship logic
               RelationshipStatus status =
                   socialUtils.determineRelationshipStatus(currentUserId, userProfile);
               localResponse.setRelationshipStatus(status);
@@ -457,10 +457,10 @@ public class ProfileService {
     try {
       Page<PostSummary> posts = postProvider.getPostsByUserId(targetUserId, pageable);
 
-      // 3. CHỜ KẾT QUẢ PROFILE
+      // 3. WAIT FOR PROFILE RESULT
       ProfileResponse profile = profileFuture.join();
 
-      // 4. Trả về kết quả
+      // 4. Return result
       return new ProfileWithPostsResponse(profile, posts);
 
     } catch (Exception e) {
@@ -477,7 +477,7 @@ public class ProfileService {
     }
   }
 
-  // --- Helpers cho Đăng ký (verifyOtpAndCreateUser) ---
+  // --- Helpers for Registration (verifyOtpAndCreateUser) ---
 
   private SignupRequest validateSignupOtp(String email, String otp) {
     SignupRequest req =
@@ -541,7 +541,7 @@ public class ProfileService {
       return extractUserId(creationResponse);
     } catch (Exception e) {
       log.error(
-          "Lỗi khi tạo user trên Keycloak cho email {}: {}", req.getEmail(), e.getMessage(), e);
+          "Error creating user on Keycloak for email {}: {}", req.getEmail(), e.getMessage(), e);
       throw errorNormalizer.handleKeyCloakException(e);
     }
   }
@@ -568,7 +568,7 @@ public class ProfileService {
     return saved;
   }
 
-  // --- Helpers cho Đặt lại Mật khẩu (resetPassword) ---
+  // --- Helpers for Password Reset (resetPassword) ---
 
   private ResetPasswordRequest validateResetPasswordOtp(String email, String otp) {
     ResetPasswordRequest req =
@@ -633,7 +633,7 @@ public class ProfileService {
   }
 
   private void updateKeycloakPassword(String email, String newPassword) {
-    // Cần tìm UserId từ Profile Repository
+    // Need to find UserId from Profile Repository
     var userProfile =
         profileRepository
             .findByEmail(email)
@@ -646,7 +646,7 @@ public class ProfileService {
     }
 
     try {
-      // 1. Lấy Admin Access Token
+      // 1. Get Admin Access Token
       var token =
           keycloakAdminClient.exchangeToken(
               TokenExchangeParam.builder()
@@ -656,7 +656,7 @@ public class ProfileService {
                   .scope("openid")
                   .build());
 
-      // 2. Gọi API resetPassword
+      // 2. Call resetPassword API
       keycloakAdminClient.resetPassword(
           "Bearer " + token.getAccessToken(),
           userId,
@@ -677,21 +677,21 @@ public class ProfileService {
     }
   }
 
-  // --- Helpers chung ---
+  // --- General helpers ---
 
   private String extractUserId(ResponseEntity<?> response) {
-    // Xử lý an toàn hơn
+    // Safer handling
     try {
       String location = response.getHeaders().get("Location").getFirst();
       String[] splitedStr = location.split("/");
       return splitedStr[splitedStr.length - 1];
     } catch (Exception e) {
       log.error(
-          "Không thể trích xuất UserId từ header 'Location': {}",
+          "Could not extract UserId from 'Location' header: {}",
           response.getHeaders().get("Location"),
           e);
       throw new AppException(
-          ErrorCode.INTERNAL_SERVER_ERROR, "Không thể lấy UserId sau khi tạo user.");
+          ErrorCode.INTERNAL_SERVER_ERROR, "Could not get UserId after user creation.");
     }
   }
 

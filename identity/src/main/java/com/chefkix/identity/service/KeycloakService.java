@@ -27,8 +27,8 @@ public class KeycloakService {
   private final WebClient webClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  // Inject giá trị từ file config (Biến môi trường Docker sẽ ghi đè được cái này)
-  // Mặc định là http://localhost:8180 nếu không tìm thấy biến
+  // Inject value from config file (Docker env vars can override this)
+  // Defaults to http://localhost:8180 if env var not found
   private final String keycloakAuthServerUrl;
 
   public KeycloakService(
@@ -36,7 +36,7 @@ public class KeycloakService {
       @Value("${keycloak.auth-server-url:http://localhost:8180}") String keycloakAuthServerUrl) {
     this.keycloakAuthServerUrl = keycloakAuthServerUrl;
 
-    // Cấu hình Base URL động dựa trên biến môi trường
+    // Configure dynamic Base URL based on environment variable
     this.webClient =
         webClientBuilder
             .baseUrl(keycloakAuthServerUrl + "/realms/nottisn/protocol/openid-connect")

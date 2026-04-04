@@ -65,8 +65,8 @@ public class StatisticsService {
   @Lazy RecipeProvider recipeProvider;
 
   /**
-   * Hàm chính xử lý logic sau khi hoàn thành Recipe (Được gọi từ Recipe Service). Thực hiện: Cộng
-   * XP + Check Level + Thêm Badges + Tăng Counter -> Save 1 lần.
+   * Main method handling logic after completing a Recipe (Called from Recipe Service). Performs: Add
+   * XP + Check Level + Add Badges + Increment Counter -> Save once.
    */
   @Transactional
   @Retryable(
@@ -86,7 +86,7 @@ public class StatisticsService {
       }
     }
 
-    // 1. Lấy Profile
+    // 1. Get Profile
     UserProfile profile =
         userProfileRepository
             .findByUserId(userId)
@@ -95,13 +95,13 @@ public class StatisticsService {
     Statistics stats =
         (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-    // 2. XỬ LÝ XP & LEVEL (Dùng hàm helper private) - capture result for level-up detection
+    // 2. PROCESS XP & LEVEL (Using private helper) - capture result for level-up detection
     XpLevelResult levelResult = applyXpAndLevelLogic(stats, request.getXpAmount());
 
-    // 3. XỬ LÝ BADGES (Logic thêm mới và tránh trùng lặp)
+    // 3. PROCESS BADGES (Add new ones, avoid duplicates)
     List<String> actuallyAddedBadges = new ArrayList<>();
     if (request.getNewBadges() != null && !request.getNewBadges().isEmpty()) {
-      // Khởi tạo list badge nếu chưa có
+      // Initialize badge list if not yet created
       if (stats.getBadges() == null) {
         stats.setBadges(new ArrayList<>());
       }
@@ -110,7 +110,7 @@ public class StatisticsService {
       }
 
       for (String badge : request.getNewBadges()) {
-        // Chỉ thêm nếu user chưa có badge này
+        // Only add if user doesn't already have this badge
         if (!stats.getBadges().contains(badge)) {
           stats.getBadges().add(badge);
           stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
@@ -125,7 +125,7 @@ public class StatisticsService {
     long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
     stats.setCompletionCount(currentCount + 1);
 
-    // 5. CẬP NHẬT VÀ LƯU (1 lần duy nhất)
+    // 5. UPDATE AND SAVE (once)
     profile.setStatistics(stats);
     userProfileRepository.save(profile);
 
@@ -143,7 +143,7 @@ public class StatisticsService {
         stats.getCurrentLevel(),
         actuallyAddedBadges);
 
-    // 6. MAP RA DTO RIÊNG CHO RECIPE SERVICE (including level-up info for frontend celebration)
+    // 6. MAP TO DEDICATED DTO FOR RECIPE SERVICE (including level-up info for frontend celebration)
     int xpToNextLevel = (int) Math.round(stats.getCurrentXPGoal() - stats.getCurrentXP());
     return RecipeCompletionResponse.builder()
         .userId(userId)
@@ -158,19 +158,19 @@ public class StatisticsService {
         .build();
   }
 
-  /** Hàm thêm XP thủ công (Admin hoặc sự kiện khác) */
+  /** Manually add XP (Admin or other events) */
   @Transactional
   @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
   public ProfileResponse addXp(String userId, double xpAmount) {
       Statistics stats = processXpAndStatsUpdate(userId, xpAmount, null, false);
 
-      // Fetch lại profile để map ra response
+      // Fetch profile again to map to response
       UserProfile profile = userProfileRepository.findByUserId(userId)
               .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
       return profileMapper.toProfileResponse(profile);
   }
 
-  // --- PRIVATE HELPER METHODS (Tối ưu tái sử dụng) ---
+  // --- PRIVATE HELPER METHODS (Optimized for reuse) ---
 
   /**
    * Result of XP and level calculation, used for notification triggering.
@@ -178,8 +178,8 @@ public class StatisticsService {
   private record XpLevelResult(boolean leveledUp, int previousLevel, int newLevel, String newTitle) {}
 
   /**
-   * Logic cốt lõi để tính toán XP dư và Level up Hàm này chỉ thay đổi object Statistics, không gọi
-   * DB.
+   * Core logic for calculating excess XP and leveling up. This method only modifies the Statistics
+   * object, does not call DB.
    * 
    * @return XpLevelResult with level change info for notifications
    */
@@ -201,7 +201,7 @@ public class StatisticsService {
 
     boolean leveledUp = false;
 
-    // Vòng lặp check lên cấp (có thể lên nhiều cấp 1 lúc)
+    // Loop to check level up (can level up multiple times at once)
     while (stats.getCurrentXP() >= stats.getCurrentXPGoal()) {
       leveledUp = true;
       double excessXp = stats.getCurrentXP() - stats.getCurrentXPGoal();
@@ -369,16 +369,16 @@ public class StatisticsService {
     }
 
     private Statistics processXpAndStatsUpdate(String userId, double xpAmount, List<String> newBadges, boolean incrementRecipeCount) {
-        // A. Lấy Profile (Tự tạo nếu chưa có - Fail safe)
+        // A. Get Profile (Fail-safe)
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Statistics stats = (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-        // B. XỬ LÝ XP & LEVEL (Logic cốt lõi - Đã sửa ở dưới)
+        // B. PROCESS XP & LEVEL (Core logic - fixed below)
         applyXpAndLevelLogic(stats, xpAmount);
 
-        // C. XỬ LÝ BADGES (Dùng Set để code gọn và không trùng)
+        // C. PROCESS BADGES (Using Set for concise code and deduplication)
         if (newBadges != null && !newBadges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
             if (stats.getBadgeTimestamps() == null) {
@@ -393,13 +393,13 @@ public class StatisticsService {
             stats.setBadges(new ArrayList<>(currentBadges));
         }
 
-        // D. XỬ LÝ COUNTER (Số món đã nấu)
+        // D. PROCESS COUNTER (Recipes cooked count)
         if (incrementRecipeCount) {
             long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
             stats.setCompletionCount(currentCount + 1);
         }
 
-        // E. LƯU DATABASE (MongoDB)
+        // E. SAVE TO DATABASE (MongoDB)
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
@@ -407,17 +407,17 @@ public class StatisticsService {
     }
 
     /**
-     * Hàm xử lý phần thưởng cho Creator (được gọi khi có người khác nấu recipe của họ).
+     * Handle creator rewards (called when someone else cooks their recipe).
      * Logic:
-     * 1. Tracking: Tăng xpEarnedAsCreator & totalCooks (để xem stats).
-     * 2. Gamification: Tăng currentXP & Tính Level (để user lên cấp).
+     * 1. Tracking: Increment xpEarnedAsCreator & totalCooks (for stats display).
+     * 2. Gamification: Increment currentXP & Calculate Level (for user leveling).
      */
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void applyCreatorReward(String creatorId, double xpAmount) {
         log.info("Applying Creator Reward for User {}: +{} XP", creatorId, xpAmount);
 
-        // 1. Lấy Profile (Fail-safe: tạo mới nếu chưa có)
+        // 1. Get Profile (Fail-safe: create new if not exists)
         UserProfile profile = userProfileRepository.findByUserId(creatorId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -425,28 +425,28 @@ public class StatisticsService {
                 ? profile.getStatistics()
                 : Statistics.builder().build();
 
-        // --- PHẦN 1: TRACKING (Chỉ để thống kê, không tính level) ---
-        // Cộng dồn XP kiếm được từ nghề Creator
+        // --- PART 1: TRACKING (Stats only, does not affect level) ---
+        // Accumulate XP earned as a Creator
         long creatorXpToAdd = (long) xpAmount;
         long currentCreatorXp = stats.getXpEarnedAsCreator() == null ? 0L : stats.getXpEarnedAsCreator();
         stats.setXpEarnedAsCreator(currentCreatorXp + creatorXpToAdd);
 
-        // Tăng số lượt người khác đã nấu món của mình
+        // Increment count of others who cooked your recipes
         long currentTotalCooks = stats.getTotalCooksOfYourRecipes() == null ? 0L : stats.getTotalCooksOfYourRecipes();
         stats.setTotalCooksOfYourRecipes(currentTotalCooks + 1);
 
-        // Nếu bạn có làm tracking theo tuần (như đã bàn ở các câu trước)
+        // Weekly tracking (if applicable)
         stats.setWeeklyCreatorCooks(stats.getWeeklyCreatorCooks() + 1);
         stats.setWeeklyCreatorXp(stats.getWeeklyCreatorXp() + creatorXpToAdd);
 
 
-        // --- PHẦN 2: GAMIFICATION (Tác động trực tiếp đến Level user) ---
-        // Tái sử dụng hàm helper private bạn đã viết để cộng currentXP và tính Level Up
-        // Hàm này sẽ tự động: currentXP += xpAmount và check while (currentXP >= goal)
+        // --- PART 2: GAMIFICATION (Directly affects user level) ---
+        // Reuse the private helper to add currentXP and calculate Level Up
+        // This will auto: currentXP += xpAmount and check while (currentXP >= goal)
         XpLevelResult levelResult = applyXpAndLevelLogic(stats, xpAmount);
 
 
-        // --- LƯU DATABASE ---
+        // --- SAVE TO DATABASE ---
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
@@ -506,7 +506,7 @@ public class StatisticsService {
     }
 
     public CreatorStatsResponse getMyCreatorStats(String userId) {
-        // 1. LẤY SỐ LIỆU TỔNG (Từ Local DB - Cực nhanh)
+        // 1. GET AGGREGATE STATS (From Local DB - Very fast)
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -536,7 +536,7 @@ public class StatisticsService {
             // Fallback: Still return aggregate stats, just missing top recipes
         }
 
-        // 3. TÍNH TOÁN BADGES
+        // 3. CALCULATE BADGES
         List<CreatorStatsResponse.CreatorBadgeDto> badges = calculateBadges(stats.getTotalRecipesPublished(), highPerformingRecipes);
 
         // 4. BUILD RESPONSE (per vision_and_spec/03-social.txt)
@@ -557,16 +557,16 @@ public class StatisticsService {
     private List<CreatorStatsResponse.CreatorBadgeDto> calculateBadges(long totalRecipes, List<CreatorStatsResponse.TopRecipeDto> recipes) {
         List<CreatorStatsResponse.CreatorBadgeDto> badges = new ArrayList<>();
 
-        // Badge: Prolific Creator (Dựa trên tổng bài - Local Data)
+        // Badge: Prolific Creator (Based on total posts - Local Data)
         if (totalRecipes >= 10) {
             badges.add(CreatorStatsResponse.CreatorBadgeDto.builder()
                     .name("Prolific Creator")
                     .icon("✍️")
-                    .recipeTitle(null) // Badge cho người, không phải cho bài
+                    .recipeTitle(null) // Badge is for the person, not the recipe
                     .build());
         }
 
-        // Badge: Dựa trên từng bài (Remote Data)
+        // Badge: Based on individual recipes (Remote Data)
         if (recipes != null) {
             for (CreatorStatsResponse.TopRecipeDto recipe : recipes) {
                 long count = recipe.getCookCount();

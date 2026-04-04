@@ -64,9 +64,9 @@ public class SocialService {
   // ===================================================================================
 
   /**
-   * Thực hiện hành động follow hoặc unfollow (toggle).
+   * Perform follow or unfollow action (toggle).
    *
-   * @return ProfileResponse của người ĐƯỢC follow (với trạng thái isFollowing đã cập nhật).
+   * @return ProfileResponse of the FOLLOWED user (with updated isFollowing status).
    */
   @Transactional
   public ProfileResponse toggleFollow(String followingId, Authentication authentication) {
@@ -93,12 +93,12 @@ public class SocialService {
         followRepository.findByFollowerIdAndFollowingId(followerId, followingId);
 
     if (existingFollow.isPresent()) {
-      // A. ĐÃ FOLLOW -> UNFOLLOW
+      // A. ALREADY FOLLOWING -> UNFOLLOW
       followRepository.delete(existingFollow.get());
       updateFollowCounts(followerId, followingId, -1);
       log.info("User {} successfully UNFOLLOWED {}", followerId, followingId);
     } else {
-      // B. CHƯA FOLLOW -> FOLLOW
+      // B. NOT FOLLOWING -> FOLLOW
       // PRIVACY: Check if target user allows followers
       var targetPrivacy = settingsService.getPrivacySettingsByUserId(followingId);
       if (targetPrivacy != null && Boolean.FALSE.equals(targetPrivacy.getAllowFollowers())) {
@@ -114,7 +114,7 @@ public class SocialService {
     }
 
     // --- MAP & RETURN ---
-    // Lấy lại profile mới nhất để có số liệu chính xác
+    // Fetch latest profile to get accurate counts
     UserProfile updatedTargetProfile = userProfileRepository.findByUserId(followingId)
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     ProfileResponse response = profileMapper.toProfileResponse(updatedTargetProfile);
@@ -200,9 +200,9 @@ public class SocialService {
   // ===================================================================================
 
   /**
-   * Gửi hoặc HỦY lời mời kết bạn (toggle).
+   * Send or CANCEL a friend request (toggle).
    *
-   * @return ProfileResponse của người NHẬN (với relationshipStatus đã được cập nhật).
+   * @return ProfileResponse of the RECEIVER (with updated relationshipStatus).
    */
   @Transactional
   public ProfileResponse toggleSendFriendRequest(String receiverId, Authentication authentication) {
@@ -225,7 +225,7 @@ public class SocialService {
 
     boolean isAlreadyFriends =
         friends.stream()
-            .anyMatch(f -> f.getFriendId().equals(senderId)); // SỬA LỖI: friendId -> userId
+            .anyMatch(f -> f.getFriendId().equals(senderId)); // FIX: friendId -> userId
     if (isAlreadyFriends) {
       throw new AppException(ErrorCode.ALREADY_FRIEND);
     }
@@ -235,12 +235,12 @@ public class SocialService {
         friendRequestRepository.findBySenderIdAndReceiverId(senderId, receiverId);
 
     if (existingRequest.isPresent()) {
-      // A. ĐÃ GỬI -> HỦY REQUEST
+      // A. ALREADY SENT -> CANCEL REQUEST
       friendRequestRepository.delete(existingRequest.get());
       updateFriendRequestCounts(receiverId, -1);
       log.info("User {} CANCELLED friend request to {}", senderId, receiverId);
     } else {
-      // B. CHƯA GỬI -> GỬI REQUEST
+      // B. NOT SENT -> SEND REQUEST
       FriendRequest request =
           FriendRequest.builder().senderId(senderId).receiverId(receiverId).build();
       friendRequestRepository.save(request);
@@ -255,50 +255,50 @@ public class SocialService {
     return response;
   }
 
-  // Giả sử hàm này nằm trong SocialService, nơi đã tiêm
+  // This method assumes it lives in SocialService, where
   // MongoTemplate, UserProfileRepository, FriendRequestRepository,
-  // StatisticsService, ProfileMapper, và SecurityUtils
+  // StatisticsService, ProfileMapper, and SecurityUtils are injected
 
   @Transactional
   public ProfileResponse acceptFriendRequest(String senderId, Authentication authentication) {
-    String currentUserId = securityUtils.getCurrentUserId(authentication); // Đây là BẠN (Receiver)
+    String currentUserId = securityUtils.getCurrentUserId(authentication); // This is YOU (Receiver)
 
     // Block check: cannot accept friendship if either user has blocked the other
     if (blockRepository.existsBlockBetween(senderId, currentUserId)) {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
 
-    // 1. Tìm lời mời (Code của bạn đã đúng)
+    // 1. Find the friend request (existing code is correct)
     FriendRequest friendRequest =
         friendRequestRepository
             .findBySenderIdAndReceiverId(senderId, currentUserId)
             .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
 
-    // 2. Tạo đối tượng Friendship (Dùng chung 1 mốc thời gian)
+    // 2. Create Friendship object (using a shared timestamp)
     Instant friendedAt = Instant.now();
 
-    // Object "bạn mới" cho BẠN (Receiver)
+    // "New friend" object for YOU (Receiver)
     Friendship friendshipForReceiver =
         Friendship.builder()
-            .friendId(senderId) // ID của người gửi
+            .friendId(senderId) // ID of the sender
             .friendedAt(friendedAt)
             .build();
 
-    // Object "bạn mới" cho HỌ (Sender)
+    // "New friend" object for THEM (Sender)
     Friendship friendshipForSender =
         Friendship.builder()
-            .friendId(currentUserId) // ID của bạn (người nhận)
+            .friendId(currentUserId) // ID of you (the receiver)
             .friendedAt(friendedAt)
             .build();
 
-    // 3. Cập nhật bạn bè (Dùng $push để đảm bảo an toàn - atomic)
-    // Thêm Sender (A) vào danh sách của Receiver (B - Bạn)
+    // 3. Update friends (using $push for atomicity)
+    // Add Sender (A) to Receiver's (B - You) friend list
     mongoTemplate.updateFirst(
         Query.query(Criteria.where("userId").is(currentUserId)),
         new Update().addToSet("friends", friendshipForReceiver),
         UserProfile.class);
 
-    // Thêm Receiver (B) vào danh sách của Sender (A)
+    // Add Receiver (B) to Sender's (A) friend list
     mongoTemplate.updateFirst(
         Query.query(Criteria.where("userId").is(senderId)),
         new Update().addToSet("friends", friendshipForSender),
@@ -359,7 +359,7 @@ public class SocialService {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
 
-    // --- LOGIC HỦY KẾT BẠN ---
+    // --- UNFRIEND LOGIC ---
     Query pullQueryForFriend = Query.query(Criteria.where("friendId").is(friendId));
 
     UpdateResult result =
@@ -376,8 +376,8 @@ public class SocialService {
     Query pullQueryForCurrent = Query.query(Criteria.where("friendId").is(currentUserId));
 
     mongoTemplate.updateFirst(
-        Query.query(Criteria.where("userId").is(friendId)), // Tìm UserProfile (đúng)
-        new Update().pull("friends", pullQueryForCurrent), // Pull object con (đã sửa)
+        Query.query(Criteria.where("userId").is(friendId)), // Find UserProfile (correct)
+        new Update().pull("friends", pullQueryForCurrent), // Pull nested object (fixed)
         UserProfile.class);
 
     statisticsService.incrementCounter(currentUserId, "friendCount", -1);
@@ -400,18 +400,18 @@ public class SocialService {
   }
 
   public InternalFriendListResponse getAllFriends(String userId) {
-    // 1. Gọi Repository để lấy LIST STRING (Chỉ lấy ID)
-    // Lưu ý: Phải filter trạng thái là ACCEPTED (đã là bạn bè)
+    // 1. Call Repository to get LIST of STRING IDs
+    // Note: Must filter status as ACCEPTED (already friends)
     List<String> friendIds =
         friendshipRepository.findAllFriendIdsByUserId(
             userId, RelationshipStatus.FRIENDS.toString());
 
-    // 2. Xử lý null safe (tránh lỗi nếu repo trả về null)
+    // 2. Null-safe handling (avoid error if repo returns null)
     if (friendIds == null) {
       friendIds = new ArrayList<>();
     }
 
-    // 3. Đóng gói vào DTO Internal
+    // 3. Wrap in Internal DTO
     return InternalFriendListResponse.builder()
         .userId(userId)
         .friendIds(friendIds)
@@ -423,7 +423,7 @@ public class SocialService {
   // --- Private Helper Methods ---
   // ===================================================================================
 
-  /** Cập nhật số đếm follower/following thông qua StatisticsService. */
+  /** Update follower/following counts via StatisticsService. */
   private void updateFollowCounts(String followerId, String followingId, int amount) {
     statisticsService.incrementCounter(followerId, "followingCount", amount);
     statisticsService.incrementCounter(followingId, "followerCount", amount);
@@ -433,7 +433,7 @@ public class SocialService {
     statisticsService.incrementCounter(receiverId, "friendRequestCount", amount);
   }
 
-  /** Xác định trạng thái follow giữa hai người dùng. */
+  /** Determine follow status between two users. */
   private boolean determineFollowStatus(String currentUserId, String targetUserId) {
     return followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
   }
@@ -455,31 +455,31 @@ public class SocialService {
   /** Get list of friend when being mentioned in comments */
   public List<UserMentionResponse> searchFriendsForMention(
       String currentUserId, String keyword, Pageable pageable) {
-    // 1. Lấy profile của người đang gõ comment
+    // 1. Get profile of the user typing the comment
     UserProfile currentUser =
         userProfileRepository
             .findByUserId(currentUserId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. Lấy danh sách ID bạn bè (chỉ lấy những người đã ACCEPTED)
+    // 2. Get friend ID list (only those ACCEPTED)
     if (currentUser.getFriends() == null || currentUser.getFriends().isEmpty()) {
       return new ArrayList<>();
     }
 
     List<String> friendIds =
         currentUser.getFriends().stream()
-            // .filter(f -> "ACCEPTED".equals(f.getStatus())) // Nếu có check status
+            // .filter(f -> "ACCEPTED".equals(f.getStatus())) // If status check is needed
             .map(Friendship::getFriendId)
             .collect(Collectors.toList());
 
-    // 3. Tìm kiếm trong Database những ID đó có tên khớp keyword
-    // Giới hạn 10 kết quả để autocomplete nhanh
+    // 3. Search the database for IDs matching the keyword
+    // Limit to 10 results for fast autocomplete
     // Escape regex special chars to prevent ReDoS from user-controlled input
     String safeKeyword = Pattern.quote(keyword);
     List<UserProfile> matchedFriends =
         friendshipRepository.findFriendsForMention(friendIds, safeKeyword, pageable);
 
-    // 4. Map sang DTO nhẹ để trả về Frontend
+    // 4. Map to lightweight DTO for Frontend
     return matchedFriends.stream()
         .map(u -> new UserMentionResponse(u.getUserId(), u.getDisplayName(), u.getAvatarUrl()))
         .collect(Collectors.toList());

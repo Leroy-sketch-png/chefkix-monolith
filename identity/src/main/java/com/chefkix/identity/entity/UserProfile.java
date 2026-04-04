@@ -27,7 +27,7 @@ public class UserProfile {
    */
   @Version Long version;
 
-  /** Tham chiếu đến Keycloak User ID (hoặc bảng User trong DB riêng nếu bạn tự quản lý). */
+  /** Reference to Keycloak User ID (or User table in a separate DB if self-managed). */
   @Indexed(unique = true) String userId;
 
   @TextIndexed(weight = 10)
@@ -51,13 +51,13 @@ public class UserProfile {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   LocalDate dob;
 
-  /** Danh sách sở thích: ex: ["vegan", "spicy", "asian-food"] */
+  /** List of preferences: e.g. ["vegan", "spicy", "asian-food"] */
   List<String> preferences;
 
-  /** Hoặc lưu thêm custom settings dưới dạng map */
+  /** Or store additional custom settings as a map */
   // Map<String, Object> settings;
 
-  /** Các trường "count" nên được cập nhật bởi service hoặc tính bằng aggregation */
+  /** Count fields should be updated by service or calculated via aggregation */
   Statistics statistics;
 
   List<Friendship> friends;

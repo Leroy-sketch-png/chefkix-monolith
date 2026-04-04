@@ -58,10 +58,10 @@ public class AuthenticationService {
     try {
       log.debug(">>> [AUTH] Calling Keycloak login for user={}", request.getEmailOrUsername());
 
-      // Gọi hàm login (Hàm này giờ đã ném RuntimeException chứa Raw JSON nếu lỗi)
+      // Call login function (this now throws RuntimeException with raw JSON on error)
       tokenResponse = keycloakService.login(request.getEmailOrUsername(), request.getPassword());
 
-      // 🔥 KIỂM TRA KỸ: Đề phòng trường hợp login trả về null mà không ném lỗi (hiếm nhưng an toàn)
+      // CAREFUL CHECK: Guard against login returning null without throwing (rare but safe)
       if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
         throw new AppException(ErrorCode.INVALID_CREDENTIALS);
       }
@@ -96,10 +96,10 @@ public class AuthenticationService {
     }
 
     // -------------------------------------------------------------
-    // ⛔ NẾU CODE CHẠY ĐẾN ĐÂY NGHĨA LÀ LOGIN THÀNH CÔNG 100% ⛔
+    // IF CODE REACHES HERE, LOGIN WAS 100% SUCCESSFUL
     // -------------------------------------------------------------
 
-    // 2. Đồng bộ local user
+    // 2. Sync local user
     log.debug(">>> [AUTH] Syncing user in local DB...");
     User user =
         userRepository
@@ -113,11 +113,11 @@ public class AuthenticationService {
                   return userRepository.save(newUser);
                 });
 
-    // 3. Cập nhật last login
+    // 3. Update last login
     user.setLastLogin(LocalDateTime.now());
     userRepository.save(user);
 
-    // 4. Đồng bộ UserActivity
+    // 4. Sync UserActivity
     UserActivity activity =
         userActivityRepository.findByKeycloakId(user.getId()).orElse(new UserActivity());
     activity.setKeycloakId(user.getId());
