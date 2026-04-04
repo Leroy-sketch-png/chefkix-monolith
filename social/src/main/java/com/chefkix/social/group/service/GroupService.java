@@ -186,7 +186,7 @@ public class GroupService {
         // Delete the record completely so they can re-apply in the future if they want
         memberRepository.delete(member);
 
-        // TODO: Fire Kafka event here (e.g., update analytics)
+        log.info("Member {} (status: {}) left group {} (\"{}\")", currentUserId, member.getStatus(), groupId, group.getName());
     }
 
     @Transactional(readOnly = true)

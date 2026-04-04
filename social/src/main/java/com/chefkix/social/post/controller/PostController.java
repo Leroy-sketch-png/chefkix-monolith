@@ -6,6 +6,7 @@ import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.post.dto.response.BattleVoteResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
+import com.chefkix.social.post.dto.response.TasteProfileResponse;
 import com.chefkix.social.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -29,8 +30,8 @@ public class PostController {
 
     PostService postService;
 
-    // SỬA 1: Dùng "POST /" (chuẩn REST)
-    // SỬA 2: Trả về ResponseEntity để có status 201
+    // Uses "POST /" (standard REST)
+    // Returns ResponseEntity for 201 status
     // ========================================================================
     // 1. CREATE PERSONAL POST
     // Endpoint: POST /api/v1/posts
@@ -39,13 +40,13 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostResponse>> createPersonalPost(
             @Valid @ModelAttribute PostCreationRequest request
     ) {
-        // 1. Lấy ID của user đang đăng nhập
+        // 1. Get the current logged-in user's ID
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Gọi service xử lý
+        // 2. Call service to process
         PostResponse result = postService.createPersonalPost(request, currentUserId);
 
-        // 3. Trả về chuẩn REST (201 Created)
+        // 3. Return standard REST (201 Created)
         ApiResponse<PostResponse> body = ApiResponse.created(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
@@ -60,27 +61,27 @@ public class PostController {
             @PathVariable("groupId") String groupId,
             @Valid @ModelAttribute PostCreationRequest request
     ) {
-        // 1. Lấy ID của user đang đăng nhập
+        // 1. Get the current logged-in user's ID
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Gọi service xử lý (truyền thêm groupId)
+        // 2. Call service to process (pass groupId)
         PostResponse result = postService.createGroupPost(groupId, request, currentUserId);
 
-        // 3. Trả về chuẩn REST (201 Created)
+        // 3. Return standard REST (201 Created)
         ApiResponse<PostResponse> body = ApiResponse.created(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
-    // SỬA 1: Dùng "PUT /{postId}" (chuẩn REST)
+    // Uses "PUT /{postId}" (standard REST)
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
-            @PathVariable("postId") String postId, // SỬA 2: Lấy ID từ Path
+            @PathVariable("postId") String postId, // Get ID from Path
             @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
 
         PostResponse result = postService.updatePost(postId, postUpdateRequest);
 
-        // SỬA 3: Dùng hàm factory "success"
-        ApiResponse<PostResponse> body = ApiResponse.success(result, "Cập nhật thành công");
+        // Use factory method "success"
+        ApiResponse<PostResponse> body = ApiResponse.success(result, "Updated successfully");
 
         return ResponseEntity.ok(body);
     }
@@ -90,7 +91,7 @@ public class PostController {
             @PathVariable("postId") String postId,
             Authentication authentication) {
         postService.deletePost(authentication, postId);
-        ApiResponse<String> body = ApiResponse.success("Xóa bài post thành công");
+        ApiResponse<String> body = ApiResponse.success("Post deleted successfully");
         return ResponseEntity.ok(body);
     }
 
@@ -228,5 +229,16 @@ public class PostController {
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getActiveBattles(pageable, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * Get the authenticated user's taste profile (cuisine distribution from 5-signal analysis).
+     * GET /api/v1/posts/taste-profile
+     */
+    @GetMapping("/taste-profile")
+    public ResponseEntity<ApiResponse<TasteProfileResponse>> getTasteProfile(Authentication authentication) {
+        String userId = authentication.getName();
+        TasteProfileResponse profile = postService.getTasteProfile(userId);
+        return ResponseEntity.ok(ApiResponse.success(profile));
     }
 }

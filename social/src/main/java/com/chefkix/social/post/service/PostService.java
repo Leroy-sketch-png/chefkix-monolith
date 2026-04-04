@@ -30,6 +30,7 @@ import com.chefkix.social.post.dto.response.PostSaveResponse;
 import com.chefkix.social.post.dto.response.PollVoteResponse;
 import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
 import com.chefkix.social.post.dto.response.BattleVoteResponse;
+import com.chefkix.social.post.dto.response.TasteProfileResponse;
 import com.chefkix.social.post.entity.CoChef;
 import com.chefkix.social.post.entity.PollData;
 import com.chefkix.social.post.entity.PollVote;
@@ -127,7 +128,7 @@ public class PostService {
     @Value("${app.public-base-url:http://localhost:3000}")
     String publicBaseUrl;
 
-    private static final double GRAVITY = 1.8; // Hệ số dùng cho thuật toán Trending (nếu cần sau này)
+    private static final double GRAVITY = 1.8; // Coefficient for Trending algorithm (if needed later)
 
     // ========================================================================
     // 1. CREATE POST (ASYNC PARALLEL)
@@ -138,7 +139,7 @@ public class PostService {
     // ========================================================================
     public PostResponse createPersonalPost(PostCreationRequest request, String userId) {
         PostType type = request.getPostType() != null ? request.getPostType() : PostType.PERSONAL;
-        log.info("Bắt đầu tạo {} post cho user: {}", type, userId);
+        log.info("Starting to create {} post for user: {}", type, userId);
 
         // Personal/Quick posts go straight to ACTIVE.
         // We pull the isHidden value directly from the DTO.
@@ -149,7 +150,7 @@ public class PostService {
     // 1B. CREATE GROUP POST
     // ========================================================================
     public PostResponse createGroupPost(String groupId, PostCreationRequest request, String userId) {
-        log.info("Bắt đầu tạo GROUP post trong group {} cho user: {}", groupId, userId);
+        log.info("Starting to create GROUP post in group {} for user: {}", groupId, userId);
 
         // 1. SECURITY CHECK: Ensure they are in the group
         boolean isMember = groupMemberRepository.existsByGroupIdAndUserId(groupId, userId);
@@ -172,10 +173,10 @@ public class PostService {
                                             PostStatus status, boolean isHidden) {
         long startTime = System.currentTimeMillis();
 
-        log.info("Bắt đầu tạo post cho user: {}", userId);
+        log.info("Starting to create post for user: {}", userId);
 
         try {
-            // Task A: Upload ảnh (Chạy song song)
+            // Task A: Upload images (Run in parallel)
             List<CompletableFuture<String>> uploadFutures = new ArrayList<>();
             if (request.getPhotoUrls() != null && !request.getPhotoUrls().isEmpty()) {
                 for (MultipartFile photo : request.getPhotoUrls()) {
@@ -205,7 +206,7 @@ public class PostService {
                         () -> {
                             try {
                                 SessionInfo session = sessionProvider.getSession(request.getSessionId());
-                                if (session == null) throw new AppException(ErrorCode.SESSION_NOT_FOUND, "Fake session ID!");
+                                if (session == null) throw new AppException(ErrorCode.SESSION_NOT_FOUND);
 
                                 // Validate: must be own session
                                 if (!session.getUserId().equals(userId)) {
@@ -227,11 +228,11 @@ public class PostService {
                 sessionFuture = CompletableFuture.completedFuture(null);
             }
 
-            // CHỜ TẤT CẢ HOÀN THÀNH
+            // WAIT FOR ALL TO COMPLETE
             CompletableFuture<Void> allUploads = CompletableFuture.allOf(uploadFutures.toArray(new CompletableFuture[0]));
             CompletableFuture.allOf(allUploads, profileFuture, sessionFuture).join();
 
-            // GOM KẾT QUẢ
+            // COLLECT RESULTS
             List<String> photoUrls = uploadFutures.stream()
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
@@ -239,7 +240,7 @@ public class PostService {
             BasicProfileInfo userProfile = profileFuture.join();
             SessionInfo session = sessionFuture.join();
 
-            log.info("Xử lý xong I/O trong {}ms", System.currentTimeMillis() - startTime);
+            log.info("I/O processing completed in {}ms", System.currentTimeMillis() - startTime);
 
             // AI CONTENT MODERATION
             if (request.getContent() != null && !request.getContent().isBlank()) {
@@ -250,11 +251,11 @@ public class PostService {
                 }
             }
 
-            // LƯU VÀO DB
+            // SAVE TO DB
             return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 
         } catch (CompletionException e) {
-            log.error("Lỗi song song processAndSavePost", e);
+            log.error("Parallel error in processAndSavePost", e);
             Throwable cause = e.getCause();
             if (cause instanceof AppException) throw (AppException) cause;
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -422,7 +423,7 @@ public class PostService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION, "You cannot edit this post");
         }
 
-        // Logic chặn sửa sau 1 tiếng (Tùy business, có thể bỏ nếu muốn)
+        // Block editing after 1 hour (Configurable by business, can be removed if needed)
         Instant oneHourAfterCreation = post.getCreatedAt().plusSeconds(3600);
         if (Instant.now().isAfter(oneHourAfterCreation)) {
             throw new AppException(ErrorCode.POST_EDIT_EXPIRED, "You can no longer edit this post");
@@ -454,7 +455,7 @@ public class PostService {
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND, "Post not found"));
 
         if (!post.getUserId().equals(userId)) {
-            // Admin có thể xóa (nếu cần check role), ở đây check đơn giản
+            // Admin can delete (if role check needed), simple check here
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -577,7 +578,7 @@ public class PostService {
     }
 
     private void sendLikeNotification(String userId, Post post) {
-        // Nên chạy Async hoặc Fire-and-forget để không chặn luồng chính
+        // Should run Async or Fire-and-forget to not block main thread
         CompletableFuture.runAsync(() -> {
             try {
                     BasicProfileInfo profile = null;
@@ -602,7 +603,7 @@ public class PostService {
             } catch (Exception e) {
                 log.error("Error sending like notification", e);
             }
-        }, taskExecutor); // Tận dụng lại executor
+        }, taskExecutor); // Reuse executor
     }
 
     private void sendSocialXpEvent(String userId, double amount, String source, String postId, String description) {
@@ -973,6 +974,99 @@ public class PostService {
                 .forEach(e -> normalized.put(e.getKey(), e.getValue() / maxWeight));
 
         return normalized;
+    }
+
+    /**
+     * Public taste profile for a user: tag weights, cuisine distribution, top cuisines.
+     * Combines the internal 5-signal taste vector with cuisine classification.
+     */
+    public TasteProfileResponse getTasteProfile(String userId) {
+        Map<String, Double> tasteVector = buildWeightedTasteProfile(userId);
+
+        if (tasteVector.isEmpty()) {
+            return TasteProfileResponse.builder()
+                    .tasteVector(Map.of())
+                    .cuisineDistribution(List.of())
+                    .totalInteractions(0)
+                    .topCuisines(List.of())
+                    .build();
+        }
+
+        // Known cuisine tags (lowercase) — classify tags into cuisines
+        Map<String, String> tagToCuisine = Map.ofEntries(
+                Map.entry("italian", "Italian"), Map.entry("pasta", "Italian"), Map.entry("pizza", "Italian"),
+                Map.entry("risotto", "Italian"), Map.entry("tiramisu", "Italian"),
+                Map.entry("asian", "Asian"), Map.entry("chinese", "Chinese"), Map.entry("japanese", "Japanese"),
+                Map.entry("sushi", "Japanese"), Map.entry("ramen", "Japanese"), Map.entry("korean", "Korean"),
+                Map.entry("thai", "Thai"), Map.entry("vietnamese", "Vietnamese"), Map.entry("indian", "Indian"),
+                Map.entry("curry", "Indian"), Map.entry("tandoori", "Indian"), Map.entry("biryani", "Indian"),
+                Map.entry("mexican", "Mexican"), Map.entry("tacos", "Mexican"), Map.entry("burrito", "Mexican"),
+                Map.entry("french", "French"), Map.entry("croissant", "French"), Map.entry("souffle", "French"),
+                Map.entry("mediterranean", "Mediterranean"), Map.entry("greek", "Mediterranean"),
+                Map.entry("middle-eastern", "Middle Eastern"), Map.entry("lebanese", "Middle Eastern"),
+                Map.entry("turkish", "Middle Eastern"), Map.entry("falafel", "Middle Eastern"),
+                Map.entry("american", "American"), Map.entry("bbq", "American"), Map.entry("burger", "American"),
+                Map.entry("southern", "American"), Map.entry("cajun", "American"),
+                Map.entry("african", "African"), Map.entry("ethiopian", "African"),
+                Map.entry("caribbean", "Caribbean"), Map.entry("jamaican", "Caribbean"),
+                Map.entry("spanish", "Spanish"), Map.entry("tapas", "Spanish"), Map.entry("paella", "Spanish")
+        );
+
+        // Aggregate weights by cuisine
+        Map<String, Double> cuisineWeights = new java.util.HashMap<>();
+        Map<String, Integer> cuisineCounts = new java.util.HashMap<>();
+        double uncategorizedWeight = 0;
+        int totalCount = 0;
+
+        for (var entry : tasteVector.entrySet()) {
+            String tag = entry.getKey().toLowerCase().trim();
+            double weight = entry.getValue();
+            String cuisine = tagToCuisine.get(tag);
+            totalCount++;
+            if (cuisine != null) {
+                cuisineWeights.merge(cuisine, weight, Double::sum);
+                cuisineCounts.merge(cuisine, 1, Integer::sum);
+            } else {
+                uncategorizedWeight += weight;
+            }
+        }
+
+        // Compute percentages
+        double totalWeight = cuisineWeights.values().stream().mapToDouble(Double::doubleValue).sum() + uncategorizedWeight;
+        if (totalWeight <= 0) totalWeight = 1;
+
+        double finalTotalWeight = totalWeight;
+        List<TasteProfileResponse.CuisineBreakdown> distribution = cuisineWeights.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(10)
+                .map(e -> TasteProfileResponse.CuisineBreakdown.builder()
+                        .cuisine(e.getKey())
+                        .percentage(Math.round(e.getValue() / finalTotalWeight * 1000.0) / 10.0) // 1 decimal
+                        .interactionCount(cuisineCounts.getOrDefault(e.getKey(), 0))
+                        .build())
+                .toList();
+
+        // Add "Other" if significant
+        if (uncategorizedWeight > 0 && distribution.size() < 10) {
+            distribution = new java.util.ArrayList<>(distribution);
+            distribution.add(TasteProfileResponse.CuisineBreakdown.builder()
+                    .cuisine("Other")
+                    .percentage(Math.round(uncategorizedWeight / finalTotalWeight * 1000.0) / 10.0)
+                    .interactionCount(0)
+                    .build());
+        }
+
+        List<String> topCuisines = distribution.stream()
+                .limit(3)
+                .map(TasteProfileResponse.CuisineBreakdown::getCuisine)
+                .toList();
+
+        return TasteProfileResponse.builder()
+                .tasteVector(tasteVector)
+                .cuisineDistribution(distribution)
+                .totalInteractions(totalCount)
+                .topCuisines(topCuisines)
+                .build();
     }
 
     private Set<String> getInteractedPostIds(String currentUserId) {

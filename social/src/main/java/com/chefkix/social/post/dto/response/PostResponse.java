@@ -19,8 +19,8 @@ public class PostResponse {
     String id;
     String userId;
     String groupId;
-    String displayName; // Tên hiển thị của người post
-    String avatarUrl;   // Avatar của người post
+    String displayName; // Display name of the post author
+    String avatarUrl;   // Avatar of the post author
     @JsonProperty("isVerified")
     boolean verified;
     String content;
@@ -33,12 +33,12 @@ public class PostResponse {
     PostType postType;
 
     // --- NEW FIELDS: GAMIFICATION & SESSION INFO ---
-    String sessionId;       // Để FE link ngược về trang chi tiết session nấu ăn
-    String recipeId;        // Để FE dẫn link sang trang công thức gốc
-    String recipeTitle;     // Để FE hiển thị header: "Đã nấu thành công món: [Tên Món]"
+    String sessionId;       // For FE to link back to cooking session detail page
+    String recipeId;        // For FE to link to the original recipe page
+    String recipeTitle;     // For FE to display header: "Successfully cooked: [Recipe Name]"
     @JsonProperty("isPrivateRecipe")
-    boolean isPrivateRecipe; // Nếu true -> FE ẩn nút "Xem công thức"
-    Double xpEarned;        // Để FE chạy animation chúc mừng "+180 XP"
+    boolean isPrivateRecipe; // If true -> FE hides the "View Recipe" button
+    Double xpEarned;        // For FE to run congratulation animation "+180 XP"
 
     // --- CO-COOKING ATTRIBUTION ---
     String roomCode;                // Co-cooking room this post originated from
@@ -51,9 +51,9 @@ public class PostResponse {
     
     // --- USER-SPECIFIC FIELDS: Like/Save status for current user ---
     @JsonProperty("isLiked")
-    Boolean isLiked;        // Để FE biết user đã like post này chưa
+    Boolean isLiked;        // For FE to know if user has liked this post
     @JsonProperty("isSaved")
-    Boolean isSaved;        // Để FE biết user đã save post này chưa
+    Boolean isSaved;        // For FE to know if user has saved this post
 
     Instant createdAt;
     Instant updatedAt;

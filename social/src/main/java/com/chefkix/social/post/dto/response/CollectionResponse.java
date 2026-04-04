@@ -1,5 +1,6 @@
 package com.chefkix.social.post.dto.response;
 
+import com.chefkix.social.post.entity.DifficultyStep;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.List;
@@ -28,6 +29,25 @@ public class CollectionResponse {
 
     int itemCount;
     List<String> postIds;
+
+    // --- Learning Path fields ---
+    String collectionType;
+    List<String> recipeIds;
+    String difficulty;
+    Integer estimatedTotalMinutes;
+    Integer totalXp;
+    int enrolledCount;
+    Double completionRate;
+    Double averageRating;
+    List<DifficultyStep> difficultyProgression;
+
+    // --- Featured / Seasonal fields ---
+    @JsonProperty("isFeatured")
+    boolean isFeatured;
+
+    String seasonTag;
+    String tagline;
+    String emoji;
 
     Instant createdAt;
     Instant updatedAt;

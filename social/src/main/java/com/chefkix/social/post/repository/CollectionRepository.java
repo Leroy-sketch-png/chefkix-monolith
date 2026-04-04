@@ -16,4 +16,8 @@ public interface CollectionRepository extends MongoRepository<Collection, String
     long countByUserId(String userId);
 
     boolean existsByUserIdAndName(String userId, String name);
+
+    List<Collection> findAllByIsFeaturedTrueAndIsPublicTrue(Sort sort);
+
+    List<Collection> findAllByIsFeaturedTrueAndSeasonTag(String seasonTag, Sort sort);
 }

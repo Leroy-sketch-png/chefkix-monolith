@@ -50,13 +50,13 @@ public class Post {
   String videoUrl;
   String slug;
   String postUrl;
-  @Indexed String sessionId; // Liên kết với Cooking Session
-  @Indexed String recipeId;  // ID công thức đã nấu
+  @Indexed String sessionId; // Linked to Cooking Session
+  @Indexed String recipeId;  // ID of the cooked recipe
 
   @TextIndexed(weight = 7)
-  String recipeTitle; // Tên món ăn (VD: "Phở Bò")
-  @Builder.Default boolean isPrivateRecipe = false; // Cờ đánh dấu công thức riêng tư
-  double xpEarned; // Số XP nhận được từ bài post này
+  String recipeTitle; // Recipe name (e.g., "Pho Bo")
+  @Builder.Default boolean isPrivateRecipe = false; // Flag marking private recipe
+  double xpEarned; // XP earned from this post
 
   // Co-cooking attribution (Stream 4)
   String roomCode; // Room code if cooked in co-cooking session
