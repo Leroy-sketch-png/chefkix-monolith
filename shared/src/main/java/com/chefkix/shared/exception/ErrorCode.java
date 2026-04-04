@@ -122,6 +122,7 @@ public enum ErrorCode {
 
     COLLECTION_NOT_FOUND(404, "Collection not found", HttpStatus.NOT_FOUND),
     COLLECTION_LIMIT_EXCEEDED(409, "Maximum number of collections reached", HttpStatus.CONFLICT),
+    NOT_ENROLLED(404, "Not enrolled in this learning path", HttpStatus.NOT_FOUND),
 
     // ─── CHAT ───────────────────────────────────────────────────────
 
