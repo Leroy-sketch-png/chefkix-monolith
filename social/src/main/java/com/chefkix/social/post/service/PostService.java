@@ -22,7 +22,6 @@ import com.chefkix.social.api.dto.RecentCookRequest;
 import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
-import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
@@ -54,7 +53,6 @@ import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.entity.PlateRating;
-import com.chefkix.social.post.dto.request.PlateRateRequest;
 import com.chefkix.social.post.dto.response.PlateRateResponse;
 import com.chefkix.shared.util.UploadImageFile;
 import lombok.AccessLevel;
@@ -127,8 +125,6 @@ public class PostService {
     @NonFinal
     @Value("${app.public-base-url:http://localhost:3000}")
     String publicBaseUrl;
-
-    private static final double GRAVITY = 1.8; // Coefficient for Trending algorithm (if needed later)
 
     // ========================================================================
     // 1. CREATE POST (ASYNC PARALLEL)
@@ -912,7 +908,8 @@ public class PostService {
 
     /**
      * Builds a weighted taste profile: tag -> normalized weight (0..1).
-     * 5-signal: saves (2x), likes (1x), dwell (1.5x), views (0.5x), search (implicit via views).
+     * 7-signal: saves (2x), likes (1x), dwell (0.75-2.5x graduated), views (0.5x),
+     * comments (1.8x), creation (2.5x), search queries (0.3x per word).
      */
     private Map<String, Double> buildWeightedTasteProfile(String currentUserId) {
         // Get recent liked posts (last 100)
@@ -934,32 +931,45 @@ public class PostService {
         Set<String> savedPostIds = new java.util.HashSet<>();
         recentSaves.forEach(s -> savedPostIds.add(s.getPostId()));
 
-        // Behavioral signals from event tracking (views=0.5x, dwell=1.5x)
+        // Behavioral signals: views (0.5x), dwell (0.75-2.5x graduated), comments (1.8x), creation (2.5x)
         Map<String, Double> behavioralWeights = profileProvider.getBehavioralPostWeights(currentUserId);
 
         Set<String> allPostIds = new java.util.HashSet<>(likedPostIds);
         allPostIds.addAll(savedPostIds);
         allPostIds.addAll(behavioralWeights.keySet());
 
-        if (allPostIds.isEmpty()) return Map.of();
-
-        Query tagQuery = new Query(Criteria.where("_id").in(allPostIds));
-        tagQuery.fields().include("tags").include("_id");
-        List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
-
         Map<String, Double> tagWeights = new java.util.HashMap<>();
-        for (Post p : posts) {
-            if (p.getTags() == null) continue;
-            // Explicit signals: saves (2x), likes (1x)
-            double explicitWeight = savedPostIds.contains(p.getId()) ? 2.0
-                    : likedPostIds.contains(p.getId()) ? 1.0 : 0.0;
-            // Behavioral signals: views (0.5x), dwell (1.5x)
-            double behavioralWeight = behavioralWeights.getOrDefault(p.getId(), 0.0);
-            double totalWeight = explicitWeight + behavioralWeight;
-            if (totalWeight <= 0) continue;
 
-            for (String tag : p.getTags()) {
-                tagWeights.merge(tag.toLowerCase().trim(), totalWeight, Double::sum);
+        if (!allPostIds.isEmpty()) {
+            Query tagQuery = new Query(Criteria.where("_id").in(allPostIds));
+            tagQuery.fields().include("tags").include("_id");
+            List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
+
+            for (Post p : posts) {
+                if (p.getTags() == null) continue;
+                // Explicit signals: saves (2x), likes (1x)
+                double explicitWeight = savedPostIds.contains(p.getId()) ? 2.0
+                        : likedPostIds.contains(p.getId()) ? 1.0 : 0.0;
+                // Behavioral signals from event tracking
+                double behavioralWeight = behavioralWeights.getOrDefault(p.getId(), 0.0);
+                double totalWeight = explicitWeight + behavioralWeight;
+                if (totalWeight <= 0) continue;
+
+                for (String tag : p.getTags()) {
+                    tagWeights.merge(tag.toLowerCase().trim(), totalWeight, (a, b) -> a + b);
+                }
+            }
+        }
+
+        // Search query signal: each word in recent searches gets 0.3x weight as a tag
+        // This captures intent even when the user didn't interact with results
+        List<String> searchQueries = profileProvider.getRecentSearchQueries(currentUserId);
+        for (String query : searchQueries) {
+            for (String word : query.split("\\s+")) {
+                String normalized = word.toLowerCase().trim();
+                if (normalized.length() >= 3) { // skip short words like "a", "in"
+                    tagWeights.merge(normalized, 0.3, (a, b) -> a + b);
+                }
             }
         }
 
@@ -1024,8 +1034,8 @@ public class PostService {
             String cuisine = tagToCuisine.get(tag);
             totalCount++;
             if (cuisine != null) {
-                cuisineWeights.merge(cuisine, weight, Double::sum);
-                cuisineCounts.merge(cuisine, 1, Integer::sum);
+                cuisineWeights.merge(cuisine, weight, (a, b) -> a + b);
+                cuisineCounts.merge(cuisine, 1, (a, b) -> a + b);
             } else {
                 uncategorizedWeight += weight;
             }

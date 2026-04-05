@@ -23,8 +23,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor

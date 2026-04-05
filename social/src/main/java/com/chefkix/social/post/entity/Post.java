@@ -70,7 +70,6 @@ public class Post {
   @CreatedDate Instant createdAt;
   @LastModifiedDate Instant updatedAt;
 
-  // List<String> taggedUserIds;
   List<String> taggedUserIds;
   List<String> commentIds;
 

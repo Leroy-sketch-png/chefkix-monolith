@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -233,7 +232,7 @@ public class ReplyService {
     public ReplyLikeResponse toggleLike(Authentication authentication, String replyId) {
         String userId = authentication.getName();
 
-        Reply reply = replyRepository.findById(replyId)
+        replyRepository.findById(replyId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPLY_NOT_FOUND));
 
         boolean alreadyLiked = replyLikeRepository.existsByReplyIdAndUserId(replyId, userId);
