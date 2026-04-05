@@ -207,4 +207,44 @@ public class AIRestClient {
             return null;
         }
     }
+
+    // ─── EMBEDDING (fail-open: returns null if unavailable) ─────────
+
+    /**
+     * Generate embedding vector for text via AI service.
+     * FAIL-OPEN: returns null if AI service is unavailable (search falls back to keyword).
+     */
+    @SuppressWarnings("unchecked")
+    public float[] generateEmbedding(String text) {
+        log.debug("Calling AI service: POST /api/v1/embed");
+        try {
+            var response = webClient.post()
+                    .uri("/api/v1/embed")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(java.util.Map.of("text", text))
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<java.util.Map<String, Object>>() {})
+                    .block(Duration.ofSeconds(10));
+
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                log.warn("Embedding generation returned unsuccessful response");
+                return null;
+            }
+
+            var data = (java.util.Map<String, Object>) response.get("data");
+            if (data == null || data.get("embedding") == null) {
+                return null;
+            }
+
+            var embedding = (java.util.List<Number>) data.get("embedding");
+            float[] vector = new float[embedding.size()];
+            for (int i = 0; i < embedding.size(); i++) {
+                vector[i] = embedding.get(i).floatValue();
+            }
+            return vector;
+        } catch (Exception e) {
+            log.warn("Embedding generation failed (search falls back to keyword): {}", e.getMessage());
+            return null;
+        }
+    }
 }

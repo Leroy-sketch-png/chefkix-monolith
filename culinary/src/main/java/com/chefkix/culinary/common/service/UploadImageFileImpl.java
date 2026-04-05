@@ -38,6 +38,7 @@ public class UploadImageFileImpl implements UploadImageFile {
         try {
             String publicId = generatePublicValue(file.getOriginalFilename());
 
+            @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,

@@ -44,6 +44,15 @@ public interface GroceryProvider {
      */
     OrderStatus getOrderStatus(String orderId);
 
+    /**
+     * Generate per-ingredient affiliate/search links.
+     * Used on recipe detail pages to show contextual "Buy" buttons per ingredient.
+     * Default implementation builds from single-item matchProducts.
+     */
+    default Map<String, String> getPerIngredientLinks(List<GroceryItemRequest> items) {
+        return Map.of(); // Override in providers that support per-item links
+    }
+
     // ─── DTOs ───────────────────────────────────────────────────────
 
     record GroceryItemRequest(

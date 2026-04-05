@@ -42,7 +42,7 @@ public class RecipeScheduled {
             );
 
             likeStats.forEach(stat ->
-                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, Double::sum)
+                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, (a, b) -> a + b)
             );
 
             // --- STEP B: CALCULATE COMPLETION SCORE (Weight = 5) ---
@@ -51,7 +51,7 @@ public class RecipeScheduled {
             );
 
             completionStats.forEach(stat ->
-                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, Double::sum)
+                    scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, (a, b) -> a + b)
             );
 
             // --- STEP C: UPDATE DATABASE (Bulk Update) ---
