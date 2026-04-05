@@ -49,7 +49,9 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "authorId", "type", "string", "optional", true),
                         Map.of("name", "authorName", "type", "string", "optional", true),
                         Map.of("name", "coverImageUrl", "type", "string", "optional", true),
-                        Map.of("name", "createdAt", "type", "int64")
+                        Map.of("name", "createdAt", "type", "int64"),
+                        Map.of("name", "embedding", "type", "float[]", "num_dim", 768,
+                                "optional", true)
                 ),
                 "default_sorting_field", "createdAt",
                 "token_separators", List.of("-", "'")
