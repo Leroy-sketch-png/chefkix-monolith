@@ -235,7 +235,7 @@ public class ProfileService {
     String userId = createKeycloakUser(req);
 
     // 4. Save profile to MongoDB
-    UserProfile profile = createMongoProfile(req, userId);
+    createMongoProfile(req, userId);
 
     // 5. Delete signup request
     signupRequestRepository.delete(req);
@@ -682,7 +682,12 @@ public class ProfileService {
   private String extractUserId(ResponseEntity<?> response) {
     // Safer handling
     try {
-      String location = response.getHeaders().get("Location").getFirst();
+      var locationHeader = response.getHeaders().get("Location");
+      if (locationHeader == null || locationHeader.isEmpty()) {
+        throw new AppException(
+            ErrorCode.INTERNAL_SERVER_ERROR, "Location header missing after user creation.");
+      }
+      String location = locationHeader.getFirst();
       String[] splitedStr = location.split("/");
       return splitedStr[splitedStr.length - 1];
     } catch (Exception e) {

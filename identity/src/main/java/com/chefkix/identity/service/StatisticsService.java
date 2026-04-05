@@ -8,7 +8,6 @@ import com.chefkix.identity.dto.response.LeaderboardResponse;
 import com.chefkix.identity.dto.response.CreatorStatsResponse;
 import com.chefkix.identity.dto.response.ProfileResponse;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
-import com.chefkix.identity.dto.response.internal.InternalCreatorInsightsResponse;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.enums.Title;
@@ -162,7 +161,7 @@ public class StatisticsService {
   @Transactional
   @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
   public ProfileResponse addXp(String userId, double xpAmount) {
-      Statistics stats = processXpAndStatsUpdate(userId, xpAmount, null, false);
+      processXpAndStatsUpdate(userId, xpAmount, null, false);
 
       // Fetch profile again to map to response
       UserProfile profile = userProfileRepository.findByUserId(userId)

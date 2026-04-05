@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ResetPasswordService {
-  SignupRequestService signupRequestService;
   EmailService emailService;
   ResetPasswordRepository resetPasswordRepository;
   UserProfileRepository userProfileRepository;

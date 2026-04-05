@@ -15,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +29,6 @@ public class SignupRequestService {
   final EmailService emailService;
   final KafkaTemplate<String, Object> kafkaTemplate;
   final BaseRedisService redisService;
-  final PasswordEncoder passwordEncoder;
 
   // --- CONFIGS (Should be in application.yml) ---
   @Value("${app.otp.ttl-seconds:300}")

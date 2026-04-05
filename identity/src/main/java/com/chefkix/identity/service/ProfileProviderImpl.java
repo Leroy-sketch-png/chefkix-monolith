@@ -10,7 +10,6 @@ import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
 import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
-import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserEvent;
 import com.chefkix.identity.enums.TrackingEventType;
@@ -189,15 +188,63 @@ public class ProfileProviderImpl implements ProfileProvider {
     public Map<String, Double> getBehavioralPostWeights(String userId) {
         List<UserEvent> events = userEventRepository.findByUserIdAndEventTypeInOrderByTimestampDesc(
                 userId,
-                List.of(TrackingEventType.RECIPE_VIEWED, TrackingEventType.POST_DWELLED));
+                List.of(TrackingEventType.RECIPE_VIEWED, TrackingEventType.POST_DWELLED,
+                        TrackingEventType.POST_COMMENTED, TrackingEventType.RECIPE_CREATED));
 
         Map<String, Double> postWeights = new HashMap<>();
         for (UserEvent event : events) {
             if (event.getEntityId() == null) continue;
-            double weight = event.getEventType() == TrackingEventType.POST_DWELLED ? 1.5 : 0.5;
-            postWeights.merge(event.getEntityId(), weight, Double::sum);
+            double weight = switch (event.getEventType()) {
+                case RECIPE_VIEWED -> 0.5;
+                case POST_DWELLED -> computeDwellWeight(event);
+                case POST_COMMENTED -> 1.8; // commenting shows strong engagement
+                case RECIPE_CREATED -> 2.5; // creating a recipe = strongest intent signal
+                default -> 0.0;
+            };
+            if (weight > 0) {
+                postWeights.merge(event.getEntityId(), weight, (a, b) -> a + b);
+            }
         }
         return postWeights;
+    }
+
+    /**
+     * Graduated dwell weight: longer dwell = stronger interest signal.
+     * 2-5s = casual browse (0.75), 5-10s = engaged read (1.5), 10s+ = deep interest (2.5)
+     */
+    private double computeDwellWeight(UserEvent event) {
+        if (event.getMetadata() == null) return 1.5; // fallback for legacy events
+        Object dwellMsObj = event.getMetadata().get("dwellMs");
+        if (dwellMsObj == null) return 1.5;
+
+        double dwellMs;
+        if (dwellMsObj instanceof Number n) {
+            dwellMs = n.doubleValue();
+        } else {
+            try {
+                dwellMs = Double.parseDouble(dwellMsObj.toString());
+            } catch (NumberFormatException e) {
+                return 1.5;
+            }
+        }
+
+        if (dwellMs < 5_000) return 0.75;   // 2-5s: casual browse
+        if (dwellMs < 10_000) return 1.5;    // 5-10s: engaged read
+        return 2.5;                           // 10s+: deep interest
+    }
+
+    @Override
+    public List<String> getRecentSearchQueries(String userId) {
+        List<UserEvent> searchEvents = userEventRepository.findByUserIdAndEventTypeInOrderByTimestampDesc(
+                userId,
+                List.of(TrackingEventType.RECIPE_SEARCH));
+
+        return searchEvents.stream()
+                .filter(e -> e.getMetadata() != null && e.getMetadata().containsKey("query"))
+                .map(e -> e.getMetadata().get("query").toString().toLowerCase().trim())
+                .filter(q -> q.length() >= 2)
+                .limit(50)
+                .toList();
     }
 
     @Override

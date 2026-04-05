@@ -79,11 +79,10 @@ public class SocialService {
     if (blockRepository.existsBlockBetween(followerId, followingId)) {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
-    UserProfile targetProfile =
-        userProfileRepository
-            .findByUserId(followingId)
-            .orElseThrow(
-                () -> new AppException(ErrorCode.USER_NOT_FOUND));
+    userProfileRepository
+        .findByUserId(followingId)
+        .orElseThrow(
+            () -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     // Get follower profile for notification
     UserProfile followerProfile = userProfileRepository.findByUserId(followerId).orElse(null);
@@ -431,11 +430,6 @@ public class SocialService {
 
   private void updateFriendRequestCounts(String receiverId, int amount) {
     statisticsService.incrementCounter(receiverId, "friendRequestCount", amount);
-  }
-
-  /** Determine follow status between two users. */
-  private boolean determineFollowStatus(String currentUserId, String targetUserId) {
-    return followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
   }
 
   public List<String> getFriendIds(String userId) {

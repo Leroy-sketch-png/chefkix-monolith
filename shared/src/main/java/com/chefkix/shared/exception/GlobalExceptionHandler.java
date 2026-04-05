@@ -54,7 +54,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex) {
-        String enumKey = ex.getFieldError() != null ? ex.getFieldError().getDefaultMessage() : null;
+        var fieldError = ex.getFieldError();
+        String enumKey = fieldError != null ? fieldError.getDefaultMessage() : null;
         ErrorCode errorCode = ErrorCode.INVALID_KEY;
         Map<String, Object> attributes = null;
 
@@ -63,7 +64,9 @@ public class GlobalExceptionHandler {
                 errorCode = ErrorCode.valueOf(enumKey);
                 var constraintViolation =
                         ex.getBindingResult().getAllErrors().getFirst().unwrap(ConstraintViolation.class);
-                attributes = constraintViolation.getConstraintDescriptor().getAttributes();
+                @SuppressWarnings("unchecked")
+                Map<String, Object> attrs = constraintViolation.getConstraintDescriptor().getAttributes();
+                attributes = attrs;
             } catch (IllegalArgumentException ignored) {
                 // enumKey doesn't match an ErrorCode — fall through to INVALID_KEY
             }
@@ -109,7 +112,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         String paramName = ex.getName();
-        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+        var reqType = ex.getRequiredType();
+        String requiredType = reqType != null ? reqType.getSimpleName() : "unknown";
         String message = String.format("Invalid value for parameter '%s'. Expected type: %s", paramName, requiredType);
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)

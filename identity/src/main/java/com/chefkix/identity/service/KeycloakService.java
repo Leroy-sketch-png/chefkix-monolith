@@ -27,14 +27,9 @@ public class KeycloakService {
   private final WebClient webClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  // Inject value from config file (Docker env vars can override this)
-  // Defaults to http://localhost:8180 if env var not found
-  private final String keycloakAuthServerUrl;
-
   public KeycloakService(
       WebClient.Builder webClientBuilder,
       @Value("${keycloak.auth-server-url:http://localhost:8180}") String keycloakAuthServerUrl) {
-    this.keycloakAuthServerUrl = keycloakAuthServerUrl;
 
     // Configure dynamic Base URL based on environment variable
     this.webClient =

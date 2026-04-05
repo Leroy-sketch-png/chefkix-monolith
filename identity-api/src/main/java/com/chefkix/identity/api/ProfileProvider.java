@@ -138,15 +138,25 @@ public interface ProfileProvider {
     int getUserLevel(String userId);
 
     /**
-     * Get post IDs from recent behavioral events (views 0.5x, dwell 1.5x)
-     * with their associated weights for taste vector enrichment.
+     * Get post IDs from recent behavioral events with graduated weights.
+     * 5-signal: views (0.5x), dwell (0.75-2.5x graduated), comments (1.8x), creation (2.5x).
      * Used by social module's feed algorithm to enrich the taste vector
-     * beyond likes/saves (2-signal) to include views and dwell.
+     * beyond likes/saves to include behavioral signals.
      *
      * @param userId the user whose behavioral signals to extract
-     * @return map of postId → weight (views=0.5, dwell=1.5), never null
+     * @return map of postId → weight, never null
      */
     Map<String, Double> getBehavioralPostWeights(String userId);
+
+    /**
+     * Get recent search queries for taste vector enrichment.
+     * Extracts query terms from RECIPE_SEARCH events which indicate
+     * user intent even when they don't interact with results.
+     *
+     * @param userId the user whose search history to extract
+     * @return list of recent search query strings (last 50), never null
+     */
+    List<String> getRecentSearchQueries(String userId);
 
     /**
      * Delete all event tracking data for a user (GDPR compliance).
