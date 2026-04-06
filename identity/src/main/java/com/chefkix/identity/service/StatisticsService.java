@@ -18,8 +18,10 @@ import com.chefkix.identity.repository.UserProfileRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +107,7 @@ public class StatisticsService {
         stats.setBadges(new ArrayList<>());
       }
       if (stats.getBadgeTimestamps() == null) {
-        stats.setBadgeTimestamps(new java.util.HashMap<>());
+        stats.setBadgeTimestamps(new HashMap<>());
       }
 
       for (String badge : request.getNewBadges()) {
@@ -265,8 +267,14 @@ public class StatisticsService {
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void rewardXpFull(String userId, double amount, List<String> badges, boolean challengeCompleted) {
-        log.info("Kafka Event: Processing reward {} XP for user {} with badges {}, challengeCompleted={}",
-                amount, userId, badges, challengeCompleted);
+        rewardXpFull(userId, amount, badges, challengeCompleted, null);
+    }
+
+    @Transactional
+    @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
+    public void rewardXpFull(String userId, double amount, List<String> badges, boolean challengeCompleted, String recipeId) {
+        log.info("Kafka Event: Processing reward {} XP for user {} with badges {}, challengeCompleted={}, recipeId={}",
+                amount, userId, badges, challengeCompleted, recipeId);
 
         // Get profile and stats
         UserProfile profile = userProfileRepository.findByUserId(userId)
@@ -281,7 +289,7 @@ public class StatisticsService {
         if (badges != null && !badges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
             if (stats.getBadgeTimestamps() == null) {
-                stats.setBadgeTimestamps(new java.util.HashMap<>());
+                stats.setBadgeTimestamps(new HashMap<>());
             }
             int beforeCount = currentBadges.size();
             for (String badge : badges) {
@@ -320,6 +328,28 @@ public class StatisticsService {
                 stats.setStreakCount(1);
                 log.info("User {} streak reset to 1 ({}h since last cook, exceeded 72h)", userId, hoursSinceLastCook);
             }
+        }
+
+        // Track longest streak ever (historical best)
+        int currentStreak = stats.getStreakCount() != null ? stats.getStreakCount() : 0;
+        int prevLongest = stats.getLongestStreak() != null ? stats.getLongestStreak() : 0;
+        if (currentStreak > prevLongest) {
+            stats.setLongestStreak(currentStreak);
+            log.info("User {} new longest streak record: {}", userId, currentStreak);
+        }
+
+        // Track per-recipe cook counts → recipesCooked & recipesMastered
+        if (recipeId != null && !recipeId.isBlank()) {
+            Map<String, Integer> cookCounts = stats.getRecipeCookCounts();
+            if (cookCounts == null) {
+                cookCounts = new HashMap<>();
+                stats.setRecipeCookCounts(cookCounts);
+            }
+            int newCount = cookCounts.merge(recipeId, 1, Integer::sum);
+            stats.setRecipesCooked((long) cookCounts.size());
+            stats.setRecipesMastered(cookCounts.values().stream().filter(c -> c >= 5).count());
+            log.info("User {} cooked recipe {} (count: {}, total distinct: {}, mastered: {})",
+                    userId, recipeId, newCount, stats.getRecipesCooked(), stats.getRecipesMastered());
         }
 
         // Update lastCookAt timestamp
@@ -381,7 +411,7 @@ public class StatisticsService {
         if (newBadges != null && !newBadges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
             if (stats.getBadgeTimestamps() == null) {
-                stats.setBadgeTimestamps(new java.util.HashMap<>());
+                stats.setBadgeTimestamps(new HashMap<>());
             }
             for (String badge : newBadges) {
                 if (!currentBadges.contains(badge)) {

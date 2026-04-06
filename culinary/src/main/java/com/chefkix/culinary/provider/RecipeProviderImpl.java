@@ -3,6 +3,7 @@ package com.chefkix.culinary.provider;
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.dto.CreatorInsightsInfo;
 import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
+import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.recipe.service.RecipeService;
 import com.chefkix.culinary.features.report.dto.internal.InternalCreatorInsightsResponse;
@@ -26,13 +27,14 @@ public class RecipeProviderImpl implements RecipeProvider {
     @Override
     public CreatorInsightsInfo getCreatorInsights(String userId) {
         InternalCreatorInsightsResponse internal = recipeService.getRecipeWithAboveTenCooks(userId);
+        int publishedCount = (int) recipeRepository.countByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);
 
         List<CreatorInsightsInfo.TopRecipeInfo> highPerforming = internal.getHighPerformingRecipes() != null
                 ? internal.getHighPerformingRecipes().stream().map(this::mapTopRecipe).collect(Collectors.toList())
                 : List.of();
 
         return CreatorInsightsInfo.builder()
-                .totalRecipesPublished(highPerforming.size()) // Approximation from available data
+                .totalRecipesPublished(publishedCount)
                 .avgRating(internal.getAvgRating() != null ? internal.getAvgRating() : 0.0)
                 .topRecipes(internal.getTopRecipe() != null ? List.of(mapTopRecipe(internal.getTopRecipe())) : List.of())
                 .highPerformingRecipes(highPerforming)

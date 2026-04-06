@@ -69,7 +69,8 @@ public class XpRewardListener {
       } else {
         // CASE 3: Cook XP (with badges, streak update, and possibly challenge streak)
         statisticsService.rewardXpFull(
-            event.getUserId(), event.getAmount(), event.getBadges(), event.isChallengeCompleted());
+            event.getUserId(), event.getAmount(), event.getBadges(), event.isChallengeCompleted(),
+            event.getRecipeId());
       }
     } catch (AppException e) {
       if (e.getErrorCode() == ErrorCode.USER_NOT_FOUND || e.getErrorCode() == ErrorCode.PROFILE_NOT_FOUND) {
