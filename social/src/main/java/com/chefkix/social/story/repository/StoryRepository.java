@@ -28,4 +28,6 @@ public interface StoryRepository extends MongoRepository<Story, String> {
     List<Story> findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(List<String> followingIds, Instant now);
 
     long countByIdInAndUserId(List<String> storyIds, String userId);
+
+    List<Story> findByIdInAndIsDeletedFalse(List<String> storyIds);
 }

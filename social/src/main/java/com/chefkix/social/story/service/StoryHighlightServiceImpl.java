@@ -56,25 +56,25 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
                 .toList();
     }
 
-//    @Override
-//    public List<StoryResponse> getStoriesInHighlight(String highlightId) {
-//        StoryHighlight highlight = highlightRepo.findById(highlightId)
-//                .orElseThrow(() -> new RuntimeException("Highlight không tồn tại"));
-//
-//        // Lấy toàn bộ Story trong mảng (Bỏ qua các story user đã bấm XÓA MỀM)
-//        List<Story> stories = storyRepo.findByIdInAndIsDeletedFalse(highlight.getStoryIds());
-//
-//        // Đảm bảo video được phát đúng thứ tự mà user đã cất công sắp xếp lúc tạo
-//        Map<String, Story> storyMap = stories.stream()
-//                .collect(Collectors.toMap(Story::getId, s -> s));
-//
-//        return highlight.getStoryIds().stream()
-//                .filter(storyMap::containsKey)
-//                .map(storyMap::get)
-//                .map(storyMapper::toStoryResponse)
-//                .toList();
-//    }
-//
+    @Override
+    public List<StoryResponse> getStoriesInHighlight(String highlightId) {
+        StoryHighlight highlight = highlightRepo.findById(highlightId)
+                .orElseThrow(() -> new RuntimeException("Highlight không tồn tại"));
+
+        // Lấy toàn bộ Story trong mảng (Bỏ qua các story user đã bấm XÓA MỀM)
+        List<Story> stories = storyRepo.findByIdInAndIsDeletedFalse(highlight.getStoryIds());
+
+        // Đảm bảo video được phát đúng thứ tự mà user đã cất công sắp xếp lúc tạo
+        Map<String, Story> storyMap = stories.stream()
+                .collect(Collectors.toMap(Story::getId, s -> s));
+
+        return highlight.getStoryIds().stream()
+                .filter(storyMap::containsKey)
+                .map(storyMap::get)
+                .map(storyMapper::toStoryResponse)
+                .toList();
+    }
+
 //    @Override
 //    public void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request) {
 //        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
