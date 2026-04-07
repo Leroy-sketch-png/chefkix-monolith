@@ -1,7 +1,8 @@
 package com.chefkix.social.story.controller;
 
-import com.chefkix.social.story.dto.*;
+import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.story.dto.request.HighlightCreateRequest;
+import com.chefkix.social.story.dto.response.HighlightResponse;
 import com.chefkix.social.story.service.StoryHighlightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,24 +13,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/highlights")
 @RequiredArgsConstructor
 public class StoryHighlightController {
 
     private final StoryHighlightService highlightService;
 
     // 1. Tạo Highlight mới
-    @PostMapping("/highlights")
-    public ResponseEntity<Void> createHighlight(@RequestBody HighlightCreateRequest request) {
-        highlightService.createHighlight(getCurrentUserId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @PostMapping()
+    public ApiResponse<HighlightResponse> createHighlight(
+            @RequestBody HighlightCreateRequest request
+    ) {
+        HighlightResponse response = highlightService.createHighlight(getCurrentUserId(), request);
+        return ApiResponse.created(response);
     }
 
-//    // 2. Lấy danh sách Highlight của 1 user (HIỆN TRÊN TRANG CÁ NHÂN)
-//    @GetMapping("/users/{userId}/highlights")
-//    public ResponseEntity<List<HighlightResponse>> getUserHighlights(@PathVariable String userId) {
-//        return ResponseEntity.ok(highlightService.getUserHighlights(userId));
-//    }
+    // 2. Lấy danh sách Highlight của 1 user (HIỆN TRÊN TRANG CÁ NHÂN)
+    @GetMapping("/{userId}")
+    public ApiResponse<List<HighlightResponse>> getUserHighlights(
+            @PathVariable("userId") String userId
+    ) {
+        return ApiResponse.success(highlightService.getUserHighlights(userId), "Highlight list retrieved");
+    }
 //
 //    // 3. Lấy chi tiết các video/ảnh bên trong 1 Highlight (KHI BẤM VÀO ĐỂ XEM)
 //    @GetMapping("/highlights/{highlightId}/stories")

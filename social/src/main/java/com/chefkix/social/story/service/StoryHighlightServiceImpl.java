@@ -6,6 +6,7 @@ import com.chefkix.social.story.dto.response.HighlightResponse;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.entity.Story;
 import com.chefkix.social.story.entity.StoryHighlight;
+import com.chefkix.social.story.mapper.StoryHighlightMapper;
 import com.chefkix.social.story.mapper.StoryMapper;
 import com.chefkix.social.story.repository.StoryHighlightRepository;
 import com.chefkix.social.story.repository.StoryRepository;
@@ -27,9 +28,10 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     StoryHighlightRepository highlightRepo;
     StoryRepository storyRepo;
     StoryMapper storyMapper;
+    StoryHighlightMapper storyHighlightMapper;
 
     @Override
-    public void createHighlight(String userId, HighlightCreateRequest request) {
+    public HighlightResponse createHighlight(String userId, HighlightCreateRequest request) {
         // Bảo mật: Xác minh xem tất cả các storyIds này có đúng là của user này không
         validateStoryOwnership(request.storyIds(), userId);
 
@@ -42,22 +44,18 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
                 .build();
 
         highlightRepo.save(highlight);
+        return storyHighlightMapper.toHighlightResponse(highlight);
     }
 
-//    @Override
-//    public List<HighlightResponse> getUserHighlights(String targetUserId) {
-//        List<StoryHighlight> highlights = highlightRepo.findByUserIdOrderByCreatedAtDesc(targetUserId);
-//
-//        return highlights.stream()
-//                .map(h -> new HighlightResponse(
-//                        h.getId(),
-//                        h.getTitle(),
-//                        h.getCoverUrl(),
-//                        h.getStoryIds() != null ? h.getStoryIds().size() : 0
-//                ))
-//                .toList();
-//    }
-//
+    @Override
+    public List<HighlightResponse> getUserHighlights(String targetUserId) {
+        List<StoryHighlight> highlights = highlightRepo.findByUserIdOrderByCreatedAtDesc(targetUserId);
+
+        return highlights.stream()
+                .map(storyHighlightMapper::toHighlightResponse)
+                .toList();
+    }
+
 //    @Override
 //    public List<StoryResponse> getStoriesInHighlight(String highlightId) {
 //        StoryHighlight highlight = highlightRepo.findById(highlightId)
