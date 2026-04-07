@@ -40,28 +40,30 @@ public class StoryHighlightController {
 
     // 3. Lấy chi tiết các video/ảnh bên trong 1 Highlight (KHI BẤM VÀO ĐỂ XEM)
     @GetMapping("/{highlightId}/stories")
-    public ResponseEntity<List<StoryResponse>> getHighlightStories(
+    public ApiResponse<List<StoryResponse>> getHighlightStories(
             @PathVariable("highlightId") String highlightId
     ) {
-        return ResponseEntity.ok(highlightService.getStoriesInHighlight(highlightId));
+        return ApiResponse.success(highlightService.getStoriesInHighlight(highlightId));
     }
 
     // 4. Sửa Highlight (Thêm/bớt story, đổi tên)
     @PutMapping("/highlights/{highlightId}")
-    public ResponseEntity<Void> updateHighlight(
-            @PathVariable String highlightId,
+    public ApiResponse<String> updateHighlight(
+            @PathVariable("highlightId") String highlightId,
             @RequestBody HighlightUpdateRequest request) {
         highlightService.updateHighlight(highlightId, getCurrentUserId(), request);
-        return ResponseEntity.ok().build();
+        return ApiResponse.success("Highlight updated");
     }
-//
-//    // 5. Xóa Highlight
-//    @DeleteMapping("/highlights/{highlightId}")
-//    public ResponseEntity<Void> deleteHighlight(@PathVariable String highlightId) {
-//        highlightService.deleteHighlight(highlightId, getCurrentUserId());
-//        return ResponseEntity.noContent().build();
-//    }
-//
+
+    // 5. Xóa Highlight
+    @DeleteMapping("/highlights/{highlightId}")
+    public ApiResponse<String> deleteHighlight(
+            @PathVariable("highlightId") String highlightId
+    ) {
+        highlightService.deleteHighlight(highlightId, getCurrentUserId());
+        return ApiResponse.success("Highlight deleted");
+    }
+
 
 
     private String getCurrentUserId() {

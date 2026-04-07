@@ -96,11 +96,11 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
         highlightRepo.save(highlight);
     }
 
-//    @Override
-//    public void deleteHighlight(String highlightId, String currentUserId) {
-//        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
-//        highlightRepo.delete(highlight); // Chỉ xóa cái Vỏ (Highlight), Ruột (Story) vẫn còn trong DB
-//    }
+    @Override
+    public void deleteHighlight(String highlightId, String currentUserId) {
+        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
+        highlightRepo.delete(highlight); // Chỉ xóa cái Vỏ (Highlight), Ruột (Story) vẫn còn trong DB
+    }
 
     // --- INTERNAL HELPERS ---
 
