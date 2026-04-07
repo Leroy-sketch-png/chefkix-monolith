@@ -32,4 +32,6 @@ public interface StoryRepository extends MongoRepository<Story, String> {
             "{ '$group': { '_id': '$userId' } }"
     })
     List<String> findUserIdsWithActiveStories(List<String> followingIds, Instant now);
+
+    List<Story> findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(List<String> followingIds, Instant now);
 }
