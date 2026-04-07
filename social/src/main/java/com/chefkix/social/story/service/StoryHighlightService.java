@@ -11,6 +11,6 @@ public interface StoryHighlightService {
     HighlightResponse createHighlight(String userId, HighlightCreateRequest request);
     List<HighlightResponse> getUserHighlights(String targetUserId);
     List<StoryResponse> getStoriesInHighlight(String highlightId);
-//    void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request);
+    void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request);
 //    void deleteHighlight(String highlightId, String currentUserId);
 }

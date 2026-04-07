@@ -2,6 +2,7 @@ package com.chefkix.social.story.controller;
 
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.story.dto.request.HighlightCreateRequest;
+import com.chefkix.social.story.dto.request.HighlightUpdateRequest;
 import com.chefkix.social.story.dto.response.HighlightResponse;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.service.StoryHighlightService;
@@ -44,15 +45,15 @@ public class StoryHighlightController {
     ) {
         return ResponseEntity.ok(highlightService.getStoriesInHighlight(highlightId));
     }
-//
-//    // 4. Sửa Highlight (Thêm/bớt story, đổi tên)
-//    @PutMapping("/highlights/{highlightId}")
-//    public ResponseEntity<Void> updateHighlight(
-//            @PathVariable String highlightId,
-//            @RequestBody HighlightUpdateRequest request) {
-//        highlightService.updateHighlight(highlightId, getCurrentUserId(), request);
-//        return ResponseEntity.ok().build();
-//    }
+
+    // 4. Sửa Highlight (Thêm/bớt story, đổi tên)
+    @PutMapping("/highlights/{highlightId}")
+    public ResponseEntity<Void> updateHighlight(
+            @PathVariable String highlightId,
+            @RequestBody HighlightUpdateRequest request) {
+        highlightService.updateHighlight(highlightId, getCurrentUserId(), request);
+        return ResponseEntity.ok().build();
+    }
 //
 //    // 5. Xóa Highlight
 //    @DeleteMapping("/highlights/{highlightId}")

@@ -75,27 +75,27 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
                 .toList();
     }
 
-//    @Override
-//    public void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request) {
-//        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
-//
-//        // Nếu user tick chọn thêm/bớt Story
-//        if (request.storyIds() != null) {
-//            validateStoryOwnership(request.storyIds(), currentUserId);
-//            highlight.setStoryIds(request.storyIds());
-//        }
-//
-//        // Đổi tên hoặc ảnh bìa
-//        if (request.title() != null && !request.title().isBlank()) {
-//            highlight.setTitle(request.title());
-//        }
-//        if (request.coverUrl() != null) {
-//            highlight.setCoverUrl(request.coverUrl());
-//        }
-//
-//        highlightRepo.save(highlight);
-//    }
-//
+    @Override
+    public void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request) {
+        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
+
+        // Nếu user tick chọn thêm/bớt Story
+        if (request.storyIds() != null) {
+            validateStoryOwnership(request.storyIds(), currentUserId);
+            highlight.setStoryIds(request.storyIds());
+        }
+
+        // Đổi tên hoặc ảnh bìa
+        if (request.title() != null && !request.title().isBlank()) {
+            highlight.setTitle(request.title());
+        }
+        if (request.coverUrl() != null) {
+            highlight.setCoverUrl(request.coverUrl());
+        }
+
+        highlightRepo.save(highlight);
+    }
+
 //    @Override
 //    public void deleteHighlight(String highlightId, String currentUserId) {
 //        StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
