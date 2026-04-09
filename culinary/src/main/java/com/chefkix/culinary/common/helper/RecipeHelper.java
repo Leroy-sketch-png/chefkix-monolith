@@ -17,6 +17,7 @@ import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.social.api.PostProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class RecipeHelper {
 
@@ -40,6 +40,19 @@ public class RecipeHelper {
     private final PostProvider postProvider;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final MongoTemplate mongoTemplate;
+
+    public RecipeHelper(
+            RecipeRepository recipeRepository,
+            CookingSessionRepository sessionRepository,
+            @Lazy PostProvider postProvider,
+            KafkaTemplate<String, Object> kafkaTemplate,
+            MongoTemplate mongoTemplate) {
+        this.recipeRepository = recipeRepository;
+        this.sessionRepository = sessionRepository;
+        this.postProvider = postProvider;
+        this.kafkaTemplate = kafkaTemplate;
+        this.mongoTemplate = mongoTemplate;
+    }
 
     // --- CALCULATION & ANTI-CHEAT LOGIC ---
 

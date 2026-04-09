@@ -91,13 +91,37 @@ public class SecurityConfig {
             "/posts/search",                // PostController GET /search
             "/posts/*",                     // PostController GET /{postId} (single post)
             "/posts/feed",                  // PostController GET /feed?userId= (user posts)
+            "/posts/*/comments",            // CommentController GET /{postId}/comments (view comments)
+            "/posts/comments/*/replies",    // CommentController GET /comments/{commentId}/replies
 
             // --- Public profiles (identity module) ---
             "/auth/profile-only/*",         // ProfileController GET /profile-only/{userId}
+            "/auth/profiles/paginated",     // ProfileController GET /profiles/paginated (user discovery)
             "/auth/leaderboard",            // LeaderboardController GET /leaderboard
 
             // --- Featured collections (social module) ---
             "/collections/featured",        // CollectionController GET /featured (Season's Best)
+
+            // --- Achievements (culinary module) ---
+            "/achievements/user/*",         // AchievementController GET /user/{userId} (public skill tree)
+            "/achievements",                // AchievementController GET / (full achievement catalog)
+
+            // --- Challenges (culinary module) - browsable by guests ---
+            "/challenges/today",            // ChallengeController GET /today (daily challenge)
+            "/challenges/weekly",           // ChallengeController GET /weekly (weekly challenge)
+            "/challenges/community",        // ChallengeController GET /community (community challenges)
+            "/challenges/seasonal",         // ChallengeController GET /seasonal (seasonal events)
+
+            // --- Reviews & Battles (social module) ---
+            "/posts/reviews/recipe/*",      // PostController GET /reviews/recipe/{recipeId}
+            "/posts/reviews/recipe/*/stats",// PostController GET /reviews/recipe/{recipeId}/stats
+            "/posts/battles/active",        // PostController GET /battles/active
+
+            // --- User collections (social module) ---
+            "/collections/user/*",          // CollectionController GET /user/{userId} (public collections)
+
+            // --- Knowledge graph (culinary module) ---
+            "/knowledge-graph/**",          // KnowledgeGraphController GET (ingredients, techniques)
     };
 
     private String[] getPublicEndpoints() {

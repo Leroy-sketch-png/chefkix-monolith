@@ -22,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -96,7 +98,7 @@ public class PostController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getGlobalFeed(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getGlobalFeed(
             @RequestParam(defaultValue = "0") int mode,
             @PageableDefault(size = 5) Pageable pageable,
             Authentication authentication) {
@@ -105,23 +107,21 @@ public class PostController {
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getAllPosts(mode, pageable, currentUserId);
 
-        ApiResponse<Page<PostResponse>> body = ApiResponse.success(result);
-
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     @GetMapping("/following")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getFollowingFeed(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getFollowingFeed(
             @RequestParam(defaultValue = "0") int mode,
             @PageableDefault(size = 10) Pageable pageable,
             Authentication authentication) {
         String currentUserId = authentication.getName();
         Page<PostResponse> result = postService.getFollowingFeed(mode, pageable, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     @GetMapping("/feed")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getPostsByUserId(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getPostsByUserId(
             @RequestParam("userId") String userId,
             @PageableDefault(size = 5) Pageable pageable,
             Authentication authentication) {
@@ -130,9 +130,7 @@ public class PostController {
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getAllPostsByUserId(userId, pageable, currentUserId);
 
-        ApiResponse<Page<PostResponse>> body = ApiResponse.success(result);
-
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     /**
@@ -140,11 +138,11 @@ public class PostController {
      * Returns paginated list of saved posts, most recent first.
      */
     @GetMapping("/saved")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getSavedPosts(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getSavedPosts(
             @PageableDefault(size = 20) Pageable pageable) {
         
         Page<PostResponse> result = postService.getSavedPosts(pageable);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     @GetMapping("/{postId}")
@@ -163,14 +161,14 @@ public class PostController {
      * GET /api/v1/posts/search?q=keyword
      */
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> searchPosts(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> searchPosts(
             @RequestParam("q") String query,
             @PageableDefault(size = 20) Pageable pageable,
             Authentication authentication) {
 
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.searchPosts(query, pageable, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     // ========================================================================
@@ -182,13 +180,13 @@ public class PostController {
      * GET /api/v1/posts/reviews/recipe/{recipeId}
      */
     @GetMapping("/reviews/recipe/{recipeId}")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getReviewsForRecipe(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getReviewsForRecipe(
             @PathVariable String recipeId,
             @PageableDefault(size = 10) Pageable pageable,
             Authentication authentication) {
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getReviewsForRecipe(recipeId, pageable, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     /**
@@ -223,12 +221,12 @@ public class PostController {
      * GET /api/v1/posts/battles/active
      */
     @GetMapping("/battles/active")
-    public ResponseEntity<ApiResponse<Page<PostResponse>>> getActiveBattles(
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getActiveBattles(
             @PageableDefault(size = 10) Pageable pageable,
             Authentication authentication) {
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getActiveBattles(pageable, currentUserId);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
     /**

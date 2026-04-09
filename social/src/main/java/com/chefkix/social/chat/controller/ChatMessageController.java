@@ -44,11 +44,11 @@ public class ChatMessageController {
      * @param size page size (defaults to 50)
      */
     @GetMapping("/paginated")
-    ApiResponse<Page<ChatMessageResponse>> getMessagesPaginated(
+    ApiResponse<List<ChatMessageResponse>> getMessagesPaginated(
             @RequestParam("conversationId") String conversationId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "50") @Max(100) int size) {
-        return ApiResponse.success(chatMessageService.getMessagesPaginated(conversationId, page, size));
+        return ApiResponse.successPage(chatMessageService.getMessagesPaginated(conversationId, page, size));
     }
 
     /**

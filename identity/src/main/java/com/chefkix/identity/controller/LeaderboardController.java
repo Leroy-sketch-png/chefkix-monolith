@@ -11,6 +11,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -47,12 +49,16 @@ public class LeaderboardController {
       @RequestParam(defaultValue = "global") String type,
       @RequestParam(defaultValue = "weekly") String timeframe,
       @RequestParam(defaultValue = "50") @Min(1) @Max(100) int limit) {
-    String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
-    log.info("User {} requesting {} {} leaderboard", currentUserId, type, timeframe);
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    String currentUserId = (auth != null && !(auth instanceof AnonymousAuthenticationToken))
+        ? auth.getName() : null;
 
-    // If friends leaderboard, get friend IDs first
+    // Friends leaderboard requires authentication
     List<String> friendIds = null;
     if ("friends".equals(type)) {
+      if (currentUserId == null) {
+        return ApiResponse.error(401, "Friends leaderboard requires login");
+      }
       friendIds = socialService.getFriendIds(currentUserId);
     }
 

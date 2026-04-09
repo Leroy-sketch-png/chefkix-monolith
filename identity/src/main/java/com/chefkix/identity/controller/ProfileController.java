@@ -72,10 +72,10 @@ public class ProfileController {
    * GET /api/v1/auth/profiles/paginated?page=0&size=20
    */
   @GetMapping("/profiles/paginated")
-  public ApiResponse<Page<ProfileResponse>> getProfilesPaginated(
+  public ApiResponse<List<ProfileResponse>> getProfilesPaginated(
       @PageableDefault(size = 20) Pageable pageable,
       @RequestParam(required = false) String search) {
-    return ApiResponse.success(profileService.getProfilesPaginated(pageable, search));
+    return ApiResponse.successPage(profileService.getProfilesPaginated(pageable, search));
   }
 
   @GetMapping("/me")

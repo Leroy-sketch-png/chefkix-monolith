@@ -2,6 +2,7 @@ package com.chefkix.social.post.repository;
 
 import com.chefkix.social.post.entity.CollectionProgress;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public interface CollectionProgressRepository extends MongoRepository<Collection
 
     long countByCollectionId(String collectionId);
 
+    @Query(value = "{ 'collectionId': ?0, 'completedRecipeIds': { $size: ?1 } }", count = true)
     long countByCollectionIdAndCompletedRecipeIdsSize(String collectionId, int size);
 
     boolean existsByUserIdAndCollectionId(String userId, String collectionId);
