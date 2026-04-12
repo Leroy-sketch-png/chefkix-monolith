@@ -17,10 +17,10 @@ public class ResetPasswordRequest {
   String email;
 
   @NotBlank(message = "OTP is required")
-  @Size(min = 4, max = 8, message = "OTP must be 4-8 characters")
+  @Size(min = 6, max = 6, message = "OTP must be exactly 6 characters")
   String otp;
 
   @NotBlank(message = "New password is required")
-  @Size(min = 6, max = 128, message = "Password must be between 6 and 128 characters")
+  @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
   String newPassword;
 }

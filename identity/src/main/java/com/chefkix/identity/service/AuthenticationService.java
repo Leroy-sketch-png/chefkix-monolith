@@ -1,13 +1,17 @@
 package com.chefkix.identity.service;
 
+import com.chefkix.identity.dto.identity.OidcUserInfoResponse;
 import com.chefkix.identity.dto.identity.ResetPasswordParam;
 import com.chefkix.identity.dto.identity.TokenExchangeParam;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
 import com.chefkix.identity.dto.request.AuthenticationRequest;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
 import com.chefkix.identity.dto.response.UserResponse;
+import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserActivity;
+import com.chefkix.identity.entity.UserProfile;
+import com.chefkix.identity.events.UserIndexEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.exception.ErrorNormalizer;
@@ -17,13 +21,17 @@ import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.repository.UserRepository;
 import com.chefkix.identity.client.KeycloakAdminClient;
 // Feign removed in monolith
+import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +39,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
+
+  private static final String GOOGLE_CALLBACK_PATH = "/oauth2/callback/google";
+  private static final Set<String> LOCALHOST_ALIASES = Set.of("localhost", "127.0.0.1");
 
   KeycloakAdminClient keycloakAdminClient;
   ErrorNormalizer errorNormalizer;
@@ -40,6 +51,7 @@ public class AuthenticationService {
   KeycloakService keycloakService;
   UserActivityRepository userActivityRepository;
   UserProfileRepository profileRepository;
+  ApplicationEventPublisher eventPublisher;
 
   @Value("${idp.client-id}")
   @NonFinal
@@ -48,6 +60,10 @@ public class AuthenticationService {
   @Value("${idp.client-secret}")
   @NonFinal
   String clientSecret;
+
+  @Value("${app.public-base-url:http://localhost:3000}")
+  @NonFinal
+  String publicBaseUrl;
 
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
     log.debug(">>> [AUTH] Start authenticate for username/email={}", request.getEmailOrUsername());
@@ -124,20 +140,27 @@ public class AuthenticationService {
     activity.setLastLogin(LocalDateTime.now());
     userActivityRepository.save(activity);
 
-    // 5. Map & Build response
-    UserResponse userResponse = userMapper.toUserResponse(user);
-
     log.debug(">>> [AUTH] Authentication process completed successfully.");
 
-    return AuthenticationResponse.builder()
-        .accessToken(tokenResponse.getAccessToken())
-        .refreshToken(tokenResponse.getRefreshToken())
-        .idToken(tokenResponse.getIdToken())
-        .scope(tokenResponse.getScope())
-        .authenticated(true)
-        .lastLogin(user.getLastLogin())
-        .user(userResponse)
-        .build();
+    return buildAuthenticationResponse(tokenResponse, user);
+  }
+
+  public AuthenticationResponse authenticateWithGoogle(
+      String code, String redirectUri, String codeVerifier) {
+    assertAllowedGoogleRedirectUri(redirectUri);
+
+    TokenExchangeResponse tokenResponse =
+        keycloakService.exchangeAuthorizationCode(code, redirectUri, codeVerifier);
+
+    if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+      throw new AppException(ErrorCode.UNAUTHENTICATED, "Google sign-in failed. Please try again.");
+    }
+
+    OidcUserInfoResponse userInfo = keycloakService.getUserInfo(tokenResponse.getAccessToken());
+    User user = syncGoogleUser(userInfo);
+    log.info("Google sign-in completed for email={}", userInfo.getEmail());
+
+    return buildAuthenticationResponse(tokenResponse, user);
   }
 
   /**
@@ -215,5 +238,228 @@ public class AuthenticationService {
       log.warn("Error logging out user: {}", e.getMessage());
     }
     return "Failed to log out";
+  }
+
+  private AuthenticationResponse buildAuthenticationResponse(
+      TokenExchangeResponse tokenResponse, User user) {
+    UserResponse userResponse = userMapper.toUserResponse(user);
+
+    return AuthenticationResponse.builder()
+        .accessToken(tokenResponse.getAccessToken())
+        .refreshToken(tokenResponse.getRefreshToken())
+        .idToken(tokenResponse.getIdToken())
+        .scope(tokenResponse.getScope())
+        .authenticated(true)
+        .lastLogin(user.getLastLogin())
+        .user(userResponse)
+        .build();
+  }
+
+  private User syncGoogleUser(OidcUserInfoResponse userInfo) {
+    if (userInfo == null || isBlank(userInfo.getSub()) || isBlank(userInfo.getEmail())) {
+      throw new AppException(ErrorCode.INVALID_REQUEST, "Google account did not provide a usable identity.");
+    }
+
+    UserProfile profile = upsertGoogleProfile(userInfo);
+
+    User user = userRepository.findByGoogleId(userInfo.getSub())
+      .or(() -> userRepository.findByEmail(userInfo.getEmail()))
+      .orElseGet(User::new);
+    user.setEmail(userInfo.getEmail());
+    user.setUsername(profile.getUsername());
+    user.setGoogleId(userInfo.getSub());
+    user.setUserProfile(profile);
+    user.setEnabled(true);
+    user.setLastLogin(LocalDateTime.now());
+    if (isBlank(user.getAuthProvider())) {
+      user.setAuthProvider("google");
+    }
+    user = userRepository.save(user);
+
+    UserActivity activity =
+        userActivityRepository.findByKeycloakId(user.getId()).orElse(new UserActivity());
+    activity.setKeycloakId(user.getId());
+    activity.setLastLogin(user.getLastLogin());
+    userActivityRepository.save(activity);
+
+    return user;
+  }
+
+  private UserProfile upsertGoogleProfile(OidcUserInfoResponse userInfo) {
+    var existingByUserId = profileRepository.findByUserId(userInfo.getSub());
+    if (existingByUserId.isPresent()) {
+      UserProfile profile = existingByUserId.get();
+      boolean changed = applyGoogleProfileDefaults(profile, userInfo);
+      if (changed) {
+        profile = profileRepository.save(profile);
+        eventPublisher.publishEvent(UserIndexEvent.index(profile));
+      }
+      return profile;
+    }
+
+    var existingByEmail = profileRepository.findByEmail(userInfo.getEmail());
+    if (existingByEmail.isPresent()) {
+      UserProfile profile = existingByEmail.get();
+      if (!isBlank(profile.getUserId()) && !profile.getUserId().equals(userInfo.getSub())) {
+        throw new AppException(
+            ErrorCode.INVALID_REQUEST,
+            "An account already exists for this email. Sign in with your current method first.");
+      }
+
+      profile.setUserId(userInfo.getSub());
+      boolean changed = applyGoogleProfileDefaults(profile, userInfo);
+      changed = true;
+      profile = profileRepository.save(profile);
+      if (changed) {
+        eventPublisher.publishEvent(UserIndexEvent.index(profile));
+      }
+      return profile;
+    }
+
+    return createGoogleProfile(userInfo);
+  }
+
+  private UserProfile createGoogleProfile(OidcUserInfoResponse userInfo) {
+    UserProfile profile = UserProfile.builder()
+        .userId(userInfo.getSub())
+        .email(userInfo.getEmail())
+        .username(resolveUniqueUsername(userInfo))
+        .displayName(resolveDisplayName(userInfo))
+        .firstName(userInfo.getGivenName())
+        .lastName(userInfo.getFamilyName())
+        .fullName(resolveFullName(userInfo))
+        .avatarUrl(userInfo.getPicture())
+        .accountType("user")
+        .statistics(Statistics.builder().build())
+        .build();
+
+    UserProfile saved = profileRepository.save(profile);
+    eventPublisher.publishEvent(UserIndexEvent.index(saved));
+    return saved;
+  }
+
+  private boolean applyGoogleProfileDefaults(UserProfile profile, OidcUserInfoResponse userInfo) {
+    boolean changed = false;
+
+    if (isBlank(profile.getFirstName()) && !isBlank(userInfo.getGivenName())) {
+      profile.setFirstName(userInfo.getGivenName());
+      changed = true;
+    }
+    if (isBlank(profile.getLastName()) && !isBlank(userInfo.getFamilyName())) {
+      profile.setLastName(userInfo.getFamilyName());
+      changed = true;
+    }
+    if (isBlank(profile.getFullName())) {
+      profile.setFullName(resolveFullName(userInfo));
+      changed = true;
+    }
+    if (isBlank(profile.getDisplayName())) {
+      profile.setDisplayName(resolveDisplayName(userInfo));
+      changed = true;
+    }
+    if (isBlank(profile.getAvatarUrl()) && !isBlank(userInfo.getPicture())) {
+      profile.setAvatarUrl(userInfo.getPicture());
+      changed = true;
+    }
+    if (isBlank(profile.getUsername())) {
+      profile.setUsername(resolveUniqueUsername(userInfo));
+      changed = true;
+    }
+
+    return changed;
+  }
+
+  private String resolveDisplayName(OidcUserInfoResponse userInfo) {
+    if (!isBlank(userInfo.getName())) {
+      return userInfo.getName();
+    }
+    if (!isBlank(userInfo.getGivenName()) || !isBlank(userInfo.getFamilyName())) {
+      return resolveFullName(userInfo);
+    }
+    if (!isBlank(userInfo.getPreferredUsername())) {
+      return userInfo.getPreferredUsername();
+    }
+    return userInfo.getEmail().split("@")[0];
+  }
+
+  private String resolveFullName(OidcUserInfoResponse userInfo) {
+    if (!isBlank(userInfo.getGivenName()) && !isBlank(userInfo.getFamilyName())) {
+      return userInfo.getGivenName() + " " + userInfo.getFamilyName();
+    }
+    if (!isBlank(userInfo.getGivenName())) {
+      return userInfo.getGivenName();
+    }
+    if (!isBlank(userInfo.getFamilyName())) {
+      return userInfo.getFamilyName();
+    }
+    return resolveDisplayName(userInfo);
+  }
+
+  private String resolveUniqueUsername(OidcUserInfoResponse userInfo) {
+    String baseUsername = sanitizeUsername(userInfo.getPreferredUsername());
+    if (isBlank(baseUsername)) {
+      baseUsername = sanitizeUsername(userInfo.getEmail().split("@")[0]);
+    }
+    if (isBlank(baseUsername)) {
+      baseUsername = "chefkix_user";
+    }
+
+    String candidate = baseUsername;
+    int suffix = 1;
+    while (profileRepository.findByUsername(candidate).isPresent()) {
+      String suffixValue = String.valueOf(suffix++);
+      int maxBaseLength = Math.max(3, 30 - suffixValue.length());
+      String truncatedBase = baseUsername.length() > maxBaseLength
+          ? baseUsername.substring(0, maxBaseLength)
+          : baseUsername;
+      candidate = truncatedBase + suffixValue;
+    }
+    return candidate;
+  }
+
+  private String sanitizeUsername(String rawValue) {
+    if (isBlank(rawValue)) {
+      return "";
+    }
+
+    String normalized = rawValue.toLowerCase(Locale.ROOT)
+        .replaceAll("[^a-z0-9_]", "_")
+        .replaceAll("_+", "_")
+        .replaceAll("^_+|_+$", "");
+
+    if (normalized.length() > 30) {
+      normalized = normalized.substring(0, 30);
+    }
+    if (normalized.length() < 3) {
+      normalized = (normalized + "_chef").substring(0, Math.min(30, normalized.length() + 5));
+    }
+    return normalized;
+  }
+
+  private void assertAllowedGoogleRedirectUri(String redirectUri) {
+    try {
+      URI actualUri = URI.create(redirectUri);
+      URI configuredUri = URI.create(publicBaseUrl);
+
+      if (!GOOGLE_CALLBACK_PATH.equals(actualUri.getPath())) {
+        throw new AppException(ErrorCode.INVALID_REQUEST, "Invalid Google callback path.");
+      }
+
+      boolean sameHost = configuredUri.getHost().equalsIgnoreCase(actualUri.getHost())
+          && configuredUri.getPort() == actualUri.getPort();
+      boolean localhostAlias = LOCALHOST_ALIASES.contains(configuredUri.getHost().toLowerCase(Locale.ROOT))
+          && LOCALHOST_ALIASES.contains(actualUri.getHost().toLowerCase(Locale.ROOT))
+          && configuredUri.getPort() == actualUri.getPort();
+
+      if (!(sameHost || localhostAlias)) {
+        throw new AppException(ErrorCode.INVALID_REQUEST, "Invalid Google callback origin.");
+      }
+    } catch (IllegalArgumentException e) {
+      throw new AppException(ErrorCode.INVALID_REQUEST, "Malformed Google redirect URI.", e);
+    }
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 }

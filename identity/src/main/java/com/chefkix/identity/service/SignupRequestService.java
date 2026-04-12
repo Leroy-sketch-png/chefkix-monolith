@@ -31,8 +31,8 @@ public class SignupRequestService {
   final BaseRedisService redisService;
 
   // --- CONFIGS (Should be in application.yml) ---
-  @Value("${app.otp.ttl-seconds:300}")
-  long otpTtlSeconds; // 5 minutes
+  @Value("${app.otp.ttl-seconds:600}")
+  long otpTtlSeconds; // 10 minutes
 
   @Value("${app.otp.max-resend-per-hour:3}")
   int maxResendPerHour;
@@ -197,7 +197,7 @@ public class SignupRequestService {
 
             <div class="otp-box">%s</div>
 
-            <p>This code will expire in 5 minutes. Do not share this code with anyone.</p>
+            <p>This code will expire in %d minutes. Do not share this code with anyone.</p>
             <div class="footer">
                 Best regards,<br>The Chefkix Team
             </div>
@@ -205,7 +205,7 @@ public class SignupRequestService {
     </body>
     </html>
     """,
-            name, otp);
+            name, otp, Math.max(1L, TimeUnit.SECONDS.toMinutes(otpTtlSeconds)));
 
     // D. Send via Kafka
     EmailEvent event =

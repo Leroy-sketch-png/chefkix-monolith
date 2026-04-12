@@ -32,7 +32,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
   private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60; // 7 days
-  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 30 * 24 * 60 * 60; // 30 days
+  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 7 * 24 * 60 * 60; // 7 days
 
   AuthenticationService authenticationService;
   SignupRequestService signupRequestService;
@@ -69,6 +69,15 @@ public class AuthenticationController {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     signupRequestService.register(request, clientIp);
     return ApiResponse.<String>builder().data("OTP sent to email").build();
+  }
+
+  @PostMapping("/resend-otp")
+  ApiResponse<String> resendOtp(
+      @RequestParam(value = "email") @NotBlank @Email String email,
+      HttpServletRequest httpServletRequest) {
+    String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
+    signupRequestService.resendOtp(email, clientIp);
+    return ApiResponse.<String>builder().data("OTP resent successfully").build();
   }
 
   @PostMapping("/refresh-token")
@@ -123,6 +132,20 @@ public class AuthenticationController {
     // 3. Return JSON body (refreshToken no longer needed here)
     authResponse.setRefreshToken(null); // optional, prevent leaking to JS
     return ApiResponse.success(authResponse, "Successfully signed in");
+  }
+
+  @PostMapping("/google")
+  ApiResponse<AuthenticationResponse> authenticateWithGoogle(
+      @RequestBody @Valid GoogleAuthenticationRequest request,
+      HttpServletResponse response) {
+    AuthenticationResponse authResponse = authenticationService.authenticateWithGoogle(
+        request.getCode(), request.getRedirectUri(), request.getCodeVerifier());
+
+    HttpOnlyCookieUtils.addHttpOnlyCookie(
+        response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN);
+
+    authResponse.setRefreshToken(null);
+    return ApiResponse.success(authResponse, "Successfully signed in with Google");
   }
 
   @PostMapping("/forgot-password")

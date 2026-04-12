@@ -40,7 +40,9 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
             // --- Auth (identity) -- pre-login flows only ---
             "/auth/login",                  // AuthenticationController POST /login
+            "/auth/google",                 // AuthenticationController POST /google
             "/auth/register",               // AuthenticationController POST /register
+            "/auth/check-username",         // AuthenticationController GET /check-username
             "/auth/refresh-token",          // AuthenticationController POST /refresh-token
             "/auth/verify-otp",             // OtpController POST /verify-otp (signup OTP)
             "/auth/resend-otp",             // OtpController POST /resend-otp

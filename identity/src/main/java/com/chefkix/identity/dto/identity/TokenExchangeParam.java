@@ -18,4 +18,7 @@ public class TokenExchangeParam {
   String client_id;
   String client_secret;
   String scope;
+  String code;
+  String redirect_uri;
+  String code_verifier;
 }

@@ -1,5 +1,6 @@
 package com.chefkix.identity.service;
 
+import com.chefkix.identity.dto.identity.OidcUserInfoResponse;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -19,6 +20,8 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 public class KeycloakService {
+
+  private static final String FRONTEND_OIDC_CLIENT_ID = "chefkix-frontend";
 
   @Value("${idp.client-secret}")
   @NonFinal
@@ -113,6 +116,45 @@ public class KeycloakService {
     } catch (WebClientResponseException e) {
       log.warn("Token refresh failed: status={}", e.getStatusCode());
       throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
+  }
+
+  public TokenExchangeResponse exchangeAuthorizationCode(
+      String code, String redirectUri, String codeVerifier) {
+    MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+    body.add("grant_type", "authorization_code");
+    body.add("client_id", FRONTEND_OIDC_CLIENT_ID);
+    body.add("code", code);
+    body.add("redirect_uri", redirectUri);
+    body.add("code_verifier", codeVerifier);
+
+    try {
+      return webClient
+          .post()
+          .uri("/token")
+          .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+          .body(BodyInserters.fromFormData(body))
+          .retrieve()
+          .bodyToMono(TokenExchangeResponse.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Authorization code exchange failed: status={}", e.getStatusCode());
+      throw new AppException(ErrorCode.UNAUTHENTICATED, "Google sign-in failed. Please try again.");
+    }
+  }
+
+  public OidcUserInfoResponse getUserInfo(String accessToken) {
+    try {
+      return webClient
+          .get()
+          .uri("/userinfo")
+          .headers(headers -> headers.setBearerAuth(accessToken))
+          .retrieve()
+          .bodyToMono(OidcUserInfoResponse.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Fetching userinfo failed: status={}", e.getStatusCode());
+      throw new AppException(ErrorCode.UNAUTHENTICATED, "Unable to load Google account information.");
     }
   }
 
