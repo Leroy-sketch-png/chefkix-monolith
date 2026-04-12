@@ -3,11 +3,9 @@ package com.chefkix.social.chat.service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.StringJoiner;
 
 import com.chefkix.identity.api.ProfileProvider;
-import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.social.chat.dto.request.ConversationRequest;
 import com.chefkix.social.chat.dto.response.ConversationResponse;
 import com.chefkix.social.chat.dto.response.ShareContactResponse;
@@ -18,7 +16,6 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.mapper.ConversationMapper;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -174,23 +171,31 @@ public class ConversationService {
         String currentUserId =
                 SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Lấy danh sách conversation gần nhất (Pageable để giới hạn số lượng, ví dụ 10-20 người)
+        // Fetch recent conversations for share suggestions
         List<Conversation> conversations = conversationRepository.findRecentConversations(currentUserId, pageable);
 
-        // 2. Map sang DTO
+        // Map to DTOs
         return conversations.stream()
                 .map(conv -> {
-                    // Xác định thông tin hiển thị
                     String displayName;
                     String avatar;
                     String targetUserId = null;
 
                     if ("GROUP".equals(conv.getType())) {
-                        // Nếu là nhóm: Dùng tên nhóm và ảnh nhóm (nếu chưa có field này thì cần bổ sung vào Entity)
-                        displayName = "Nhóm Chat"; // Hoặc conv.getGroupName()
-                        avatar = "group-placeholder.png";
+                        // Build group display name from participant first names
+                        displayName = conv.getParticipants().stream()
+                                .filter(p -> !p.getUserId().equals(currentUserId))
+                                .map(p -> p.getFirstName() != null ? p.getFirstName() : p.getUsername())
+                                .filter(java.util.Objects::nonNull)
+                                .limit(3)
+                                .collect(java.util.stream.Collectors.joining(", "));
+                        if (displayName.isEmpty()) displayName = "Group Chat";
+                        long totalOthers = conv.getParticipants().stream()
+                                .filter(p -> !p.getUserId().equals(currentUserId)).count();
+                        if (totalOthers > 3) displayName += " +" + (totalOthers - 3);
+                        avatar = null;
                     } else {
-                        // Nếu là chat 1-1: Tìm người kia (Filter người không phải là mình)
+                        // 1-on-1 chat: find the other participant
                         ParticipantInfo otherUser = conv.getParticipants().stream()
                                 .filter(p -> !p.getUserId().equals(currentUserId))
                                 .findFirst()
@@ -198,11 +203,10 @@ public class ConversationService {
 
                         if (otherUser != null) {
                             displayName = otherUser.getFirstName() + " "
-                                    + otherUser.getLastName(); // Hoặc getUsername() tùy data
+                                    + otherUser.getLastName();
                             avatar = otherUser.getAvatar();
                             targetUserId = otherUser.getUserId();
                         } else {
-                            // Trường hợp chat với chính mình (nếu có)
                             displayName = "Me";
                             avatar = "";
                         }

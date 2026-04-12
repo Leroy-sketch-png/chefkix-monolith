@@ -1,8 +1,8 @@
 package com.chefkix.culinary.common.enums;
 
 public enum RecipeStatus {
-    DRAFT,      // Đang viết dở
-    PENDING,    // Chờ duyệt (nếu có admin)
-    PUBLISHED,  // Đã công khai
-    ARCHIVED    // Đã xóa mềm
+    DRAFT,      // Work in progress
+    PENDING,    // Awaiting review (if admin moderation exists)
+    PUBLISHED,  // Publicly visible
+    ARCHIVED    // Soft-deleted
 }

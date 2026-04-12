@@ -11,8 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeSave {
-    String id; // Mongo tự sinh ID string
+    String id; // Auto-generated Mongo string ID
     String recipeId;
     String userId;
-    // Có thể thêm createdAt nếu muốn sort theo thời gian like
+    // Can add createdAt if sorting by save timestamp is needed
 }

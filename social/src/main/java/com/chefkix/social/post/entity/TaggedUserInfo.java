@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO đơn giản chứa thông tin người dùng được @tag.
+ * Simple DTO containing information about a @tagged user.
  */
 @Data
 @Builder

@@ -34,12 +34,16 @@ public class RecipeSummaryResponse {
     private int xpReward;
     private List<String> badges;
 
+    // --- Quality ---
+    private Integer qualityScore;
+    private String qualityTier;
+
     // --- Social ---
     private long likeCount;
     private long saveCount;
     private long viewCount;
 
-    // --- DYNAMIC FIELDS (Thêm vào lúc query) ---
+    // --- DYNAMIC FIELDS (Added at query time) ---
     private AuthorResponse author;
     private Boolean isLiked;
     private Boolean isSaved;

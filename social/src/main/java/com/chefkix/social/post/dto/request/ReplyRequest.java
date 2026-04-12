@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * DTO để client gửi yêu cầu tạo một Reply mới.
+ * DTO for creating a new Reply.
  */
 @Data
 @Builder
@@ -18,11 +18,11 @@ import java.util.List;
 @AllArgsConstructor
 public class ReplyRequest {
 
-    @NotBlank(message = "Nội dung không được để trống")
-    @Size(max = 2000, message = "Nội dung trả lời quá dài")
+    @NotBlank(message = "Content must not be blank")
+    @Size(max = 2000, message = "Reply content is too long")
     private String content;
 
-    @NotBlank(message = "Cần có ID của comment cha")
+    @NotBlank(message = "Parent comment ID is required")
     @Size(max = 100)
     private String parentCommentId;
 

@@ -11,31 +11,31 @@ import java.util.List;
 public class SessionSpecification {
 
     /**
-     * Tạo Criteria để lọc Session History theo userId và status.
-     * @param userId ID của người dùng (Bắt buộc)
-     * @param query Chuỗi trạng thái ("completed", "posted", "all",...)
-     * @return Criteria MongoDB hoàn chỉnh
+     * Create Criteria to filter Session History by userId and status.
+     * @param userId User ID (Required)
+     * @param query Status string ("completed", "posted", "all",...)
+     * @return Complete MongoDB Criteria
      */
     public static Criteria getCriteria(String userId, SessionHistoryQuery query) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        // 1. Lọc theo User ID (BẮT BUỘC)
+        // 1. Filter by User ID (REQUIRED)
         criteriaList.add(Criteria.where("userId").is(userId));
 
-        // 2. Lọc theo Trạng thái (statusFilter)
+        // 2. Filter by Status (statusFilter)
         if (StringUtils.hasText(query.getStatusFilter()) && !"all".equalsIgnoreCase(query.getStatusFilter())) {
             try {
-                // Chuyển chuỗi trạng thái thành Enum (Ví dụ: "completed" -> SessionStatus.COMPLETED)
+                // Convert status string to Enum (e.g., "completed" -> SessionStatus.COMPLETED)
                 SessionStatus status = SessionStatus.valueOf(query.getStatusFilter().toUpperCase());
                 criteriaList.add(Criteria.where("status").is(status));
             } catch (IllegalArgumentException e) {
-                // Bỏ qua nếu giá trị không hợp lệ, hoặc ném Exception (Tùy chọn)
-                // Hiện tại, ta sẽ lọc theo giá trị không tồn tại để query trả về rỗng.
+                // Ignore if value is invalid, or throw Exception (optional)
+                // Currently, we filter by a non-existent value so query returns empty.
                 criteriaList.add(Criteria.where("status").is("INVALID_STATUS_FILTER"));
             }
         }
 
-        // 3. Gộp tất cả điều kiện lại bằng toán tử AND
+        // 3. Combine all conditions using AND operator
         return new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
     }
 }

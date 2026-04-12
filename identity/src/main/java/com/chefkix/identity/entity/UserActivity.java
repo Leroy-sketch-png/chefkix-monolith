@@ -14,10 +14,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document(collection = "user_activity") // Tên collection trong MongoDB
+@Document(collection = "user_activity") // Collection name in MongoDB
 public class UserActivity {
 
-  @Id String id; // ID trong Mongo là String (ObjectId dưới dạng chuỗi)
+  @Id String id; // Mongo ID is String (ObjectId as string)
 
   String keycloakId;
 

@@ -7,6 +7,7 @@ import com.chefkix.identity.api.dto.CompletionResult;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Cross-module contract for identity/profile operations.
@@ -117,4 +118,51 @@ public interface ProfileProvider {
      * @return stats snapshot (never null)
      */
     AchievementStatsSnapshot getAchievementStats(String userId);
+
+    /**
+     * Get user's cuisine/interest preferences from onboarding or profile settings.
+     * Used by culinary module for Tonight's Pick personalization.
+     *
+     * @param userId the user's ID
+     * @return list of preference IDs (e.g., "italian", "bbq", "vegan"), never null
+     */
+    List<String> getUserPreferences(String userId);
+
+    /**
+     * Get user's current gamification level.
+     * Used by culinary module for difficulty-appropriate recipe recommendations.
+     *
+     * @param userId the user's ID
+     * @return current level (1+), defaults to 1 for new users
+     */
+    int getUserLevel(String userId);
+
+    /**
+     * Get post IDs from recent behavioral events with graduated weights.
+     * 5-signal: views (0.5x), dwell (0.75-2.5x graduated), comments (1.8x), creation (2.5x).
+     * Used by social module's feed algorithm to enrich the taste vector
+     * beyond likes/saves to include behavioral signals.
+     *
+     * @param userId the user whose behavioral signals to extract
+     * @return map of postId → weight, never null
+     */
+    Map<String, Double> getBehavioralPostWeights(String userId);
+
+    /**
+     * Get recent search queries for taste vector enrichment.
+     * Extracts query terms from RECIPE_SEARCH events which indicate
+     * user intent even when they don't interact with results.
+     *
+     * @param userId the user whose search history to extract
+     * @return list of recent search query strings (last 50), never null
+     */
+    List<String> getRecentSearchQueries(String userId);
+
+    /**
+     * Delete all event tracking data for a user (GDPR compliance).
+     *
+     * @param userId the user whose event data to delete
+     * @return number of events deleted
+     */
+    long deleteUserEventData(String userId);
 }

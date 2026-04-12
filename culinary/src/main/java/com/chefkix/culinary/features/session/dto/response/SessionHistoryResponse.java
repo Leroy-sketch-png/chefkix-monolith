@@ -18,7 +18,7 @@ public class SessionHistoryResponse {
         private String sessionId;
         private String recipeId;
         private String recipeTitle;
-        private List<String> coverImageUrl; // Cần lấy từ Recipe
+        private List<String> coverImageUrl; // Fetched from Recipe
         private SessionStatus status;
         private LocalDateTime startedAt;
         private LocalDateTime completedAt;
@@ -26,12 +26,12 @@ public class SessionHistoryResponse {
         // XP data - using Integer for clean game system values
         private Integer baseXpAwarded;
         private Integer pendingXp;
-        private Integer xpEarned; // Tổng XP (base + remaining) nếu status=posted
+        private Integer xpEarned; // Total XP (base + remaining) if status=posted
 
         // Link Post
         private String postId;
 
-        // Deadline (Chỉ cần tính toán cho các item có status=completed)
+        // Deadline (Only needs calculation for items with status=completed)
         private LocalDateTime postDeadline;
         private Long daysRemaining; // Calculated field
     }

@@ -3,6 +3,7 @@ package com.chefkix.social.post.service;
 import com.chefkix.social.post.dto.request.ReportRequest;
 import com.chefkix.social.post.dto.response.ReportResponse;
 import com.chefkix.social.post.entity.Report;
+import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.repository.CommentRepository;
@@ -33,9 +34,12 @@ public class ReportService {
     ReportRepository reportRepository;
     PostRepository postRepository;
     CommentRepository commentRepository;
+    ProfileProvider profileProvider;
 
     private static final int MAX_REPORTS_PER_DAY = 3;
     private static final int REVIEW_THRESHOLD = 3;
+    private static final int MIN_ACCOUNT_AGE_DAYS = 7;
+    private static final int MIN_USER_LEVEL = 2;
 
     /**
      * Create a report for content (post, comment, or recipe).
@@ -49,6 +53,9 @@ public class ReportService {
         if (todayReportCount >= MAX_REPORTS_PER_DAY) {
             throw new AppException(ErrorCode.REPORT_LIMIT_EXCEEDED);
         }
+
+        // "Skin in the game" validation: prevent abuse from new/inactive accounts
+        validateReporterMaturity(reporterId);
 
         // Check if user already reported this target
         var existingReport = reportRepository.findByReporterIdAndTargetTypeAndTargetId(
@@ -117,6 +124,21 @@ public class ReportService {
         // Comments and recipes: logged for manual admin review (no hidden field on Comment yet)
         if ("comment".equals(targetType) || "recipe".equals(targetType)) {
             log.warn("{} {} reached report threshold — needs admin review", targetType, targetId);
+        }
+    }
+
+    /**
+     * Validate reporter has "skin in the game" — account age and engagement.
+     * Prevents new/inactive accounts from weaponizing the report system.
+     */
+    private void validateReporterMaturity(String reporterId) {
+        Instant accountCreated = profileProvider.getAccountCreatedAt(reporterId);
+        if (ChronoUnit.DAYS.between(accountCreated, Instant.now()) < MIN_ACCOUNT_AGE_DAYS) {
+            throw new AppException(ErrorCode.ACCOUNT_TOO_NEW);
+        }
+        int userLevel = profileProvider.getUserLevel(reporterId);
+        if (userLevel < MIN_USER_LEVEL) {
+            throw new AppException(ErrorCode.INSUFFICIENT_ACTIVITY);
         }
     }
 

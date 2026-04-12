@@ -14,17 +14,21 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import org.springframework.data.mongodb.core.query.Update;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Scheduled job to send post deadline reminder notifications.
+ * Scheduled job to:
+ * 1. Send post deadline reminder notifications (days 5, 12, 13)
+ * 2. Forfeit pending XP for sessions that missed the 14-day deadline
  * 
  * Per spec (04-statistics.txt):
  * - Post deadline is 14 days from session completion
  * - Day 5 reminder (9 days left): Normal priority
  * - Day 12 reminder (2 days left): High priority
- * - After 14 days: 70% pending XP forfeited
+ * - After 14 days: 70% pending XP forfeited, status → EXPIRED
  */
 @Slf4j
 @Component
@@ -57,6 +61,37 @@ public class PostDeadlineScheduler {
             sendRemindersForDaysRemaining(now, 1, "CRITICAL");
         } catch (Exception e) {
             log.error("Post deadline reminder scheduler failed — will retry next cycle", e);
+        }
+    }
+
+    /**
+     * Run daily at 9:30 AM to forfeit pending XP for expired sessions.
+     * Sessions that passed postDeadline without a post lose their 70% pending XP.
+     */
+    @Scheduled(cron = "0 30 9 * * *")
+    public void forfeitExpiredSessions() {
+        try {
+            log.info("Running expired session XP forfeiture check...");
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("status").is(SessionStatus.COMPLETED));
+            query.addCriteria(Criteria.where("postId").isNull());
+            query.addCriteria(Criteria.where("postDeadline").lt(LocalDateTime.now()));
+            query.addCriteria(Criteria.where("pendingXp").gt(0.0));
+
+            Update update = new Update()
+                .set("status", SessionStatus.EXPIRED)
+                .set("pendingXp", 0.0);
+
+            var result = mongoTemplate.updateMulti(query, update, CookingSession.class);
+
+            if (result.getModifiedCount() > 0) {
+                log.info("Forfeited XP for {} expired sessions", result.getModifiedCount());
+            } else {
+                log.info("No expired sessions found for XP forfeiture");
+            }
+        } catch (Exception e) {
+            log.error("Expired session forfeiture failed — will retry next cycle", e);
         }
     }
 

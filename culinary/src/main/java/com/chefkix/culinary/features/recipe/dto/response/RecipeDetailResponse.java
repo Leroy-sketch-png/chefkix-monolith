@@ -58,6 +58,10 @@ public class RecipeDetailResponse {
     ValidationMetadataResponse validation;
     EnrichmentMetadataResponse enrichment;
 
+    // --- RECIPE QUALITY SCORE ---
+    Integer qualityScore;
+    String qualityTier;
+
     // --- GLOBAL STATS ---
     long likeCount;
     long saveCount;

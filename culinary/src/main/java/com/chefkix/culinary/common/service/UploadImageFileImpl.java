@@ -38,6 +38,7 @@ public class UploadImageFileImpl implements UploadImageFile {
         try {
             String publicId = generatePublicValue(file.getOriginalFilename());
 
+            @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
@@ -99,7 +100,7 @@ public class UploadImageFileImpl implements UploadImageFile {
     }
 
     /**
-     * Tạo tên file duy nhất (public_id) cho Cloudinary
+     * Generate a unique filename (public_id) for Cloudinary
      */
     public String generatePublicValue(String originalName) {
         String baseName = getBaseName(originalName);

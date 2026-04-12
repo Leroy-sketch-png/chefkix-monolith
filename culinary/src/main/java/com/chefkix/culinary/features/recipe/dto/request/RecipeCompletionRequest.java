@@ -13,14 +13,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeCompletionRequest {
-    // Chỉ nhận bằng chứng từ Client
+    // Only accept proof from Client
     List<String> proofImageUrls;
 
     @Valid
     @NotEmpty
     List<TimerLog> timerLogs;
 
-    // Rating & Notes (Optional - cho Mastery)
+    // Rating & Notes (Optional - for Mastery)
     @Min(1) @Max(5)
     Integer rating;
     String notes;

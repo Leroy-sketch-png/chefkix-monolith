@@ -10,10 +10,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationResponse {
-  String accessToken; // access token trả về từ Keycloak
-  String refreshToken; // refresh token trả về từ Keycloak (optional, hoặc lưu httpOnly cookie)
-  String idToken; // id token nếu cần
-  String scope; // scope từ Keycloak
+  String accessToken; // access token returned from Keycloak
+  String refreshToken; // refresh token returned from Keycloak (optional, or stored in httpOnly cookie)
+  String idToken; // id token if needed
+  String scope; // scope from Keycloak
   boolean authenticated;
   LocalDateTime lastLogin;
   UserResponse user;

@@ -9,7 +9,9 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ResetPasswordParam {
+  @Builder.Default
   String type = "password";
   String value;
+  @Builder.Default
   boolean temporary = false;
 }

@@ -1,5 +1,6 @@
 package com.chefkix.identity.service;
 
+import com.chefkix.identity.dto.identity.OidcUserInfoResponse;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -20,6 +21,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class KeycloakService {
 
+  private static final String FRONTEND_OIDC_CLIENT_ID = "chefkix-frontend";
+
   @Value("${idp.client-secret}")
   @NonFinal
   String clientSecret;
@@ -27,16 +30,11 @@ public class KeycloakService {
   private final WebClient webClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  // Inject giá trị từ file config (Biến môi trường Docker sẽ ghi đè được cái này)
-  // Mặc định là http://localhost:8180 nếu không tìm thấy biến
-  private final String keycloakAuthServerUrl;
-
   public KeycloakService(
       WebClient.Builder webClientBuilder,
       @Value("${keycloak.auth-server-url:http://localhost:8180}") String keycloakAuthServerUrl) {
-    this.keycloakAuthServerUrl = keycloakAuthServerUrl;
 
-    // Cấu hình Base URL động dựa trên biến môi trường
+    // Configure dynamic Base URL based on environment variable
     this.webClient =
         webClientBuilder
             .baseUrl(keycloakAuthServerUrl + "/realms/nottisn/protocol/openid-connect")
@@ -118,6 +116,45 @@ public class KeycloakService {
     } catch (WebClientResponseException e) {
       log.warn("Token refresh failed: status={}", e.getStatusCode());
       throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
+  }
+
+  public TokenExchangeResponse exchangeAuthorizationCode(
+      String code, String redirectUri, String codeVerifier) {
+    MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+    body.add("grant_type", "authorization_code");
+    body.add("client_id", FRONTEND_OIDC_CLIENT_ID);
+    body.add("code", code);
+    body.add("redirect_uri", redirectUri);
+    body.add("code_verifier", codeVerifier);
+
+    try {
+      return webClient
+          .post()
+          .uri("/token")
+          .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+          .body(BodyInserters.fromFormData(body))
+          .retrieve()
+          .bodyToMono(TokenExchangeResponse.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Authorization code exchange failed: status={}", e.getStatusCode());
+      throw new AppException(ErrorCode.UNAUTHENTICATED, "Google sign-in failed. Please try again.");
+    }
+  }
+
+  public OidcUserInfoResponse getUserInfo(String accessToken) {
+    try {
+      return webClient
+          .get()
+          .uri("/userinfo")
+          .headers(headers -> headers.setBearerAuth(accessToken))
+          .retrieve()
+          .bodyToMono(OidcUserInfoResponse.class)
+          .block();
+    } catch (WebClientResponseException e) {
+      log.warn("Fetching userinfo failed: status={}", e.getStatusCode());
+      throw new AppException(ErrorCode.UNAUTHENTICATED, "Unable to load Google account information.");
     }
   }
 

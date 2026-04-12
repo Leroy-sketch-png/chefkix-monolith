@@ -1,6 +1,7 @@
 package com.chefkix.culinary.api;
 
 import com.chefkix.culinary.api.dto.CreatorInsightsInfo;
+import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
 
 /**
  * Cross-module contract for recipe-related read operations.
@@ -19,4 +20,12 @@ public interface RecipeProvider {
      * @return insights about the user's recipe portfolio
      */
     CreatorInsightsInfo getCreatorInsights(String userId);
+
+    /**
+     * Get lightweight recipe info for cross-module display (battle cards, review headers).
+     *
+     * @param recipeId the recipe's ID
+     * @return summary info (id, title, coverImage, author) or null if not found
+     */
+    RecipeSummaryInfo getRecipeSummary(String recipeId);
 }

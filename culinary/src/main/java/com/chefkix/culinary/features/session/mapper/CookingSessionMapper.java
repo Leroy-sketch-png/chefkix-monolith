@@ -15,10 +15,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring") // Đăng ký là Spring Bean
+@Mapper(componentModel = "spring") // Registered as Spring Bean
 public interface CookingSessionMapper {
 
-    // instance dùng cho unit test hoặc nơi không phải Spring Bean
+    // Instance for unit tests or non-Spring-Bean contexts
     CookingSessionMapper INSTANCE = Mappers.getMapper(CookingSessionMapper.class);
 
     @Mapping(target = "sessionId", source = "session.id")
@@ -29,37 +29,37 @@ public interface CookingSessionMapper {
     StartSessionResponse toStartSessionResponse(CookingSession session, Recipe recipe);
 
 
-    // Mapping cho RecipeInfo lồng bên trong
+    // Mapping for nested RecipeInfo
     @Mapping(target = "id", source = "id")
     StartSessionResponse.RecipeInfo mapRecipeToRecipeInfo(Recipe recipe);
 
 
     // --- Custom Mappers ---
 
-    // Chuyển Enum Status sang chuỗi lower case (in_progress)
+    // Convert Status Enum to lowercase string (in_progress)
     @Named("mapStatusToString")
     default String mapStatusToString(SessionStatus status) {
         return status != null ? status.name().toLowerCase() : null;
     }
 
-    // Tính tổng số bước từ List<Step>
+    // Calculate total number of steps from List<Step>
     @Named("mapTotalSteps")
     default Integer mapTotalSteps(Recipe recipe) {
         return (recipe != null && recipe.getSteps() != null) ? recipe.getSteps().size() : 0;
     }
 
-    // Đảm bảo activeTimers không bao giờ null và đúng kiểu List<Object>
+    // Ensure activeTimers is never null and has correct type List<Object>
     @Named("mapActiveTimers")
     default List<Object> mapActiveTimers(List<CookingSession.ActiveTimer> activeTimers) {
         if (activeTimers == null) {
-            return new ArrayList<>(); // Trả về mảng rỗng để khớp spec
+            return new ArrayList<>(); // Return empty array to match spec
         }
-        // Vì ActiveTimer là inner class của Entity, MapStruct tự map được List<ActiveTimer> sang List<Object>
+        // Since ActiveTimer is an inner class of Entity, MapStruct can auto-map List<ActiveTimer> to List<Object>
         return new ArrayList<>(activeTimers);
     }
 
         // ====================================================================
-        // 1. MAPPING CHÍNH: Entity -> SessionItemDto
+        // 1. MAIN MAPPING: Entity -> SessionItemDto
         // ====================================================================
 
         @Mapping(target = "sessionId", source = "session.id")
@@ -68,8 +68,8 @@ public interface CookingSessionMapper {
         @Mapping(target = "baseXpAwarded", source = "session", qualifiedByName = "roundBaseXp")
         @Mapping(target = "pendingXp", source = "session", qualifiedByName = "roundPendingXp")
 
-        // Các trường sau đây cần lấy từ một Entity khác (Recipe) HOẶC từ Cache/Denormalization.
-        // Tạm thời để là một phương thức riêng biệt hoặc cần truyền Recipe Entity vào.
+        // The following fields need to be fetched from another Entity (Recipe) OR from Cache/Denormalization.
+        // Temporarily left as a separate method or requires passing in the Recipe Entity.
         @Mapping(target = "recipeTitle", source = "recipeTitle")
         @Mapping(target = "coverImageUrl", source = "coverImageUrl")
         SessionHistoryResponse.SessionItemDto toSessionItemDto(CookingSession session);
@@ -92,11 +92,11 @@ public interface CookingSessionMapper {
 
 
         // ====================================================================
-        // 2. LOGIC TÍNH TOÁN NGHIỆP VỤ (Custom Methods)
+        // 2. BUSINESS LOGIC CALCULATIONS (Custom Methods)
         // ====================================================================
 
         /**
-         * Tính toán tổng XP kiếm được (base + pending) nếu session đã POSTED.
+         * Calculate total XP earned (base + pending) if session has been POSTED.
          * Returns Integer for clean game system values.
          */
         @Named("calculateXpEarned")
@@ -104,34 +104,34 @@ public interface CookingSessionMapper {
             if (session.getStatus() == SessionStatus.POSTED) {
                 Double base = session.getBaseXpAwarded() != null ? session.getBaseXpAwarded() : 0.0;
                 Double remaining = session.getRemainingXpAwarded() != null ? session.getRemainingXpAwarded() : 0.0;
-                // Nếu dùng pendingXp thay vì remainingXpAwarded, sửa thành: base + (session.getPendingXp() != null ? session.getPendingXp() : 0.0);
+                // If using pendingXp instead of remainingXpAwarded, change to: base + (session.getPendingXp() != null ? session.getPendingXp() : 0.0);
                 return (int) Math.round(base + remaining);
             }
             return null;
         }
 
         /**
-         * Tính toán số ngày còn lại để đăng bài (chỉ áp dụng cho status=COMPLETED).
+         * Calculate remaining days to create a post (only applies to status=COMPLETED).
          */
         @Named("calculateDaysRemaining")
         default Long calculateDaysRemaining(CookingSession session) {
             if (session.getStatus() == SessionStatus.COMPLETED && session.getPostDeadline() != null) {
                 LocalDateTime now = LocalDateTime.now();
                 long days = ChronoUnit.DAYS.between(now, session.getPostDeadline());
-                return Math.max(0, days); // Trả về 0 nếu đã quá hạn
+                return Math.max(0, days); // Return 0 if deadline has passed
             }
             return null;
         }
 
         // ====================================================================
-        // 3. MAPPING CÓ DỮ LIỆU CHÉO (Cần thiết cho RecipeTitle/CoverImage)
+        // 3. CROSS-DATA MAPPING (Required for RecipeTitle/CoverImage)
         // ====================================================================
         /*
-         * Trong thực tế, bạn sẽ cần một hàm khác nhận cả CookingSession và Recipe (hoặc Map<String, Recipe>)
-         * để điền các trường recipeTitle và coverImageUrl.
+         * In practice, you will need another method that takes both CookingSession and Recipe (or Map<String, Recipe>)
+         * to populate the recipeTitle and coverImageUrl fields.
          */
 
-        // Ví dụ về một phương thức phức tạp hơn (nếu bạn cần MapStruct xử lý data chéo)
+        // Example of a more complex method (if MapStruct needs to handle cross-data mapping)
         // @Mapping(target = "recipeTitle", source = "recipe.title")
         // SessionHistoryResponse.SessionItemDto toSessionItemDto(CookingSession session, Recipe recipe);
     }

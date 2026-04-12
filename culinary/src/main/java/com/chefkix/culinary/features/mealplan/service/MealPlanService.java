@@ -9,16 +9,13 @@ import com.chefkix.culinary.features.pantry.entity.PantryItem;
 import com.chefkix.culinary.features.pantry.repository.PantryItemRepository;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
-import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.common.client.AIRestClient;
 import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanRequest;
 import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
-// Error codes: MEAL_PLAN_NOT_FOUND, EMPTY, INVALID_INPUT
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -150,9 +147,8 @@ public class MealPlanService {
                     .toList();
         }
 
-        // Cap at 500 recipes to prevent OOM as the catalog grows.
-        // TODO: Replace with a MongoDB text-search or aggregation pipeline for true scalability.
-        List<Recipe> recipes = recipeRepo.findByStatus(RecipeStatus.PUBLISHED, PageRequest.of(0, 500)).getContent();
+        // Use projected query — loads only matching-relevant fields, avoiding heavy step/enrichment data.
+        List<Recipe> recipes = recipeRepo.findPublishedForIngredientMatching();
         if (recipes.isEmpty()) {
             throw new AppException(ErrorCode.EMPTY);
         }

@@ -16,9 +16,9 @@ public class CompletionResponse {
     String completionId;
     String recipeId;
 
-    int xpEarned;          // Số XP thực nhận (đã tính toán 50% hay 100%)
-    List<String> newBadges; // Danh sách badge mới nhận được (nếu có)
-    CompletionResult userProfile; // Thông tin profile cập nhật để update UI
+    int xpEarned;          // Actual XP received (calculated as 50% or 100%)
+    List<String> newBadges; // List of newly earned badges (if any)
+    CompletionResult userProfile; // Updated profile info for UI update
 
 //    @Data
 //    @Builder

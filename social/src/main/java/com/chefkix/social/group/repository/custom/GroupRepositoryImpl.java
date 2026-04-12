@@ -24,19 +24,19 @@ public class GroupRepositoryImpl implements GroupCustomRepository {
     @Override
     public Page<Group> searchGroups(GroupExploreQuery queryDto, Pageable pageable) {
 
-        // 1. Nhờ Specification xây dựng bộ lọc
+        // 1. Use Specification to build filters
         Criteria criteria = GroupSpecification.getCriteria(queryDto);
 
-        // 2. Tạo Query
+        // 2. Create Query
         Query query = new Query(criteria).with(pageable);
 
-        // 3. Xử lý Custom Sort
+        // 3. Apply Custom Sort
         applyCustomSorting(query, queryDto.getSortBy());
 
-        // 4. Thực thi Query lấy dữ liệu
+        // 4. Execute Query to fetch data
         List<Group> groups = mongoTemplate.find(query, Group.class);
 
-        // 5. Tính total
+        // 5. Calculate total
         return PageableExecutionUtils.getPage(
                 groups,
                 pageable,

@@ -13,7 +13,7 @@ public class AIProcessResponse {
     private String description;
     private String difficulty; // Enum string
 
-    // Mapping khớp với serialization_alias="prepTimeMinutes"
+    // Mapping matches serialization_alias="prepTimeMinutes"
     private int prepTimeMinutes;
     private int cookTimeMinutes;
     private int totalTimeMinutes;
@@ -26,17 +26,17 @@ public class AIProcessResponse {
     private List<AiIngredientDto> fullIngredientList;
     private List<AiStepDto> steps;
 
-    // --- Gamification (Khớp alias camelCase) ---
+    // --- Gamification (Matches camelCase alias) ---
     private int xpReward;
     private double difficultyMultiplier;
     private List<String> badges;
     private List<String> skillTags;
 
-    // --- Enrichment (Khớp alias) ---
+    // --- Enrichment (Matches alias) ---
     private String recipeStory;
     private List<String> equipmentNeeded;
 
-    // Python trả về Dict[str, str] (Skill: Explanation)
+    // Python returns Dict[str, str] (Skill: Explanation)
     private Map<String, String> techniqueGuides;
 
     private List<String> seasonalTags;
@@ -61,7 +61,7 @@ public class AIProcessResponse {
         private Integer timerSeconds;
         private String imageUrl;
 
-        // --- 2 Field quan trọng bạn bị null ---
+        // --- 2 Important fields that were null ---
         private String tips;
         private List<AiIngredientDto> ingredients; // Step-scoped ingredients
 
