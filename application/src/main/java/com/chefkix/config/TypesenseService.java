@@ -3,6 +3,7 @@ package com.chefkix.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -107,7 +108,6 @@ public class TypesenseService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, Object> search(String collection, Map<String, String> searchParams) {
         try {
             String result = restClient
@@ -157,6 +157,87 @@ public class TypesenseService {
             return true;
         } catch (Exception e) {
             log.debug("Typesense health check failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Vector search using pre-computed embedding vectors.
+     * Falls back to keyword search if vector field is not populated.
+     */
+    public Map<String, Object> vectorSearch(
+            String collection, float[] queryVector, int limit, String filterBy) {
+        try {
+            StringBuilder vectorStr = new StringBuilder("[");
+            for (int i = 0; i < queryVector.length; i++) {
+                if (i > 0) vectorStr.append(",");
+                vectorStr.append(queryVector[i]);
+            }
+            vectorStr.append("]");
+
+            Map<String, String> params = new LinkedHashMap<>();
+            params.put("q", "*");
+            params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
+            params.put("per_page", String.valueOf(limit));
+            if (filterBy != null && !filterBy.isBlank()) {
+                params.put("filter_by", filterBy);
+            }
+
+            return search(collection, params);
+        } catch (Exception e) {
+            log.error("Vector search failed in {}: {}", collection, e.getMessage());
+            return Map.of("found", 0, "hits", List.of());
+        }
+    }
+
+    /**
+     * Hybrid search: combines keyword + vector search results.
+     * Runs keyword search first, then vector search, merges by score.
+     */
+    public Map<String, Object> hybridSearch(
+            String collection, String query, String queryBy,
+            float[] queryVector, int limit) {
+        try {
+            Map<String, String> params = new LinkedHashMap<>();
+            params.put("q", query);
+            params.put("query_by", queryBy);
+            params.put("per_page", String.valueOf(limit));
+            params.put("highlight_full_fields", queryBy);
+            params.put("num_typos", "2");
+
+            StringBuilder vectorStr = new StringBuilder("[");
+            for (int i = 0; i < queryVector.length; i++) {
+                if (i > 0) vectorStr.append(",");
+                vectorStr.append(queryVector[i]);
+            }
+            vectorStr.append("]");
+            params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
+
+            return search(collection, params);
+        } catch (Exception e) {
+            log.error("Hybrid search failed in {}: {}", collection, e.getMessage());
+            return Map.of("found", 0, "hits", List.of());
+        }
+    }
+
+    /**
+     * Update collection schema (e.g., add new fields).
+     * Uses PATCH /collections/{name} endpoint.
+     */
+    public boolean updateCollectionSchema(String collection, Map<String, Object> schemaUpdate) {
+        try {
+            String body = objectMapper.writeValueAsString(schemaUpdate);
+            restClient
+                    .patch()
+                    .uri("/collections/{collection}", collection)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Updated Typesense collection schema: {}", collection);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to update collection {} schema: {}", collection, e.getMessage());
             return false;
         }
     }

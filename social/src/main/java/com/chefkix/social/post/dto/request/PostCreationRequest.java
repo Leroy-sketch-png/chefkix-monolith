@@ -45,4 +45,11 @@ public class PostCreationRequest {
   @Size(max = 500) String pollQuestion;
   @Size(max = 200) String pollOptionA;
   @Size(max = 200) String pollOptionB;
+
+  // Recipe Review fields (only when postType == RECIPE_REVIEW)
+  Integer reviewRating; // 1-5 star rating
+
+  // Recipe Battle fields (only when postType == RECIPE_BATTLE)
+  @Size(max = 100) String battleRecipeIdA;
+  @Size(max = 100) String battleRecipeIdB;
 }

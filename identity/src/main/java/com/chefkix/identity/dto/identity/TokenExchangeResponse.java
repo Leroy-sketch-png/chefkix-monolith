@@ -16,7 +16,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonIgnoreProperties(ignoreUnknown = true) // <- thêm dòng này
+@JsonIgnoreProperties(ignoreUnknown = true) // <- added this line
 public class TokenExchangeResponse {
   String accessToken;
   String expiresIn;

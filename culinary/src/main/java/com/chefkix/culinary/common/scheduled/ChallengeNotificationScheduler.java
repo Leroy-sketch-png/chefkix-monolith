@@ -2,7 +2,9 @@ package com.chefkix.culinary.common.scheduled;
 
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
+import com.chefkix.culinary.features.challenge.repository.SeasonalChallengeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengePoolService;
+import com.chefkix.culinary.features.challenge.entity.SeasonalChallenge;
 import com.chefkix.shared.event.ReminderEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,7 @@ public class ChallengeNotificationScheduler {
 
     private final ChallengePoolService challengePoolService;
     private final ChallengeLogRepository challengeLogRepository;
+    private final SeasonalChallengeRepository seasonalChallengeRepository;
     private final MongoTemplate mongoTemplate;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -134,6 +137,105 @@ public class ChallengeNotificationScheduler {
             log.info("CHALLENGE_REMINDER sent to {} users (out of {} active)", sent, activeUsers.size());
         } catch (Exception e) {
             log.error("Challenge reminder notification scheduler failed — will retry next cycle", e);
+        }
+    }
+
+    /**
+     * Saturday at 10:00 UTC — remind active users about the weekly challenge
+     * if they haven't completed it yet. ~48 hours before week ends (Sunday midnight).
+     */
+    @Scheduled(cron = "0 0 10 * * SAT")
+    public void sendWeeklyChallengeReminders() {
+        try {
+            ChallengeDefinition weekly = challengePoolService.getThisWeekChallenge();
+            if (weekly == null) {
+                log.info("No weekly challenge active, skipping weekly reminder");
+                return;
+            }
+
+            LocalDate today = LocalDate.now(ZoneId.of("UTC"));
+            String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
+                    today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+
+            List<Document> activeUsers = findActiveUsers();
+            int sent = 0;
+            for (Document user : activeUsers) {
+                String userId = user.getString("userId");
+                String displayName = user.getString("displayName");
+                if (userId == null) continue;
+
+                if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey)) {
+                    continue;
+                }
+
+                ReminderEvent event = ReminderEvent.builder()
+                        .userId(userId)
+                        .displayName(displayName != null ? displayName : "Chef")
+                        .reminderType("CHALLENGE_REMINDER")
+                        .content(String.format(
+                                "\uD83D\uDCC5 Weekly challenge ending soon: %s — 2 days left!",
+                                weekly.getTitle()))
+                        .priority(ReminderEvent.ReminderPriority.HIGH)
+                        .hoursRemaining(48)
+                        .challengeCategory(weekly.getId())
+                        .build();
+
+                kafkaTemplate.send(REMINDER_TOPIC, event);
+                sent++;
+            }
+            log.info("WEEKLY_CHALLENGE_REMINDER sent to {} users", sent);
+        } catch (Exception e) {
+            log.error("Weekly challenge reminder scheduler failed", e);
+        }
+    }
+
+    /**
+     * Daily at 09:00 UTC — remind about seasonal challenges ending within 24 hours.
+     */
+    @Scheduled(cron = "0 0 9 * * *")
+    public void sendSeasonalChallengeReminders() {
+        try {
+            Instant now = Instant.now();
+            Instant twentyFourHoursFromNow = now.plus(24, ChronoUnit.HOURS);
+
+            List<SeasonalChallenge> endingSoon = seasonalChallengeRepository
+                    .findByStatusAndEndsAtAfter("ACTIVE", now)
+                    .stream()
+                    .filter(sc -> sc.getEndsAt().isBefore(twentyFourHoursFromNow))
+                    .toList();
+
+            if (endingSoon.isEmpty()) return;
+
+            List<Document> activeUsers = findActiveUsers();
+
+            for (SeasonalChallenge sc : endingSoon) {
+                int sent = 0;
+                for (Document user : activeUsers) {
+                    String userId = user.getString("userId");
+                    String displayName = user.getString("displayName");
+                    if (userId == null) continue;
+
+                    ReminderEvent event = ReminderEvent.builder()
+                            .userId(userId)
+                            .displayName(displayName != null ? displayName : "Chef")
+                            .reminderType("CHALLENGE_REMINDER")
+                            .content(String.format(
+                                    "%s Seasonal challenge ending tomorrow: %s — Don't miss the %s badge!",
+                                    sc.getEmoji() != null ? sc.getEmoji() : "\uD83C\uDF1F",
+                                    sc.getTitle(),
+                                    sc.getRewardBadgeName() != null ? sc.getRewardBadgeName() : "exclusive"))
+                            .priority(ReminderEvent.ReminderPriority.HIGH)
+                            .hoursRemaining(24)
+                            .challengeCategory(sc.getId())
+                            .build();
+
+                    kafkaTemplate.send(REMINDER_TOPIC, event);
+                    sent++;
+                }
+                log.info("SEASONAL_CHALLENGE_REMINDER for '{}' sent to {} users", sc.getTitle(), sent);
+            }
+        } catch (Exception e) {
+            log.error("Seasonal challenge reminder scheduler failed", e);
         }
     }
 

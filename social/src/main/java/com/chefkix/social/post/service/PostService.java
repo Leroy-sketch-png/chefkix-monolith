@@ -1,7 +1,9 @@
 package com.chefkix.social.post.service;
 
 import com.chefkix.culinary.api.ContentModerationProvider;
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.post.enums.PostStatus;
 import com.chefkix.social.post.enums.PostType;
@@ -13,24 +15,28 @@ import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.event.PostLikeEvent;
 import com.chefkix.shared.event.UserMentionEvent;
+import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.social.api.dto.PostDetail;
 import com.chefkix.social.api.dto.PostLinkInfo;
 import com.chefkix.social.api.dto.RecentCookRequest;
 import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
-import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.shared.event.PostCreatedEvent;
 import com.chefkix.social.post.dto.response.PostLikeResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.response.PostSaveResponse;
 import com.chefkix.social.post.dto.response.PollVoteResponse;
+import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
+import com.chefkix.social.post.dto.response.BattleVoteResponse;
+import com.chefkix.social.post.dto.response.TasteProfileResponse;
 import com.chefkix.social.post.entity.CoChef;
 import com.chefkix.social.post.entity.PollData;
 import com.chefkix.social.post.entity.PollVote;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.entity.PostLike;
 import com.chefkix.social.post.entity.PostSave;
+import com.chefkix.social.post.entity.BattleVote;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.mapper.PostMapper;
@@ -39,6 +45,7 @@ import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.PostSaveRepository;
 import com.chefkix.social.post.repository.PollVoteRepository;
 import com.chefkix.social.post.repository.PlateRatingRepository;
+import com.chefkix.social.post.repository.BattleVoteRepository;
 import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.social.post.repository.CommentLikeRepository;
@@ -46,7 +53,6 @@ import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.entity.PlateRating;
-import com.chefkix.social.post.dto.request.PlateRateRequest;
 import com.chefkix.social.post.dto.response.PlateRateResponse;
 import com.chefkix.shared.util.UploadImageFile;
 import lombok.AccessLevel;
@@ -95,6 +101,7 @@ public class PostService {
     PostSaveRepository postSaveRepository;
     PollVoteRepository pollVoteRepository;
     PlateRatingRepository plateRatingRepository;
+    BattleVoteRepository battleVoteRepository;
     CommentRepository commentRepository;
     ReplyRepository replyRepository;
     CommentLikeRepository commentLikeRepository;
@@ -110,6 +117,7 @@ public class PostService {
     ProfileProvider profileProvider;
     @Lazy SessionProvider sessionProvider;
     ContentModerationProvider contentModerationProvider;
+    RecipeProvider recipeProvider;
 
     @Qualifier("taskExecutor")
     Executor taskExecutor;
@@ -117,8 +125,6 @@ public class PostService {
     @NonFinal
     @Value("${app.public-base-url:http://localhost:3000}")
     String publicBaseUrl;
-
-    private static final double GRAVITY = 1.8; // Hệ số dùng cho thuật toán Trending (nếu cần sau này)
 
     // ========================================================================
     // 1. CREATE POST (ASYNC PARALLEL)
@@ -129,7 +135,7 @@ public class PostService {
     // ========================================================================
     public PostResponse createPersonalPost(PostCreationRequest request, String userId) {
         PostType type = request.getPostType() != null ? request.getPostType() : PostType.PERSONAL;
-        log.info("Bắt đầu tạo {} post cho user: {}", type, userId);
+        log.info("Starting to create {} post for user: {}", type, userId);
 
         // Personal/Quick posts go straight to ACTIVE.
         // We pull the isHidden value directly from the DTO.
@@ -140,7 +146,7 @@ public class PostService {
     // 1B. CREATE GROUP POST
     // ========================================================================
     public PostResponse createGroupPost(String groupId, PostCreationRequest request, String userId) {
-        log.info("Bắt đầu tạo GROUP post trong group {} cho user: {}", groupId, userId);
+        log.info("Starting to create GROUP post in group {} for user: {}", groupId, userId);
 
         // 1. SECURITY CHECK: Ensure they are in the group
         boolean isMember = groupMemberRepository.existsByGroupIdAndUserId(groupId, userId);
@@ -163,10 +169,10 @@ public class PostService {
                                             PostStatus status, boolean isHidden) {
         long startTime = System.currentTimeMillis();
 
-        log.info("Bắt đầu tạo post cho user: {}", userId);
+        log.info("Starting to create post for user: {}", userId);
 
         try {
-            // Task A: Upload ảnh (Chạy song song)
+            // Task A: Upload images (Run in parallel)
             List<CompletableFuture<String>> uploadFutures = new ArrayList<>();
             if (request.getPhotoUrls() != null && !request.getPhotoUrls().isEmpty()) {
                 for (MultipartFile photo : request.getPhotoUrls()) {
@@ -196,7 +202,7 @@ public class PostService {
                         () -> {
                             try {
                                 SessionInfo session = sessionProvider.getSession(request.getSessionId());
-                                if (session == null) throw new AppException(ErrorCode.SESSION_NOT_FOUND, "Fake session ID!");
+                                if (session == null) throw new AppException(ErrorCode.SESSION_NOT_FOUND);
 
                                 // Validate: must be own session
                                 if (!session.getUserId().equals(userId)) {
@@ -218,11 +224,11 @@ public class PostService {
                 sessionFuture = CompletableFuture.completedFuture(null);
             }
 
-            // CHỜ TẤT CẢ HOÀN THÀNH
+            // WAIT FOR ALL TO COMPLETE
             CompletableFuture<Void> allUploads = CompletableFuture.allOf(uploadFutures.toArray(new CompletableFuture[0]));
             CompletableFuture.allOf(allUploads, profileFuture, sessionFuture).join();
 
-            // GOM KẾT QUẢ
+            // COLLECT RESULTS
             List<String> photoUrls = uploadFutures.stream()
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
@@ -230,7 +236,7 @@ public class PostService {
             BasicProfileInfo userProfile = profileFuture.join();
             SessionInfo session = sessionFuture.join();
 
-            log.info("Xử lý xong I/O trong {}ms", System.currentTimeMillis() - startTime);
+            log.info("I/O processing completed in {}ms", System.currentTimeMillis() - startTime);
 
             // AI CONTENT MODERATION
             if (request.getContent() != null && !request.getContent().isBlank()) {
@@ -241,11 +247,11 @@ public class PostService {
                 }
             }
 
-            // LƯU VÀO DB
+            // SAVE TO DB
             return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 
         } catch (CompletionException e) {
-            log.error("Lỗi song song processAndSavePost", e);
+            log.error("Parallel error in processAndSavePost", e);
             Throwable cause = e.getCause();
             if (cause instanceof AppException) throw (AppException) cause;
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -291,6 +297,41 @@ public class PostService {
                     .votesA(0)
                     .votesB(0)
                     .build());
+        }
+
+        // RECIPE REVIEW DATA
+        if (type == PostType.RECIPE_REVIEW) {
+            if (request.getReviewRating() == null || request.getReviewRating() < 1 || request.getReviewRating() > 5) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Review rating must be between 1 and 5");
+            }
+            if (session == null) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Recipe review requires a cooking session");
+            }
+            post.setReviewRating(request.getReviewRating());
+        }
+
+        // RECIPE BATTLE DATA
+        if (type == PostType.RECIPE_BATTLE) {
+            if (!StringUtils.hasText(request.getBattleRecipeIdA()) || !StringUtils.hasText(request.getBattleRecipeIdB())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Recipe battle requires two recipe IDs");
+            }
+            if (request.getBattleRecipeIdA().equals(request.getBattleRecipeIdB())) {
+                throw new AppException(ErrorCode.INVALID_INPUT, "Battle recipes must be different");
+            }
+            RecipeSummaryInfo recipeA = recipeProvider.getRecipeSummary(request.getBattleRecipeIdA());
+            RecipeSummaryInfo recipeB = recipeProvider.getRecipeSummary(request.getBattleRecipeIdB());
+            if (recipeA == null || recipeB == null) {
+                throw new AppException(ErrorCode.RECIPE_NOT_FOUND, "One or both battle recipes not found");
+            }
+            post.setBattleRecipeIdA(recipeA.getId());
+            post.setBattleRecipeIdB(recipeB.getId());
+            post.setBattleRecipeTitleA(recipeA.getTitle());
+            post.setBattleRecipeTitleB(recipeB.getTitle());
+            post.setBattleRecipeImageA(recipeA.getCoverImageUrl());
+            post.setBattleRecipeImageB(recipeB.getCoverImageUrl());
+            post.setBattleVotesA(0);
+            post.setBattleVotesB(0);
+            post.setBattleEndsAt(Instant.now().plusSeconds(48 * 60 * 60)); // 48 hours
         }
 
         // LINK TO SESSION
@@ -378,7 +419,7 @@ public class PostService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION, "You cannot edit this post");
         }
 
-        // Logic chặn sửa sau 1 tiếng (Tùy business, có thể bỏ nếu muốn)
+        // Block editing after 1 hour (Configurable by business, can be removed if needed)
         Instant oneHourAfterCreation = post.getCreatedAt().plusSeconds(3600);
         if (Instant.now().isAfter(oneHourAfterCreation)) {
             throw new AppException(ErrorCode.POST_EDIT_EXPIRED, "You can no longer edit this post");
@@ -410,7 +451,7 @@ public class PostService {
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND, "Post not found"));
 
         if (!post.getUserId().equals(userId)) {
-            // Admin có thể xóa (nếu cần check role), ở đây check đơn giản
+            // Admin can delete (if role check needed), simple check here
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -501,6 +542,9 @@ public class PostService {
             sendLikeNotification(userId, post);
         }
 
+        // Award social XP to the liker (1 XP per like)
+        sendSocialXpEvent(userId, 1.0, "SOCIAL_LIKE", post.getId(), "Liked a post");
+
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostLikeResponse.builder().isLiked(true).likeCount((int) likeCount).build();
     }
@@ -530,7 +574,7 @@ public class PostService {
     }
 
     private void sendLikeNotification(String userId, Post post) {
-        // Nên chạy Async hoặc Fire-and-forget để không chặn luồng chính
+        // Should run Async or Fire-and-forget to not block main thread
         CompletableFuture.runAsync(() -> {
             try {
                     BasicProfileInfo profile = null;
@@ -555,7 +599,22 @@ public class PostService {
             } catch (Exception e) {
                 log.error("Error sending like notification", e);
             }
-        }, taskExecutor); // Tận dụng lại executor
+        }, taskExecutor); // Reuse executor
+    }
+
+    private void sendSocialXpEvent(String userId, double amount, String source, String postId, String description) {
+        try {
+            XpRewardEvent xpEvent = XpRewardEvent.builder()
+                    .userId(userId)
+                    .amount(amount)
+                    .source(source)
+                    .postId(postId)
+                    .description(description)
+                    .build();
+            kafkaTemplate.send("xp-delivery", xpEvent);
+        } catch (Exception e) {
+            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+        }
     }
 
     // ========================================================================
@@ -610,7 +669,25 @@ public class PostService {
     private Page<PostResponse> getForYouFeed(Pageable pageable, String currentUserId) {
         Map<String, Double> tasteWeights = buildWeightedTasteProfile(currentUserId);
 
-        // Cold start: no interaction history -> trending fallback
+        // Cold start: use onboarding preferences as taste bootstrap
+        if (tasteWeights.isEmpty()) {
+            try {
+                List<String> prefs = profileProvider.getUserPreferences(currentUserId);
+                if (prefs != null && !prefs.isEmpty()) {
+                    // Convert preferences to equal-weight taste profile
+                    double weight = 1.0 / prefs.size();
+                    Map<String, Double> bootstrapWeights = new java.util.HashMap<>();
+                    for (String pref : prefs) {
+                        bootstrapWeights.put(pref.toLowerCase().trim(), weight);
+                    }
+                    tasteWeights = bootstrapWeights;
+                }
+            } catch (Exception e) {
+                log.debug("[FEED] Could not load preferences for cold start: {}", e.getMessage());
+            }
+        }
+
+        // Still no taste signal? Pure trending fallback
         if (tasteWeights.isEmpty()) {
             return getAllPosts(1, pageable, currentUserId);
         }
@@ -831,7 +908,8 @@ public class PostService {
 
     /**
      * Builds a weighted taste profile: tag -> normalized weight (0..1).
-     * Saves (2x weight) signal stronger intent than likes.
+     * 7-signal: saves (2x), likes (1x), dwell (0.75-2.5x graduated), views (0.5x),
+     * comments (1.8x), creation (2.5x), search queries (0.3x per word).
      */
     private Map<String, Double> buildWeightedTasteProfile(String currentUserId) {
         // Get recent liked posts (last 100)
@@ -853,21 +931,45 @@ public class PostService {
         Set<String> savedPostIds = new java.util.HashSet<>();
         recentSaves.forEach(s -> savedPostIds.add(s.getPostId()));
 
+        // Behavioral signals: views (0.5x), dwell (0.75-2.5x graduated), comments (1.8x), creation (2.5x)
+        Map<String, Double> behavioralWeights = profileProvider.getBehavioralPostWeights(currentUserId);
+
         Set<String> allPostIds = new java.util.HashSet<>(likedPostIds);
         allPostIds.addAll(savedPostIds);
-
-        if (allPostIds.isEmpty()) return Map.of();
-
-        Query tagQuery = new Query(Criteria.where("_id").in(allPostIds));
-        tagQuery.fields().include("tags").include("_id");
-        List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
+        allPostIds.addAll(behavioralWeights.keySet());
 
         Map<String, Double> tagWeights = new java.util.HashMap<>();
-        for (Post p : posts) {
-            if (p.getTags() == null) continue;
-            double weight = savedPostIds.contains(p.getId()) ? 2.0 : 1.0;
-            for (String tag : p.getTags()) {
-                tagWeights.merge(tag.toLowerCase().trim(), weight, Double::sum);
+
+        if (!allPostIds.isEmpty()) {
+            Query tagQuery = new Query(Criteria.where("_id").in(allPostIds));
+            tagQuery.fields().include("tags").include("_id");
+            List<Post> posts = mongoTemplate.find(tagQuery, Post.class);
+
+            for (Post p : posts) {
+                if (p.getTags() == null) continue;
+                // Explicit signals: saves (2x), likes (1x)
+                double explicitWeight = savedPostIds.contains(p.getId()) ? 2.0
+                        : likedPostIds.contains(p.getId()) ? 1.0 : 0.0;
+                // Behavioral signals from event tracking
+                double behavioralWeight = behavioralWeights.getOrDefault(p.getId(), 0.0);
+                double totalWeight = explicitWeight + behavioralWeight;
+                if (totalWeight <= 0) continue;
+
+                for (String tag : p.getTags()) {
+                    tagWeights.merge(tag.toLowerCase().trim(), totalWeight, (a, b) -> a + b);
+                }
+            }
+        }
+
+        // Search query signal: each word in recent searches gets 0.3x weight as a tag
+        // This captures intent even when the user didn't interact with results
+        List<String> searchQueries = profileProvider.getRecentSearchQueries(currentUserId);
+        for (String query : searchQueries) {
+            for (String word : query.split("\\s+")) {
+                String normalized = word.toLowerCase().trim();
+                if (normalized.length() >= 3) { // skip short words like "a", "in"
+                    tagWeights.merge(normalized, 0.3, (a, b) -> a + b);
+                }
             }
         }
 
@@ -882,6 +984,99 @@ public class PostService {
                 .forEach(e -> normalized.put(e.getKey(), e.getValue() / maxWeight));
 
         return normalized;
+    }
+
+    /**
+     * Public taste profile for a user: tag weights, cuisine distribution, top cuisines.
+     * Combines the internal 5-signal taste vector with cuisine classification.
+     */
+    public TasteProfileResponse getTasteProfile(String userId) {
+        Map<String, Double> tasteVector = buildWeightedTasteProfile(userId);
+
+        if (tasteVector.isEmpty()) {
+            return TasteProfileResponse.builder()
+                    .tasteVector(Map.of())
+                    .cuisineDistribution(List.of())
+                    .totalInteractions(0)
+                    .topCuisines(List.of())
+                    .build();
+        }
+
+        // Known cuisine tags (lowercase) — classify tags into cuisines
+        Map<String, String> tagToCuisine = Map.ofEntries(
+                Map.entry("italian", "Italian"), Map.entry("pasta", "Italian"), Map.entry("pizza", "Italian"),
+                Map.entry("risotto", "Italian"), Map.entry("tiramisu", "Italian"),
+                Map.entry("asian", "Asian"), Map.entry("chinese", "Chinese"), Map.entry("japanese", "Japanese"),
+                Map.entry("sushi", "Japanese"), Map.entry("ramen", "Japanese"), Map.entry("korean", "Korean"),
+                Map.entry("thai", "Thai"), Map.entry("vietnamese", "Vietnamese"), Map.entry("indian", "Indian"),
+                Map.entry("curry", "Indian"), Map.entry("tandoori", "Indian"), Map.entry("biryani", "Indian"),
+                Map.entry("mexican", "Mexican"), Map.entry("tacos", "Mexican"), Map.entry("burrito", "Mexican"),
+                Map.entry("french", "French"), Map.entry("croissant", "French"), Map.entry("souffle", "French"),
+                Map.entry("mediterranean", "Mediterranean"), Map.entry("greek", "Mediterranean"),
+                Map.entry("middle-eastern", "Middle Eastern"), Map.entry("lebanese", "Middle Eastern"),
+                Map.entry("turkish", "Middle Eastern"), Map.entry("falafel", "Middle Eastern"),
+                Map.entry("american", "American"), Map.entry("bbq", "American"), Map.entry("burger", "American"),
+                Map.entry("southern", "American"), Map.entry("cajun", "American"),
+                Map.entry("african", "African"), Map.entry("ethiopian", "African"),
+                Map.entry("caribbean", "Caribbean"), Map.entry("jamaican", "Caribbean"),
+                Map.entry("spanish", "Spanish"), Map.entry("tapas", "Spanish"), Map.entry("paella", "Spanish")
+        );
+
+        // Aggregate weights by cuisine
+        Map<String, Double> cuisineWeights = new java.util.HashMap<>();
+        Map<String, Integer> cuisineCounts = new java.util.HashMap<>();
+        double uncategorizedWeight = 0;
+        int totalCount = 0;
+
+        for (var entry : tasteVector.entrySet()) {
+            String tag = entry.getKey().toLowerCase().trim();
+            double weight = entry.getValue();
+            String cuisine = tagToCuisine.get(tag);
+            totalCount++;
+            if (cuisine != null) {
+                cuisineWeights.merge(cuisine, weight, (a, b) -> a + b);
+                cuisineCounts.merge(cuisine, 1, (a, b) -> a + b);
+            } else {
+                uncategorizedWeight += weight;
+            }
+        }
+
+        // Compute percentages
+        double totalWeight = cuisineWeights.values().stream().mapToDouble(Double::doubleValue).sum() + uncategorizedWeight;
+        if (totalWeight <= 0) totalWeight = 1;
+
+        double finalTotalWeight = totalWeight;
+        List<TasteProfileResponse.CuisineBreakdown> distribution = cuisineWeights.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(10)
+                .map(e -> TasteProfileResponse.CuisineBreakdown.builder()
+                        .cuisine(e.getKey())
+                        .percentage(Math.round(e.getValue() / finalTotalWeight * 1000.0) / 10.0) // 1 decimal
+                        .interactionCount(cuisineCounts.getOrDefault(e.getKey(), 0))
+                        .build())
+                .toList();
+
+        // Add "Other" if significant
+        if (uncategorizedWeight > 0 && distribution.size() < 10) {
+            distribution = new java.util.ArrayList<>(distribution);
+            distribution.add(TasteProfileResponse.CuisineBreakdown.builder()
+                    .cuisine("Other")
+                    .percentage(Math.round(uncategorizedWeight / finalTotalWeight * 1000.0) / 10.0)
+                    .interactionCount(0)
+                    .build());
+        }
+
+        List<String> topCuisines = distribution.stream()
+                .limit(3)
+                .map(TasteProfileResponse.CuisineBreakdown::getCuisine)
+                .toList();
+
+        return TasteProfileResponse.builder()
+                .tasteVector(tasteVector)
+                .cuisineDistribution(distribution)
+                .totalInteractions(totalCount)
+                .topCuisines(topCuisines)
+                .build();
     }
 
     private Set<String> getInteractedPostIds(String currentUserId) {
@@ -1063,6 +1258,10 @@ public class PostService {
             if (post.getPostType() == PostType.POLL) {
                 post.setUserVote(pollVoteMap.get(post.getId()));
             }
+            if (post.getPostType() == PostType.RECIPE_BATTLE) {
+                battleVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                        .ifPresent(v -> post.setUserBattleVote(v.getChoice()));
+            }
             post.setUserPlateRating(plateRatingMap.get(post.getId()));
         });
     }
@@ -1081,6 +1280,10 @@ public class PostService {
             if (post.getPostType() == PostType.POLL) {
                 pollVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
                         .ifPresent(v -> post.setUserVote(v.getOption()));
+            }
+            if (post.getPostType() == PostType.RECIPE_BATTLE) {
+                battleVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
+                        .ifPresent(v -> post.setUserBattleVote(v.getChoice()));
             }
             plateRatingRepository.findByPostIdAndUserId(post.getId(), currentUserId)
                     .ifPresent(pr -> post.setUserPlateRating(pr.getRating()));
@@ -1294,6 +1497,9 @@ public class PostService {
                 .createdDate(LocalDateTime.now())
                 .build();
         postSaveRepository.save(postSave);
+
+        // Award social XP to the saver (1 XP per save)
+        sendSocialXpEvent(userId, 1.0, "SOCIAL_SAVE", postId, "Saved a post");
         
         long saveCount = postSaveRepository.countByPostId(postId);
         return PostSaveResponse.builder()
@@ -1404,5 +1610,150 @@ public class PostService {
 
         postRepository.save(post);
         log.info("Auto-created RECENT_COOK post for user {} (recipe: {})", request.getUserId(), request.getRecipeTitle());
+    }
+
+    // ========================================================================
+    // RECIPE REVIEWS
+    // ========================================================================
+
+    /**
+     * Get all reviews for a specific recipe, newest first.
+     */
+    public Page<PostResponse> getReviewsForRecipe(String recipeId, Pageable pageable, String currentUserId) {
+        Page<Post> posts = postRepository.findByRecipeIdAndPostTypeAndHiddenFalseOrderByCreatedAtDesc(
+                recipeId, PostType.RECIPE_REVIEW, pageable);
+        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(responses, currentUserId);
+        return responses;
+    }
+
+    /**
+     * Get aggregate review stats for a recipe (average rating, total count).
+     */
+    public RecipeReviewStatsResponse getRecipeReviewStats(String recipeId) {
+        // Use MongoTemplate for aggregation (avg rating)
+        var matchCriteria = Criteria.where("recipeId").is(recipeId)
+                .and("postType").is(PostType.RECIPE_REVIEW)
+                .and("hidden").is(false)
+                .and("reviewRating").ne(null);
+
+        Query countQuery = Query.query(matchCriteria);
+        long totalReviews = mongoTemplate.count(countQuery, Post.class);
+
+        if (totalReviews == 0) {
+            return RecipeReviewStatsResponse.builder()
+                    .recipeId(recipeId)
+                    .averageRating(0.0)
+                    .totalReviews(0)
+                    .build();
+        }
+
+        // Use Spring Data MongoDB aggregation for average
+        var aggregation = org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+                org.springframework.data.mongodb.core.aggregation.Aggregation.match(matchCriteria),
+                org.springframework.data.mongodb.core.aggregation.Aggregation.group()
+                        .avg("reviewRating").as("avgRating")
+                        .count().as("count")
+        );
+
+        var results = mongoTemplate.aggregate(aggregation, "post", java.util.Map.class);
+        var firstResult = results.getUniqueMappedResult();
+
+        double avgRating = 0.0;
+        if (firstResult != null && firstResult.get("avgRating") != null) {
+            avgRating = ((Number) firstResult.get("avgRating")).doubleValue();
+            avgRating = Math.round(avgRating * 10.0) / 10.0; // Round to 1 decimal
+        }
+
+        return RecipeReviewStatsResponse.builder()
+                .recipeId(recipeId)
+                .averageRating(avgRating)
+                .totalReviews(totalReviews)
+                .build();
+    }
+
+    // ========================================================================
+    // RECIPE BATTLES
+    // ========================================================================
+
+    /**
+     * Vote in a recipe battle. One vote per user; toggle removes vote.
+     */
+    @Transactional
+    public BattleVoteResponse voteBattle(String postId, String choice) {
+        if (!"A".equals(choice) && !"B".equals(choice)) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "Battle vote must be 'A' or 'B'");
+        }
+
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        if (post.getPostType() != PostType.RECIPE_BATTLE) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "This post is not a recipe battle");
+        }
+
+        if (post.getBattleEndsAt() != null && Instant.now().isAfter(post.getBattleEndsAt())) {
+            throw new AppException(ErrorCode.INVALID_INPUT, "This battle has ended");
+        }
+
+        Query query = Query.query(Criteria.where("_id").is(postId));
+        Optional<BattleVote> existingVote = battleVoteRepository.findByPostIdAndUserId(postId, userId);
+
+        if (existingVote.isPresent()) {
+            String oldChoice = existingVote.get().getChoice();
+            if (oldChoice.equals(choice)) {
+                // Toggle off — remove vote
+                battleVoteRepository.delete(existingVote.get());
+                String decField = "A".equals(oldChoice) ? "battleVotesA" : "battleVotesB";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                return BattleVoteResponse.builder()
+                        .userVote(null)
+                        .votesA(Math.max(0, updated.getBattleVotesA()))
+                        .votesB(Math.max(0, updated.getBattleVotesB()))
+                        .build();
+            } else {
+                // Switch vote
+                existingVote.get().setChoice(choice);
+                battleVoteRepository.save(existingVote.get());
+                String decField = "A".equals(oldChoice) ? "battleVotesA" : "battleVotesB";
+                String incField = "A".equals(choice) ? "battleVotesA" : "battleVotesB";
+                mongoTemplate.updateFirst(query, new Update().inc(decField, -1).inc(incField, 1), Post.class);
+                Post updated = postRepository.findById(postId).orElse(post);
+                return BattleVoteResponse.builder()
+                        .userVote(choice)
+                        .votesA(Math.max(0, updated.getBattleVotesA()))
+                        .votesB(Math.max(0, updated.getBattleVotesB()))
+                        .build();
+            }
+        }
+
+        // New vote
+        battleVoteRepository.save(BattleVote.builder()
+                .postId(postId)
+                .userId(userId)
+                .choice(choice)
+                .build());
+        String incField = "A".equals(choice) ? "battleVotesA" : "battleVotesB";
+        mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
+        Post updated = postRepository.findById(postId).orElse(post);
+
+        return BattleVoteResponse.builder()
+                .userVote(choice)
+                .votesA(updated.getBattleVotesA())
+                .votesB(updated.getBattleVotesB())
+                .build();
+    }
+
+    /**
+     * Get active recipe battles (not yet ended), ordered by ending soonest.
+     */
+    public Page<PostResponse> getActiveBattles(Pageable pageable, String currentUserId) {
+        Page<Post> posts = postRepository.findByPostTypeAndBattleEndsAtAfterAndHiddenFalseOrderByBattleEndsAtAsc(
+                PostType.RECIPE_BATTLE, Instant.now(), pageable);
+        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(responses, currentUserId);
+        return responses;
     }
 }

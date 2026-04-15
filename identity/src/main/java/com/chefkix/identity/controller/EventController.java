@@ -30,4 +30,13 @@ public class EventController {
         return ResponseEntity.ok(
                 ApiResponse.success(Map.of("accepted", accepted, "total", request.getEvents().size())));
     }
+
+    @DeleteMapping("/my-data")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> deleteMyEventData(
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        long deleted = eventTrackingService.deleteUserEvents(userId);
+        return ResponseEntity.ok(
+                ApiResponse.success(Map.of("deleted", deleted)));
+    }
 }

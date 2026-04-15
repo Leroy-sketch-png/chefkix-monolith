@@ -18,7 +18,7 @@ public class UserStatusService {
     public void setUserOnline(String keycloakId) {
         var userActivity = userActivityRepository.findByKeycloakId(keycloakId)
                 .orElseGet(() -> {
-                    // Nếu chưa có record thì tạo mới (Optional, tùy logic hệ thống)
+                    // If no record exists, create a new one (Optional, depends on system logic)
                     return UserActivity.builder().keycloakId(keycloakId).build();
                 });
 
@@ -32,7 +32,7 @@ public class UserStatusService {
 
         if (userActivity != null) {
             userActivity.setIsOnline(false);
-            userActivity.setLastActive(LocalDateTime.now()); // Lưu thời gian offline
+            userActivity.setLastActive(LocalDateTime.now()); // Save the offline timestamp
             userActivityRepository.save(userActivity);
             log.info("User {} is now OFFLINE at {}", keycloakId, userActivity.getLastActive());
         }

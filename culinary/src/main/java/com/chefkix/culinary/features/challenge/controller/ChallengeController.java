@@ -9,6 +9,7 @@ import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeRespo
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
 import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,8 +25,8 @@ public class ChallengeController {
     private final ChallengeService challengeService;
 
     @GetMapping("/today")
-    public ApiResponse<ChallengeResponse> getTodayChallenge() {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ApiResponse<ChallengeResponse> getTodayChallenge(Authentication authentication) {
+        String userId = authentication != null ? authentication.getName() : null;
         ChallengeResponse response = challengeService.getTodayChallenge(userId);
         return ApiResponse.success(response);
     }
@@ -43,22 +44,22 @@ public class ChallengeController {
     }
 
     @GetMapping("/weekly")
-    public ApiResponse<WeeklyChallengeResponse> getWeeklyChallenge() {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ApiResponse<WeeklyChallengeResponse> getWeeklyChallenge(Authentication authentication) {
+        String userId = authentication != null ? authentication.getName() : null;
         WeeklyChallengeResponse response = challengeService.getWeeklyChallenge(userId);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/community")
-    public ApiResponse<List<CommunityChallengeResponse>> getCommunityChallenge() {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ApiResponse<List<CommunityChallengeResponse>> getCommunityChallenge(Authentication authentication) {
+        String userId = authentication != null ? authentication.getName() : null;
         List<CommunityChallengeResponse> response = challengeService.getActiveCommunityChallenge(userId);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/seasonal")
-    public ApiResponse<List<SeasonalChallengeResponse>> getSeasonalChallenges() {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ApiResponse<List<SeasonalChallengeResponse>> getSeasonalChallenges(Authentication authentication) {
+        String userId = authentication != null ? authentication.getName() : null;
         List<SeasonalChallengeResponse> response = challengeService.getSeasonalChallenges(userId);
         return ApiResponse.success(response);
     }

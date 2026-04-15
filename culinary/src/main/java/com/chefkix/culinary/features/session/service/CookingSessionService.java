@@ -107,7 +107,7 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 1. Validate & Parse Event qua Helper
+        // 1. Validate & Parse Event via Helper
         TimerEventType eventType = helper.validateAndParseTimerEvent(userId, session, request);
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
@@ -125,7 +125,7 @@ public class CookingSessionService {
         if (session.getTimerEvents() == null) session.setTimerEvents(new ArrayList<>());
         session.getTimerEvents().add(logEvent);
 
-        // 3. Delegate logic xử lý Timer cho Helper
+        // 3. Delegate Timer handling logic to Helper
         switch (eventType) {
             case START -> helper.handleTimerStart(session, recipe, request.getStepNumber(), serverNow);
             case COMPLETE, SKIP -> helper.handleTimerStop(session, request.getStepNumber());
@@ -153,7 +153,7 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 2. Tính toán Mastery & Base XP
+        // 2. Calculate Mastery & Base XP
         double masteryMult = helper.calculateMasteryMultiplier(userId, session.getRecipeId());
         double totalEffectiveXp = recipe.getXpReward() * masteryMult;
         // Round to integers immediately to avoid floating point precision errors (e.g., 125.99999999999999)
@@ -257,7 +257,7 @@ public class CookingSessionService {
         }
 
         // 6. Sync call to identity service for XP + level-up detection
-        String description = "Hoàn thành nấu: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");
+        String description = "Completed cooking: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");
         // Deterministic idempotency key: same key used by both sync and Kafka paths
         // so that if sync succeeds, the Kafka fallback event is deduped in Redis.
         String idempotencyKey = "xp:COOKING_SESSION:" + userId + ":" + sessionId;
@@ -309,7 +309,7 @@ public class CookingSessionService {
                 .xpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null)
                 .xpMultiplierReason(coOpReason)
                 .newAchievements(newAchievements)
-                .message("Chúc mừng! + " + baseXpInt + " XP. Đăng bài để nhận thêm " + pendingXpInt + " XP!");
+                .message("Congrats! +" + baseXpInt + " XP earned. Post to unlock " + pendingXpInt + " more XP!");
 
         if (profileResult != null) {
             responseBuilder
@@ -325,13 +325,13 @@ public class CookingSessionService {
 
     @Transactional
     public SessionLinkingResponse linkSession(String userId, String sessionId, SessionLinkingRequest request) {
-        // 1. Validate Session & Post qua Helper
+        // 1. Validate Session & Post via Helper
         CookingSession session = helper.validateSessionForLinking(sessionId, userId);
         PostLinkInfo postData = helper.validateAndGetPost(request.getPostId(), userId);
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 2. Tính toán XP Link
+        // 2. Calculate XP for Linking
         int finalXpToAward = helper.calculateFinalXpForLinking(session, postData);
 
         // 3. Get badges from recipe (only awarded on post/link, not on complete)
@@ -339,7 +339,7 @@ public class CookingSessionService {
                 ? new ArrayList<>(recipe.getRewardBadges()) 
                 : new ArrayList<>();
 
-        // 4. Xử lý Side Effects (Stats, Kafka with badges, Creator Bonus)
+        // 4. Process Side Effects (Stats, Kafka with badges, Creator Bonus)
         helper.updateRecipeStats(recipe.getId(), 0, finalXpToAward);
         // Send XP + badges together in one event
         helper.sendXpEventWithBadges(userId, finalXpToAward, "LINKING_POST", sessionId, 
@@ -385,7 +385,8 @@ public class CookingSessionService {
         if (sessionOpt.isEmpty()) return null;
 
         CookingSession session = sessionOpt.get();
-        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        Recipe recipe = recipeRepository.findById(session.getRecipeId())
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
         helper.calculateRemainingTime(session); // Use helper
         return helper.mapToCurrentSessionResponse(session, recipe); // Use helper
@@ -397,7 +398,8 @@ public class CookingSessionService {
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.UNAUTHORIZED);
 
-        Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
+        Recipe recipe = recipeRepository.findById(session.getRecipeId())
+                .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
         helper.calculateRemainingTime(session);
         return helper.mapToCurrentSessionResponse(session, recipe);
     }
@@ -421,7 +423,7 @@ public class CookingSessionService {
         int currentDbStep = session.getCurrentStep();
         int newStep = currentDbStep;
 
-        // Logic điều hướng giữ nguyên vì nó gắn chặt với Session State
+        // Navigation logic kept here as it's tightly coupled with Session State
         switch (request.getAction().toLowerCase()) {
             case "next" -> newStep = (currentDbStep < totalSteps) ? currentDbStep + 1 : currentDbStep;
             case "previous" -> newStep = (currentDbStep > 1) ? currentDbStep - 1 : currentDbStep;
@@ -610,7 +612,7 @@ public class CookingSessionService {
                 .build();
     }
 
-    // Hàm này chỉ phục vụ FeignClient, logic đơn giản nên để lại
+    // This method only serves FeignClient, simple logic so kept here
     public CookingSession getSessionById(String sessionId) {
         return sessionRepository.findById(sessionId).orElse(null);
     }

@@ -18,16 +18,16 @@ public class SocialUtils {
       String currentUserId, UserProfile targetProfile) {
     String targetUserId = targetProfile.getUserId();
 
-    // 1. Kiểm tra có phải chính mình không
+    // 1. Check if it's the current user themselves
     if (currentUserId.equals(targetUserId)) {
       return RelationshipStatus.SELF;
     }
 
-    // 2. Kiểm tra xem đã là BẠN BÈ chưa
-    // (Cách kiểm tra này giả định bạn đã có object UserProfile của CHÍNH MÌNH,
-    // nếu không, bạn cần findOne profile của currentUserId trước)
+    // 2. Check if already FRIENDS
+    // (This check assumes you already have the UserProfile object of the CURRENT USER,
+    // if not, you need to findOne profile of currentUserId first)
 
-    // Cách 1: Nếu bạn đã lưu List<Friendship> (như ta bàn)
+    // Approach 1: If you already stored List<Friendship> (as discussed)
     List<Friendship> friends =
         (targetProfile.getFriends() != null) ? targetProfile.getFriends() : Collections.emptyList();
 
@@ -37,19 +37,19 @@ public class SocialUtils {
       return RelationshipStatus.FRIENDS;
     }
 
-    // 3. Nếu không phải là bạn, kiểm tra LỜI MỜI ĐÃ GỬI (REQUEST_SENT)
-    // (Mình gửi cho họ)
+    // 3. If not friends, check SENT REQUESTS (REQUEST_SENT)
+    // (Current user sent to them)
     if (friendRequestRepository.existsBySenderIdAndReceiverId(currentUserId, targetUserId)) {
       return RelationshipStatus.REQUEST_SENT;
     }
 
-    // 4. Nếu không, kiểm tra LỜI MỜI ĐÃ NHẬN (REQUEST_RECEIVED)
-    // (Họ gửi cho mình)
+    // 4. Otherwise, check RECEIVED REQUESTS (REQUEST_RECEIVED)
+    // (They sent to current user)
     if (friendRequestRepository.existsBySenderIdAndReceiverId(targetUserId, currentUserId)) {
       return RelationshipStatus.REQUEST_RECEIVED;
     }
 
-    // 5. Nếu không có gì, là NGƯỜI LẠ
+    // 5. If none of the above, they are STRANGERS
     return RelationshipStatus.NOT_FRIENDS;
   }
 }

@@ -67,7 +67,6 @@ public class TypesenseDataSyncer {
         log.info("Synced {}/{} recipes to Typesense", synced, recipes.size());
     }
 
-    @SuppressWarnings("unchecked")
     private void syncUsers() {
         List<Map<String, Object>> userProfiles = new ArrayList<>();
 

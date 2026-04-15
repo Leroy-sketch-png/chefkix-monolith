@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ChallengeRewardResult {
-    private boolean completed;    // True nếu vừa hoàn thành xong
-    private int bonusXp;          // Số XP thưởng
-    private String challengeTitle; // Tên Challenge (để hiện popup)
+    private boolean completed;    // True if just completed
+    private int bonusXp;          // Bonus XP amount
+    private String challengeTitle; // Challenge name (for displaying popup)
 }

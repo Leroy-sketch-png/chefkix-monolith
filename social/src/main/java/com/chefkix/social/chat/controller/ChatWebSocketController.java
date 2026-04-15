@@ -25,13 +25,13 @@ public class ChatWebSocketController {
     SimpMessagingTemplate messagingTemplate;
 
     /**
-     * Khi frontend gửi tin nhắn qua endpoint /app/chat.sendMessage
+     * When frontend sends a message via endpoint /app/chat.sendMessage
      */
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Valid ChatMessageRequest request) {
         ChatMessageResponse response = chatMessageService.create(request);
 
-        // Gửi lại message tới topic của conversationId để FE lắng nghe realtime
+        // Send message back to conversation topic for FE real-time listening
         messagingTemplate.convertAndSend("/topic/conversation/" + request.getConversationId(), response);
 
         log.info("Sent message to /topic/conversation/{}", request.getConversationId());

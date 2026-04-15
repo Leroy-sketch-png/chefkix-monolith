@@ -8,11 +8,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Knowledge Graph — Canonical ingredient reference.

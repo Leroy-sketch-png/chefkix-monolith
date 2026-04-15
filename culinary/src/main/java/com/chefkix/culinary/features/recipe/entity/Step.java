@@ -18,15 +18,19 @@ public class Step {
     private String videoThumbnailUrl;
     private Integer videoDurationSec;
 
-    // --- Fields khớp với AI Spec (Bạn đang thiếu 2 cái này) ---
-    private String tips;                  // Mẹo cơ bản (AI trả về field "tips")
-    private List<Ingredient> ingredients; // Nguyên liệu riêng cho bước này
+    // --- Fields matching AI Spec (previously missing) ---
+    private String tips;                  // Basic tips (AI returns "tips" field)
+    private List<Ingredient> ingredients; // Ingredients specific to this step
 
-    // --- Enriched Fields (Flattened - Để phẳng như ý bạn) ---
-    private String chefTip;              // Mẹo chuyên gia
+    // --- Enriched Fields (Flattened) ---
+    private String chefTip;              // Expert chef tip
     private String techniqueExplanation;
     private String commonMistake;
     private Integer estimatedHandsOnTime;
     private List<String> equipmentNeeded;
     private String visualCues;
+
+    // --- Step V2 Fields (Goal-oriented cooking) ---
+    private String goal;                 // What this step achieves (e.g., "Develop caramelization on the surface")
+    private List<String> microSteps;     // 2-5 atomic sub-actions for beginners
 }

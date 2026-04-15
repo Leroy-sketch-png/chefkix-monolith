@@ -12,18 +12,18 @@ import java.util.List;
 @Builder
 public class CurrentSessionResponse {
 
-    // --- CÁC TRƯỜNG CHÍNH ---
+    // --- MAIN FIELDS ---
     private String sessionId;
     private String recipeId;
     private SessionStatus status; // "in_progress", "paused", "completed", "posted"
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
 
-    // --- TIẾN ĐỘ ---
+    // --- PROGRESS ---
     private Integer currentStep;
     private List<Integer> completedSteps;
 
-    // --- TIMER (Đã tính toán) ---
+    // --- TIMER (Calculated) ---
     private List<CookingSession.ActiveTimer> activeTimers;
 
     // --- RECIPE SNAPSHOT ---
@@ -39,7 +39,7 @@ public class CurrentSessionResponse {
     private LocalDateTime postDeadline;
     private Integer daysRemaining;
 
-    // --- INNER DTO CHO RECIPE SNAPSHOT ---
+    // --- INNER DTO FOR RECIPE SNAPSHOT ---
     @Data
     @Builder
     public static class SessionRecipeInfo {

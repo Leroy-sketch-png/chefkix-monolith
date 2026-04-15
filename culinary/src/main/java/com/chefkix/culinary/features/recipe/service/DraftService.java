@@ -50,40 +50,40 @@ public class DraftService {
     public RecipeDetailResponse createDraft() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Gọi Async Author sớm (Tận dụng thời gian chờ DB để lấy user info)
-        // Frontend cần cái này để hiển thị avatar "Người soạn: Nguyễn Văn A" ngay lúc mở màn hình
+        // 1. Async Author fetch (utilize DB wait time to get user info)
+        // Frontend needs this to display the author avatar immediately when opening the screen
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(userId);
 
-        // 2. Tạo Entity RỖNG (Bare-bones)
+        // 2. Create EMPTY entity (Bare-bones)
         Recipe draft = Recipe.builder()
                 .userId(userId)
-                .status(RecipeStatus.DRAFT) // <--- QUAN TRỌNG NHẤT
+                .status(RecipeStatus.DRAFT) // <--- MOST IMPORTANT
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
 
-                // Init sẵn các list rỗng để về FE không bị null pointer
+                // Init empty lists so FE doesn't get null pointer
                 .coverImageUrl(new ArrayList<>())
                 .fullIngredientList(new ArrayList<>())
                 .steps(new ArrayList<>())
 
-                // Init các chỉ số 0
+                // Init counters to 0
                 .likeCount(0)
                 .cookCount(0)
                 .build();
 
-        // 3. Save để sinh ID (Lúc này Mongo sẽ tạo field _id)
+        // 3. Save to generate ID (Mongo will create _id field)
         draft = recipeRepository.save(draft);
 
-        // 4. Map sang Response
+        // 4. Map to Response
         RecipeDetailResponse response = mapper.toRecipeDetailResponse(draft);
         response.setRecipeStatus(RecipeStatus.DRAFT);
 
-        // 5. Join Author (Lấy kết quả Async)
-        // Thời gian save DB ~10-20ms, thời gian gọi Identity ~15-30ms
-        // -> Chạy song song giúp tiết kiệm thời gian
+        // 5. Join Author (Get Async result)
+        // DB save takes ~10-20ms, Identity call takes ~15-30ms
+        // -> Running in parallel saves time
         response.setAuthor(authorFuture.join());
 
-        // Draft thì chắc chắn chưa ai like/save
+        // Draft has no likes/saves yet
         response.setIsLiked(false);
         response.setIsSaved(false);
 
@@ -91,15 +91,15 @@ public class DraftService {
     }
 
     // =========================================================================
-    // 2. AUTO-SAVE (Logic Update mềm dẻo)
+    // 2. AUTO-SAVE (Flexible update logic)
     // =========================================================================
     @Transactional
     public RecipeDetailResponse autoSaveDraft(String id, RecipeRequest request) {
-        // 1. Tìm bài viết
+        // 1. Find the recipe
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 2. Check quyền chủ sở hữu (Security)
+        // 2. Check ownership (Security)
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!recipe.getUserId().equals(currentUserId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -111,8 +111,8 @@ public class DraftService {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 3. Map dữ liệu (QUAN TRỌNG: Chỉ map các trường khác null)
-        // Nếu FE chỉ gửi title, thì description, steps... cũ phải giữ nguyên
+        // 3. Map data (IMPORTANT: Only map non-null fields)
+        // If FE only sends title, description, steps etc. must remain unchanged
         mapper.updateRecipeFromRequest(recipe, request);
 
         // 4. EXPLICIT COLLECTION HANDLING (MapStruct doesn't handle list replacement well)
@@ -139,7 +139,7 @@ public class DraftService {
         // 5. Update Metadata
         recipe.setUpdatedAt(Instant.now());
 
-        // 6. Lưu (Không thay đổi status, không validate business rules)
+        // 6. Save (No status change, no business rule validation)
         recipe = recipeRepository.save(recipe);
 
         return mapper.toRecipeDetailResponse(recipe);
@@ -151,8 +151,8 @@ public class DraftService {
     public List<RecipeSummaryResponse> getMyDrafts() {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Bắn Async Request lấy Profile NGAY LẬP TỨC
-        // (Để nó chạy song song trong lúc đang query Database ở bước 2)
+        // 1. Fire Async Profile request IMMEDIATELY
+        // (Run in parallel while DB query is executing in step 2)
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(currentUserId);
 
         // 2. Query Database (IO Blocking)
@@ -163,17 +163,17 @@ public class DraftService {
             return Collections.emptyList();
         }
 
-        // 3. Chốt kết quả Author (JOIN)
-        // Lúc này DB đã query xong, khả năng cao là authorFuture cũng đã có kết quả -> Không phải chờ lâu
+        // 3. Resolve Author result (JOIN)
+        // By now DB query is done, and authorFuture likely has result too -> No long wait
         AuthorResponse authorProfile = authorFuture.join();
 
         // 4. Map & Enrich
         return drafts.stream()
                 .map(draft -> {
-                    // Map cơ bản
+                    // Basic mapping
                     RecipeSummaryResponse response = mapper.toRecipeSummaryResponse(draft);
 
-                    // Gán Author (Dùng chung object authorProfile cho tất cả item -> Tiết kiệm memory)
+                    // Set Author (Reuse same authorProfile object for all items -> Saves memory)
                     if (authorProfile != null) {
                         response.setAuthor(AuthorResponse.builder()
                                 .userId(authorProfile.getUserId())
@@ -182,7 +182,7 @@ public class DraftService {
                                 .username(authorProfile.getUsername())
                                 .build());
                     } else {
-                        // Fallback (Phòng trường hợp lỗi Identity)
+                        // Fallback (In case Identity service errors)
                         response.setAuthor(AuthorResponse.builder()
                                 .userId(currentUserId)
                                 .displayName("Me")
@@ -210,7 +210,7 @@ public class DraftService {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // Hard Delete (Xóa hẳn khỏi DB)
+        // Hard Delete (Remove entirely from DB)
         recipeRepository.delete(recipe);
     }
 
@@ -237,7 +237,10 @@ public class DraftService {
         // Checks: toxic content, spam, off-topic (hybrid rules + AI)
         aiIntegrationService.moderateRecipeContent(recipe);
 
-        // 5. All gates passed — publish
+        // 5. RQS SCORING (fail-open: if AI is down, publish continues without score)
+        aiIntegrationService.scoreRecipeQuality(recipe);
+
+        // 6. All gates passed — publish
         recipe.setStatus(RecipeStatus.PUBLISHED);
         recipe.setPublishedAt(Instant.now());
         recipe.setRecipeVisibility(request.getVisibility());
@@ -256,6 +259,8 @@ public class DraftService {
         return RecipePublishResponse.builder()
                 .moderationStatus(savedRecipe.getStatus())
                 .isPublished(true)
+                .qualityScore(savedRecipe.getQualityScore())
+                .qualityTier(savedRecipe.getQualityTier())
                 .build();
     }
 

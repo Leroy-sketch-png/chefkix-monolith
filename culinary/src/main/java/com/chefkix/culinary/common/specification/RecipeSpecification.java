@@ -11,13 +11,13 @@ import java.util.regex.Pattern;
 public class RecipeSpecification {
 
     /**
-     * Chuyển đổi từ DTO Search sang Criteria của MongoDB.
-     * Tương đương với việc viết mệnh đề WHERE trong SQL.
+     * Convert from Search DTO to MongoDB Criteria.
+     * Equivalent to writing a WHERE clause in SQL.
      */
     public static Criteria getCriteria(RecipeSearchQuery queryDto) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        // 1. Base Condition: Luôn chỉ lấy các bài đã Publish
+        // 1. Base Condition: Always only fetch published recipes
         // NOTE: Entity uses 'status' enum (DRAFT, PUBLISHED, ARCHIVED), NOT boolean 'isPublished'
         criteriaList.add(Criteria.where("status").is("PUBLISHED"));
 
@@ -49,8 +49,8 @@ public class RecipeSpecification {
             ));
         }
 
-        // 2. Tìm kiếm theo Từ khóa (Title hoặc Description)
-        // Sử dụng Regex để tìm gần đúng (LIKE %query%), 'i' là case-insensitive (không phân biệt hoa thường)
+        // 2. Search by keyword (Title or Description)
+        // Use Regex for fuzzy matching (LIKE %query%), 'i' is case-insensitive
         if (StringUtils.hasText(queryDto.getQuery())) {
             String escaped = Pattern.quote(queryDto.getQuery().trim());
             String regex = ".*" + escaped + ".*";
@@ -61,30 +61,30 @@ public class RecipeSpecification {
             ));
         }
 
-        // 3. Lọc theo Độ khó (Exact Match)
+        // 3. Filter by Difficulty (Exact Match)
         if (queryDto.getDifficulty() != null) {
             criteriaList.add(Criteria.where("difficulty").is(queryDto.getDifficulty()));
         }
 
-        // 4. Lọc theo Loại ẩm thực (Exact Match)
+        // 4. Filter by Cuisine Type (Exact Match)
         if (StringUtils.hasText(queryDto.getCuisineType())) {
             criteriaList.add(Criteria.where("cuisineType").is(queryDto.getCuisineType()));
         }
 
-        // 5. Lọc theo Thời gian nấu (Less Than or Equal)
-        // Tìm các món nấu nhanh hơn hoặc bằng thời gian user chọn
+        // 5. Filter by Cook Time (Less Than or Equal)
+        // Find recipes that cook faster than or equal to the time the user selected
         if (queryDto.getMaxTimeMinutes() != null) {
             criteriaList.add(Criteria.where("totalTimeMinutes").lte(queryDto.getMaxTimeMinutes()));
         }
 
-        // 6. Lọc theo Chế độ ăn (Dietary Tags)
-        // Logic: Món ăn phải chứa TẤT CẢ các tag user chọn (AND logic)
-        // Ví dụ: Chọn "Vegan" và "Keto" -> Món ăn phải có cả 2 tag này.
+        // 6. Filter by Dietary Tags
+        // Logic: Recipe must contain ALL tags the user selected (AND logic)
+        // Example: Select "Vegan" and "Keto" -> Recipe must have both tags.
         if (queryDto.getDietaryTags() != null && !queryDto.getDietaryTags().isEmpty()) {
             criteriaList.add(Criteria.where("dietaryTags").all(queryDto.getDietaryTags()));
         }
 
-        // 7. Gộp tất cả điều kiện lại bằng toán tử AND
+        // 7. Combine all conditions using AND operator
         return new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
     }
 }

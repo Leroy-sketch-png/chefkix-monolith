@@ -1,6 +1,7 @@
 package com.chefkix.social.post.repository;
 
 import com.chefkix.social.post.entity.Post;
+import com.chefkix.social.post.enums.PostType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -23,6 +24,16 @@ public interface PostRepository extends MongoRepository<Post, String> {
     Page<Post> findByUserIdInAndHiddenFalseOrderByCreatedAtDesc(List<String> userIds, Pageable pageable);
 
     Page<Post> findByUserIdInAndHiddenFalseOrderByHotScoreDesc(List<String> userIds, Pageable pageable);
+
+    // --- Recipe reviews: all reviews for a specific recipe ---
+    Page<Post> findByRecipeIdAndPostTypeAndHiddenFalseOrderByCreatedAtDesc(
+            String recipeId, PostType postType, Pageable pageable);
+
+    long countByRecipeIdAndPostTypeAndHiddenFalse(String recipeId, PostType postType);
+
+    // --- Recipe battles: active battles (not yet ended) ---
+    Page<Post> findByPostTypeAndBattleEndsAtAfterAndHiddenFalseOrderByBattleEndsAtAsc(
+            PostType postType, Instant now, Pageable pageable);
 
     // --- Non-feed queries (include all) ---
     List<Post> findByCreatedAtAfter(Instant since);

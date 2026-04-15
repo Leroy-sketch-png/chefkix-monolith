@@ -74,6 +74,14 @@ public class SocialController {
     return ApiResponse.success(socialService.isMutualFollow(userId, targetUserId));
   }
 
+  /** Get suggested users to follow based on preference overlap and popularity. */
+  @GetMapping("/suggested")
+  public ApiResponse<List<ProfileResponse>> getSuggestedFollows(
+      @RequestParam(defaultValue = "10") int limit, Authentication authentication) {
+    String userId = securityUtils.getCurrentUserId(authentication);
+    return ApiResponse.success(socialService.getSuggestedFollows(userId, Math.min(limit, 30)));
+  }
+
   // ===================================================================================
   // --- Block System (Safety Feature) ---
   // ===================================================================================

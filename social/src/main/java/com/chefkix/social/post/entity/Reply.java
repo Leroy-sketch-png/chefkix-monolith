@@ -19,7 +19,7 @@ import java.util.List;
 public class Reply {
     @Id String id;
 
-    // --- Thông tin người viết reply ---
+    // --- Reply author information ---
     String userId;
     String displayName;
     String avatarUrl;

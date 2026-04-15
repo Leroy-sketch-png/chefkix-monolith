@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -48,6 +49,7 @@ public class CookingSession {
     // --- Timing ---
     LocalDateTime startedAt;    // startedAt: string (ISO8601)
     LocalDateTime pausedAt;     // pausedAt?: string
+    @Indexed
     LocalDateTime resumeDeadline;
     LocalDateTime completedAt;  // completedAt?: string
     LocalDateTime abandonedAt;  // abandonedAt?: string
@@ -74,6 +76,7 @@ public class CookingSession {
 
     // --- Link to post ---
     String postId;              // postId?: string
+    @Indexed
     LocalDateTime postDeadline; // postDeadline?: string
     LocalDateTime linkedAt;
 

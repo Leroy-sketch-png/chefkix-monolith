@@ -16,7 +16,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-// Quan trọng: Đảm bảo user không thể claim reward 2 lần trong 1 ngày (logic database)
+// Important: Ensure a user cannot claim reward twice in one day (database-level logic)
 @CompoundIndex(name = "unique_daily_challenge_user", def = "{'userId': 1, 'challengeDate': 1}", unique = true)
 public class ChallengeLog {
 
@@ -26,26 +26,26 @@ public class ChallengeLog {
     @Indexed
     String userId;
 
-    // ID định danh của challenge (VD: "noodle-day", "quick-meal")
-    // Lấy từ file config/enum của bạn
+    // Challenge identifier ID (e.g., "noodle-day", "quick-meal")
+    // Taken from your config file/enum
     String challengeId;
 
-    // Snapshot tiêu đề challenge tại thời điểm hoàn thành
-    // (Để nếu sau này file config sửa title, lịch sử user không bị lỗi hiển thị)
+    // Snapshot of challenge title at time of completion
+    // (So if the config file changes the title later, user history display won't break)
     String challengeTitle;
 
-    // Recipe user đã nấu để hoàn thành challenge này
+    // Recipe the user cooked to complete this challenge
     String recipeId;
     String recipeTitle;
-    // Key ngày logic: "YYYY-MM-DD" (VD: "2025-01-16")
-    // Dùng String thay vì Date để tránh rắc rối về giờ/phút/giây khi check unique index
+    // Logical date key: "YYYY-MM-DD" (e.g., "2025-01-16")
+    // Using String instead of Date to avoid hour/minute/second issues when checking unique index
     @Indexed
     String challengeDate;
 
-    // Số XP thưởng đã nhận (lưu cứng lại để lịch sử chính xác)
+    // Bonus XP received (saved as fixed value for accurate history)
     int bonusXp;
 
-    // Thời điểm thực tế record được tạo
+    // Actual timestamp when the record was created
     @CreatedDate
     Instant completedAt;
 }

@@ -20,29 +20,29 @@ public class DraftController {
 
     private final DraftService draftService;
 
-    // Chỉ gọi API này khi user bấm "CÓ" trong popup
-    // 1. INIT DRAFT (Gọi ngay khi user bắt đầu viết)
+    // Only call this API when user clicks "YES" in the popup
+    // 1. INIT DRAFT
     @PostMapping("/draft")
     public ApiResponse<RecipeDetailResponse> createDraft() {
         return ApiResponse.success(draftService.createDraft());
     }
 
-    // 2. AUTO-SAVE (Dùng PATCH để update một phần)
-    // FE gọi cái này mỗi khi debounce (3-5s) hoặc onBlur
+    // 2. AUTO-SAVE (Use PATCH for partial update)
+    // FE calls this on debounce (3-5s) or onBlur
     @PatchMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> autoSaveDraft(
             @PathVariable String id,
-            @Valid @RequestBody RecipeRequest request) { // Request này cho phép các trường null
+            @RequestBody RecipeRequest request) { // No @Valid — auto-save accepts partial data; validation at publish
         return ApiResponse.success(draftService.autoSaveDraft(id, request));
     }
 
-    // 3. GET MY DRAFTS (Lấy danh sách nháp của tôi)
+    // 3. GET MY DRAFTS
     @GetMapping("/drafts")
     public ApiResponse<List<RecipeSummaryResponse>> getMyDrafts() {
         return ApiResponse.success(draftService.getMyDrafts());
     }
 
-    // 4. DISCARD DRAFT (Xóa nháp)
+    // 4. DISCARD DRAFT
     @DeleteMapping("/draft/{id}")
     public ApiResponse<Void> discardDraft(@PathVariable String id) {
         draftService.discardDraft(id);

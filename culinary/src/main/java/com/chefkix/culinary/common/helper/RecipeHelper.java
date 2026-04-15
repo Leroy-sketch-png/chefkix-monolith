@@ -17,6 +17,7 @@ import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.social.api.PostProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class RecipeHelper {
 
@@ -41,7 +41,20 @@ public class RecipeHelper {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final MongoTemplate mongoTemplate;
 
-    // --- LOGIC TÍNH TOÁN & ANTI-CHEAT ---
+    public RecipeHelper(
+            RecipeRepository recipeRepository,
+            CookingSessionRepository sessionRepository,
+            @Lazy PostProvider postProvider,
+            KafkaTemplate<String, Object> kafkaTemplate,
+            MongoTemplate mongoTemplate) {
+        this.recipeRepository = recipeRepository;
+        this.sessionRepository = sessionRepository;
+        this.postProvider = postProvider;
+        this.kafkaTemplate = kafkaTemplate;
+        this.mongoTemplate = mongoTemplate;
+    }
+
+    // --- CALCULATION & ANTI-CHEAT LOGIC ---
 
     public void calculateRemainingTime(CookingSession session) {
         if (session.getActiveTimers() == null || session.getActiveTimers().isEmpty()) return;
@@ -238,7 +251,7 @@ public class RecipeHelper {
                     .recipeId(recipe.getId())
                     .sessionId(sessionId)
                     .source("CREATOR_BONUS")
-                    .description("Bonus từ việc người khác nấu món: " + recipe.getTitle())
+                    .description("Bonus from others cooking: " + recipe.getTitle())
                     .build();
             kafkaTemplate.send("xp-delivery", xpEvent);
             return true;
@@ -247,9 +260,9 @@ public class RecipeHelper {
     }
 
     /**
-     * Tăng giảm nhiều chỉ số cùng một lúc.
-     * @param recipeId ID người dùng
-     * @param statsIncrements Map<Tên field, Số lượng tăng> (VD: "wins" -> 1, "exp" -> 100)
+     * Increment/decrement multiple stats at once.
+     * @param recipeId Recipe ID
+     * @param statsIncrements Map<Field name, Increment amount> (e.g., "wins" -> 1, "exp" -> 100)
      */
     public void incrementRecipeStats(String recipeId, Map<String, Number> statsIncrements) {
         if (statsIncrements == null || statsIncrements.isEmpty()) {
@@ -259,15 +272,15 @@ public class RecipeHelper {
         Query query = Query.query(Criteria.where("_id").is(recipeId));
         Update update = new Update();
 
-        // Duyệt qua map và tạo lệnh inc cho từng field
-        // Tự động thêm prefix "statistics." để code gọi bên ngoài gọn hơn
+        // Iterate through map and create inc commands for each field
+        // Automatically adds "statistics." prefix so calling code is cleaner
         statsIncrements.forEach(update::inc);
 
-        // Chỉ gọi DB đúng 1 lần
+        // Only call DB once
         mongoTemplate.updateFirst(query, update, "recipes");
     }
 
-    // --- MAPPING (Nên dùng MapStruct nhưng giữ logic này ở đây cho gọn Service) ---
+    // --- MAPPING (Could use MapStruct but keeping logic here to keep Service clean) ---
 
     public StartSessionResponse mapToStartResponse(CookingSession session, Recipe recipe) {
         return StartSessionResponse.builder()

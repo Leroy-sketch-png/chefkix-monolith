@@ -8,12 +8,10 @@ import com.chefkix.culinary.features.pantry.entity.PantryItem;
 import com.chefkix.culinary.features.pantry.repository.PantryItemRepository;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
-import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -123,9 +121,9 @@ public class PantryService {
                 .map(PantryItem::getNormalizedName)
                 .collect(Collectors.toSet());
 
-        // Cap at 500 recipes to prevent OOM as the catalog grows.
-        // TODO: Replace with a MongoDB text-search or aggregation pipeline for true scalability.
-        List<Recipe> publishedRecipes = recipeRepo.findByStatus(RecipeStatus.PUBLISHED, PageRequest.of(0, 500)).getContent();
+        // Use projected query — loads only matching-relevant fields (id, title, coverImage,
+        // totalTime, difficulty, fullIngredientList), avoiding heavy step/enrichment data.
+        List<Recipe> publishedRecipes = recipeRepo.findPublishedForIngredientMatching();
 
         List<PantryRecipeMatchResponse> matches = new ArrayList<>();
 
