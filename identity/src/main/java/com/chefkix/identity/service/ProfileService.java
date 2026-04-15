@@ -45,6 +45,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -74,6 +78,7 @@ public class ProfileService {
   SecurityUtils securityUtils;
   SocialUtils socialUtils;
   ApplicationEventPublisher eventPublisher;
+  MongoTemplate mongoTemplate;
 
   // === Configuration ===
   @Qualifier("taskExecutor")
@@ -257,47 +262,79 @@ public class ProfileService {
     resetPasswordRepository.delete(req);
   }
 
-  /** Update the current user's Profile */
-  @Transactional
-  public ProfileResponse updateProfile(
-      Authentication authentication, ProfileUpdateRequest request) {
+    /** Update the current user's Profile */
+    @Transactional
+    public ProfileResponse updateProfile(
+            Authentication authentication, ProfileUpdateRequest request) {
 
-    String userId = securityUtils.getCurrentUserId(authentication);
+        String userId = securityUtils.getCurrentUserId(authentication);
 
-    // 1. Find current profile
-    UserProfile userProfile =
-        profileRepository
-            .findByUserId(userId)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        // 1. Kéo profile hiện tại từ DB lên
+        UserProfile userProfile =
+                profileRepository
+                        .findByUserId(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. Update fields if provided (not null)
-    //    (Also need the private `updateIfNotNull` helper below)
-    updateIfNotNull(request.getFirstName(), userProfile::setFirstName);
-    updateIfNotNull(request.getLastName(), userProfile::setLastName);
-    updateIfNotNull(request.getDisplayName(), userProfile::setDisplayName);
-    updateIfNotNull(request.getDob(), userProfile::setDob);
-    updateIfNotNull(request.getPhoneNumber(), userProfile::setPhoneNumber);
-    updateIfNotNull(request.getAvatarUrl(), userProfile::setAvatarUrl);
-    updateIfNotNull(request.getCoverImageUrl(), userProfile::setCoverImageUrl);
-    updateIfNotNull(request.getBio(), userProfile::setBio);
-    updateIfNotNull(request.getLocation(), userProfile::setLocation);
-    updateIfNotNull(request.getPreferences(), userProfile::setPreferences);
+        // 2. Gom các trường cần update vào Mongo Update object, đồng thời cập nhật object trên RAM
+        Update update = new Update();
 
-    // 3. Save updated profile
-    UserProfile updatedProfile = profileRepository.save(userProfile);
+        if (request.getFirstName() != null) {
+            update.set("firstName", request.getFirstName());
+            userProfile.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            update.set("lastName", request.getLastName());
+            userProfile.setLastName(request.getLastName());
+        }
+        if (request.getDisplayName() != null) {
+            update.set("displayName", request.getDisplayName());
+            userProfile.setDisplayName(request.getDisplayName());
+        }
+        if (request.getDob() != null) {
+            update.set("dob", request.getDob());
+            userProfile.setDob(request.getDob());
+        }
+        if (request.getPhoneNumber() != null) {
+            update.set("phoneNumber", request.getPhoneNumber());
+            userProfile.setPhoneNumber(request.getPhoneNumber());
+        }
+        if (request.getAvatarUrl() != null) {
+            update.set("avatarUrl", request.getAvatarUrl());
+            userProfile.setAvatarUrl(request.getAvatarUrl());
+        }
+        if (request.getCoverImageUrl() != null) {
+            update.set("coverImageUrl", request.getCoverImageUrl());
+            userProfile.setCoverImageUrl(request.getCoverImageUrl());
+        }
+        if (request.getBio() != null) {
+            update.set("bio", request.getBio());
+            userProfile.setBio(request.getBio());
+        }
+        if (request.getLocation() != null) {
+            update.set("location", request.getLocation());
+            userProfile.setLocation(request.getLocation());
+        }
+        if (request.getPreferences() != null) {
+            update.set("preferences", request.getPreferences());
+            userProfile.setPreferences(request.getPreferences());
+        }
 
-    // Real-time Typesense indexing
-    eventPublisher.publishEvent(UserIndexEvent.index(updatedProfile));
+        // 3. Bắn lệnh UPDATE trực tiếp xuống MongoDB (Sẽ bỏ qua hàm .save() gây lỗi)
+        Query query = new Query(Criteria.where("userId").is(userId));
+        mongoTemplate.updateFirst(query, update, UserProfile.class);
 
-    // 4. Map to DTO and set dynamic fields
-    ProfileResponse response = profileMapper.toProfileResponse(updatedProfile);
-    response.setRelationshipStatus(RelationshipStatus.SELF);
-    response.setFollowing(false);
-    if (response.getFriends() == null) {
-      response.setFriends(Collections.emptyList());
+        // 4. Đồng bộ dữ liệu sang Typesense
+        eventPublisher.publishEvent(UserIndexEvent.index(userProfile));
+
+        // 5. Build DTO trả về
+        ProfileResponse response = profileMapper.toProfileResponse(userProfile);
+        response.setRelationshipStatus(RelationshipStatus.SELF);
+        response.setFollowing(false);
+        if (response.getFriends() == null) {
+            response.setFriends(Collections.emptyList());
+        }
+        return response;
     }
-    return response;
-  }
 
   /**
    * Delete user account (GDPR right to erasure).

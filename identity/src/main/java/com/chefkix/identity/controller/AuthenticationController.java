@@ -71,15 +71,6 @@ public class AuthenticationController {
     return ApiResponse.<String>builder().data("OTP sent to email").build();
   }
 
-  @PostMapping("/resend-otp")
-  ApiResponse<String> resendOtp(
-      @RequestParam(value = "email") @NotBlank @Email String email,
-      HttpServletRequest httpServletRequest) {
-    String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
-    signupRequestService.resendOtp(email, clientIp);
-    return ApiResponse.<String>builder().data("OTP resent successfully").build();
-  }
-
   @PostMapping("/refresh-token")
   public ApiResponse<Map<String, String>> refreshToken(
       HttpServletResponse response,
