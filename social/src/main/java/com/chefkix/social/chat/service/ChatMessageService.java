@@ -13,6 +13,7 @@ import com.chefkix.social.chat.dto.request.ChatMessageRequest;
 import com.chefkix.social.chat.dto.request.ChatReactionRequest;
 import com.chefkix.social.chat.dto.response.ChatMessageResponse;
 import com.chefkix.social.chat.entity.ChatMessage;
+import com.chefkix.social.chat.entity.Conversation;
 import com.chefkix.social.chat.entity.ParticipantInfo;
 import com.chefkix.social.chat.enums.MessageType;
 import com.chefkix.shared.exception.AppException;
@@ -289,6 +290,101 @@ public class ChatMessageService {
         }
 
         return response;
+    }
+
+    // ======================== STORY REPLY (KAFKA EVENT) ========================
+
+    /**
+     * Xử lý Event từ Kafka khi có người Reply Story.
+     * Lưu ý: Hàm này chạy ở Background Worker (Thread của Kafka Listener),
+     * KHÔNG có HTTP Request, do đó KHÔNG dùng SecurityContextHolder ở đây.
+     */
+    public void processStoryReplyEvent(com.chefkix.shared.event.StoryReplyEvent event) {
+        // 1. Tìm hoặc tạo mới cuộc hội thoại 1-1 giữa người xem và chủ nhân Story
+        Conversation conversation = getOrCreateDirectConversation(event.getReplierId(), event.getStoryOwnerId());
+
+        // 2. AI Content Moderation
+        if (event.getReplyText() != null && !event.getReplyText().isBlank()) {
+            var moderationResult = contentModerationProvider.moderate(event.getReplyText(), "chat");
+            if (moderationResult.isBlocked()) {
+                log.warn("Story reply blocked by AI moderation for user {}: {}", event.getReplierId(), moderationResult.reason());
+                return; // Dừng lại, không tạo tin nhắn độc hại
+            }
+        }
+
+        // 3. Lấy thông tin Profile người gửi
+        BasicProfileInfo senderInfo = profileProvider.getBasicProfile(event.getReplierId());
+        if (senderInfo == null) {
+            log.error("Could not fetch profile for user {}", event.getReplierId());
+            return;
+        }
+
+        // 4. Khởi tạo ChatMessage (Tái sử dụng các trường của POST_SHARE)
+        ChatMessage chatMessage = ChatMessage.builder()
+                .conversationId(conversation.getId())
+                .message(event.getReplyText())
+                .type(MessageType.STORY_REPLY) // Yêu cầu: Đã thêm STORY_REPLY vào enum MessageType
+                .relatedId(event.getStoryId())
+                .sharedPostImage(event.getStoryMediaUrl()) // Lấy ảnh Thumbnail của Story
+                .sharedPostTitle("Đã trả lời tin của bạn") // Text hiển thị trên Thumbnail
+                .sender(ParticipantInfo.builder()
+                        .userId(senderInfo.getUserId())
+                        .username(senderInfo.getDisplayName())
+                        .firstName(senderInfo.getFirstName())
+                        .lastName(senderInfo.getLastName())
+                        .avatar(senderInfo.getAvatarUrl())
+                        .build())
+                .createdDate(Instant.now())
+                .deleted(false)
+                .reactions(new ArrayList<>())
+                .build();
+
+        // 5. Lưu Message vào DB
+        chatMessage = chatMessageRepository.save(chatMessage);
+
+        // 6. Cập nhật thời gian hoạt động của phòng chat
+        conversation.setModifiedDate(Instant.now());
+        conversationRepository.save(conversation);
+
+        log.info("Created STORY_REPLY message id {} in conversation {}", chatMessage.getId(), conversation.getId());
+
+        // Ghi chú: Nếu hệ thống của bạn có WebSocket, bạn có thể gọi messagingTemplate.convertAndSendToUser() ở đây
+        // để báo realtime cho người nhận. Bạn không gọi toChatMessageResponse() ở đây vì hàm đó đang gắn cứng
+        // SecurityContextHolder (sẽ bị lỗi NullPointerException vì đây là luồng background).
+    }
+
+    /**
+     * Hàm tiện ích: Tìm phòng chat 1-1, nếu chưa có thì tạo mới
+     */
+    private Conversation getOrCreateDirectConversation(String user1, String user2) {
+        // Thuật toán băm: Sắp xếp theo thứ tự từ điển để (A chat với B) hay (B chat với A) đều ra chung 1 ID phòng
+        String hash = user1.compareTo(user2) < 0 ? user1 + "_" + user2 : user2 + "_" + user1;
+
+        return conversationRepository.findByParticipantsHash(hash)
+                .orElseGet(() -> {
+                    BasicProfileInfo p1 = profileProvider.getBasicProfile(user1);
+                    BasicProfileInfo p2 = profileProvider.getBasicProfile(user2);
+
+                    Conversation newConv = Conversation.builder()
+                            .type("DIRECT")
+                            .participantsHash(hash)
+                            .participants(List.of(
+                                    ParticipantInfo.builder()
+                                            .userId(user1)
+                                            .username(p1 != null ? p1.getDisplayName() : "User")
+                                            .avatar(p1 != null ? p1.getAvatarUrl() : null)
+                                            .build(),
+                                    ParticipantInfo.builder()
+                                            .userId(user2)
+                                            .username(p2 != null ? p2.getDisplayName() : "User")
+                                            .avatar(p2 != null ? p2.getAvatarUrl() : null)
+                                            .build()
+                            ))
+                            .createdDate(Instant.now())
+                            .modifiedDate(Instant.now())
+                            .build();
+                    return conversationRepository.save(newConv);
+                });
     }
 
     // ======================== Reactions ========================
