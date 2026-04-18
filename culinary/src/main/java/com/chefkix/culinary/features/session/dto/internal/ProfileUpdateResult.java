@@ -9,8 +9,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-// Annotation này CỰC KỲ QUAN TRỌNG:
-// Nó giúp Recipe Service không bị lỗi nếu Profile Service lỡ trả về thừa trường nào đó
+// This annotation is CRITICALLY IMPORTANT:
+// It prevents Recipe Service from erroring if Profile Service returns extra fields
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProfileUpdateResult {
 
@@ -22,8 +22,8 @@ public class ProfileUpdateResult {
 
     Integer currentXPGoal;
 
-    // Lưu ý: Bên Profile Service (StatisticsService) bạn đang trả về field tên là "recipeCount"
-    // nên ở đây phải đặt tên giống y hệt để hứng dữ liệu.
+    // Note: Profile Service (StatisticsService) returns a field named "recipeCount"
+    // so this field must be named identically to receive the data.
     Long completionCount;
 
     // Level-up tracking for frontend celebration

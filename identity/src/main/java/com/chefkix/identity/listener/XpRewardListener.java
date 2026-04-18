@@ -59,13 +59,18 @@ public class XpRewardListener {
         event.isChallengeCompleted());
 
     try {
-      if ("CREATOR_BONUS".equals(event.getSource())) {
+      String source = event.getSource();
+      if ("CREATOR_BONUS".equals(source)) {
         // CASE 1: Creator bonus (no badges, no streak update)
         statisticsService.applyCreatorReward(event.getUserId(), event.getAmount());
+      } else if (source != null && source.startsWith("SOCIAL_")) {
+        // CASE 2: Social engagement XP (likes, comments, saves) — no streaks, no completion count
+        statisticsService.rewardSocialXp(event.getUserId(), event.getAmount(), source);
       } else {
-        // CASE 2: Cook XP (with badges, streak update, and possibly challenge streak)
+        // CASE 3: Cook XP (with badges, streak update, and possibly challenge streak)
         statisticsService.rewardXpFull(
-            event.getUserId(), event.getAmount(), event.getBadges(), event.isChallengeCompleted());
+            event.getUserId(), event.getAmount(), event.getBadges(), event.isChallengeCompleted(),
+            event.getRecipeId());
       }
     } catch (AppException e) {
       if (e.getErrorCode() == ErrorCode.USER_NOT_FOUND || e.getErrorCode() == ErrorCode.PROFILE_NOT_FOUND) {

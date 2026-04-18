@@ -51,4 +51,30 @@ public class StepRequest {
 
     @Size(max = 2000, message = "Tips must be at most 2000 characters")
     private String tips;
+
+    // --- Enriched Fields (AI-generated or creator-provided) ---
+    @Size(max = 1000, message = "Chef tip must be at most 1000 characters")
+    private String chefTip;
+
+    @Size(max = 2000, message = "Technique explanation must be at most 2000 characters")
+    private String techniqueExplanation;
+
+    @Size(max = 1000, message = "Common mistake must be at most 1000 characters")
+    private String commonMistake;
+
+    @Min(0) @Max(86400)
+    private Integer estimatedHandsOnTime;
+
+    @Size(max = 20, message = "Maximum 20 equipment items per step")
+    private List<@Size(max = 200) String> equipmentNeeded;
+
+    @Size(max = 1000, message = "Visual cues must be at most 1000 characters")
+    private String visualCues;
+
+    // --- Step V2 Fields ---
+    @Size(max = 500, message = "Goal must be at most 500 characters")
+    private String goal;
+
+    @Size(max = 5, message = "Maximum 5 micro-steps per step")
+    private List<@Size(max = 500) String> microSteps;
 }

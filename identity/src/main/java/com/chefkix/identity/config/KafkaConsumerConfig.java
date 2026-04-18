@@ -56,7 +56,7 @@ public class KafkaConsumerConfig {
   }
 
   // ================================
-  // 🧱 Các factory cụ thể cho từng event
+  // 🧱 Specific factories for each event type
   // ================================
 
   @Bean

@@ -59,6 +59,19 @@ public class PresenceController {
     }
 
     /**
+     * GET /api/v1/presence/{userId} — Check if a specific user is online.
+     * Returns online status for any user (public profile info).
+     */
+    @GetMapping("/{userId}")
+    public ApiResponse<UserPresenceResponse> getUserPresence(@PathVariable String userId) {
+        boolean online = presenceService.isOnline(userId);
+        return ApiResponse.<UserPresenceResponse>builder()
+                .success(true).statusCode(200)
+                .data(new UserPresenceResponse(userId, online))
+                .build();
+    }
+
+    /**
      * POST /api/v1/presence/offline — Explicitly go offline (logout/tab close).
      */
     @PostMapping("/offline")
@@ -68,7 +81,9 @@ public class PresenceController {
                 .success(true).statusCode(200).build();
     }
 
-    // ── Request DTO ─────────────────────────────────────────────────
+    // ── Request/Response DTOs ───────────────────────────────────────
 
     record HeartbeatRequest(String activity) {}
+    
+    record UserPresenceResponse(String userId, boolean online) {}
 }

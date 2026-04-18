@@ -53,6 +53,9 @@ public class Statistics {
 
   @Builder.Default Integer streakCount = 0;
 
+  /** Historical best cooking streak — updated whenever streakCount reaches a new max */
+  @Builder.Default Integer longestStreak = 0;
+
   /** Timestamp of last cooking session completion - used for 72-hour streak window */
   Instant lastCookAt;
 
@@ -70,6 +73,16 @@ public class Statistics {
 
   /** Badge name → timestamp when earned. Additive alongside badges list for backwards compat. */
   @Builder.Default Map<String, Instant> badgeTimestamps = new HashMap<>();
+
+  // Cooking depth metrics
+  /** Distinct recipes user has completed (not recipe count published) */
+  @Builder.Default Long recipesCooked = 0L;
+
+  /** Recipes the user has cooked 5+ times (mastery threshold) */
+  @Builder.Default Long recipesMastered = 0L;
+
+  /** RecipeId → cook count — tracks per-recipe mastery. Used to compute recipesCooked/recipesMastered. */
+  @Builder.Default Map<String, Integer> recipeCookCounts = new HashMap<>();
 
   // Creator stats
   @Builder.Default Long totalCooksOfYourRecipes = 0L;

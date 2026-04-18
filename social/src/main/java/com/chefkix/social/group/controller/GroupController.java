@@ -9,6 +9,8 @@ import com.chefkix.social.group.dto.response.PendingRequestResponse;
 import com.chefkix.social.group.service.GroupService;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 import com.chefkix.shared.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,8 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -60,14 +60,14 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}/requests")
-    public ApiResponse<Page<PendingRequestResponse>> getPendingRequests(
+    public ApiResponse<List<PendingRequestResponse>> getPendingRequests(
             @PathVariable("groupId") String groupId,
             @PageableDefault(size = 20, sort = "requestedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Page<PendingRequestResponse> requests = groupService.getPendingRequests(groupId, currentUserId, pageable);
-        return ApiResponse.success(requests);
+        return ApiResponse.successPage(requests);
     }
 
     @PatchMapping("/{groupId}/requests/{userId}")
@@ -117,7 +117,7 @@ public class GroupController {
     }
 
     @GetMapping("/explore")
-    public ApiResponse<Page<GroupResponse>> exploreGroups(
+    public ApiResponse<List<GroupResponse>> exploreGroups(
             // @ModelAttribute automatically maps URL parameters to your DTO fields!
             @ModelAttribute GroupExploreQuery query,
 
@@ -134,11 +134,11 @@ public class GroupController {
         Page<GroupResponse> responses = groupService.exploreGroups(query, pageable);
 
         // 4. Return the paginated results
-        return ApiResponse.success(responses);
+        return ApiResponse.successPage(responses);
     }
 
     @GetMapping("/{groupId}/members")
-    public ApiResponse<Page<GroupMemberResponse>> getGroupMembers(
+    public ApiResponse<List<GroupMemberResponse>> getGroupMembers(
             @PathVariable("groupId") String groupId,
             // Default: Show 20 members per page, newest first!
             @PageableDefault(size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable
@@ -147,7 +147,7 @@ public class GroupController {
 
         Page<GroupMemberResponse> responses = groupService.getGroupMembers(groupId, currentUserId, pageable);
 
-        return ApiResponse.success(responses);
+        return ApiResponse.successPage(responses);
     }
 
     @GetMapping("/me")

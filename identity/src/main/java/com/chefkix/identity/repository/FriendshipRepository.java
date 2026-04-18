@@ -13,8 +13,8 @@ public interface FriendshipRepository extends MongoRepository<Friendship, String
   @Query(value = "{ 'userId' : ?0, 'status' : ?1 }", fields = "{ 'friendId' : 1, '_id' : 0 }")
   List<String> findAllFriendIdsByUserId(String userId, String status);
 
-  // Tìm user có userId nằm trong list friendIds VÀ tên có chứa keyword (case insensitive)
-  // Pageable để giới hạn chỉ lấy 5-10 người cho nhẹ
+  // Find users whose userId is in the friendIds list AND whose name contains the keyword (case insensitive)
+  // Pageable to limit results to 5-10 people for performance
   @Query("{ 'userId': { $in: ?0 }, 'displayName': { $regex: ?1, $options: 'i' } }")
   List<UserProfile> findFriendsForMention(
       List<String> friendIds, String keyword, Pageable pageable);

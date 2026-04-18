@@ -18,4 +18,9 @@ public interface UserEventRepository extends MongoRepository<UserEvent, String> 
     List<UserEvent> findByUserIdOrderByTimestampDesc(String userId);
 
     long countByEventTypeAndTimestampAfter(TrackingEventType eventType, Instant after);
+
+    List<UserEvent> findByUserIdAndEventTypeInOrderByTimestampDesc(
+            String userId, List<TrackingEventType> eventTypes);
+
+    long deleteByUserId(String userId);
 }

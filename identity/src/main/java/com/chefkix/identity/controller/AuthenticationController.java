@@ -6,6 +6,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
 import com.chefkix.identity.entity.SignupRequest;
+import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.service.*;
 import com.chefkix.identity.utils.ClientIpUtils;
 import com.chefkix.identity.utils.HttpOnlyCookieUtils;
@@ -14,16 +15,16 @@ import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import java.text.ParseException;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,13 +32,36 @@ import org.springframework.web.server.ResponseStatusException;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
   private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60; // 7 days
-  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 30 * 24 * 60 * 60; // 30 days
+  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 7 * 24 * 60 * 60; // 7 days
 
   AuthenticationService authenticationService;
   SignupRequestService signupRequestService;
   ProfileService profileService;
   ResetPasswordService resetPasswordService;
   AuthRateLimitService authRateLimitService;
+  UserProfileRepository userProfileRepository;
+
+  /**
+   * Check if a username is available for registration.
+   * Returns { available: true/false } to support live validation on sign-up form.
+   */
+  @GetMapping("/check-username")
+  ApiResponse<Map<String, Boolean>> checkUsernameAvailability(
+      @RequestParam(value = "username") String username) {
+    // Validate username format (same rules as registration)
+    if (username == null || username.length() < 2 || username.length() > 30) {
+      return ApiResponse.<Map<String, Boolean>>builder()
+          .data(Map.of("available", false))
+          .message("Username must be between 2 and 30 characters")
+          .build();
+    }
+    
+    // Check if username exists
+    boolean exists = userProfileRepository.findByUsername(username).isPresent();
+    return ApiResponse.<Map<String, Boolean>>builder()
+        .data(Map.of("available", !exists))
+        .build();
+  }
 
   @PostMapping(path = "/register")
   ApiResponse<String> register(
@@ -63,7 +87,7 @@ public class AuthenticationController {
       HttpOnlyCookieUtils.addHttpOnlyCookie(
           response,
           "refresh_token",
-          authResponse.getRefreshToken(), // Lấy RT mới từ response
+          authResponse.getRefreshToken(), // Get new RT from response
           REFRESH_TOKEN_MAX_AGE_REFRESH
           );
 
@@ -82,27 +106,41 @@ public class AuthenticationController {
   ApiResponse<AuthenticationResponse> authenticate(
       @RequestBody @Valid AuthenticationRequest request,
       HttpServletResponse response,
-      HttpServletRequest httpServletRequest) { // thêm response
+      HttpServletRequest httpServletRequest) { // add response
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertLoginAllowed(clientIp);
 
-    // 1. authenticate user và lấy token từ Keycloak
+    // 1. authenticate user and get token from Keycloak
     AuthenticationResponse authResponse = authenticationService.authenticate(request);
 
     authRateLimitService.clearLoginAttempts(clientIp);
 
-    // 2. Lưu refresh token vào HttpOnly cookie
+    // 2. Store refresh token in HttpOnly cookie
     HttpOnlyCookieUtils.addHttpOnlyCookie(
         response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN
         );
 
-    // 3. Trả body JSON (không cần refreshToken nữa nếu muốn)
-    authResponse.setRefreshToken(null); // optional, tránh leak vào JS
+    // 3. Return JSON body (refreshToken no longer needed here)
+    authResponse.setRefreshToken(null); // optional, prevent leaking to JS
     return ApiResponse.success(authResponse, "Successfully signed in");
   }
 
+  @PostMapping("/google")
+  ApiResponse<AuthenticationResponse> authenticateWithGoogle(
+      @RequestBody @Valid GoogleAuthenticationRequest request,
+      HttpServletResponse response) {
+    AuthenticationResponse authResponse = authenticationService.authenticateWithGoogle(
+        request.getCode(), request.getRedirectUri(), request.getCodeVerifier());
+
+    HttpOnlyCookieUtils.addHttpOnlyCookie(
+        response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN);
+
+    authResponse.setRefreshToken(null);
+    return ApiResponse.success(authResponse, "Successfully signed in with Google");
+  }
+
   @PostMapping("/forgot-password")
-  ApiResponse<String> resetPassword(@RequestParam(value = "email") String email, HttpServletRequest httpServletRequest) {
+  ApiResponse<String> resetPassword(@RequestParam(value = "email") @NotBlank @Email String email, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertForgotPasswordAllowed(clientIp, email);
     resetPasswordService.sendForgotPasswordOtp(email);
@@ -126,18 +164,18 @@ public class AuthenticationController {
 
   @PostMapping("/logout")
   ApiResponse<String> logout(
-      // 1. Đọc refresh token từ cookie thay vì RequestBody
+      // 1. Read refresh token from cookie instead of RequestBody
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
-      // 2. Thêm HttpServletResponse để xoá cookie
+      // 2. Add HttpServletResponse to delete cookie
       HttpServletResponse response)
       throws ParseException, JOSEException {
 
-    // 3. Gọi service (nếu có token) để revoke token ở Keycloak
+    // 3. Call service (if token exists) to revoke token at Keycloak
     if (refreshToken != null && !refreshToken.isEmpty()) {
       authenticationService.logout(refreshToken);
     }
 
-    // 4. LUÔN LUÔN xoá HttpOnly cookie ở phía trình duyệt
+    // 4. ALWAYS delete HttpOnly cookie on the browser side
     HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
     return ApiResponse.<String>builder().data("Logged out successfully").build();

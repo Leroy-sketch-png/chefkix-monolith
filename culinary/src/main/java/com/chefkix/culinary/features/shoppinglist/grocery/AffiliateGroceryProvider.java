@@ -2,7 +2,9 @@ package com.chefkix.culinary.features.shoppinglist.grocery;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -97,5 +99,23 @@ public class AffiliateGroceryProvider implements GroceryProvider {
   public OrderStatus getOrderStatus(String orderId) {
     // Affiliate orders are tracked externally — we only have the redirect
     return new OrderStatus(orderId, "redirected", null, null);
+  }
+
+  @Override
+  public Map<String, String> getPerIngredientLinks(List<GroceryItemRequest> items) {
+    if (!enabled) return Map.of();
+
+    Map<String, String> links = new HashMap<>();
+    for (GroceryItemRequest item : items) {
+      String url = baseUrl
+          + "/store/search?q="
+          + URLEncoder.encode(item.name(), StandardCharsets.UTF_8)
+          + "&utm_source="
+          + URLEncoder.encode(partnerTag, StandardCharsets.UTF_8)
+          + "&ref="
+          + URLEncoder.encode(partnerTag, StandardCharsets.UTF_8);
+      links.put(item.itemId() != null ? item.itemId() : item.name(), url);
+    }
+    return links;
   }
 }

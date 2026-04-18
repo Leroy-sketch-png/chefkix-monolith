@@ -13,45 +13,45 @@ import java.util.List;
 public class StreakCalculatorHelper {
 
     /**
-     * Tính Current Streak và Longest Streak dựa trên danh sách ngày đã hoàn thành.
-     * @param completedDates Danh sách ngày hoàn thành (cần được distinct và sorted giảm dần trước khi truyền vào)
+     * Calculate Current Streak and Longest Streak based on a list of completed dates.
+     * @param completedDates List of completed dates (should be distinct and sorted descending before passing in)
      */
     public StreakResult calculate(List<LocalDate> completedDates) {
         if (completedDates == null || completedDates.isEmpty()) {
             return new StreakResult(0, 0);
         }
 
-        // 1. Tính Current Streak
-        // Logic: Check từ ngày hôm nay (hoặc hôm qua) lùi về trước.
-        // Nếu hôm nay chưa làm, nhưng hôm qua làm -> Streak vẫn giữ.
-        // Nếu hôm qua không làm -> Streak reset về 0 (trừ khi hôm nay đã làm).
+        // 1. Calculate Current Streak
+        // Logic: Check backwards from today (or yesterday).
+        // If today is not completed but yesterday is -> Streak is preserved.
+        // If yesterday is not completed -> Streak resets to 0 (unless today is completed).
 
         int currentStreak = 0;
         LocalDate today = LocalDate.now();
         LocalDate checkDate = today;
 
-        // Nếu hôm nay chưa làm, check thử xem chuỗi có kết thúc ở hôm qua không
+        // If today is not completed, check if the streak ends at yesterday
         if (!completedDates.contains(today)) {
             checkDate = today.minusDays(1);
         }
 
-        // Bắt đầu đếm lùi
+        // Start counting backwards
         while (completedDates.contains(checkDate)) {
             currentStreak++;
             checkDate = checkDate.minusDays(1);
         }
 
-        // 2. Tính Longest Streak
-        // Duyệt qua toàn bộ lịch sử để tìm chuỗi liên tiếp dài nhất
+        // 2. Calculate Longest Streak
+        // Iterate through the entire history to find the longest consecutive streak
         int longestStreak = 0;
         int tempStreak = 1;
 
-        // List đã sort giảm dần (Mới -> Cũ), nhưng để tính longest dễ hơn thì nên sort tăng dần (Cũ -> Mới)
+        // List is sorted descending (Newest -> Oldest), but for longest streak it's easier to sort ascending (Oldest -> Newest)
         List<LocalDate> sortedAsc = new ArrayList<>(completedDates);
-        Collections.sort(sortedAsc); // Sort cũ -> mới
+        Collections.sort(sortedAsc); // Sort oldest -> newest
 
         if (!sortedAsc.isEmpty()) {
-            longestStreak = 1; // Ít nhất là 1 nếu list không rỗng
+            longestStreak = 1; // At least 1 if list is not empty
             for (int i = 0; i < sortedAsc.size() - 1; i++) {
                 LocalDate current = sortedAsc.get(i);
                 LocalDate next = sortedAsc.get(i + 1);
@@ -59,7 +59,7 @@ public class StreakCalculatorHelper {
                 if (current.plusDays(1).equals(next)) {
                     tempStreak++;
                 } else {
-                    tempStreak = 1; // Gãy chuỗi
+                    tempStreak = 1; // Streak broken
                 }
                 longestStreak = Math.max(longestStreak, tempStreak);
             }

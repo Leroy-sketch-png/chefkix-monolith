@@ -3,6 +3,7 @@ package com.chefkix.social.post.service;
 import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.shared.event.CommentEvent;
 import com.chefkix.shared.event.UserMentionEvent;
+import com.chefkix.shared.event.XpRewardEvent;
 import com.chefkix.social.post.dto.request.CommentRequest;
 import com.chefkix.social.post.dto.response.CommentLikeResponse;
 import com.chefkix.social.post.dto.response.CommentResponse;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -57,7 +57,7 @@ public class CommentService {
   ReplyRepository replyRepository;
   ReplyLikeRepository replyLikeRepository;
   KafkaTemplate<String, Object> kafkaTemplate;
-    // Regex bắt format: @[userId|displayName
+    // Regex to capture format: @[userId|displayName
     static Pattern TAG_PATTERN = Pattern.compile("@\\[([^|]+)\\|([^]]+)\\]");
   CommentMapper commentMapper;
     private final ProfileProvider profileProvider;
@@ -135,6 +135,9 @@ public class CommentService {
         sendCommentNotification(comment, post, userInfo.getDisplayName(), userInfo.getAvatarUrl());
     }
 
+    // Award social XP to the commenter (3 XP per comment, deduped per user+post)
+    sendSocialXpEvent(userId, 3.0, "SOCIAL_COMMENT", postId, "Commented on a post");
+
     // Send notification to the tagged users
     if (!extractedTagIds.isEmpty()) {
         sendTagNotification(comment, post, extractedTagIds);
@@ -170,6 +173,21 @@ public class CommentService {
       }
   }
 
+    private void sendSocialXpEvent(String userId, double amount, String source, String postId, String description) {
+        try {
+            XpRewardEvent xpEvent = XpRewardEvent.builder()
+                    .userId(userId)
+                    .amount(amount)
+                    .source(source)
+                    .postId(postId)
+                    .description(description)
+                    .build();
+            kafkaTemplate.send("xp-delivery", xpEvent);
+        } catch (Exception e) {
+            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+        }
+    }
+
     /**
      * Sends Kafka event to notify tagged user.
      */
@@ -177,18 +195,18 @@ public class CommentService {
         String actorDisplayName = comment.getDisplayName();
         String actorAvatarUrl = comment.getAvatarUrl();
 
-        // Loop qua từng người được tag để gửi event riêng biệt
+        // Loop through each tagged user to send individual events
         for (String taggedUserId : taggedUserIds) {
-            // Bỏ qua nếu tự tag chính mình (tránh spam)
+            // Skip if tagging self (prevent spam)
             if (taggedUserId.equals(comment.getUserId())) continue;
 
             try {
                 UserMentionEvent event = UserMentionEvent.builder()
-                        .recipientId(taggedUserId)      // Gửi cho người được tag
+                        .recipientId(taggedUserId)      // Send to tagged user
                         .sourceId(comment.getId())
                         .sourceType("COMMENT")
                         .postId(post.getId())
-                        .actorId(comment.getUserId())   // Người tag
+                        .actorId(comment.getUserId())   // The tagger
                         .actorDisplayName(actorDisplayName)
                         .actorAvatarUrl(actorAvatarUrl)
                         .contentPreview(getPreview(comment.getContent()))
@@ -220,7 +238,7 @@ public class CommentService {
                 PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")));
         Map<String, BasicProfileInfo> taggedProfileCache = new HashMap<>();
 
-        // 2. Chuyển đổi và "làm giàu" (enrich) từng comment
+        // 2. Transform and enrich each comment
         return comments.stream()
             .map(comment -> mapToCommentResponse(comment, currentUserId, taggedProfileCache))
                 .collect(Collectors.toList());
@@ -230,7 +248,7 @@ public class CommentService {
             Comment comment,
             String currentUserId,
             Map<String, BasicProfileInfo> taggedProfileCache) {
-        // 1. Dùng mapper để map các trường cơ bản
+        // 1. Use mapper for basic field mapping
         CommentResponse response = commentMapper.toCommentResponse(comment);
         
         // 2. Check if current user has liked this comment
@@ -241,14 +259,14 @@ public class CommentService {
             response.setIsLiked(false);
         }
 
-        // 3. Khởi tạo list
+        // 3. Initialize list
         if (response.getTaggedUsers() == null) {
             response.setTaggedUsers(new ArrayList<>());
         }
 
         List<String> taggedIds = comment.getTaggedUserIds();
 
-        // 4. Logic "làm giàu": Lặp qua các ID và gọi ProfileClient
+        // 4. Enrichment logic: Iterate through IDs and call ProfileClient
         if (taggedIds != null && !taggedIds.isEmpty()) {
             for (String taggedUserId : taggedIds) {
                 try {
@@ -327,7 +345,7 @@ public class CommentService {
     public CommentLikeResponse toggleLike(Authentication authentication, String commentId) {
         String userId = authentication.getName();
 
-        Comment comment = commentRepository.findById(commentId)
+        commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
         boolean alreadyLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);

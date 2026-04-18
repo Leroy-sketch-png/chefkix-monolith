@@ -13,11 +13,11 @@ public class SessionResponse {
     LocalDateTime completedAt;
 
     // --- GAMIFICATION DATA ---
-    Double pendingXp;    // Số XP user nhận được khi finish session (thường là 30% tổng)
+    Double pendingXp;    // XP the user receives when finishing session (typically 30% of total)
 
     // --- RECIPE INFO ---
     String recipeId;
     String recipeTitle;
-    String recipeAuthorId; // ID của người tạo ra công thức này
-    Double recipeBaseXp;   // Tổng XP gốc của công thức (để tính 4% bonus)
+    String recipeAuthorId; // ID of the recipe creator
+    Double recipeBaseXp;   // Total base XP of the recipe (for calculating 4% bonus)
 }

@@ -8,44 +8,44 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Class định nghĩa cấu trúc của một thử thách (Challenge).
- * Class này chỉ tồn tại trong RAM (Memory) để phục vụ logic, không lưu vào DB.
+ * Defines the structure of a Challenge.
+ * This class exists only in memory for logic purposes, not persisted to DB.
  */
 @Data
 @Builder
 public class ChallengeDefinition {
 
-    // ID định danh (VD: "noodle-day", "quick-meal-1")
-    // Dùng để lưu vào log lịch sử khi user hoàn thành
+    // Unique identifier (e.g., "noodle-day", "quick-meal-1")
+    // Stored in completion history log when user completes the challenge
     private String id;
 
-    // Tên hiển thị (VD: "Noodle Day 🍜")
+    // Display name (e.g., "Noodle Day 🍜")
     private String title;
 
-    // Mô tả ngắn gọn
+    // Short description
     private String description;
 
-    // Số XP thưởng thêm
+    // Bonus XP reward
     private int bonusXp;
 
     // Target completions (1 for daily, N for weekly)
     @Builder.Default
     private int target = 1;
 
-    // Metadata dành cho Frontend hiển thị UI
-    // Ví dụ: Frontend cần biết tag nào để highlight, hoặc icon gì
-    // VD: { "cuisine": "Italian", "icon": "🍝", "color": "#FF5733" }
+    // Metadata for Frontend UI display
+    // e.g., which tag to highlight, which icon to show
+    // Example: { "cuisine": "Italian", "icon": "🍝", "color": "#FF5733" }
     private Map<String, Object> criteriaMetadata;
 
-    // LOGIC CỐT LÕI (Functional Interface)
-    // Đây là hàm kiểm tra xem món ăn (Recipe) có đạt yêu cầu không.
+    // CORE LOGIC (Functional Interface)
+    // Validates whether a Recipe satisfies the challenge requirements.
     // Input: Recipe -> Output: true/false
     private Predicate<Recipe> validationLogic;
 
     /**
-     * Helper method để kiểm tra nhanh.
-     * @param recipe Món ăn user vừa nấu
-     * @return true nếu hoàn thành thử thách
+     * Helper method for quick validation.
+     * @param recipe The recipe the user just cooked
+     * @return true if the challenge is satisfied
      */
     public boolean isSatisfiedBy(Recipe recipe) {
         if (validationLogic == null) return false;

@@ -1,5 +1,6 @@
 package com.chefkix.social.moderation.service;
 
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.moderation.dto.*;
@@ -8,6 +9,7 @@ import com.chefkix.social.moderation.entity.Ban;
 import com.chefkix.social.moderation.repository.AppealRepository;
 import com.chefkix.social.moderation.repository.BanRepository;
 import com.chefkix.social.post.entity.Report;
+import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.ReportRepository;
 import lombok.AccessLevel;
@@ -41,6 +43,8 @@ public class ModerationService {
     BanRepository banRepository;
     AppealRepository appealRepository;
     PostRepository postRepository;
+    CommentRepository commentRepository;
+    RecipeProvider recipeProvider;
 
     private static final int[] PENALTY_DAYS = {3, 7, 14, -1}; // -1 = permanent
 
@@ -261,13 +265,28 @@ public class ModerationService {
      * Resolve the userId of the content author from a report.
      */
     private String resolveReportedUserId(Report report) {
-        if ("post".equals(report.getTargetType())) {
-            return postRepository.findById(report.getTargetId())
+        String targetType = report.getTargetType();
+        String targetId = report.getTargetId();
+
+        if ("post".equals(targetType)) {
+            return postRepository.findById(targetId)
                     .map(post -> post.getUserId())
                     .orElse(null);
         }
-        // For comments and recipes, we'd need cross-module calls
-        // For now, return null (admin can manually look up)
+        if ("comment".equals(targetType)) {
+            return commentRepository.findById(targetId)
+                    .map(comment -> comment.getUserId())
+                    .orElse(null);
+        }
+        if ("recipe".equals(targetType)) {
+            try {
+                var summary = recipeProvider.getRecipeSummary(targetId);
+                return summary != null ? summary.getAuthorId() : null;
+            } catch (Exception e) {
+                log.warn("Failed to resolve recipe author for report target {}", targetId, e);
+                return null;
+            }
+        }
         return null;
     }
 

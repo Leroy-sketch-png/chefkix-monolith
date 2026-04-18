@@ -13,9 +13,10 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-// SỬA: Import các thư viện phân trang và HTTP
+// Import pagination and HTTP libraries
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-// SỬA: Dùng một prefix chung chuẩn REST
+// Standard REST prefix
 @RequestMapping("")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -33,68 +34,68 @@ public class CommentController {
     CommentService commentService;
     ReplyService replyService;
 
-    // SỬA: URL chuẩn REST để tạo comment
+    // REST-standard URL to create comment
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             Authentication authentication,
             @PathVariable("postId") String postId,
             @Valid @RequestBody CommentRequest req) {
 
-        // SỬA: Gọi service
+        // Call service
         CommentResponse data = commentService.createComment(authentication, postId, req);
 
-        // SỬA: Trả về 201 CREATED và dùng factory
+        // Return 201 CREATED using factory
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.created(data));
     }
 
-    // SỬA: URL chuẩn REST để tạo reply
+    // REST-standard URL to create reply
     // FIXED: Added /posts prefix to match Gateway routing (/api/v1/posts/** → StripPrefix=2 → /posts/**)
     @PostMapping("/posts/comments/{commentId}/replies")
     public ResponseEntity<ApiResponse<ReplyResponse>> createReply(
-            Authentication authentication, // SỬA: Thêm Authentication
+            Authentication authentication, // Added authentication
             @PathVariable("commentId") String commentId,
             @Valid @RequestBody ReplyRequest req) {
 
-        // SỬA: Gọi service (Cần cập nhật service để nhận auth)
+        // Call service
         ReplyResponse data = replyService.createReply(req);
 
-        // SỬA: Trả về 201 CREATED
+        // Return 201 CREATED
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(data));
     }
 
-    // SỬA: URL chuẩn REST
-    // SỬA: Thêm Pageable và trả về Page<T>
+    // REST-standard URL
+    // Added Pageable, returns Page<T>
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getAllComments(
             Authentication authentication,
             @PathVariable("postId") String postId,
-            Pageable pageable) { // <-- SỬA: Để Spring tự tạo Pageable
+            @PageableDefault(size = 20) Pageable pageable) {
 
         // Get current user ID for isLiked check (null-safe for anonymous)
         String currentUserId = authentication != null ? authentication.getName() : null;
         List<CommentResponse> data = commentService.getAllCommentsByPostId(postId, currentUserId);
 
-        // SỬA: Dùng factory
+        // Use factory
         return ResponseEntity.ok(ApiResponse.success(data));
     }
 
-    // SỬA: URL chuẩn REST
-    // SỬA: Thêm Pageable và trả về Page<T>
+    // REST-standard URL
+    // Added Pageable, returns Page<T>
     // FIXED: Added /posts prefix to match Gateway routing
     @GetMapping("/posts/comments/{commentId}/replies")
     public ResponseEntity<ApiResponse<List<ReplyResponse>>> getAllReplies(
             Authentication authentication,
             @PathVariable("commentId") String commentId,
-            Pageable pageable) { // <-- SỬA: Để Spring tự tạo Pageable
+            @PageableDefault(size = 20) Pageable pageable) {
 
         // Get current user ID for isLiked check (null-safe for anonymous)
         String currentUserId = authentication != null ? authentication.getName() : null;
         List<ReplyResponse> data = replyService.getAllRepliesByCommentId(commentId, currentUserId);
 
-        // SỬA: Dùng factory
+        // Use factory
         return ResponseEntity.ok(ApiResponse.success(data));
     }
 

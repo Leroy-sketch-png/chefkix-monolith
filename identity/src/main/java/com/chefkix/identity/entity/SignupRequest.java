@@ -27,7 +27,7 @@ public class SignupRequest {
   // Plain password - stored temporarily until OTP verification
   // Keycloak will hash it properly when user is created
   // This document is deleted after successful verification
-  @NotBlank @Size(min = 6, max = 128) String password;
+  @NotBlank @Size(min = 8, max = 128) String password;
 
   // OTP fields
   String otpHash;

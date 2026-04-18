@@ -58,7 +58,7 @@ public class HttpOnlyCookieUtils {
         .secure(secureCookies)
         .path("/")
         .maxAge(maxAgeInSeconds)
-        .sameSite("Strict");
+        .sameSite("Lax");
 
     // Browsers often reject `Domain=localhost`; host-only cookies are correct for local dev.
     if (StringUtils.hasText(cookieDomain) && !"localhost".equalsIgnoreCase(cookieDomain.trim())) {

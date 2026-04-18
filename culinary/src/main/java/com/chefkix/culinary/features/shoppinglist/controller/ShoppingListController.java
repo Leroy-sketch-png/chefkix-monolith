@@ -6,8 +6,10 @@ import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromMealPlan
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromRecipeRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListResponse;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListSummaryResponse;
+import com.chefkix.culinary.features.shoppinglist.entity.CheckoutRecord;
 import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProvider;
 import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProviderRegistry;
+import com.chefkix.culinary.features.shoppinglist.repository.CheckoutRecordRepository;
 import com.chefkix.culinary.features.shoppinglist.service.ShoppingListService;
 import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/shopping-lists")
@@ -25,6 +28,7 @@ public class ShoppingListController {
 
     private final ShoppingListService shoppingListService;
     private final GroceryProviderRegistry groceryProviderRegistry;
+    private final CheckoutRecordRepository checkoutRecordRepository;
 
     // ── Create ──────────────────────────────────────────────────────
 
@@ -154,6 +158,17 @@ public class ShoppingListController {
         GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
         GroceryProvider.CheckoutResult result = groceryProvider.createCheckout(items, userId());
 
+        checkoutRecordRepository.save(CheckoutRecord.builder()
+                .orderId(result.orderId())
+                .userId(userId())
+                .shoppingListId(id)
+                .provider(result.provider())
+                .itemCount(result.itemCount())
+                .estimatedTotal(result.estimatedTotal())
+                .checkoutUrl(result.checkoutUrl())
+                .status("redirected")
+                .build());
+
         return ApiResponse.<GroceryProvider.CheckoutResult>builder()
                 .success(true).statusCode(200).data(result).build();
     }
@@ -167,6 +182,14 @@ public class ShoppingListController {
             @RequestParam(defaultValue = "manual") String provider) {
         GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
         GroceryProvider.OrderStatus status = groceryProvider.getOrderStatus(orderId);
+
+        checkoutRecordRepository.findByOrderId(orderId).ifPresent(record -> {
+            if (!record.getStatus().equals(status.status())) {
+                record.setStatus(status.status());
+                checkoutRecordRepository.save(record);
+            }
+        });
+
         return ApiResponse.<GroceryProvider.OrderStatus>builder()
                 .success(true).statusCode(200).data(status).build();
     }
@@ -179,6 +202,24 @@ public class ShoppingListController {
         return ApiResponse.<List<GroceryProviderRegistry.ProviderInfo>>builder()
                 .success(true).statusCode(200)
                 .data(groceryProviderRegistry.getAvailableProviders()).build();
+    }
+
+    /**
+     * POST /api/v1/shopping-lists/ingredient-links — Get per-ingredient affiliate links.
+     * Used on recipe detail pages to show contextual "Buy" buttons for each ingredient.
+     */
+    @PostMapping("/ingredient-links")
+    public ApiResponse<Map<String, String>> getIngredientLinks(
+            @RequestBody List<GroceryProvider.GroceryItemRequest> items,
+            @RequestParam(defaultValue = "affiliate") String provider) {
+        GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
+        if (groceryProvider == null || !groceryProvider.isAvailable()) {
+            return ApiResponse.<Map<String, String>>builder()
+                    .success(true).statusCode(200).data(Map.of()).build();
+        }
+        Map<String, String> links = groceryProvider.getPerIngredientLinks(items);
+        return ApiResponse.<Map<String, String>>builder()
+                .success(true).statusCode(200).data(links).build();
     }
 
     // ── Helpers ─────────────────────────────────────────────────────

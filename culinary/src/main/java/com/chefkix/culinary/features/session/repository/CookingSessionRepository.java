@@ -15,10 +15,10 @@ import java.util.Optional;
 @Repository
 public interface CookingSessionRepository extends MongoRepository<CookingSession, String>, CookingSessionCustomRepository {
 
-    // Tìm session đang chạy của user (để chặn không cho start 2 cái cùng lúc)
+    // Find user's active session (to prevent starting 2 sessions simultaneously)
     Optional<CookingSession> findByUserIdAndStatus(String userId, SessionStatus status);
 
-    // Đếm số lần user đã nấu xong món này (để tính Mastery)
+    // Count how many times user has completed this recipe (for Mastery calculation)
     long countByUserIdAndRecipeIdAndStatus(String userId, String recipeId, SessionStatus status);
 
     Optional<CookingSession> findFirstByUserIdAndStatus(String userId, SessionStatus sessionStatus);

@@ -127,6 +127,21 @@ public class KeycloakAdminClient {
     }
 
     /**
+     * Delete a user from Keycloak.
+     * Used for account deletion (GDPR right to erasure).
+     */
+    public void deleteUser(String bearerToken, String userId) {
+        webClient.delete()
+                .uri("/admin/realms/nottisn/users/{userId}", userId)
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                .retrieve()
+                .toBodilessEntity()
+                .timeout(REQUEST_TIMEOUT)
+                .block();
+        log.info("Deleted Keycloak user {}", userId);
+    }
+
+    /**
      * Convert a POJO's fields to form data (replicates Feign's @QueryMap behavior for
      * application/x-www-form-urlencoded bodies).
      */

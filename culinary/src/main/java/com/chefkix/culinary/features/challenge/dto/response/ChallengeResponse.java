@@ -15,31 +15,31 @@ import java.util.Map;
 @AllArgsConstructor
 public class ChallengeResponse {
 
-    // Thông tin cơ bản của Challenge (Lấy từ Pool)
+    // Basic Challenge info (From Pool)
     private String id;
     private String title;
     private String description;
     private String icon;
     private int bonusXp;
 
-    // Metadata giúp Frontend hiển thị điều kiện (VD: cuisineType: ["Italian"])
+    // Metadata to help Frontend display conditions (e.g., cuisineType: ["Italian"])
     private Map<String, Object> criteria;
 
-    // Thời gian hết hạn (Thường là cuối ngày UTC)
+    // Expiration time (Usually end of day UTC)
     private String endsAt;
 
-    // Trạng thái của User đối với Challenge này
+    // User's status for this Challenge
     private boolean completed;
 
-    // Thời điểm hoàn thành (null nếu chưa xong)
+    // Completion timestamp (null if not yet completed)
     private String completedAt;
 
-    // Danh sách món ăn gợi ý để user nấu
+    // Suggested recipes for user to cook
     private List<RecipePreviewDto> matchingRecipes;
 
     // ==========================================================
-    // Inner DTO: Tóm tắt món ăn (Để tránh trả về full Recipe nặng nề)
-    // Bạn có thể tách ra file riêng nếu muốn tái sử dụng
+    // Inner DTO: Recipe summary (To avoid returning a heavy full Recipe object)
+    // You can extract to a separate file if you want to reuse
     // ==========================================================
     @Data
     @Builder
@@ -48,9 +48,9 @@ public class ChallengeResponse {
     public static class RecipePreviewDto {
         private String id;
         private String title;
-        private int xpReward; // XP gốc của món ăn
+        private int xpReward; // Recipe's base XP
         private List<String> coverImageUrl;
-        private int totalTime; // phút
+        private int totalTime; // minutes
         private Difficulty difficulty;
     }
 }

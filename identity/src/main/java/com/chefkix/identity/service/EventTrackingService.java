@@ -55,4 +55,10 @@ public class EventTrackingService {
     public void storeEvents(List<UserEvent> events) {
         userEventRepository.saveAll(events);
     }
+
+    public long deleteUserEvents(String userId) {
+        long count = userEventRepository.deleteByUserId(userId);
+        log.info("Deleted {} events for user={}", count, userId);
+        return count;
+    }
 }

@@ -28,7 +28,7 @@ public class AIMetaResponse {
     // Map: "Ingredient" -> ["Sub1", "Sub2"]
     private Map<String, List<String>> ingredientSubstitutions;
 
-    // Map: Context văn hóa
+    // Map: Cultural context
     private CulturalContextDto culturalContext;
 
     // ===== 3. AI CREATIVE (Story/Tips) =====

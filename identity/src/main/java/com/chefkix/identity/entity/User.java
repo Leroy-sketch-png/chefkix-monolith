@@ -16,10 +16,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document(collection = "users") // Tên collection trong MongoDB
+@Document(collection = "users") // Collection name in MongoDB
 public class User {
 
-  @Id String id; // ID trong Mongo là String (ObjectId dưới dạng chuỗi)
+  @Id String id; // Mongo ID is String (ObjectId as string)
 
   String username;
 
@@ -41,13 +41,13 @@ public class User {
 
   @LastModifiedDate LocalDateTime updatedAt;
 
-  // Thay vì @OneToOne, dùng @DBRef nếu muốn liên kết sang document khác
+  // Instead of @OneToOne, use @DBRef to reference another document
   @DBRef UserProfile userProfile;
 
   String googleId;
 
   String authProvider;
 
-  // Thay vì ManyToMany, dùng @DBRef để tham chiếu đến collection khác
+  // Instead of ManyToMany, use @DBRef to reference another collection
   @DBRef Set<Role> roles;
 }

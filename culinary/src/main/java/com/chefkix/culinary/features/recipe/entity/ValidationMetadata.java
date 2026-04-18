@@ -13,11 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ValidationMetadata {
-    boolean xpValidated;           // Đã qua kiểm duyệt AI chưa?
-    double validationConfidence;   // Độ tin cậy (0.0 - 1.0)
+    boolean xpValidated;           // Has it been validated by AI?
+    double validationConfidence;   // Confidence score (0.0 - 1.0)
 
     @Builder.Default
-    List<String> validationIssues = new ArrayList<>(); // Danh sách lỗi (Vd: "Time too short")
+    List<String> validationIssues = new ArrayList<>(); // List of issues (e.g.: "Time too short")
 
-    boolean xpAdjusted;            // Có bị trừ điểm do vi phạm không?
+    boolean xpAdjusted;            // Was XP deducted due to violations?
 }

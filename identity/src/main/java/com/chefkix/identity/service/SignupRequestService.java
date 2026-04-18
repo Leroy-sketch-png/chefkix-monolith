@@ -15,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +29,10 @@ public class SignupRequestService {
   final EmailService emailService;
   final KafkaTemplate<String, Object> kafkaTemplate;
   final BaseRedisService redisService;
-  final PasswordEncoder passwordEncoder;
 
-  // --- CONFIGS (Nên để trong application.yml) ---
-  @Value("${app.otp.ttl-seconds:300}")
-  long otpTtlSeconds; // 5 phút
+  // --- CONFIGS (Should be in application.yml) ---
+  @Value("${app.otp.ttl-seconds:600}")
+  long otpTtlSeconds; // 10 minutes
 
   @Value("${app.otp.max-resend-per-hour:3}")
   int maxResendPerHour;
@@ -49,11 +47,11 @@ public class SignupRequestService {
   int baseCooldownSeconds;
 
   // =========================================================================
-  // 1. PUBLIC: REGISTER (ĐĂNG KÝ MỚI)
+  // 1. PUBLIC: REGISTER (NEW SIGNUP)
   // =========================================================================
   @Transactional
   public void register(SignupRequest request, String clientIp) {
-    // 1. Bảo mật: Chặn spam IP ngay từ bước đăng ký
+    // 1. Security: Block IP spam from the registration step
     checkIpRateLimit(clientIp);
 
     // 2. CRITICAL: Check if a verified user already exists with this email
@@ -69,18 +67,18 @@ public class SignupRequestService {
       throw new AppException(ErrorCode.USER_EXISTED);
     }
 
-    // 4. Dọn dẹp request cũ (Nếu user đăng ký lại nhưng chưa verify)
+    // 4. Clean up old request (If user re-registers but hasn't verified)
     signupRequestRepository
         .findByEmail(request.getEmail())
         .ifPresent(
             existing -> {
               signupRequestRepository.delete(existing);
-              // Reset limit ngày của email này để tránh user bị kẹt nếu lỡ spam trước đó
+              // Reset daily limit for this email to prevent user from being stuck if they spammed before
               redisService.delete(RedisKeyUtils.getOtpDailyLimitKey(request.getEmail()));
               log.info("Cleaned up existing signup request for {}", maskEmail(request.getEmail()));
             });
 
-    // 5. Map Entity & Mã hóa Password ngay lập tức
+    // 5. Map Entity & Encode Password immediately
     SignupRequest req =
         SignupRequest.builder()
             .email(request.getEmail())
@@ -103,22 +101,22 @@ public class SignupRequestService {
             .preferences(request.getPreferences())
             .build();
 
-    // 4. Lưu tạm vào DB
+    // 4. Save temporarily to DB
     req = signupRequestRepository.save(req);
 
-    // 5. SECURITY: Set Cooldown ngay lập tức (60s)
-    // Để ngăn user vừa đăng ký xong bấm Resend liên tục
+    // 5. SECURITY: Set Cooldown immediately (60s)
+    // To prevent user from repeatedly pressing Resend right after registering
     String cooldownKey = RedisKeyUtils.getOtpCooldownKey(request.getEmail());
     redisService.set(cooldownKey, "1", baseCooldownSeconds);
 
-    // 6. Gọi hàm chung xử lý OTP
+    // 6. Call shared OTP processing function
     generateAndSendOtp(req);
 
     log.info("Registration initiated for IP: {}", clientIp);
   }
 
   // =========================================================================
-  // 2. PUBLIC: RESEND OTP (GỬI LẠI MÃ)
+  // 2. PUBLIC: RESEND OTP
   // =========================================================================
   @Transactional
   public void resendOtp(String email, String clientIp) {
@@ -127,22 +125,22 @@ public class SignupRequestService {
       throw new AppException(ErrorCode.INVALID_EMAIL);
     }
 
-    // 2. SECURITY: Check Rate Limits (Redis đa tầng)
+    // 2. SECURITY: Check Rate Limits (Multi-layer Redis)
     checkRateLimits(email, clientIp);
 
-    // 3. Lấy Entity cũ
+    // 3. Get existing Entity
     SignupRequest req =
         signupRequestRepository
             .findByEmail(email)
             .orElseThrow(() -> new AppException(ErrorCode.SIGNUP_REQUEST_NOT_FOUND));
 
-    // 4. SECURITY: Vô hiệu hóa mã cũ (Chống Race Condition)
+    // 4. SECURITY: Invalidate old OTP (Prevent Race Condition)
     invalidateOldOtp(req);
 
-    // 5. Gọi hàm chung xử lý OTP
+    // 5. Call shared OTP processing function
     generateAndSendOtp(req);
 
-    // 6. SECURITY: Tăng bộ đếm & Set Cooldown lũy tiến
+    // 6. SECURITY: Increment counters & Set progressive Cooldown
     incrementResendCounters(email, clientIp);
     setProgressiveCooldown(email);
 
@@ -150,22 +148,22 @@ public class SignupRequestService {
   }
 
   // =========================================================================
-  // 3. PRIVATE CORE: LOGIC CHUNG (DRY & SECURE)
+  // 3. PRIVATE CORE: SHARED LOGIC (DRY & SECURE)
   // =========================================================================
   private void generateAndSendOtp(SignupRequest req) {
-    // A. Sinh OTP & Hash
+    // A. Generate OTP & Hash
     String otp = emailService.generateOtpCode();
     String otpHash = emailService.hmacOtp(otp);
 
-    // B. Cập nhật Entity
+    // B. Update Entity
     req.setOtpHash(otpHash);
     req.setExpiresAt(Instant.now().plusSeconds(otpTtlSeconds));
     req.setLastOtpSentAt(Instant.now());
 
     signupRequestRepository.save(req);
 
-    // C. Tạo nội dung HTML (Hard code tại Producer)
-    // Lưu ý: Đảm bảo req.getFullName() không bị null
+    // C. Create HTML content (Hardcoded at Producer)
+    // Note: Ensure req.getFullName() is not null
     String name = req.getFullName() != null ? req.getFullName() : "Chef";
 
     String htmlContent =
@@ -194,22 +192,22 @@ public class SignupRequestService {
     <body>
         <div class="container">
             <h2 class="header">Chefkix Verification</h2>
-            <p>Xin chào <strong>%s</strong>,</p>
-            <p>Bạn vừa yêu cầu đăng ký tài khoản tại Chefkix. Đây là mã xác thực của bạn:</p>
+            <p>Hello <strong>%s</strong>,</p>
+            <p>You have requested to register an account at Chefkix. Here is your verification code:</p>
 
             <div class="otp-box">%s</div>
 
-            <p>Mã này sẽ hết hạn sau 5 phút. Tuyệt đối không chia sẻ mã này cho ai.</p>
+            <p>This code will expire in %d minutes. Do not share this code with anyone.</p>
             <div class="footer">
-                Thân ái,<br>Đội ngũ Chefkix
+                Best regards,<br>The Chefkix Team
             </div>
         </div>
     </body>
     </html>
     """,
-            name, otp);
+            name, otp, Math.max(1L, TimeUnit.SECONDS.toMinutes(otpTtlSeconds)));
 
-    // D. Gửi Kafka
+    // D. Send via Kafka
     EmailEvent event =
         EmailEvent.builder()
             .recipientEmail(req.getEmail())
@@ -260,14 +258,14 @@ public class SignupRequestService {
   }
 
   private void incrementResendCounters(String email, String clientIp) {
-    // Tăng User Counter
+    // Increment User Counter
     redisService.increment(RedisKeyUtils.getOtpHourlyLimitKey(email));
     redisService.expire(RedisKeyUtils.getOtpHourlyLimitKey(email), 1, TimeUnit.HOURS);
 
     redisService.increment(RedisKeyUtils.getOtpDailyLimitKey(email));
     redisService.expire(RedisKeyUtils.getOtpDailyLimitKey(email), 24, TimeUnit.HOURS);
 
-    // Tăng IP Counter
+    // Increment IP Counter
     String ipKey = RedisKeyUtils.getOtpIpLimitKey(clientIp);
     redisService.increment(ipKey);
     redisService.expire(ipKey, 1, TimeUnit.HOURS);
@@ -279,16 +277,16 @@ public class SignupRequestService {
 
     // Logic: 60s, 120s, 240s...
     int cooldown = baseCooldownSeconds * (int) Math.pow(2, Math.max(0, count - 1));
-    cooldown = Math.min(cooldown, 900); // Max 15 phút
+    cooldown = Math.min(cooldown, 900); // Max 15 minutes
 
     redisService.set(RedisKeyUtils.getOtpCooldownKey(email), "1", cooldown);
   }
 
   private void invalidateOldOtp(SignupRequest req) {
     if (req.getOtpHash() != null) {
-      // Lưu vào Redis Blacklist (Optional, hoặc chỉ cần update hash mới là được)
-      // Vì ta dùng Hash trong DB, khi save OTP mới, OTP cũ tự mất hiệu lực.
-      // Hàm này có thể dùng để log hoặc logic chặn mã cũ chặt chẽ hơn nếu cần.
+      // Store in Redis Blacklist (Optional, or just updating to a new hash is sufficient)
+      // Since we use Hash in DB, when saving a new OTP, the old OTP is automatically invalidated.
+      // This function can be used for logging or stricter old OTP blocking logic if needed.
     }
   }
 
