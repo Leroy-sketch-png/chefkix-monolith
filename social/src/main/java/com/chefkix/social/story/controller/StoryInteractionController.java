@@ -1,10 +1,12 @@
 package com.chefkix.social.story.controller;
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.social.story.dto.request.StoryReplyRequest;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.dto.response.UserStoryFeedResponse;
 import com.chefkix.social.story.service.StoryFeedService;
 import com.chefkix.social.story.service.StoryInteractionService;
 import com.cloudinary.Api;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,15 @@ public class StoryInteractionController {
             @PathVariable String storyId,
             @RequestParam String type) { // type = "FIRE", "HEART"...
         interactionService.recordReaction(storyId, getCurrentUserId(), type);
+        return ApiResponse.success("successfully reacted");
+    }
+
+    @PostMapping("/{storyId}/replies")
+    public ApiResponse<String> replyToStory(
+            @PathVariable String storyId,
+            @Valid @RequestBody StoryReplyRequest request) { // <-- Thêm @Valid ở đây
+
+        interactionService.replyToStory(storyId, getCurrentUserId(), request);
         return ApiResponse.success("successfully reacted");
     }
 

@@ -13,4 +13,6 @@ public interface StoryService {
     List<StoryResponse> getMyActiveStories(String userId);
 
     Page<StoryResponse> getMyArchivedStories(String userId, int page, int size);
+
+    void archiveStoryEarly(String storyId, String userId);
 }

@@ -42,6 +42,12 @@ public class StoryController {
         return ApiResponse.success(storyService.getMyArchivedStories(getCurrentUserId(), page, size));
     }
 
+    @PatchMapping("/{storyId}/archive")
+    public ApiResponse<String> archiveStoryEarly(@PathVariable String storyId) {
+        storyService.archiveStoryEarly(storyId, getCurrentUserId());
+        return ApiResponse.success("Story archived");
+    }
+
     private String getCurrentUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

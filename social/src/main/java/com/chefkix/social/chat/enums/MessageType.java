@@ -1,8 +1,9 @@
 package com.chefkix.social.chat.enums;
 
 public enum MessageType {
-    TEXT, // Regular text message
-    POST_SHARE, // Post share message
-    IMAGE, // (Reserved) Image message
-    FILE // (Reserved) File message
+    TEXT, // Tin nhắn văn bản thường
+    POST_SHARE, // Tin nhắn chia sẻ bài viết
+    STORY_REPLY,
+    IMAGE, // (Dự phòng) Tin nhắn hình ảnh
+    FILE // (Dự phòng) Tin nhắn tệp
 }
