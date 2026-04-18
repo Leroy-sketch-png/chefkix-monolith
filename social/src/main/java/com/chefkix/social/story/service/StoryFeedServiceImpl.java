@@ -14,11 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Map;
-import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -62,13 +59,20 @@ public class StoryFeedServiceImpl implements StoryFeedService {
     public List<UserStoryFeedResponse> getStoryFeed(String currentUserId) {
         // 1. Lấy danh sách đang follow
         List<String> followingIds = profileProvider.getFollowingIds(currentUserId);
-        if (followingIds == null || followingIds.isEmpty()) return List.of();
 
-        // 2. Lấy TẤT CẢ Story còn hạn của những người này (Chỉ lấy ID và UserId để tối ưu RAM)
+        // 🌟 Dùng Set để tránh bị trùng ID nếu lỡ có lưu "tự follow bản thân" trong DB
+        Set<String> targetUserIds = new HashSet<>();
+        if (followingIds != null && !followingIds.isEmpty()) {
+            targetUserIds.addAll(followingIds);
+        }
+        // Luôn luôn nhét bản thân vào mảng để query
+        targetUserIds.add(currentUserId);
+
+        // 2. Lấy TẤT CẢ Story còn hạn của những người này
         List<Story> activeStories = storyRepository
-                .findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(followingIds, Instant.now());
+                .findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(targetUserIds, Instant.now());
 
-        if (activeStories.isEmpty()) return List.of();
+        if (activeStories.isEmpty()) return new ArrayList<>(); // Trả về list rỗng an toàn
 
         // --- BẮT ĐẦU LOGIC TÍNH TOÁN SEEN/UNSEEN TRÊN RAM ---
 
@@ -88,15 +92,11 @@ public class StoryFeedServiceImpl implements StoryFeedService {
 
         // 2.4. Gom nhóm: Tác giả này có bao nhiêu Story MÀ MÌNH ĐÃ XEM?
         Map<String, Long> viewedStoriesPerAuthor = activeStories.stream()
-                .filter(story -> viewedStoryIds.contains(story.getId())) // Chỉ đếm những story nằm trong danh sách đã xem
+                .filter(story -> viewedStoryIds.contains(story.getId()))
                 .collect(Collectors.groupingBy(Story::getUserId, Collectors.counting()));
-
 
         // 3. Build Response gửi về cho Frontend
         List<UserStoryFeedResponse> feed = new ArrayList<>();
-
-        // Lấy Profile 1 lần (Batch Get) nếu Provider của bạn hỗ trợ, nếu không thì dùng vòng lặp tạm
-        // Map<String, BasicProfileInfo> profiles = profileProvider.getBasicProfiles(totalStoriesPerAuthor.keySet());
 
         for (String authorId : totalStoriesPerAuthor.keySet()) {
             BasicProfileInfo info = profileProvider.getBasicProfile(authorId);
@@ -104,8 +104,8 @@ public class StoryFeedServiceImpl implements StoryFeedService {
             long total = totalStoriesPerAuthor.getOrDefault(authorId, 0L);
             long viewed = viewedStoriesPerAuthor.getOrDefault(authorId, 0L);
 
-            // ĐIỂM ĂN TIỀN: Nếu số story đã xem < tổng số story -> Có story chưa xem!
-            boolean hasUnseen = viewed < total;
+            // ĐIỂM ĂN TIỀN: Story của BẢN THÂN thì luôn coi là đã xem (hasUnseen = false)
+            boolean hasUnseen = !authorId.equals(currentUserId) && (viewed < total);
 
             feed.add(new UserStoryFeedResponse(
                     authorId,
@@ -115,9 +115,18 @@ public class StoryFeedServiceImpl implements StoryFeedService {
             ));
         }
 
-        // 4. (Tùy chọn cực hay) Sắp xếp lại bảng tin:
-        // Vòng tròn nào CHƯA XEM (Đỏ) đẩy lên đầu, ĐÃ XEM (Xám) đẩy xuống cuối!
-        feed.sort((a, b) -> Boolean.compare(b.hasUnseenStory(), a.hasUnseenStory()));
+        // 4. 🌟 Sắp xếp Bảng tin GỘP CHUNG (An toàn tuyệt đối)
+        feed.sort((a, b) -> {
+            boolean isAMe = a.userId().equals(currentUserId);
+            boolean isBMe = b.userId().equals(currentUserId);
+
+            // Ưu tiên 1: Bản thân phải luôn lên đầu (Return -1 nghĩa là a đứng trước b)
+            if (isAMe && !isBMe) return -1;
+            if (!isAMe && isBMe) return 1;
+
+            // Ưu tiên 2: Những người khác thì ai CHƯA XEM (true) xếp trước, ĐÃ XEM (false) xếp sau
+            return Boolean.compare(b.hasUnseenStory(), a.hasUnseenStory());
+        });
 
         return feed;
     }

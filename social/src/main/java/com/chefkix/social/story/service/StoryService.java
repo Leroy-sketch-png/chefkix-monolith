@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface StoryService {
-    StoryResponse createStory(String userId, StoryCreateRequest request);
+    StoryResponse createStory(String userId, StoryCreateRequest request, String mediaUrl);
     void deleteStory(String userId, String storyId);
 
     List<StoryResponse> getMyActiveStories(String userId);
