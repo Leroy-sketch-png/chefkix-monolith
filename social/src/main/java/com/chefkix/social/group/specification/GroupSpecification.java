@@ -6,17 +6,19 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class GroupSpecification {
 
     public static Criteria getCriteria(GroupExploreQuery query) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        // 1. Keyword Search
+        // 1. Keyword Search (escaped to prevent regex injection / ReDoS)
         if (StringUtils.hasText(query.getKeyword())) {
+            String escaped = Pattern.quote(query.getKeyword().trim());
             criteriaList.add(new Criteria().orOperator(
-                    Criteria.where("name").regex(query.getKeyword(), "i"),
-                    Criteria.where("description").regex(query.getKeyword(), "i")
+                    Criteria.where("name").regex(escaped, "i"),
+                    Criteria.where("description").regex(escaped, "i")
             ));
         }
 

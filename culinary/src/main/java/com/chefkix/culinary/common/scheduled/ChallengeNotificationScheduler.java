@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Sends daily challenge notifications via Kafka reminder-delivery topic.
@@ -107,6 +108,14 @@ public class ChallengeNotificationScheduler {
             String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
             List<Document> activeUsers = findActiveUsers();
 
+            // Batch query: get all userIds who already completed today's challenge
+            List<String> allUserIds = activeUsers.stream()
+                    .map(u -> u.getString("userId"))
+                    .filter(id -> id != null)
+                    .toList();
+            Set<String> completedUserIds = new java.util.HashSet<>(
+                    challengeLogRepository.findUserIdsWithChallengeDate(todayStr, allUserIds));
+
             int sent = 0;
             for (Document user : activeUsers) {
                 String userId = user.getString("userId");
@@ -114,7 +123,7 @@ public class ChallengeNotificationScheduler {
                 if (userId == null) continue;
 
                 // Skip users who already completed today's challenge
-                if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, todayStr)) {
+                if (completedUserIds.contains(userId)) {
                     continue;
                 }
 
@@ -158,13 +167,22 @@ public class ChallengeNotificationScheduler {
                     today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
 
             List<Document> activeUsers = findActiveUsers();
+
+            // Batch query: get all userIds who already completed this week's challenge
+            List<String> allUserIds = activeUsers.stream()
+                    .map(u -> u.getString("userId"))
+                    .filter(id -> id != null)
+                    .toList();
+            Set<String> completedUserIds = new java.util.HashSet<>(
+                    challengeLogRepository.findUserIdsWithChallengeDate(weekKey, allUserIds));
+
             int sent = 0;
             for (Document user : activeUsers) {
                 String userId = user.getString("userId");
                 String displayName = user.getString("displayName");
                 if (userId == null) continue;
 
-                if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey)) {
+                if (completedUserIds.contains(userId)) {
                     continue;
                 }
 

@@ -75,8 +75,12 @@ public class LeaderboardController {
    */
   @GetMapping("/my-rank")
   public ApiResponse<LeaderboardResponse.MyRank> getMyRank(
-      @RequestParam(defaultValue = "weekly") String timeframe) {
-    String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
+      @RequestParam(defaultValue = "weekly") String timeframe,
+      Authentication authentication) {
+    if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+      return ApiResponse.error(401, "Login required to view your rank");
+    }
+    String currentUserId = authentication.getName();
 
     // Get full leaderboard but only return myRank
     LeaderboardResponse response =

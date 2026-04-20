@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,11 +34,24 @@ public class AchievementService {
     private final RecipeRepository recipeRepository;
     private final ProfileProvider profileProvider;
 
+    // Cache achievement definitions — they rarely change
+    private volatile List<Achievement> cachedAchievements;
+    private volatile long cacheTimestamp;
+    private static final long CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(10);
+
+    private List<Achievement> getCachedAchievements() {
+        if (cachedAchievements == null || System.currentTimeMillis() - cacheTimestamp > CACHE_TTL_MS) {
+            cachedAchievements = achievementRepository.findAll();
+            cacheTimestamp = System.currentTimeMillis();
+        }
+        return cachedAchievements;
+    }
+
     /**
      * Build the full skill tree for a user: all achievement paths with per-node progress.
      */
     public SkillTreeResponse getSkillTree(String userId) {
-        List<Achievement> allAchievements = achievementRepository.findAll();
+        List<Achievement> allAchievements = getCachedAchievements();
         List<UserAchievement> userProgress = userAchievementRepository.findByUserId(userId);
 
         Map<String, UserAchievement> progressMap = userProgress.stream()
@@ -122,7 +136,7 @@ public class AchievementService {
      * Get all achievement blueprints (for discovery UI).
      */
     public List<Achievement> getAllAchievements() {
-        return achievementRepository.findAll();
+        return getCachedAchievements();
     }
 
     /**
@@ -216,10 +230,14 @@ public class AchievementService {
         int currentCount = computeCurrentCount(userId, criteriaType, target);
         List<String> newlyUnlocked = new ArrayList<>();
 
+        // Batch-fetch all user achievements to avoid N+1 queries in the loop
+        Map<String, UserAchievement> userAchievementMap = userAchievementRepository.findByUserId(userId)
+                .stream()
+                .collect(Collectors.toMap(UserAchievement::getAchievementCode, ua -> ua, (a, b) -> a));
+
         for (Achievement achievement : matching) {
-            UserAchievement ua = userAchievementRepository
-                    .findByUserIdAndAchievementCode(userId, achievement.getCode())
-                    .orElseGet(() -> UserAchievement.builder()
+            UserAchievement ua = userAchievementMap.getOrDefault(achievement.getCode(),
+                    UserAchievement.builder()
                             .userId(userId)
                             .achievementCode(achievement.getCode())
                             .requiredProgress(achievement.getCriteriaThreshold())
@@ -229,12 +247,10 @@ public class AchievementService {
 
             if (ua.isUnlocked()) continue;
 
-            // Check prerequisite
+            // Check prerequisite using the pre-fetched map
             if (achievement.getPrerequisiteCode() != null) {
-                boolean prereqUnlocked = userAchievementRepository
-                        .findByUserIdAndAchievementCode(userId, achievement.getPrerequisiteCode())
-                        .map(UserAchievement::isUnlocked)
-                        .orElse(false);
+                UserAchievement prereq = userAchievementMap.get(achievement.getPrerequisiteCode());
+                boolean prereqUnlocked = prereq != null && prereq.isUnlocked();
                 if (!prereqUnlocked) continue;
             }
 

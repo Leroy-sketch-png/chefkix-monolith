@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PushNotificationService {
 
     PushTokenRepository pushTokenRepository;
+    @org.springframework.beans.factory.annotation.Qualifier("taskExecutor") Executor taskExecutor;
 
     @Value("${chefkix.push.enabled:false}")
     @NonFinal
@@ -186,7 +188,7 @@ public class PushNotificationService {
             } catch (FirebaseMessagingException e) {
                 log.error("Failed to send push to user={}: {}", userId, e.getMessage());
             }
-        });
+        }, taskExecutor);
     }
 
     /**

@@ -6,6 +6,7 @@ import com.chefkix.social.story.dto.request.HighlightUpdateRequest;
 import com.chefkix.social.story.dto.response.HighlightResponse;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.service.StoryHighlightService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +22,14 @@ public class StoryHighlightController {
 
     private final StoryHighlightService highlightService;
 
-    // 1. Tạo Highlight mới
     @PostMapping()
     public ApiResponse<HighlightResponse> createHighlight(
-            @RequestBody HighlightCreateRequest request
+            @Valid @RequestBody HighlightCreateRequest request
     ) {
         HighlightResponse response = highlightService.createHighlight(getCurrentUserId(), request);
         return ApiResponse.created(response);
     }
 
-    // 2. Lấy danh sách Highlight của 1 user (HIỆN TRÊN TRANG CÁ NHÂN)
     @GetMapping("/{userId}")
     public ApiResponse<List<HighlightResponse>> getUserHighlights(
             @PathVariable("userId") String userId
@@ -38,7 +37,6 @@ public class StoryHighlightController {
         return ApiResponse.success(highlightService.getUserHighlights(userId), "Highlight list retrieved");
     }
 
-    // 3. Lấy chi tiết các video/ảnh bên trong 1 Highlight (KHI BẤM VÀO ĐỂ XEM)
     @GetMapping("/{highlightId}/stories")
     public ApiResponse<List<StoryResponse>> getHighlightStories(
             @PathVariable("highlightId") String highlightId
@@ -46,17 +44,15 @@ public class StoryHighlightController {
         return ApiResponse.success(highlightService.getStoriesInHighlight(highlightId));
     }
 
-    // 4. Sửa Highlight (Thêm/bớt story, đổi tên)
-    @PutMapping("/highlights/{highlightId}")
+    @PutMapping("/{highlightId}")
     public ApiResponse<String> updateHighlight(
             @PathVariable("highlightId") String highlightId,
-            @RequestBody HighlightUpdateRequest request) {
+            @Valid @RequestBody HighlightUpdateRequest request) {
         highlightService.updateHighlight(highlightId, getCurrentUserId(), request);
         return ApiResponse.success("Highlight updated");
     }
 
-    // 5. Xóa Highlight
-    @DeleteMapping("/highlights/{highlightId}")
+    @DeleteMapping("/{highlightId}")
     public ApiResponse<String> deleteHighlight(
             @PathVariable("highlightId") String highlightId
     ) {

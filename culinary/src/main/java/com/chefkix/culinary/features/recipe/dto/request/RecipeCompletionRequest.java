@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
@@ -14,7 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class RecipeCompletionRequest {
     // Only accept proof from Client
-    List<String> proofImageUrls;
+    @Size(max = 10)
+    List<@Size(max = 500) String> proofImageUrls;
 
     @Valid
     @NotEmpty
@@ -23,6 +25,7 @@ public class RecipeCompletionRequest {
     // Rating & Notes (Optional - for Mastery)
     @Min(1) @Max(5)
     Integer rating;
+    @Size(max = 2000)
     String notes;
 
     @Data

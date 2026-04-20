@@ -2,11 +2,11 @@ package com.chefkix.social.story.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 // 1. Request Payload để tạo Story
 public record StoryCreateRequest(
@@ -16,10 +16,10 @@ public record StoryCreateRequest(
 
         //boolean isCloseFriendsOnly,
 
-        String linkedRecipeId,
+        @Size(max = 100) String linkedRecipeId,
 
         // Giới hạn số lượng sticker để tránh payload quá lớn
-        List<StoryItemDto> items
+        @Size(max = 20) List<StoryItemDto> items
 ) {}
 
 

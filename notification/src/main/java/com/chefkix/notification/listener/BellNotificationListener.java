@@ -229,14 +229,14 @@ public class BellNotificationListener {
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenStoryDelivery(BaseEvent event) {
-        // 1. Kiểm tra Idempotency
+        // 1. Check Idempotency
         if (!shouldProcess(event, "story-delivery")) {
-            return; // Đừng quên return ở đây nhé
+            return; // Already processed — skip
         }
 
-        // 2. Pattern Matching cho StoryEvent
+        // 2. Pattern Matching for StoryEvent
         if (event instanceof StoryInteractionEvent storyEvent) {
-            // Validate các trường bắt buộc
+            // Validate required fields
             if (!hasText(storyEvent.getStoryId()) || !hasText(storyEvent.getUserId()) || !hasText(storyEvent.getInteractionType())) {
                 log.error("Skipping invalid StoryInteractionEvent: storyId={}, userId={}, interactionType={}",
                         storyEvent.getStoryId(), storyEvent.getUserId(), storyEvent.getInteractionType());
@@ -250,11 +250,11 @@ public class BellNotificationListener {
                         storyEvent.getUserId(),
                         storyEvent.getInteractionType());
 
-                // Gọi sang Service để xử lý lưu Notification và bắn Push (FCM/WebSocket)
+                // Call Service to save Notification and send Push (FCM/WebSocket)
                 notificationService.handleStoryInteractedEvent(storyEvent);
 
             } catch (Exception e) {
-                // Rollback idempotency để Kafka có thể retry lại sau nếu lỗi
+                // Rollback idempotency so Kafka can retry later if error
                 idempotencyService.removeProcessed(event.getEventId(), "story-delivery");
                 throw e;
             }

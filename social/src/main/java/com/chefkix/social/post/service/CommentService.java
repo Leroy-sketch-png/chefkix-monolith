@@ -315,10 +315,11 @@ public class CommentService {
             throw new AppException(ErrorCode.COMMENT_NOT_FOUND);
         }
 
-        // Delete all reply likes for replies on this comment
+        // Delete all reply likes for replies on this comment (batch)
         List<Reply> replies = replyRepository.findByParentCommentId(commentId);
-        for (Reply reply : replies) {
-            replyLikeRepository.deleteAllByReplyId(reply.getId());
+        if (!replies.isEmpty()) {
+            List<String> replyIds = replies.stream().map(Reply::getId).toList();
+            replyLikeRepository.deleteAllByReplyIdIn(replyIds);
         }
 
         // Delete all replies to this comment

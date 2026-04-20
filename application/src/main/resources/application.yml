@@ -17,7 +17,7 @@ spring:
   # ── MongoDB (single database, consolidated from 5) ──
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/chefkix}
+      uri: ${MONGODB_URI:mongodb://chefkix:chefkix-dev-password@localhost:27017/chefkix?authSource=admin}
       auto-index-creation: true
     web:
       pageable:
@@ -51,7 +51,7 @@ spring:
           issuer-uri: http://localhost:8180/realms/nottisn
 
 # ── Keycloak IDP (identity module — admin client) ──
-# SECURITY: Use env vars in production. Defaults here are PLACEHOLDERS for documentation only.
+# SECURITY: NEVER deploy with these defaults. Set IDP_CLIENT_SECRET env var in production.
 idp:
   url: ${IDP_URL:http://localhost:8180}
   client-id: ${IDP_CLIENT_ID:chefkix-be}
@@ -71,7 +71,7 @@ app:
     domain: ${APP_COOKIE_DOMAIN:localhost}
     secure: ${APP_COOKIE_SECURE:false}
   otp:
-    secret: ${APP_OTP_SECRET:chefkix-dev-otp-secret-change-in-prod}
+    secret: ${APP_OTP_SECRET:DEV-ONLY-otp-secret-ROTATE-IN-PROD}
     ttl-seconds: 600
     max-attempts: 5
     max-resend-per-hour: 3

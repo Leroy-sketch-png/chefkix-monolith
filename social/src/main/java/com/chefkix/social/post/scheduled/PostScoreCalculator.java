@@ -4,10 +4,12 @@ import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled; // Required
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,7 @@ import java.util.List;
 public class PostScoreCalculator {
 
     private final PostRepository postRepository;
-    private final MongoTemplate mongoTemplate; // Used for efficient updates
+    private final MongoTemplate mongoTemplate;
     private static final double GRAVITY = 2.0;
 
     /**
@@ -38,17 +40,23 @@ public class PostScoreCalculator {
             Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
             List<Post> recentPosts = postRepository.findByCreatedAtAfter(sevenDaysAgo);
 
+            if (recentPosts.isEmpty()) {
+                log.info("No recent posts to update.");
+                return;
+            }
+
             Instant now = Instant.now();
 
-            // 2. Iterate, calculate and update
+            // 2. Build bulk update operations (single DB round trip instead of N)
+            BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Post.class);
             for (Post post : recentPosts) {
                 double newHotScore = calculateHotScore(post, now);
-
-                // 3. Update new 'hotScore' in DB
                 Query query = Query.query(Criteria.where("id").is(post.getId()));
                 Update update = new Update().set("hotScore", newHotScore);
-                mongoTemplate.updateFirst(query, update, Post.class);
+                bulkOps.updateOne(query, update);
             }
+            bulkOps.execute();
+
             log.info("Completed hot score update for {} posts.", recentPosts.size());
         } catch (Exception e) {
             log.error("Error updating hot scores. Task will retry next cycle.", e);

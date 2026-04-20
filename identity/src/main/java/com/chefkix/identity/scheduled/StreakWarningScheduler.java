@@ -83,6 +83,10 @@ public class StreakWarningScheduler {
   }
 
   private void sendStreakWarning(UserProfile profile, int hoursRemaining, String priorityStr) {
+    if (profile.getStatistics() == null) {
+      log.warn("Skipping streak warning for user {} — Statistics is null", profile.getUserId());
+      return;
+    }
     int streakCount = profile.getStatistics().getStreakCount();
 
     String content =

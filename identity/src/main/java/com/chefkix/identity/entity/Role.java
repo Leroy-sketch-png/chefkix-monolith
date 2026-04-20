@@ -4,6 +4,7 @@ import com.chefkix.identity.enums.RoleName;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -17,6 +18,7 @@ public class Role {
 
   @Id String id;
 
+  @Indexed(unique = true)
   @Field("name")
   RoleName name;
 }

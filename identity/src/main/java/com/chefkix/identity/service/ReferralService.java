@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -57,6 +58,7 @@ public class ReferralService {
     /**
      * Redeem a referral code. Awards XP to both referrer and referred user.
      */
+    @Transactional
     public ReferralCodeResponse redeemCode(String userId, String code) {
         ReferralCode referralCode = referralCodeRepository.findByCode(code.toUpperCase().trim())
                 .orElseThrow(() -> new AppException(ErrorCode.REFERRAL_CODE_NOT_FOUND));

@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -22,7 +23,7 @@ public class SignupRequest {
 
   @Id String id;
 
-  @NotBlank @Email @Size(max = 254) String email;
+  @Indexed @NotBlank @Email @Size(max = 254) String email;
   @NotBlank @Size(min = 3, max = 30) String username;
   // Plain password - stored temporarily until OTP verification
   // Keycloak will hash it properly when user is created
@@ -32,6 +33,7 @@ public class SignupRequest {
   // OTP fields
   String otpHash;
   Instant createdAt;
+  @Indexed(expireAfterSeconds = 900) // TTL: auto-delete 15 min after expiry as defense-in-depth
   Instant expiresAt;
   Instant lastOtpSentAt;
   Integer attempts;

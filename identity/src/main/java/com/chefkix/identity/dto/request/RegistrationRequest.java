@@ -31,21 +31,35 @@ public class RegistrationRequest {
 
   // Personal info - Required for Keycloak user creation
   @NotBlank(message = "FIRST_NAME_REQUIRED")
+  @Size(max = 50, message = "First name must be at most 50 characters")
   String firstName;
 
   @NotBlank(message = "LAST_NAME_REQUIRED")
+  @Size(max = 50, message = "Last name must be at most 50 characters")
   String lastName;
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   LocalDate dob;
 
+  @Size(max = 50, message = "Display name must be at most 50 characters")
   String displayName;
+
+  @Size(max = 20, message = "Phone number must be at most 20 characters")
   String phoneNumber;
+
+  @Size(max = 500, message = "Avatar URL must be at most 500 characters")
   String avatarUrl;
+
+  @Size(max = 500, message = "Bio must be at most 500 characters")
   String bio;
-  String accountType; // normal, chef, admin...
+
+  @Size(max = 20, message = "Account type must be at most 20 characters")
+  String accountType; // normal, chef — validated in service layer
+
+  @Size(max = 100, message = "Location must be at most 100 characters")
   String location;
 
   // Preferences & settings
+  @Size(max = 20, message = "Maximum 20 preferences")
   List<String> preferences;
 }

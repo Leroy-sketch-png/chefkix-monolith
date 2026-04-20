@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -194,9 +195,9 @@ public class MealPlanService {
 
     public MealPlanResponse getCurrent(String userId) {
         LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        MealPlan plan = mealPlanRepo.findByUserIdAndWeekStartDate(userId, weekStart)
-                .orElseThrow(() -> new AppException(ErrorCode.MEAL_PLAN_NOT_FOUND));
-        return toResponse(plan);
+        return mealPlanRepo.findByUserIdAndWeekStartDate(userId, weekStart)
+                .map(this::toResponse)
+                .orElse(null);
     }
 
     public MealPlanResponse getById(String userId, String planId) {
@@ -205,6 +206,7 @@ public class MealPlanService {
         return toResponse(plan);
     }
 
+    @Transactional
     public void delete(String userId, String planId) {
         mealPlanRepo.deleteByIdAndUserId(planId, userId);
     }

@@ -1,5 +1,6 @@
 package com.chefkix.shared.event;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,17 +9,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@JsonTypeName("STORY_REPLIED")
 public class StoryReplyEvent extends BaseEvent {
 
     private String storyId;
-    private String storyOwnerId; // Chủ nhân Story (Người sẽ nhận tin nhắn)
-    private String replierId;    // Người xem Story và gõ text reply (Người gửi tin nhắn)
-    private String replyText;    // Nội dung "Trông ngon quá!"
-    private String storyMediaUrl;// Link ảnh/video của Story để làm Thumbnail trong Chat
+    private String storyOwnerId; // Story owner (will receive the chat message)
+    private String replierId;    // Viewer who replied to the story
+    private String replyText;
+    private String storyMediaUrl; // Story media URL for chat thumbnail
 
     @Builder
     public StoryReplyEvent(String storyId, String storyOwnerId, String replierId, String replyText, String storyMediaUrl) {
-        // Gọi constructor của BaseEvent (eventType, targetId, actorId)
         super("STORY_REPLIED", replierId);
         this.storyId = storyId;
         this.storyOwnerId = storyOwnerId;

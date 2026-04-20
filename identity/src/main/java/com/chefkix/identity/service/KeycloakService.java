@@ -28,11 +28,14 @@ public class KeycloakService {
   String clientSecret;
 
   private final WebClient webClient;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
   public KeycloakService(
       WebClient.Builder webClientBuilder,
+      ObjectMapper objectMapper,
       @Value("${keycloak.auth-server-url:http://localhost:8180}") String keycloakAuthServerUrl) {
+
+    this.objectMapper = objectMapper;
 
     // Configure dynamic Base URL based on environment variable
     this.webClient =

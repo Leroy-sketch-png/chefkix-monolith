@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
 @Slf4j
@@ -61,6 +62,7 @@ public class VerificationService {
   }
 
   /** Admin approves a verification request */
+  @Transactional
   public VerificationResponse approveVerification(String requestId, String adminUserId, String notes) {
     VerificationRequest req =
         verificationRepo.findById(requestId).orElseThrow(() -> new AppException(ErrorCode.VERIFICATION_REQUEST_NOT_FOUND));

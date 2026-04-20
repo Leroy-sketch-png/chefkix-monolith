@@ -18,9 +18,7 @@ public class StoryInteractionEvent extends BaseEvent {
     private String userDisplayName;
     private String userAvatarUrl;
 
-    // Thêm loại tương tác để Notification Service biết đường báo:
-    // "Huy đã THẢ TIM story của bạn" hay "Huy đã XEM story của bạn"
-    private String interactionType;
+    private String interactionType; // "VIEW", "LIKE", "REACTION"
 
     @Builder
     public StoryInteractionEvent(String storyId, String userId, String storyOwnerId, String userDisplayName, String userAvatarUrl, String interactionType) {

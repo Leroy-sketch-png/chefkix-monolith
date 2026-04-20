@@ -50,7 +50,7 @@ public class VerificationController {
   public ApiResponse<VerificationResponse> approve(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable String requestId,
-      @RequestBody(required = false) AdminReviewRequest request) {
+      @Valid @RequestBody(required = false) AdminReviewRequest request) {
     String adminUserId = jwt.getSubject();
     String notes = request != null ? request.notes() : null;
     VerificationResponse response = verificationService.approveVerification(requestId, adminUserId, notes);
@@ -67,7 +67,7 @@ public class VerificationController {
   public ApiResponse<VerificationResponse> reject(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable String requestId,
-      @RequestBody(required = false) AdminReviewRequest request) {
+      @Valid @RequestBody(required = false) AdminReviewRequest request) {
     String adminUserId = jwt.getSubject();
     String notes = request != null ? request.notes() : null;
     VerificationResponse response = verificationService.rejectVerification(requestId, adminUserId, notes);

@@ -13,11 +13,14 @@ public class GroupCreationRequest {
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
+    @Size(max = 500, message = "Cover image URL cannot exceed 500 characters")
     private String coverImageUrl;
 
     @NotBlank(message = "Privacy type is required")
+    @Size(max = 20, message = "Privacy type cannot exceed 20 characters")
     private String privacyType;
 
     // Optional: Tags for Chefkix gamification/search (e.g., "Vegan", "Baking")
+    @Size(max = 10, message = "Maximum 10 tags")
     private java.util.List<String> tags;
 }

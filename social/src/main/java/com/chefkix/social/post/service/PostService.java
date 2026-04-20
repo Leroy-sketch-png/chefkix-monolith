@@ -79,6 +79,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
@@ -460,16 +461,19 @@ public class PostService {
         postSaveRepository.deleteAllByPostId(postId);
         pollVoteRepository.deleteAllByPostId(postId);
         plateRatingRepository.deleteAllByPostId(postId);
+        battleVoteRepository.deleteAllByPostId(postId);
 
-        // Cascade comment subtree: reply likes -> replies -> comment likes -> comments
+        // Cascade comment subtree: batch delete reply likes -> replies -> comment likes -> comments
         List<Comment> comments = commentRepository.findByPostId(postId);
-        for (Comment c : comments) {
-            List<Reply> replies = replyRepository.findByParentCommentId(c.getId());
-            for (Reply r : replies) {
-                replyLikeRepository.deleteAllByReplyId(r.getId());
+        if (!comments.isEmpty()) {
+            List<String> commentIds = comments.stream().map(Comment::getId).collect(Collectors.toList());
+            List<Reply> allReplies = replyRepository.findByParentCommentIdIn(commentIds);
+            if (!allReplies.isEmpty()) {
+                List<String> replyIds = allReplies.stream().map(Reply::getId).collect(Collectors.toList());
+                replyLikeRepository.deleteAllByReplyIdIn(replyIds);
             }
-            replyRepository.deleteAllByParentCommentId(c.getId());
-            commentLikeRepository.deleteAllByCommentId(c.getId());
+            replyRepository.deleteAllByParentCommentIdIn(commentIds);
+            commentLikeRepository.deleteAllByCommentIdIn(commentIds);
         }
         commentRepository.deleteAllByPostId(postId);
 
@@ -530,7 +534,13 @@ public class PostService {
         postLike.setUserId(userId);
         postLike.setPostId(postId);
         postLike.setCreatedDate(LocalDateTime.now());
-        postLikeRepository.save(postLike);
+        try {
+            postLikeRepository.save(postLike);
+        } catch (DuplicateKeyException e) {
+            // Race condition: concurrent double-tap — already liked, return idempotent response
+            log.debug("Duplicate like ignored for post {} by user {}", postId, userId);
+            return PostLikeResponse.builder().isLiked(true).likeCount(post.getLikes()).build();
+        }
 
         // Atomic increment to prevent race conditions
         mongoTemplate.updateFirst(
@@ -1241,10 +1251,19 @@ public class PostService {
                 .collect(Collectors.toList());
         Map<String, String> pollVoteMap = new HashMap<>();
         if (!pollPostIds.isEmpty()) {
-            for (String pid : pollPostIds) {
-                pollVoteRepository.findByPostIdAndUserId(pid, currentUserId)
-                        .ifPresent(v -> pollVoteMap.put(pid, v.getOption()));
-            }
+            pollVoteRepository.findByPostIdInAndUserId(pollPostIds, currentUserId)
+                    .forEach(v -> pollVoteMap.put(v.getPostId(), v.getOption()));
+        }
+
+        // Batch battle vote lookup for battle posts
+        List<String> battlePostIds = content.stream()
+                .filter(p -> p.getPostType() == PostType.RECIPE_BATTLE)
+                .map(PostResponse::getId)
+                .collect(Collectors.toList());
+        Map<String, String> battleVoteMap = new HashMap<>();
+        if (!battlePostIds.isEmpty()) {
+            battleVoteRepository.findByPostIdInAndUserId(battlePostIds, currentUserId)
+                    .forEach(v -> battleVoteMap.put(v.getPostId(), v.getChoice()));
         }
 
         // Batch plate rating lookup
@@ -1259,8 +1278,7 @@ public class PostService {
                 post.setUserVote(pollVoteMap.get(post.getId()));
             }
             if (post.getPostType() == PostType.RECIPE_BATTLE) {
-                battleVoteRepository.findByPostIdAndUserId(post.getId(), currentUserId)
-                        .ifPresent(v -> post.setUserBattleVote(v.getChoice()));
+                post.setUserBattleVote(battleVoteMap.get(post.getId()));
             }
             post.setUserPlateRating(plateRatingMap.get(post.getId()));
         });
@@ -1295,7 +1313,12 @@ public class PostService {
     // POLL VOTING
     // ========================================================================
 
+    @Transactional
     public PollVoteResponse votePoll(String postId, String option, String userId) {
+        if (!"A".equals(option) && !"B".equals(option)) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION, "Invalid poll option: must be 'A' or 'B'");
+        }
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
 
@@ -1339,11 +1362,16 @@ public class PostService {
         }
 
         // New vote
-        pollVoteRepository.save(PollVote.builder()
-                .postId(postId)
-                .userId(userId)
-                .option(option)
-                .build());
+        try {
+            pollVoteRepository.save(PollVote.builder()
+                    .postId(postId)
+                    .userId(userId)
+                    .option(option)
+                    .build());
+        } catch (DuplicateKeyException e) {
+            // Race condition: concurrent vote arrived first — retry as toggle
+            return votePoll(postId, option, userId);
+        }
         String incField = "A".equals(option) ? "pollData.votesA" : "pollData.votesB";
         mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
         Post updated = postRepository.findById(postId).orElse(post);
@@ -1356,7 +1384,12 @@ public class PostService {
                 .build();
     }
 
+    @Transactional
     public PlateRateResponse ratePlate(String postId, String rating, String userId) {
+        if (!"FIRE".equals(rating) && !"CRINGE".equals(rating)) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION, "Invalid plate rating: must be 'FIRE' or 'CRINGE'");
+        }
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
 
@@ -1394,11 +1427,16 @@ public class PostService {
         }
 
         // New rating
-        plateRatingRepository.save(PlateRating.builder()
-                .postId(postId)
-                .userId(userId)
-                .rating(rating)
-                .build());
+        try {
+            plateRatingRepository.save(PlateRating.builder()
+                    .postId(postId)
+                    .userId(userId)
+                    .rating(rating)
+                    .build());
+        } catch (DuplicateKeyException e) {
+            // Race condition: concurrent rating arrived first — retry as toggle
+            return ratePlate(postId, rating, userId);
+        }
         String incField = "FIRE".equals(rating) ? "fireCount" : "cringeCount";
         mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
         Post updated = postRepository.findById(postId).orElse(post);
@@ -1496,7 +1534,14 @@ public class PostService {
                 .userId(userId)
                 .createdDate(LocalDateTime.now())
                 .build();
-        postSaveRepository.save(postSave);
+        try {
+            postSaveRepository.save(postSave);
+        } catch (DuplicateKeyException e) {
+            // Race condition: concurrent double-tap — already saved, return idempotent response
+            log.debug("Duplicate save ignored for post {} by user {}", postId, userId);
+            long saveCount = postSaveRepository.countByPostId(postId);
+            return PostSaveResponse.builder().isSaved(true).saveCount(saveCount).build();
+        }
 
         // Award social XP to the saver (1 XP per save)
         sendSocialXpEvent(userId, 1.0, "SOCIAL_SAVE", postId, "Saved a post");
@@ -1730,11 +1775,16 @@ public class PostService {
         }
 
         // New vote
-        battleVoteRepository.save(BattleVote.builder()
-                .postId(postId)
-                .userId(userId)
-                .choice(choice)
-                .build());
+        try {
+            battleVoteRepository.save(BattleVote.builder()
+                    .postId(postId)
+                    .userId(userId)
+                    .choice(choice)
+                    .build());
+        } catch (DuplicateKeyException e) {
+            // Race condition: concurrent vote arrived first — retry as toggle
+            return voteBattle(postId, choice);
+        }
         String incField = "A".equals(choice) ? "battleVotesA" : "battleVotesB";
         mongoTemplate.updateFirst(query, new Update().inc(incField, 1), Post.class);
         Post updated = postRepository.findById(postId).orElse(post);

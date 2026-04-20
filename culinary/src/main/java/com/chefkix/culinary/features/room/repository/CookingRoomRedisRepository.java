@@ -44,7 +44,7 @@ public class CookingRoomRedisRepository {
             redisTemplate.opsForValue().set(key(room.getRoomCode()), json, TTL_SECONDS, TimeUnit.SECONDS);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize CookingRoom {}: {}", room.getRoomCode(), e.getMessage());
-            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to save cooking room: " + e.getMessage());
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to save cooking room");
         }
     }
 

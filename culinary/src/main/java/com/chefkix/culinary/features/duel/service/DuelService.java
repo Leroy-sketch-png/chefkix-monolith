@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -87,6 +88,7 @@ public class DuelService {
     // ACCEPT / DECLINE / CANCEL
     // ============================================
 
+    @Transactional
     public DuelResponse acceptDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         validateOpponent(duel, userId);
@@ -103,6 +105,7 @@ public class DuelService {
         return toResponse(duel);
     }
 
+    @Transactional
     public DuelResponse declineDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         validateOpponent(duel, userId);
@@ -116,6 +119,7 @@ public class DuelService {
         return toResponse(duel);
     }
 
+    @Transactional
     public DuelResponse cancelDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         if (!duel.getChallengerId().equals(userId)) {
@@ -137,6 +141,7 @@ public class DuelService {
      * Called after a cooking session is completed. Checks if this session
      * is part of an active duel and links it.
      */
+    @Transactional
     public void onSessionCompleted(String userId, CookingSession session) {
         // Find active duels for this user + recipe
         List<CookingDuel> duels = duelRepository.findByParticipantAndStatusIn(

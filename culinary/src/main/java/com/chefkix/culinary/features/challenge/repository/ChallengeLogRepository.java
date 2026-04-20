@@ -42,6 +42,13 @@ public interface ChallengeLogRepository extends MongoRepository<ChallengeLog, St
     SumResult sumBonusXpByUserId(String userId);
 
     // Wrapper class to receive sum result
+    // Batch check: get all userIds who have completed a specific challenge date
+    @Aggregation(pipeline = {
+            "{ '$match': { 'challengeDate': ?0, 'userId': { '$in': ?1 } } }",
+            "{ '$project': { 'userId': 1, '_id': 0 } }"
+    })
+    List<String> findUserIdsWithChallengeDate(String challengeDate, List<String> userIds);
+
     class SumResult {
         public long totalXp;
     }}
