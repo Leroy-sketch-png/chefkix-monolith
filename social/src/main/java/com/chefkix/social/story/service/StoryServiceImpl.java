@@ -25,17 +25,18 @@ public class StoryServiceImpl implements StoryService {
     private final StoryMapper storyMapper;
 
     @Override
-    public StoryResponse createStory(String userId, StoryCreateRequest request) {
+    public StoryResponse createStory(String userId, StoryCreateRequest request, String mediaUrl) {
         Instant now = Instant.now();
         Story story = Story.builder()
                 .userId(userId)
-                .mediaUrl(request.mediaUrl())
+                .mediaUrl(mediaUrl)
                 .mediaType(request.mediaType())
                 .items(storyMapper.toStoryItems(request.items()))
                 .createdAt(now)
                 .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .isDeleted(false)
                 .build();
+
         return storyMapper.toStoryResponse(storyRepository.save(story));
     }
 

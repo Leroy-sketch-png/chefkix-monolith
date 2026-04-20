@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StoryRepository extends MongoRepository<Story, String> {
@@ -25,7 +26,7 @@ public interface StoryRepository extends MongoRepository<Story, String> {
     // Kiểm tra tồn tại để validate trước khi xóa
     Optional<Story> findByIdAndUserIdAndIsDeletedFalse(String id, String userId);
 
-    List<Story> findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(List<String> followingIds, Instant now);
+    List<Story> findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(Set<String> followingIds, Instant now);
 
     long countByIdInAndUserId(List<String> storyIds, String userId);
 
