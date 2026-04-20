@@ -58,13 +58,13 @@ public class ProfileController {
   }
 
   /**
-   * Get all profiles (legacy - returns full list).
-   * Consider using /profiles/paginated for better performance.
+   * Get all profiles (legacy - limited to 100, use /profiles/paginated instead).
+   * @deprecated Use /profiles/paginated for proper pagination.
    */
+  @Deprecated
   @GetMapping("/profiles")
   public ApiResponse<List<ProfileResponse>> getAllProfiles() {
-    // Uses ApiResponse.success() for standard 200 OK
-    return ApiResponse.success(profileService.getAllProfiles());
+    return ApiResponse.success(profileService.getAllProfilesLimited());
   }
 
   /**

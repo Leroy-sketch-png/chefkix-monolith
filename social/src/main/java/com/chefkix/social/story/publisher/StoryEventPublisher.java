@@ -21,22 +21,19 @@ public class StoryEventPublisher {
     KafkaTemplate<String, Object> kafkaTemplate;
     ProfileProvider profileProvider;
 
-    // Chỉ cần @Async, Spring sẽ tự vứt hàm này cho Virtual Thread chạy ngầm
     @Async
     public void publishStoryInteractionEvent(String storyId, String storyOwnerId, String actorId, String interactionType) {
         try {
-            // 1. Lấy thông tin (Cứ gọi thẳng, Virtual Thread block thoải mái không sợ tốn tài nguyên)
             BasicProfileInfo profile = null;
             try {
                 profile = profileProvider.getBasicProfile(actorId);
-            } catch (Exception ignored) {
-                log.warn("Could not fetch profile for user {}", actorId);
+            } catch (Exception e) {
+                log.warn("Could not fetch profile for user {}: {}", actorId, e.getMessage());
             }
 
-            String displayName = profile != null ? profile.getDisplayName() : "Một người dùng";
+            String displayName = profile != null ? profile.getDisplayName() : "A user";
             String avatarUrl = profile != null ? profile.getAvatarUrl() : null;
 
-            // 2. Tạo Event
             StoryInteractionEvent event = StoryInteractionEvent.builder()
                     .storyId(storyId)
                     .storyOwnerId(storyOwnerId)
@@ -46,9 +43,7 @@ public class StoryEventPublisher {
                     .interactionType(interactionType)
                     .build();
 
-            // 3. Bắn Kafka
-            // kafkaTemplate.send() vốn trả về 1 CompletableFuture,
-            // nhưng ta là luồng ngầm rồi nên cứ quăng đó không cần hứng kết quả (Fire and Forget)
+            // Fire-and-forget via Kafka
             kafkaTemplate.send("story-delivery", event);
 
             log.info("Published STORY_INTERACTED ({}) for story {}", interactionType, storyId);
@@ -58,9 +53,7 @@ public class StoryEventPublisher {
         }
     }
 
-    // ==========================================
-    // 2. EVENT: REPLY STORY BẰNG TIN NHẮN (Gửi cho Chat)
-    // ==========================================
+    // Story reply via chat message
     @Async
     public void publishStoryReplyEvent(String storyId, String storyOwnerId, String replierId, String text, String mediaUrl) {
         try {
@@ -72,7 +65,6 @@ public class StoryEventPublisher {
                     .storyMediaUrl(mediaUrl)
                     .build();
 
-            // Gửi vào topic riêng cho module Chat
             kafkaTemplate.send("chat-delivery", event);
             log.info("Published STORY_REPLIED event for story {}", storyId);
 

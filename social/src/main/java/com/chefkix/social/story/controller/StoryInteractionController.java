@@ -1,11 +1,7 @@
 package com.chefkix.social.story.controller;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.story.dto.request.StoryReplyRequest;
-import com.chefkix.social.story.dto.response.StoryResponse;
-import com.chefkix.social.story.dto.response.UserStoryFeedResponse;
-import com.chefkix.social.story.service.StoryFeedService;
 import com.chefkix.social.story.service.StoryInteractionService;
-import com.cloudinary.Api;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/stories")
 @RequiredArgsConstructor
 public class StoryInteractionController {
 
@@ -22,19 +18,18 @@ public class StoryInteractionController {
 
     // --- VIEW & INTERACTION ---
 
-    @PostMapping("/stories/{storyId}/views")
+    @PostMapping("/{storyId}/views")
     public ApiResponse<String> recordView(@PathVariable String storyId) {
         interactionService.recordView(storyId, getCurrentUserId());
         return ApiResponse.success("success");
     }
 
-    @GetMapping("/stories/{storyId}/views")
+    @GetMapping("/{storyId}/views")
     public ApiResponse<List<String>> getStoryViewers(@PathVariable String storyId) {
-        // Trả về danh sách userId, Mobile App sẽ dùng danh sách này gọi UserService lấy tên/avatar
         return ApiResponse.success(interactionService.getViewerIds(storyId, getCurrentUserId()));
     }
 
-    @PostMapping("/stories/{storyId}/reactions")
+    @PostMapping("/{storyId}/reactions")
     public ApiResponse<String> reactToStory(
             @PathVariable String storyId,
             @RequestParam String type) { // type = "FIRE", "HEART"...
@@ -45,7 +40,7 @@ public class StoryInteractionController {
     @PostMapping("/{storyId}/replies")
     public ApiResponse<String> replyToStory(
             @PathVariable String storyId,
-            @Valid @RequestBody StoryReplyRequest request) { // <-- Thêm @Valid ở đây
+            @Valid @RequestBody StoryReplyRequest request) {
 
         interactionService.replyToStory(storyId, getCurrentUserId(), request);
         return ApiResponse.success("successfully reacted");

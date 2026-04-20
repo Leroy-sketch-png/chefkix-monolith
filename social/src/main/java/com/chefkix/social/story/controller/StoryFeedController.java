@@ -7,7 +7,7 @@ import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.dto.response.UserStoryFeedResponse;
 import com.chefkix.social.story.service.StoryFeedService;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.shaded.com.google.protobuf.Api;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,14 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/stories")
+@RequestMapping("/stories")
 @RequiredArgsConstructor
 public class StoryFeedController {
 
     private final StoryFeedService storyFeedService;
 
-    // Giả lập lấy ID từ Token
-    private String getCurrentUserId() { return "user_dev_01"; }
+    private String getCurrentUserId() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
 
     @GetMapping("/feed")
     public ApiResponse<List<UserStoryFeedResponse>> getFeed() {

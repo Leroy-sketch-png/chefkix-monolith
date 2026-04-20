@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/stories")
+@RequestMapping("/stories")
 @RequiredArgsConstructor
 @Validated
 public class StoryController {
@@ -38,7 +38,7 @@ public class StoryController {
 
     @GetMapping("/me/archive")
     public ApiResponse<Page<StoryResponse>> getArchive(@RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "20") int size) {
+                                          @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Max(100) int size) {
         return ApiResponse.success(storyService.getMyArchivedStories(getCurrentUserId(), page, size));
     }
 
