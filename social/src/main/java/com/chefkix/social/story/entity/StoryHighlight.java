@@ -2,6 +2,7 @@ package com.chefkix.social.story.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -15,6 +16,7 @@ import java.util.List;
 public class StoryHighlight {
     @Id
     private String id;
+    @Indexed
     private String userId; // Chủ nhân của bộ sưu tập này
     private String title;
     private String coverUrl;

@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -50,6 +51,7 @@ public class SeasonalChallenge {
     Instant endsAt;
 
     // Status: UPCOMING, ACTIVE, COMPLETED, EXPIRED
+    @Indexed
     @Builder.Default
     String status = "UPCOMING";
 

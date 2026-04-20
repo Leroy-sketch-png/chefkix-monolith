@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -21,9 +22,9 @@ public class User {
 
   @Id String id; // Mongo ID is String (ObjectId as string)
 
-  String username;
+  @Indexed(unique = true) String username;
 
-  @Email String email;
+  @Email @Indexed(unique = true) String email;
 
   String passwordHash;
 
@@ -44,7 +45,7 @@ public class User {
   // Instead of @OneToOne, use @DBRef to reference another document
   @DBRef UserProfile userProfile;
 
-  String googleId;
+  @Indexed(sparse = true) String googleId;
 
   String authProvider;
 

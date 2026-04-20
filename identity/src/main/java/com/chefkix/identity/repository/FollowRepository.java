@@ -1,6 +1,7 @@
 package com.chefkix.identity.repository;
 
 import com.chefkix.identity.entity.Follow;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,12 @@ public interface FollowRepository extends MongoRepository<Follow, String> {
 
   // Get all users that userId is following
   List<Follow> findAllByFollowerId(String followerId);
+
+  // Batch: find which of targetIds are followed by followerId
+  List<Follow> findAllByFollowerIdAndFollowingIdIn(String followerId, Collection<String> followingIds);
+
+  // Batch: find which of followerIds follow followingId
+  List<Follow> findAllByFollowingIdAndFollowerIdIn(String followingId, Collection<String> followerIds);
 
   // Get all users that follow userId
   List<Follow> findAllByFollowingId(String followingId);
