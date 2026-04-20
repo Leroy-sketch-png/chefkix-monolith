@@ -29,7 +29,7 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${springdoc.swagger-ui.enabled:true}")
+    @Value("${springdoc.swagger-ui.enabled:false}")
     private boolean swaggerEnabled;
 
     /**

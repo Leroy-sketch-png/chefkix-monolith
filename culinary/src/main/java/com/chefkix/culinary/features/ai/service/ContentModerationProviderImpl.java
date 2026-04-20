@@ -50,10 +50,13 @@ public class ContentModerationProviderImpl implements ContentModerationProvider 
                     response.getReason()
             );
         } catch (Exception e) {
-            // Fail-open for non-critical content
-            log.warn("AI moderation unavailable for {} content — allowing through: {}",
+            log.warn("AI moderation unavailable for {} content: {}",
                     contentType, e.getMessage());
-            return ModerationResult.approved();
+
+            // Fail-closed for all content types when moderation service is down
+            log.error("Flagging {} content for review -- AI moderation service is down", contentType);
+            return new ModerationResult("flag", "unknown", "medium", 0.0,
+                    "AI moderation unavailable -- content held for manual review");
         }
     }
 }
