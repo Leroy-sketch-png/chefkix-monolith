@@ -4,12 +4,15 @@ import com.chefkix.identity.entity.CreatorTipSettings;
 import com.chefkix.identity.entity.Tip;
 import com.chefkix.identity.service.TipService;
 import com.chefkix.shared.dto.ApiResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/tips")
@@ -20,6 +23,23 @@ public class TipController {
 
     private String userId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    // ── DTOs ──────────────────────────────────────────────────────
+
+    @Data
+    public static class UpdateTipSettingsRequest {
+        private boolean tipsEnabled;
+        private int[] suggestedAmounts;
+        private String thankYouMessage;
+    }
+
+    @Data
+    public static class SendTipRequest {
+        @NotBlank private String creatorId;
+        private String recipeId;
+        @Positive private int amountCents;
+        private String message;
     }
 
     // ── Creator Settings ──────────────────────────────────────────
@@ -33,19 +53,10 @@ public class TipController {
     }
 
     @PutMapping("/settings")
-    public ApiResponse<CreatorTipSettings> updateSettings(@RequestBody Map<String, Object> body) {
-        boolean tipsEnabled = (boolean) body.getOrDefault("tipsEnabled", false);
-        int[] suggestedAmounts = null;
-        if (body.containsKey("suggestedAmounts")) {
-            @SuppressWarnings("unchecked")
-            List<Integer> amounts = (List<Integer>) body.get("suggestedAmounts");
-            suggestedAmounts = amounts.stream().mapToInt(Integer::intValue).toArray();
-        }
-        String thankYouMessage = (String) body.get("thankYouMessage");
-
+    public ApiResponse<CreatorTipSettings> updateSettings(@Valid @RequestBody UpdateTipSettingsRequest body) {
         return ApiResponse.<CreatorTipSettings>builder()
                 .success(true).statusCode(200)
-                .data(tipService.updateSettings(userId(), tipsEnabled, suggestedAmounts, thankYouMessage))
+                .data(tipService.updateSettings(userId(), body.isTipsEnabled(), body.getSuggestedAmounts(), body.getThankYouMessage()))
                 .build();
     }
 
@@ -65,15 +76,10 @@ public class TipController {
     // ── Send a Tip ────────────────────────────────────────────────
 
     @PostMapping("/send")
-    public ApiResponse<Tip> sendTip(@RequestBody Map<String, Object> body) {
-        String creatorId = (String) body.get("creatorId");
-        String recipeId = (String) body.get("recipeId");
-        int amountCents = ((Number) body.get("amountCents")).intValue();
-        String message = (String) body.get("message");
-
+    public ApiResponse<Tip> sendTip(@Valid @RequestBody SendTipRequest body) {
         return ApiResponse.<Tip>builder()
                 .success(true).statusCode(201)
-                .data(tipService.sendTip(userId(), creatorId, recipeId, amountCents, message))
+                .data(tipService.sendTip(userId(), body.getCreatorId(), body.getRecipeId(), body.getAmountCents(), body.getMessage()))
                 .build();
     }
 

@@ -210,7 +210,7 @@ public class ShoppingListController {
      */
     @PostMapping("/ingredient-links")
     public ApiResponse<Map<String, String>> getIngredientLinks(
-            @RequestBody List<GroceryProvider.GroceryItemRequest> items,
+            @Valid @RequestBody List<GroceryProvider.GroceryItemRequest> items,
             @RequestParam(defaultValue = "affiliate") String provider) {
         GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
         if (groceryProvider == null || !groceryProvider.isAvailable()) {

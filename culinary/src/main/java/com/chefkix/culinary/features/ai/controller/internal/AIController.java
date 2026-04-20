@@ -7,6 +7,7 @@ import com.chefkix.culinary.features.ai.service.AiIntegrationService;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class AIController {
     private final RecipeRepository recipeRepository;
 
     @PostMapping("/generate")
-    public ApiResponse<RecipeDetailResponse> generateRecipe(@RequestBody AIProcessRequest request) {
+    public ApiResponse<RecipeDetailResponse> generateRecipe(@Valid @RequestBody AIProcessRequest request) {
         // SECURITY: Use JWT userId, never trust request body userId
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 

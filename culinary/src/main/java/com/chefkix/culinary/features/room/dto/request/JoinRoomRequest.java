@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.room.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,5 +16,6 @@ public class JoinRoomRequest {
 
     /** "COOK" (default) or "SPECTATOR". Spectators can watch but not interact with cooking steps. */
     @Builder.Default
+    @Size(max = 20)
     String role = "COOK";
 }

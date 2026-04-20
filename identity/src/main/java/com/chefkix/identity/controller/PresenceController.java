@@ -3,6 +3,7 @@ package com.chefkix.identity.controller;
 import com.chefkix.identity.dto.response.PresenceResponse;
 import com.chefkix.identity.service.PresenceService;
 import com.chefkix.shared.dto.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,7 +25,7 @@ public class PresenceController {
     @PostMapping("/heartbeat")
     public ApiResponse<Void> heartbeat(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody(required = false) HeartbeatRequest request) {
+            @Valid @RequestBody(required = false) HeartbeatRequest request) {
         String userId = jwt.getSubject();
         String activity = request != null ? request.activity() : "browsing";
         presenceService.heartbeat(userId, activity);

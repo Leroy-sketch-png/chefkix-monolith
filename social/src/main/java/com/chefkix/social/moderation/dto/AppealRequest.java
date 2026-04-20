@@ -17,6 +17,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppealRequest {
     @NotBlank(message = "banId is required")
+    @Size(max = 100)
     String banId;
 
     @NotBlank(message = "reason is required")
@@ -24,5 +25,5 @@ public class AppealRequest {
     String reason;
 
     @Size(max = 5, message = "evidenceUrls must contain at most 5 items")
-    List<String> evidenceUrls;
+    List<@Size(max = 500) String> evidenceUrls;
 }
