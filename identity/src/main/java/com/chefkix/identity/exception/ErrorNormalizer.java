@@ -18,8 +18,8 @@ public class ErrorNormalizer {
   private final ObjectMapper objectMapper;
   private final Map<String, ErrorCode> errorCodeMap;
 
-  public ErrorNormalizer() {
-    objectMapper = new ObjectMapper();
+  public ErrorNormalizer(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
     errorCodeMap = new HashMap<>();
 
     errorCodeMap.put("User exists with same username", ErrorCode.USER_EXISTED);

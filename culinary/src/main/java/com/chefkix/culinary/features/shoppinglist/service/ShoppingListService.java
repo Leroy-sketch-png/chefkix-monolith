@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -184,6 +185,7 @@ public class ShoppingListService {
 
     // ── Delete ──────────────────────────────────────────────────────
 
+    @Transactional
     public void delete(String userId, String id) {
         shoppingListRepo.deleteByIdAndUserId(id, userId);
     }

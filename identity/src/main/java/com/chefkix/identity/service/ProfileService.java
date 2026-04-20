@@ -104,9 +104,13 @@ public class ProfileService {
   // === PUBLIC API (For Controllers) ===
   // ===================================================================
 
-  public List<ProfileResponse> getAllProfiles() {
-    var profiles = profileRepository.findAll();
-    return profiles.stream().map(profileMapper::toProfileResponse).toList();
+  /**
+   * @deprecated Use getProfilesPaginated() instead.
+   */
+  @Deprecated
+  public List<ProfileResponse> getAllProfilesLimited() {
+    var page = profileRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 100));
+    return page.getContent().stream().map(profileMapper::toProfileResponse).toList();
   }
 
   /**
@@ -269,13 +273,13 @@ public class ProfileService {
 
         String userId = securityUtils.getCurrentUserId(authentication);
 
-        // 1. Kéo profile hiện tại từ DB lên
+        // 1. Load current profile from DB
         UserProfile userProfile =
                 profileRepository
                         .findByUserId(userId)
                         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. Gom các trường cần update vào Mongo Update object, đồng thời cập nhật object trên RAM
+        // 2. Collect fields to update into Mongo Update object, also update in-memory object
         Update update = new Update();
 
         if (request.getFirstName() != null) {
@@ -319,14 +323,14 @@ public class ProfileService {
             userProfile.setPreferences(request.getPreferences());
         }
 
-        // 3. Bắn lệnh UPDATE trực tiếp xuống MongoDB (Sẽ bỏ qua hàm .save() gây lỗi)
+        // 3. Execute UPDATE directly against MongoDB (bypasses .save() which can cause issues)
         Query query = new Query(Criteria.where("userId").is(userId));
         mongoTemplate.updateFirst(query, update, UserProfile.class);
 
-        // 4. Đồng bộ dữ liệu sang Typesense
+        // 4. Sync data to Typesense
         eventPublisher.publishEvent(UserIndexEvent.index(userProfile));
 
-        // 5. Build DTO trả về
+        // 5. Build response DTO
         ProfileResponse response = profileMapper.toProfileResponse(userProfile);
         response.setRelationshipStatus(RelationshipStatus.SELF);
         response.setFollowing(false);
@@ -503,7 +507,7 @@ public class ProfileService {
     } catch (Exception e) {
       log.error("Failed to load profile and posts in parallel: {}", e.getMessage(), e);
       throw new AppException(
-          ErrorCode.INTERNAL_SERVER_ERROR, "Failed to load data: " + e.getMessage());
+          ErrorCode.INTERNAL_SERVER_ERROR, "Failed to load profile data");
     }
   }
 

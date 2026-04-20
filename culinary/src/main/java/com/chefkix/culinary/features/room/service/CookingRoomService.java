@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -107,6 +108,7 @@ public class CookingRoomService {
     // JOIN ROOM
     // ────────────────────────────────────────────────────────
 
+    @Transactional
     public CookingRoomResponse joinRoom(String userId, JoinRoomRequest request) {
         String roomCode = request.getRoomCode().toUpperCase();
         String role = request.getRole() != null ? request.getRole().toUpperCase() : "COOK";
@@ -179,6 +181,7 @@ public class CookingRoomService {
     // LEAVE ROOM
     // ────────────────────────────────────────────────────────
 
+    @Transactional
     public LeaveRoomResponse leaveRoom(String userId, String roomCode) {
         roomCode = roomCode.toUpperCase();
 
@@ -207,7 +210,7 @@ public class CookingRoomService {
             if (userId.equals(room.getHostUserId())) {
                 RoomParticipant newHost = room.getParticipants().stream()
                         .min(Comparator.comparing(RoomParticipant::getJoinedAt))
-                        .orElseThrow();
+                        .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
                 newHost.setHost(true);
                 room.setHostUserId(newHost.getUserId());

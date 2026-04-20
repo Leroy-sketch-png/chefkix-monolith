@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +88,7 @@ public class ChatMessageService {
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
     }
 
+    @Transactional
     public ChatMessageResponse create(ChatMessageRequest request) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

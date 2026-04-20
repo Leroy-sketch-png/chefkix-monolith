@@ -20,6 +20,7 @@ import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.utils.SecurityUtils;
 import com.chefkix.identity.utils.SocialUtils;
 import com.mongodb.client.result.UpdateResult;
+import org.springframework.dao.DuplicateKeyException;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -104,7 +105,12 @@ public class SocialService {
         throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
       }
       Follow follow = Follow.builder().followerId(followerId).followingId(followingId).build();
-      followRepository.save(follow);
+      try {
+        followRepository.save(follow);
+      } catch (DuplicateKeyException e) {
+        // Race condition: concurrent double-tap — already following, skip
+        log.debug("Duplicate follow ignored for {} -> {}", followerId, followingId);
+      }
       updateFollowCounts(followerId, followingId, 1);
       log.info("User {} successfully FOLLOWED {}", followerId, followingId);
 
@@ -530,16 +536,21 @@ public class SocialService {
    */
   public List<ProfileResponse> getFollowingProfiles(String userId) {
     List<String> followingIds = getFollowingIds(userId);
+    if (followingIds.isEmpty()) return List.of();
+    // Batch: which of the users I follow also follow me back? (1 query instead of N)
+    Set<String> theyFollowMeBack = followRepository
+        .findAllByFollowingIdAndFollowerIdIn(userId, followingIds).stream()
+        .map(Follow::getFollowerId)
+        .collect(Collectors.toSet());
     return userProfileRepository.findAllByUserIdIn(followingIds).stream()
         .map(
             profile -> {
               ProfileResponse response = profileMapper.toProfileResponse(profile);
+              boolean mutual = theyFollowMeBack.contains(profile.getUserId());
               response.setRelationshipStatus(
-                  isMutualFollow(userId, profile.getUserId())
-                      ? RelationshipStatus.FRIENDS
-                      : RelationshipStatus.NOT_FRIENDS);
-              response.setFollowing(true); // Current user follows them
-              response.setFollowedBy(isMutualFollow(userId, profile.getUserId()));
+                  mutual ? RelationshipStatus.FRIENDS : RelationshipStatus.NOT_FRIENDS);
+              response.setFollowing(true);
+              response.setFollowedBy(mutual);
               return response;
             })
         .toList();
@@ -551,11 +562,17 @@ public class SocialService {
    */
   public List<ProfileResponse> getFollowerProfiles(String userId) {
     List<String> followerIds = getFollowerIds(userId);
+    if (followerIds.isEmpty()) return List.of();
+    // Batch: which of my followers do I follow back? (1 query instead of N)
+    Set<String> iFollowBack = followRepository
+        .findAllByFollowerIdAndFollowingIdIn(userId, followerIds).stream()
+        .map(Follow::getFollowingId)
+        .collect(Collectors.toSet());
     return userProfileRepository.findAllByUserIdIn(followerIds).stream()
         .map(
             profile -> {
               ProfileResponse response = profileMapper.toProfileResponse(profile);
-              boolean isFollowingThem = isFollowing(userId, profile.getUserId());
+              boolean isFollowingThem = iFollowBack.contains(profile.getUserId());
               response.setRelationshipStatus(
                   isFollowingThem ? RelationshipStatus.FRIENDS : RelationshipStatus.NOT_FRIENDS);
               response.setFollowing(isFollowingThem);

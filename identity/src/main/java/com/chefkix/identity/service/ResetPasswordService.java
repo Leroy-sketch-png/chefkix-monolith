@@ -67,7 +67,7 @@ public class ResetPasswordService {
             .build();
 
     // Publish message to kafka synchronously so transaction fails if OTP cannot be delivered.
-    log.info("Sending notification event to Kafka: {}", notificationEmailEvent);
+    log.info("Sending password reset OTP to Kafka for email={}", request.getEmail());
     try {
       var result = kafkaTemplate.send("otp-delivery", notificationEmailEvent).get(5, TimeUnit.SECONDS);
       log.info("Kafka message sent successfully to topic {}", result.getRecordMetadata().topic());

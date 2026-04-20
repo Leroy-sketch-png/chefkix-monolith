@@ -23,6 +23,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 /**
  * Moderation service for admin report review, ban management, and appeals.
  * Per spec 16-moderation.txt: Escalating penalties.
@@ -58,10 +62,10 @@ public class ModerationService {
     }
 
     /**
-     * Get all reports (any status) for admin dashboard.
+     * Get all reports (any status) for admin dashboard. Capped at 200 most recent.
      */
     public List<Report> getAllReports() {
-        return reportRepository.findAll();
+        return reportRepository.findAll(PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt"))).getContent();
     }
 
     /**
@@ -246,16 +250,14 @@ public class ModerationService {
     public void expireBans() {
         try {
             List<Ban> expiredBans = banRepository.findByActiveTrueAndExpiresAtBefore(Instant.now());
-            for (Ban ban : expiredBans) {
-                ban.setActive(false);
-                banRepository.save(ban);
-                log.info("Ban {} expired for user {}", ban.getId(), ban.getUserId());
-            }
             if (!expiredBans.isEmpty()) {
+                expiredBans.forEach(ban -> ban.setActive(false));
+                banRepository.saveAll(expiredBans);
+                expiredBans.forEach(ban -> log.info("Ban {} expired for user {}", ban.getId(), ban.getUserId()));
                 log.info("Expired {} bans", expiredBans.size());
             }
         } catch (Exception e) {
-            log.error("Ban expiry scheduler failed — will retry next cycle", e);
+            log.error("Ban expiry scheduler failed -- will retry next cycle", e);
         }
     }
 

@@ -311,6 +311,7 @@ public class RecipeService {
         try {
             rawUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (Exception e) {
+            log.debug("Could not resolve user from security context for tonight's pick", e);
             rawUserId = null;
         }
         final String currentUserId = rawUserId;
@@ -397,6 +398,7 @@ public class RecipeService {
         try {
             response.setAuthor(asyncHelper.getProfileAsync(pick.getUserId()).join());
         } catch (Exception e) {
+            log.warn("Failed to fetch author profile for recipe {}: {}", pick.getId(), e.getMessage());
             response.setAuthor(AuthorResponse.builder()
                     .userId(pick.getUserId()).displayName("Chef").build());
         }

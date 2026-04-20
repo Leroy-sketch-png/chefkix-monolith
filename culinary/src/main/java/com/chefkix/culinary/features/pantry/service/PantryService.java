@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -94,6 +95,7 @@ public class PantryService {
         return toResponse(pantryRepo.save(item));
     }
 
+    @Transactional
     public void deleteItem(String userId, String itemId) {
         pantryRepo.deleteByIdAndUserId(itemId, userId);
     }

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +66,7 @@ public class AuthenticationService {
   @NonFinal
   String publicBaseUrl;
 
+  @Transactional
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
     log.debug(">>> [AUTH] Start authenticate for username/email={}", request.getEmailOrUsername());
 
@@ -379,7 +381,10 @@ public class AuthenticationService {
     if (!isBlank(userInfo.getPreferredUsername())) {
       return userInfo.getPreferredUsername();
     }
-    return userInfo.getEmail().split("@")[0];
+    if (userInfo.getEmail() != null) {
+      return userInfo.getEmail().split("@")[0];
+    }
+    return "chefkix_user";
   }
 
   private String resolveFullName(OidcUserInfoResponse userInfo) {
@@ -398,7 +403,9 @@ public class AuthenticationService {
   private String resolveUniqueUsername(OidcUserInfoResponse userInfo) {
     String baseUsername = sanitizeUsername(userInfo.getPreferredUsername());
     if (isBlank(baseUsername)) {
-      baseUsername = sanitizeUsername(userInfo.getEmail().split("@")[0]);
+      baseUsername = userInfo.getEmail() != null
+          ? sanitizeUsername(userInfo.getEmail().split("@")[0])
+          : "";
     }
     if (isBlank(baseUsername)) {
       baseUsername = "chefkix_user";
@@ -443,6 +450,10 @@ public class AuthenticationService {
 
       if (!GOOGLE_CALLBACK_PATH.equals(actualUri.getPath())) {
         throw new AppException(ErrorCode.INVALID_REQUEST, "Invalid Google callback path.");
+      }
+
+      if (configuredUri.getHost() == null || actualUri.getHost() == null) {
+        throw new AppException(ErrorCode.INVALID_REQUEST, "Malformed redirect URI host.");
       }
 
       boolean sameHost = configuredUri.getHost().equalsIgnoreCase(actualUri.getHost())
