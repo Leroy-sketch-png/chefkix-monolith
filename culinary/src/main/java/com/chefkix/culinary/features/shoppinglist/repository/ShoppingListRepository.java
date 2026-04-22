@@ -11,5 +11,6 @@ public interface ShoppingListRepository extends MongoRepository<ShoppingList, St
     Optional<ShoppingList> findByIdAndUserId(String id, String userId);
     Optional<ShoppingList> findByShareToken(String shareToken);
     void deleteByIdAndUserId(String id, String userId);
+    void deleteAllByUserId(String userId);
     long countByUserId(String userId);
 }

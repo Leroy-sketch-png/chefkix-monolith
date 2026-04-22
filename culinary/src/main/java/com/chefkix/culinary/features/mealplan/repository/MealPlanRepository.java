@@ -18,4 +18,6 @@ public interface MealPlanRepository extends MongoRepository<MealPlan, String> {
     Optional<MealPlan> findByUserIdAndWeekStartDate(String userId, LocalDate weekStartDate);
 
     void deleteByIdAndUserId(String id, String userId);
+
+    void deleteAllByUserId(String userId);
 }

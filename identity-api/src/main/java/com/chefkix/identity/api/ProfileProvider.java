@@ -30,7 +30,7 @@ public interface ProfileProvider {
      * Award XP and badges after cooking session completion.
      * Replaces: {@code PUT /auth/update_completion} (identity's Feign endpoint consumed by recipe-service).
      *
-     * @param request completion data (userId, xpAmount, newBadges)
+        * @param request completion data (userId, xpAmount, recipeId, challengeCompleted, newBadges)
      * @return updated stats including level-up info for frontend celebration
      */
     CompletionResult updateAfterCompletion(CompletionRequest request);

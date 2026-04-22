@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class PostDeadlineScheduler {
         try {
             log.info("Running post deadline reminder check...");
 
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = utcNow();
 
             // Day 5 reminder (9 days left until 14-day deadline)
             sendRemindersForDaysRemaining(now, 9, "NORMAL");
@@ -76,7 +77,7 @@ public class PostDeadlineScheduler {
             Query query = new Query();
             query.addCriteria(Criteria.where("status").is(SessionStatus.COMPLETED));
             query.addCriteria(Criteria.where("postId").isNull());
-            query.addCriteria(Criteria.where("postDeadline").lt(LocalDateTime.now()));
+            query.addCriteria(Criteria.where("postDeadline").lt(utcNow()));
             query.addCriteria(Criteria.where("pendingXp").gt(0.0));
 
             Update update = new Update()
@@ -158,5 +159,9 @@ public class PostDeadlineScheduler {
 
         log.info("Sent post deadline reminder to user {} for session {} ({} days left)", 
             session.getUserId(), session.getId(), daysRemaining);
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

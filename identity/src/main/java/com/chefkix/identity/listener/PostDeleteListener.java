@@ -3,6 +3,7 @@ package com.chefkix.identity.listener;
 import com.chefkix.shared.service.KafkaIdempotencyService;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.identity.service.StatisticsService;
+import com.chefkix.identity.service.StatisticsCounterOperations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostDeleteListener {
 
-  private final StatisticsService statisticsService;
+  private static final String POST_DELETED_IDEMPOTENCY_SCOPE = "post-deleted-delivery:identity";
+
+  private final StatisticsCounterOperations statisticsService;
   private final KafkaIdempotencyService idempotencyService;
 
   @KafkaListener(
@@ -33,13 +36,15 @@ public class PostDeleteListener {
       log.error("PostDeletedEvent with null/blank userId, eventId={}", event.getEventId());
       return;
     }
-    if (!idempotencyService.tryProcess(event.getEventId(), "post-deleted-delivery")) {
+    if (!idempotencyService.tryProcess(event.getEventId(), POST_DELETED_IDEMPOTENCY_SCOPE)) {
       return;
     }
     try {
       statisticsService.incrementCounter(event.getUserId(), "totalRecipesPublished", -1);
     } catch (Exception e) {
+      idempotencyService.removeProcessed(event.getEventId(), POST_DELETED_IDEMPOTENCY_SCOPE);
       log.error("Failed to process PostDeletedEvent for userId={}, eventId={}: {}", event.getUserId(), event.getEventId(), e.getMessage(), e);
+      throw e;
     }
   }
 }

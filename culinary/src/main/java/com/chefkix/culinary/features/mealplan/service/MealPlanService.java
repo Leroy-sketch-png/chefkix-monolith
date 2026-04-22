@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -111,7 +112,7 @@ public class MealPlanService {
             }
         }
 
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekStart = currentWeekStartDate();
 
         MealPlan plan = MealPlan.builder()
                 .userId(userId)
@@ -178,7 +179,7 @@ public class MealPlanService {
         // Build shopping list from selected recipe ingredients vs pantry
         List<ShoppingItem> shoppingList = buildShoppingList(plannedDays, recipes, new HashSet<>(pantryNames));
 
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekStart = currentWeekStartDate();
 
         MealPlan plan = MealPlan.builder()
                 .userId(userId)
@@ -194,7 +195,7 @@ public class MealPlanService {
     // ── CRUD ────────────────────────────────────────────────────────
 
     public MealPlanResponse getCurrent(String userId) {
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekStart = currentWeekStartDate();
         return mealPlanRepo.findByUserIdAndWeekStartDate(userId, weekStart)
                 .map(this::toResponse)
                 .orElse(null);
@@ -340,5 +341,13 @@ public class MealPlanService {
                 .reasoning(reasoning)
                 .pantryUtilizationPercent(pantryUtilizationPercent)
                 .build();
+    }
+
+    protected LocalDate utcToday() {
+        return LocalDate.now(ZoneOffset.UTC);
+    }
+
+    private LocalDate currentWeekStartDate() {
+        return utcToday().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 }

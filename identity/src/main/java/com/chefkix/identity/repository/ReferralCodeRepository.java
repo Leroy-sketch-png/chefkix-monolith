@@ -13,4 +13,6 @@ public interface ReferralCodeRepository extends MongoRepository<ReferralCode, St
     Optional<ReferralCode> findByCode(String code);
 
     boolean existsByCode(String code);
+
+    long deleteByUserId(String userId);
 }

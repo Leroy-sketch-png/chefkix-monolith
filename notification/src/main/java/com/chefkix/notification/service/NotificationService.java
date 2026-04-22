@@ -167,13 +167,61 @@ public class NotificationService {
         log.info("Created comment notification for user: {} on post: {}", recipientId, event.getPostId());
     }
 
+    public long cleanupDeletedPostNotifications(String postId) {
+        long deletedCount = notificationRepository.deleteAllByTargetEntityIdAndTypeIn(
+                postId,
+                List.of(NotificationType.POST_LIKE, NotificationType.POST_COMMENT, NotificationType.USER_MENTION));
+
+        log.info("Deleted {} post-scoped notifications for post {}", deletedCount, postId);
+        return deletedCount;
+    }
+
+    public long cleanupDeletedUserState(String userId) {
+        long recipientNotificationsDeleted = notificationRepository.deleteAllByRecipientId(userId);
+
+        List<Notification> actorNotifications = notificationRepository
+                .findAllByLatestActorIdOrActorIdsContaining(userId, userId);
+        if (!actorNotifications.isEmpty()) {
+            notificationRepository.deleteAll(actorNotifications);
+        }
+
+        long pushTokensDeleted = pushNotificationService.cleanupDeletedUserTokens(userId);
+        long totalAffected = recipientNotificationsDeleted + actorNotifications.size() + pushTokensDeleted;
+
+        log.info(
+                "Deleted user notification state for user={} recipientNotificationsDeleted={} actorNotificationsDeleted={} pushTokensDeleted={}",
+                userId,
+                recipientNotificationsDeleted,
+                actorNotifications.size(),
+                pushTokensDeleted);
+        return totalAffected;
+    }
+
     public void handleGamificationEvent(GamificationNotificationEvent event) {
         String recipientId = event.getUserId();
         String displayName = safeDisplayName(event.getDisplayName());
+        boolean xpAndLevelUpsEnabled = notificationPreferencesProvider.isNotificationEnabled(recipientId, "xpAndLevelUps");
+        boolean hasBadgeMilestone = event.getNewBadges() != null && !event.getNewBadges().isEmpty();
+
+        if (event.getXpEarned() > 0 && !event.isLeveledUp() && !hasBadgeMilestone && !"CREATOR_BONUS".equals(event.getSource())) {
+            if (!xpAndLevelUpsEnabled) {
+                log.debug("Skipping XP_AWARDED notification for user {} — xpAndLevelUps disabled", recipientId);
+            } else {
+                createAndBroadcastNotification(
+                        recipientId,
+                        recipientId,
+                        displayName,
+                        null,
+                        resolveGamificationTargetId(event),
+                        buildXpAwardedContent(event),
+                        NotificationType.XP_AWARDED,
+                        "Created XP notification");
+            }
+        }
 
         if (event.isLeveledUp()) {
             // PREFERENCE CHECK: respect user's xpAndLevelUps toggle
-            if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "xpAndLevelUps")) {
+            if (!xpAndLevelUpsEnabled) {
                 log.debug("Skipping LEVEL_UP notification for user {} — xpAndLevelUps disabled", recipientId);
             } else {
                 String levelUpContent = String.format(
@@ -663,8 +711,10 @@ public class NotificationService {
                 case POST_LIKE -> title = "❤️ New Like";
                 case POST_COMMENT -> title = "💬 New Comment";
                 case NEW_FOLLOWER -> title = "👋 New Follower";
+                case XP_AWARDED -> title = "⚡ XP Earned!";
                 case LEVEL_UP -> title = "🎉 Level Up!";
                 case BADGE_EARNED -> title = "🏆 Badge Earned!";
+                case CREATOR_BONUS -> title = "🍳 Creator Bonus";
                 case STREAK_WARNING -> title = "🔥 Streak Alert";
                 case USER_MENTION -> title = "📝 You were mentioned";
                 // Added new push notification titles for Groups!
@@ -692,6 +742,24 @@ public class NotificationService {
         if (content == null || content.isBlank()) return "";
         return content.substring(0, Math.min(content.length(), POST_PREVIEW_LENGTH))
                 + (content.length() > POST_PREVIEW_LENGTH ? "..." : "");
+    }
+
+    private String buildXpAwardedContent(GamificationNotificationEvent event) {
+        long roundedXp = Math.round(event.getXpEarned());
+        String normalizedSource = event.getSource() != null ? event.getSource().toUpperCase(Locale.ROOT) : "";
+
+        return switch (normalizedSource) {
+            case "LINKING_POST" -> String.format("You earned %d XP for posting your cook.", roundedXp);
+            case "COOKING_SESSION" -> String.format("You earned %d XP for completing your cooking session.", roundedXp);
+            default -> String.format("You earned %d XP.", roundedXp);
+        };
+    }
+
+    private String resolveGamificationTargetId(GamificationNotificationEvent event) {
+        if (event.getSessionId() != null && !event.getSessionId().isBlank()) {
+            return event.getSessionId();
+        }
+        return event.getRecipeId();
     }
 
     // ===============================================

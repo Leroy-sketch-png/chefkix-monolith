@@ -26,6 +26,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class RecipeHelper {
 
     public void calculateRemainingTime(CookingSession session) {
         if (session.getActiveTimers() == null || session.getActiveTimers().isEmpty()) return;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = utcNow();
 
         for (CookingSession.ActiveTimer timer : session.getActiveTimers()) {
             long elapsedSeconds = ChronoUnit.SECONDS.between(timer.getStartedAt(), now);
@@ -68,7 +69,7 @@ public class RecipeHelper {
     }
 
     public void validateAntiCheat(CookingSession session, Recipe recipe) {
-        long actualSeconds = ChronoUnit.SECONDS.between(session.getStartedAt(), LocalDateTime.now());
+        long actualSeconds = ChronoUnit.SECONDS.between(session.getStartedAt(), utcNow());
         long minSeconds = (long) (recipe.getCookTimeMinutes() * 60 * 0.5);
 
         if (actualSeconds < minSeconds) {
@@ -83,7 +84,8 @@ public class RecipeHelper {
         // Previously only counted POSTED, which meant users could bypass mastery decay by never posting
         long completedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.COMPLETED);
         long postedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POSTED);
-        long cookCount = completedCount + postedCount;
+        long deletedPostedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POST_DELETED);
+        long cookCount = completedCount + postedCount + deletedPostedCount;
         double mult;
         if (cookCount == 0) mult = 1.0;
         else if (cookCount == 1) mult = 0.5;
@@ -97,7 +99,7 @@ public class RecipeHelper {
         int photoCount = postData.getPhotoCount();
         double photoMult = (photoCount >= 2) ? 1.0 : 0.5;
 
-        long daysSinceCompletion = ChronoUnit.DAYS.between(session.getCompletedAt(), LocalDateTime.now());
+        long daysSinceCompletion = ChronoUnit.DAYS.between(session.getCompletedAt(), utcNow());
         double decayMult;
         if (daysSinceCompletion <= 7) decayMult = 1.0;
         else if (daysSinceCompletion <= 14) decayMult = 0.5;
@@ -112,6 +114,10 @@ public class RecipeHelper {
     // --- LOGIC TIMER ---
 
     public void handleTimerStart(CookingSession session, Recipe recipe, int stepNumber, LocalDateTime now) {
+        if (session.getActiveTimers() == null) {
+            session.setActiveTimers(new ArrayList<>());
+        }
+
         int duration = recipe.getSteps().stream()
                 .filter(s -> s.getStepNumber() == stepNumber)
                 .findFirst()
@@ -135,6 +141,13 @@ public class RecipeHelper {
     }
 
     public void handleTimerStop(CookingSession session, int stepNumber) {
+        if (session.getActiveTimers() == null) {
+            session.setActiveTimers(new ArrayList<>());
+        }
+        if (session.getCompletedSteps() == null) {
+            session.setCompletedSteps(new ArrayList<>());
+        }
+
         session.getActiveTimers().removeIf(t -> t.getStepNumber() == stepNumber);
         if (!session.getCompletedSteps().contains(stepNumber)) {
             session.getCompletedSteps().add(stepNumber);
@@ -147,7 +160,8 @@ public class RecipeHelper {
             throw new AppException(ErrorCode.INVALID_ACTION, "Invalid step number");
         }
 
-        if (stepNumber >= session.getCurrentStep()) {
+        int currentStep = session.getCurrentStep() != null ? session.getCurrentStep() : 1;
+        if (stepNumber >= currentStep) {
             int nextStep = Math.min(stepNumber + 1, recipe.getSteps().size());
             session.setCurrentStep(nextStep);
         }
@@ -171,7 +185,7 @@ public class RecipeHelper {
                 .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
-        if (session.getStatus() == SessionStatus.POSTED) throw new AppException(ErrorCode.SESSION_ALREADY_LINKED);
+        if (session.getStatus().hasClaimedPostXp()) throw new AppException(ErrorCode.SESSION_ALREADY_LINKED);
         if (session.getStatus() != SessionStatus.COMPLETED) throw new AppException(ErrorCode.INVALID_ACTION, "Session must be COMPLETED");
 
         return session;
@@ -201,7 +215,7 @@ public class RecipeHelper {
         Update update = new Update()
                 .inc("cookCount", cookCountInc)
                 .inc("creatorXpEarned", xpEarnedInc)
-                .set("lastCookedAt", LocalDateTime.now());
+            .set("lastCookedAt", utcNow());
         mongoTemplate.updateFirst(query, update, Recipe.class);
     }
 
@@ -212,13 +226,33 @@ public class RecipeHelper {
     public void sendXpEventWithBadges(String userId, double amount, String source, String sessionId, String desc, List<String> badges) {
         sendXpEventFull(userId, amount, source, sessionId, desc, badges, false);
     }
+
+    public void sendXpEventWithBadges(
+            String userId,
+            double amount,
+            String source,
+            String sessionId,
+            String desc,
+            List<String> badges,
+            String recipeId) {
+        sendXpEventFull(userId, amount, source, sessionId, desc, badges, false, recipeId);
+    }
     
     public void sendXpEventWithChallenge(String userId, double amount, String source, String sessionId, String desc, boolean challengeCompleted) {
-        sendXpEventFull(userId, amount, source, sessionId, desc, null, challengeCompleted);
+        sendXpEventWithChallenge(userId, amount, source, sessionId, desc, challengeCompleted, null);
+    }
+
+    public void sendXpEventWithChallenge(String userId, double amount, String source, String sessionId, String desc, boolean challengeCompleted, String recipeId) {
+        sendXpEventFull(userId, amount, source, sessionId, desc, null, challengeCompleted, recipeId);
     }
 
     public void sendXpEventFull(String userId, double amount, String source, String sessionId, String desc, 
                                 List<String> badges, boolean challengeCompleted) {
+        sendXpEventFull(userId, amount, source, sessionId, desc, badges, challengeCompleted, null);
+    }
+
+    public void sendXpEventFull(String userId, double amount, String source, String sessionId, String desc, 
+                                List<String> badges, boolean challengeCompleted, String recipeId) {
         if (amount <= 0 && (badges == null || badges.isEmpty()) && !challengeCompleted) return;
         XpRewardEvent xpEvent = XpRewardEvent.builder()
                 .userId(userId)
@@ -226,6 +260,7 @@ public class RecipeHelper {
                 .source(source)
                 .sessionId(sessionId)
                 .description(desc)
+                .recipeId(recipeId)
                 .badges(badges)
                 .challengeCompleted(challengeCompleted)
                 .build();
@@ -316,7 +351,7 @@ public class RecipeHelper {
         Integer daysRemaining = null;
         if (session.getPostDeadline() != null) {
             long days = java.time.temporal.ChronoUnit.DAYS.between(
-                java.time.LocalDateTime.now(), 
+                utcNow(), 
                 session.getPostDeadline()
             );
             daysRemaining = (int) Math.max(0, days);
@@ -341,5 +376,9 @@ public class RecipeHelper {
                 .postDeadline(session.getPostDeadline())
                 .daysRemaining(daysRemaining)
                 .build();
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

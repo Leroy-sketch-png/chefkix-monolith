@@ -11,6 +11,8 @@ import com.chefkix.notification.entity.PushToken;
 @Repository
 public interface PushTokenRepository extends MongoRepository<PushToken, String> {
 
+    long countByUserId(String userId);
+
     /** Find all active tokens for a user (multi-device support) */
     List<PushToken> findByUserIdAndActiveTrue(String userId);
 

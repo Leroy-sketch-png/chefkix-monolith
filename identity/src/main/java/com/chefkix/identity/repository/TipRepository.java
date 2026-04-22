@@ -15,4 +15,8 @@ public interface TipRepository extends MongoRepository<Tip, String> {
     long countByCreatorId(String creatorId);
 
     long countByCreatorIdAndCreatedAtAfter(String creatorId, Instant after);
+
+    void deleteAllByTipperId(String tipperId);
+
+    void deleteAllByCreatorId(String creatorId);
 }

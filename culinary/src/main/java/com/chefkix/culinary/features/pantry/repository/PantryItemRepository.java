@@ -18,6 +18,8 @@ public interface PantryItemRepository extends MongoRepository<PantryItem, String
 
     Optional<PantryItem> findByIdAndUserId(String id, String userId);
 
+    void deleteAllByUserId(String userId);
+
     List<PantryItem> findByUserIdAndExpiryDateBefore(String userId, LocalDate date);
 
     List<PantryItem> findByUserIdAndExpiryDateBetween(String userId, LocalDate from, LocalDate to);

@@ -1,7 +1,12 @@
 package com.chefkix.social.chat.controller;
 
 import com.chefkix.social.chat.dto.request.SignalMessage;
+import com.chefkix.social.chat.repository.ConversationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,17 +15,15 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class VideoSignalingHandler extends TextWebSocketHandler {
 
+    private static final String SESSION_USER_ID = "userId";
+
     private final ObjectMapper objectMapper;
+    private final ConversationRepository conversationRepository;
 
     // conversationId -> list of active user sessions
     private final ConcurrentHashMap<String, List<WebSocketSession>> conversations = new ConcurrentHashMap<>();
@@ -30,12 +33,24 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        log.info("New WebSocket connection: {}", session.getId());
+        String userId = getAuthenticatedUserId(session);
+        if (userId == null) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Authentication required"));
+            return;
+        }
+
+        log.info("New video WebSocket connection: session={}, user={}", session.getId(), userId);
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
+            String userId = getAuthenticatedUserId(session);
+            if (userId == null) {
+                session.close(CloseStatus.POLICY_VIOLATION.withReason("Authentication required"));
+                return;
+            }
+
             SignalMessage signal = objectMapper.readValue(message.getPayload(), SignalMessage.class);
             String conversationId = signal.getConversationId();
 
@@ -43,6 +58,8 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
                 log.warn("Received message without conversationId");
                 return;
             }
+
+            signal.setSenderId(userId);
 
             switch (signal.getType()) {
                 case "join":
@@ -66,6 +83,31 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
     }
 
     private void handleJoin(WebSocketSession session, String conversationId) throws IOException {
+        String userId = getAuthenticatedUserId(session);
+        if (userId == null) {
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Authentication required"));
+            return;
+        }
+
+        boolean isParticipant = conversationRepository.findById(conversationId)
+                .map(conversation -> conversation.getParticipants() != null
+                        && conversation.getParticipants().stream()
+                        .anyMatch(participant -> userId.equals(participant.getUserId())))
+                .orElse(false);
+
+        if (!isParticipant) {
+            log.warn("User {} attempted to join unauthorized video conversation {}", userId, conversationId);
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Not a participant of this conversation"));
+            return;
+        }
+
+        String existingConversationId = sessionConversationMap.get(session);
+        if (existingConversationId != null && !existingConversationId.equals(conversationId)) {
+            log.warn("Session {} attempted to join a second conversation: {} -> {}", session.getId(), existingConversationId, conversationId);
+            session.close(CloseStatus.POLICY_VIOLATION.withReason("Session already joined to another conversation"));
+            return;
+        }
+
         conversations.putIfAbsent(conversationId, new CopyOnWriteArrayList<>());
         List<WebSocketSession> roomSessions = conversations.get(conversationId);
 
@@ -90,6 +132,13 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
     }
 
     private void handleSignalingMessage(WebSocketSession senderSession, SignalMessage signal, String conversationId) throws IOException {
+        String joinedConversationId = sessionConversationMap.get(senderSession);
+        if (joinedConversationId == null || !joinedConversationId.equals(conversationId)) {
+            log.warn("Session {} attempted signaling without joining conversation {}", senderSession.getId(), conversationId);
+            senderSession.close(CloseStatus.POLICY_VIOLATION.withReason("Join the conversation before signaling"));
+            return;
+        }
+
         List<WebSocketSession> roomSessions = conversations.get(conversationId);
         if (roomSessions == null) return;
 
@@ -145,5 +194,10 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
                 log.info("Session {} left conversation {}. Remaining participants: {}", session.getId(), conversationId, roomSessions.size());
             }
         }
+    }
+
+    private String getAuthenticatedUserId(WebSocketSession session) {
+        Object userId = session.getAttributes().get(SESSION_USER_ID);
+        return userId instanceof String && !((String) userId).isBlank() ? (String) userId : null;
     }
 }

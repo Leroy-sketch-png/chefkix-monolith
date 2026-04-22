@@ -1,6 +1,7 @@
 package com.chefkix.social.post.repository;
 
 import com.chefkix.social.post.entity.Post;
+import com.chefkix.social.post.enums.PostStatus;
 import com.chefkix.social.post.enums.PostType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,9 @@ public interface PostRepository extends MongoRepository<Post, String> {
     Page<Post> findByRecipeIdAndPostTypeAndHiddenFalseOrderByCreatedAtDesc(
             String recipeId, PostType postType, Pageable pageable);
 
+        Page<Post> findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
+            String groupId, PostType postType, PostStatus status, Pageable pageable);
+
     long countByRecipeIdAndPostTypeAndHiddenFalse(String recipeId, PostType postType);
 
     // --- Recipe battles: active battles (not yet ended) ---
@@ -37,6 +41,8 @@ public interface PostRepository extends MongoRepository<Post, String> {
 
     // --- Non-feed queries (include all) ---
     List<Post> findByCreatedAtAfter(Instant since);
+
+        List<Post> findAllByUserId(String userId);
 
     long countByUserIdAndHiddenFalse(String userId);
 

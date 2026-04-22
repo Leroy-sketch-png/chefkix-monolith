@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 public interface UserSubscriptionRepository extends MongoRepository<UserSubscription, String> {
     Optional<UserSubscription> findByUserId(String userId);
     boolean existsByUserIdAndActiveTrue(String userId);
+    long deleteByUserId(String userId);
 }

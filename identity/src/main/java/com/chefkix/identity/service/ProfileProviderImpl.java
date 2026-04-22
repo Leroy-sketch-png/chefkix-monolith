@@ -73,6 +73,8 @@ public class ProfileProviderImpl implements ProfileProvider {
         InternalCompletionRequest internalReq = InternalCompletionRequest.builder()
                 .userId(request.getUserId())
                 .xpAmount(request.getXpAmount())
+            .recipeId(request.getRecipeId())
+            .challengeCompleted(request.isChallengeCompleted())
                 .newBadges(request.getNewBadges())
                 .idempotencyKey(request.getIdempotencyKey())
                 .build();

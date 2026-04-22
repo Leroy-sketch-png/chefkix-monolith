@@ -1,0 +1,11 @@
+target/
+*.iml
+.idea/
+*.class
+*.jar
+*.log
+_*.txt
+.git/
+.gitignore
+README.md
+lombok.config

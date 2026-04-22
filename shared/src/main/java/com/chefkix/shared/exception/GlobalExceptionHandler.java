@@ -136,7 +136,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     ResponseEntity<ApiResponse<?>> handleRuntimeException(RuntimeException ex) {
-        log.error("Unhandled RuntimeException: {}", ex.getMessage(), ex);
+        log.error(
+                "Unhandled RuntimeException: type={}, message={}",
+                ex.getClass().getSimpleName(),
+                Objects.toString(ex.getMessage(), "<no message>"));
+        if (log.isDebugEnabled()) {
+            log.debug("Unhandled RuntimeException stack trace", ex);
+        }
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
 
         ApiResponse<?> response = ApiResponse.builder()

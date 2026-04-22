@@ -302,7 +302,7 @@ public class AchievementService {
     private long countAllCompletedSessions(String userId) {
         return cookingSessionRepository
                 .findAllByUserIdAndStatusIn(userId,
-                        List.of(SessionStatus.COMPLETED, SessionStatus.POSTED),
+                List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.POST_DELETED),
                         org.springframework.data.domain.PageRequest.of(0, 1))
                 .getTotalElements();
     }
@@ -317,7 +317,7 @@ public class AchievementService {
         if (totalCompleted <= 20) {
             // Small dataset, count directly
             Set<String> recipeIds = sessions.stream()
-                    .filter(s -> s.getStatus() == SessionStatus.COMPLETED || s.getStatus() == SessionStatus.POSTED)
+                    .filter(s -> s.getStatus() != null && s.getStatus().countsAsCompletedCook())
                     .map(CookingSession::getRecipeId)
                     .collect(Collectors.toSet());
 
@@ -338,7 +338,7 @@ public class AchievementService {
         List<CookingSession> sessions = cookingSessionRepository
                 .findTop20ByUserIdOrderByStartedAtDesc(userId);
         Set<String> recipeIds = sessions.stream()
-                .filter(s -> s.getStatus() == SessionStatus.COMPLETED || s.getStatus() == SessionStatus.POSTED)
+            .filter(s -> s.getStatus() != null && s.getStatus().countsAsCompletedCook())
                 .map(CookingSession::getRecipeId)
                 .collect(Collectors.toSet());
 

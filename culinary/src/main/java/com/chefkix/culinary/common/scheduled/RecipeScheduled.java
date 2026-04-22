@@ -15,6 +15,7 @@ import com.chefkix.culinary.features.recipe.entity.RecipeCompletion;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class RecipeScheduled {
     public void updateTrendingScores() {
         try {
             // 1. Define time window (last 7 days)
-            LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+            LocalDateTime sevenDaysAgo = LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
 
             // 2. Map to store temporary scores: Key = recipeId, Value = Score
             Map<String, Double> scoreMap = new HashMap<>();
