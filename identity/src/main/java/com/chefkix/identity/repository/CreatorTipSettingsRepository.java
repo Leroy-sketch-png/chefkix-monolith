@@ -10,4 +10,6 @@ public interface CreatorTipSettingsRepository extends MongoRepository<CreatorTip
     Optional<CreatorTipSettings> findByUserId(String userId);
 
     boolean existsByUserId(String userId);
+
+    long deleteByUserId(String userId);
 }

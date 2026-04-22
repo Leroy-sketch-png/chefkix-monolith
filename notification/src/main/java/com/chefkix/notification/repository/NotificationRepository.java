@@ -1,6 +1,7 @@
 package com.chefkix.notification.repository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,12 @@ public interface NotificationRepository extends MongoRepository<Notification, St
 
     Optional<Notification> findByRecipientIdAndTargetEntityIdAndType(
             String recipientId, String targetId, NotificationType notificationType);
+
+    long deleteAllByRecipientId(String recipientId);
+
+    List<Notification> findAllByLatestActorIdOrActorIdsContaining(String latestActorId, String actorId);
+
+        long deleteAllByTargetEntityIdAndTypeIn(String targetEntityId, Collection<NotificationType> notificationTypes);
 
     long countByRecipientIdAndIsReadFalse(String recipientId);
 

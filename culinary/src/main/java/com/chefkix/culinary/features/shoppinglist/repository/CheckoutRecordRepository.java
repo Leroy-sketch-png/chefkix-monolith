@@ -13,6 +13,8 @@ public interface CheckoutRecordRepository extends MongoRepository<CheckoutRecord
 
     List<CheckoutRecord> findByUserIdOrderByCreatedAtDesc(String userId);
 
+    void deleteAllByUserId(String userId);
+
     long countByUserIdAndCreatedAtAfter(String userId, Instant after);
 
     long countByProviderAndCreatedAtAfter(String provider, Instant after);

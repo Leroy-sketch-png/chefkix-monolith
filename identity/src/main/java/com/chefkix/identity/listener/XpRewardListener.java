@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class XpRewardListener {
+  private static final String XP_IDEMPOTENCY_SCOPE = "xp-delivery";
+
   private final StatisticsService statisticsService;
   private final KafkaIdempotencyService idempotencyService;
 
@@ -46,7 +48,7 @@ public class XpRewardListener {
     }
 
     // Idempotency check: prevent duplicate XP awards on Kafka redelivery
-    if (!idempotencyService.tryProcess(event.getEventId(), "xp-delivery")) {
+    if (!idempotencyService.tryProcess(event.getEventId(), XP_IDEMPOTENCY_SCOPE)) {
       return;
     }
 
@@ -69,8 +71,13 @@ public class XpRewardListener {
       } else {
         // CASE 3: Cook XP (with badges, streak update, and possibly challenge streak)
         statisticsService.rewardXpFull(
-            event.getUserId(), event.getAmount(), event.getBadges(), event.isChallengeCompleted(),
-            event.getRecipeId());
+        event.getUserId(),
+        event.getAmount(),
+        event.getBadges(),
+        event.isChallengeCompleted(),
+        event.getRecipeId(),
+        event.getSource(),
+        event.getSessionId());
       }
     } catch (AppException e) {
       if (e.getErrorCode() == ErrorCode.USER_NOT_FOUND || e.getErrorCode() == ErrorCode.PROFILE_NOT_FOUND) {
@@ -83,8 +90,10 @@ public class XpRewardListener {
             e);
         return;
       }
+      idempotencyService.removeProcessed(event.getEventId(), XP_IDEMPOTENCY_SCOPE);
       throw e;
     } catch (Exception e) {
+      idempotencyService.removeProcessed(event.getEventId(), XP_IDEMPOTENCY_SCOPE);
       log.error("Failed to process XP event: userId={}, amount={}, source={}, eventId={}",
           event.getUserId(), event.getAmount(), event.getSource(), event.getEventId(), e);
       throw e; // Re-throw so Kafka error handler can retry

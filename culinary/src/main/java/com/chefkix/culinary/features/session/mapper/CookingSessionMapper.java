@@ -11,6 +11,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +102,7 @@ public interface CookingSessionMapper {
          */
         @Named("calculateXpEarned")
         default Integer calculateXpEarned(CookingSession session) {
-            if (session.getStatus() == SessionStatus.POSTED) {
+            if (session.getStatus() != null && session.getStatus().hasClaimedPostXp()) {
                 Double base = session.getBaseXpAwarded() != null ? session.getBaseXpAwarded() : 0.0;
                 Double remaining = session.getRemainingXpAwarded() != null ? session.getRemainingXpAwarded() : 0.0;
                 // If using pendingXp instead of remainingXpAwarded, change to: base + (session.getPendingXp() != null ? session.getPendingXp() : 0.0);
@@ -116,7 +117,7 @@ public interface CookingSessionMapper {
         @Named("calculateDaysRemaining")
         default Long calculateDaysRemaining(CookingSession session) {
             if (session.getStatus() == SessionStatus.COMPLETED && session.getPostDeadline() != null) {
-                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
                 long days = ChronoUnit.DAYS.between(now, session.getPostDeadline());
                 return Math.max(0, days); // Return 0 if deadline has passed
             }

@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class StatisticsService {
+    public class StatisticsService implements StatisticsCounterOperations {
 
   private static final String GAMIFICATION_TOPIC = "gamification-delivery";
   private static final String REMINDER_TOPIC = "reminder-delivery";
@@ -77,6 +77,8 @@ public class StatisticsService {
     // Internal method called by culinary module via ProfileProvider.
     // Prefer request.userId over SecurityContext since auth may be null for internal calls.
     String userId = request.getUserId();
+        String idempotencyKey = request.getIdempotencyKey();
+        boolean reservedSyncIdempotency = false;
     if (userId == null || userId.isEmpty()) {
       // Fallback to SecurityContext only if userId not provided in request
       var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -87,76 +89,89 @@ public class StatisticsService {
       }
     }
 
-    // 1. Get Profile
-    UserProfile profile =
-        userProfileRepository
-            .findByUserId(userId)
-            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-    Statistics stats =
-        (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
-
-    // 2. PROCESS XP & LEVEL (Using private helper) - capture result for level-up detection
-    XpLevelResult levelResult = applyXpAndLevelLogic(stats, request.getXpAmount());
-
-    // 3. PROCESS BADGES (Add new ones, avoid duplicates)
-    List<String> actuallyAddedBadges = new ArrayList<>();
-    if (request.getNewBadges() != null && !request.getNewBadges().isEmpty()) {
-      // Initialize badge list if not yet created
-      if (stats.getBadges() == null) {
-        stats.setBadges(new ArrayList<>());
-      }
-      if (stats.getBadgeTimestamps() == null) {
-        stats.setBadgeTimestamps(new HashMap<>());
-      }
-
-      for (String badge : request.getNewBadges()) {
-        // Only add if user doesn't already have this badge
-        if (!stats.getBadges().contains(badge)) {
-          stats.getBadges().add(badge);
-          stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
-          actuallyAddedBadges.add(badge);
+        try {
+            if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+                reservedSyncIdempotency = idempotencyService.tryProcess(idempotencyKey, "xp-delivery");
+                if (!reservedSyncIdempotency) {
+                    log.info("Duplicate completion request detected for user {} with key {}", userId, idempotencyKey);
+                    UserProfile existingProfile =
+                            userProfileRepository
+                                    .findByUserId(userId)
+                                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                    Statistics existingStats =
+                            (existingProfile.getStatistics() != null)
+                                    ? existingProfile.getStatistics()
+                                    : Statistics.builder().build();
+                    int currentLevel =
+                            existingStats.getCurrentLevel() != null ? existingStats.getCurrentLevel() : 1;
+                    return buildCompletionResponse(
+                            userId,
+                            existingStats,
+                            new XpLevelResult(false, currentLevel, currentLevel, null));
         }
       }
-    }
 
-    // 4. INCREMENT COOKING COMPLETION COUNTER
-    // completionCount = cooking sessions completed (distinct from totalRecipesPublished which
-    // is tracked via Kafka PostCreatedEvent/PostDeletedEvent in PostEventListener).
-    long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
-    stats.setCompletionCount(currentCount + 1);
+            // 1. Get Profile
+            UserProfile profile =
+                    userProfileRepository
+                            .findByUserId(userId)
+                            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // 5. UPDATE AND SAVE (once)
-    profile.setStatistics(stats);
-    userProfileRepository.save(profile);
+            Statistics stats =
+                    (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-    // 5b. Mark idempotency key AFTER successful DB write.
-    // If a Kafka fallback event arrives with the same key, it will be deduped.
-    // This prevents double XP when sync succeeds but the caller's catch block fires.
-    if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
-      idempotencyService.tryProcess(request.getIdempotencyKey(), "xp-delivery");
-    }
+            // 2. PROCESS XP & LEVEL (Using private helper) - capture result for level-up detection
+            XpLevelResult levelResult = applyXpAndLevelLogic(stats, request.getXpAmount());
 
-    log.info(
-        "Recipe Completed for User {}: +{} XP, New Level: {}, Added Badges: {}",
-        userId,
-        request.getXpAmount(),
-        stats.getCurrentLevel(),
-        actuallyAddedBadges);
+            // 3. PROCESS BADGES (Add new ones, avoid duplicates)
+            List<String> actuallyAddedBadges = new ArrayList<>();
+            if (request.getNewBadges() != null && !request.getNewBadges().isEmpty()) {
+                // Initialize badge list if not yet created
+                if (stats.getBadges() == null) {
+                    stats.setBadges(new ArrayList<>());
+                }
+                if (stats.getBadgeTimestamps() == null) {
+                    stats.setBadgeTimestamps(new HashMap<>());
+                }
 
-    // 6. MAP TO DEDICATED DTO FOR RECIPE SERVICE (including level-up info for frontend celebration)
-    int xpToNextLevel = (int) Math.round(stats.getCurrentXPGoal() - stats.getCurrentXP());
-    return RecipeCompletionResponse.builder()
-        .userId(userId)
-        .currentXP((int) Math.round(stats.getCurrentXP()))
-        .currentXPGoal((int) Math.round(stats.getCurrentXPGoal()))
-        .currentLevel(stats.getCurrentLevel())
-        .completionCount(stats.getCompletionCount())
-        .leveledUp(levelResult.leveledUp())
-        .oldLevel(levelResult.previousLevel())
-        .newLevel(levelResult.newLevel())
-        .xpToNextLevel(xpToNextLevel)
-        .build();
+                for (String badge : request.getNewBadges()) {
+                    // Only add if user doesn't already have this badge
+                    if (!stats.getBadges().contains(badge)) {
+                        stats.getBadges().add(badge);
+                        stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
+                        actuallyAddedBadges.add(badge);
+                    }
+                }
+            }
+
+                // 4. APPLY COOKING COMPLETION PROGRESSION
+                // Keep sync completion behavior aligned with the Kafka fallback path:
+                // streaks, recipe mastery, completion count, and challenge streaks.
+                applyCookingCompletionProgress(
+                    stats,
+                    userId,
+                    request.getRecipeId(),
+                    request.isChallengeCompleted(),
+                    Instant.now());
+
+            // 5. UPDATE AND SAVE (once)
+            profile.setStatistics(stats);
+            userProfileRepository.save(profile);
+
+            log.info(
+                    "Recipe Completed for User {}: +{} XP, New Level: {}, Added Badges: {}",
+                    userId,
+                    request.getXpAmount(),
+                    stats.getCurrentLevel(),
+                    actuallyAddedBadges);
+
+            return buildCompletionResponse(userId, stats, levelResult);
+        } catch (RuntimeException e) {
+            if (reservedSyncIdempotency && idempotencyKey != null && !idempotencyKey.isBlank()) {
+                idempotencyService.removeProcessed(idempotencyKey, "xp-delivery");
+            }
+            throw e;
+        }
   }
 
   /** Manually add XP (Admin or other events) */
@@ -178,7 +193,28 @@ public class StatisticsService {
    */
   private record XpLevelResult(boolean leveledUp, int previousLevel, int newLevel, String newTitle) {}
 
-  /**
+    private RecipeCompletionResponse buildCompletionResponse(
+            String userId, Statistics stats, XpLevelResult levelResult) {
+        double currentXp = stats.getCurrentXP() != null ? stats.getCurrentXP() : 0.0;
+        double currentXpGoal = stats.getCurrentXPGoal() != null ? stats.getCurrentXPGoal() : 1000.0;
+        int currentLevel = stats.getCurrentLevel() != null ? stats.getCurrentLevel() : 1;
+        long completionCount = stats.getCompletionCount() != null ? stats.getCompletionCount() : 0L;
+        int xpToNextLevel = (int) Math.max(0, Math.round(currentXpGoal - currentXp));
+
+        return RecipeCompletionResponse.builder()
+                .userId(userId)
+                .currentXP((int) Math.round(currentXp))
+                .currentXPGoal((int) Math.round(currentXpGoal))
+                .currentLevel(currentLevel)
+                .completionCount(completionCount)
+                .leveledUp(levelResult.leveledUp())
+                .oldLevel(levelResult.previousLevel())
+                .newLevel(levelResult.newLevel())
+                .xpToNextLevel(xpToNextLevel)
+                .build();
+    }
+
+    /**
    * Core logic for calculating excess XP and leveling up. This method only modifies the Statistics
    * object, does not call DB.
    * 
@@ -220,6 +256,113 @@ public class StatisticsService {
     return new XpLevelResult(leveledUp, previousLevel, stats.getCurrentLevel(), newTitle);
   }
 
+    private void applyCookingCompletionProgress(
+            Statistics stats,
+            String userId,
+            String recipeId,
+            boolean challengeCompleted,
+            Instant now) {
+        applyCookingStreakProgress(stats, userId, now);
+        trackRecipeCookProgress(stats, userId, recipeId);
+        stats.setLastCookAt(now);
+
+        long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
+        stats.setCompletionCount(currentCount + 1);
+
+        if (challengeCompleted) {
+            applyChallengeCompletionProgress(stats, userId, now);
+        }
+    }
+
+    private void applyCookingStreakProgress(Statistics stats, String userId, Instant now) {
+        Instant lastCook = stats.getLastCookAt();
+
+        if (lastCook == null) {
+            stats.setStreakCount(1);
+            log.info("User {} started streak: 1 (first cook)", userId);
+        } else {
+            Duration sinceLastCook = Duration.between(lastCook, now);
+            long hoursSinceLastCook = sinceLastCook.toHours();
+
+            if (hoursSinceLastCook <= 72) {
+                int newStreak = (stats.getStreakCount() != null ? stats.getStreakCount() : 0) + 1;
+                stats.setStreakCount(newStreak);
+                log.info(
+                        "User {} streak continued: {} ({}h since last cook)",
+                        userId,
+                        newStreak,
+                        hoursSinceLastCook);
+            } else {
+                stats.setStreakCount(1);
+                log.info(
+                        "User {} streak reset to 1 ({}h since last cook, exceeded 72h)",
+                        userId,
+                        hoursSinceLastCook);
+            }
+        }
+
+        int currentStreak = stats.getStreakCount() != null ? stats.getStreakCount() : 0;
+        int previousLongest = stats.getLongestStreak() != null ? stats.getLongestStreak() : 0;
+        if (currentStreak > previousLongest) {
+            stats.setLongestStreak(currentStreak);
+            log.info("User {} new longest streak record: {}", userId, currentStreak);
+        }
+    }
+
+    private void trackRecipeCookProgress(Statistics stats, String userId, String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return;
+        }
+
+        Map<String, Integer> cookCounts = stats.getRecipeCookCounts();
+        if (cookCounts == null) {
+            cookCounts = new HashMap<>();
+            stats.setRecipeCookCounts(cookCounts);
+        }
+
+        int newCount = cookCounts.merge(recipeId, 1, Integer::sum);
+        stats.setRecipesCooked((long) cookCounts.size());
+        stats.setRecipesMastered(cookCounts.values().stream().filter(c -> c >= 5).count());
+        log.info(
+                "User {} cooked recipe {} (count: {}, total distinct: {}, mastered: {})",
+                userId,
+                recipeId,
+                newCount,
+                stats.getRecipesCooked(),
+                stats.getRecipesMastered());
+    }
+
+    private void applyChallengeCompletionProgress(Statistics stats, String userId, Instant now) {
+        Instant lastChallenge = stats.getLastChallengeAt();
+
+        if (lastChallenge == null) {
+            stats.setChallengeStreak(1);
+            log.info("User {} started challenge streak: 1 (first challenge)", userId);
+        } else {
+            Duration sinceLastChallenge = Duration.between(lastChallenge, now);
+            long hoursSinceLastChallenge = sinceLastChallenge.toHours();
+
+            if (hoursSinceLastChallenge <= 48) {
+                int newChallengeStreak =
+                        (stats.getChallengeStreak() != null ? stats.getChallengeStreak() : 0) + 1;
+                stats.setChallengeStreak(newChallengeStreak);
+                log.info(
+                        "User {} challenge streak continued: {} ({}h since last)",
+                        userId,
+                        newChallengeStreak,
+                        hoursSinceLastChallenge);
+            } else {
+                stats.setChallengeStreak(1);
+                log.info(
+                        "User {} challenge streak reset to 1 ({}h since last, exceeded 48h)",
+                        userId,
+                        hoursSinceLastChallenge);
+            }
+        }
+
+        stats.setLastChallengeAt(now);
+    }
+
   private Title getTitleForLevel(int level) {
     if (level >= 40) return Title.SEMIPRO;
     if (level >= 20) return Title.AMATEUR;
@@ -235,7 +378,7 @@ public class StatisticsService {
       "friendRequestCount", "recipesCookedCount", "postsCreatedCount");
 
   public void incrementCounter(String userId, String fieldName, int amount) {
-    if (!ALLOWED_COUNTER_FIELDS.contains(fieldName)) {
+    if (!ALLOWED_COUNTER_FIELDS.contains(fieldName)) { 
       throw new AppException(ErrorCode.INVALID_OPERATION);
     }
     String field = "statistics." + fieldName;
@@ -267,14 +410,29 @@ public class StatisticsService {
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void rewardXpFull(String userId, double amount, List<String> badges, boolean challengeCompleted) {
-        rewardXpFull(userId, amount, badges, challengeCompleted, null);
+        rewardXpFull(userId, amount, badges, challengeCompleted, null, "COOKING_SESSION", null);
     }
 
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void rewardXpFull(String userId, double amount, List<String> badges, boolean challengeCompleted, String recipeId) {
+        rewardXpFull(userId, amount, badges, challengeCompleted, recipeId, "COOKING_SESSION", null);
+    }
+
+    @Transactional
+    @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
+    public void rewardXpFull(
+            String userId,
+            double amount,
+            List<String> badges,
+            boolean challengeCompleted,
+            String recipeId,
+            String source,
+            String sessionId) {
         log.info("Kafka Event: Processing reward {} XP for user {} with badges {}, challengeCompleted={}, recipeId={}",
                 amount, userId, badges, challengeCompleted, recipeId);
+
+        String normalizedSource = (source != null && !source.isBlank()) ? source : "COOKING_SESSION";
 
         // Get profile and stats
         UserProfile profile = userProfileRepository.findByUserId(userId)
@@ -306,83 +464,9 @@ public class StatisticsService {
             }
         }
 
-        // Apply 72-hour cooking streak logic (per spec: "any 72-hour rolling window")
-        Instant now = Instant.now();
-        Instant lastCook = stats.getLastCookAt();
-
-        if (lastCook == null) {
-            // First cook ever - start streak at 1
-            stats.setStreakCount(1);
-            log.info("User {} started streak: 1 (first cook)", userId);
-        } else {
-            Duration sinceLastCook = Duration.between(lastCook, now);
-            long hoursSinceLastCook = sinceLastCook.toHours();
-
-            if (hoursSinceLastCook <= 72) {
-                // Within 72-hour window - increment streak
-                int newStreak = (stats.getStreakCount() != null ? stats.getStreakCount() : 0) + 1;
-                stats.setStreakCount(newStreak);
-                log.info("User {} streak continued: {} ({}h since last cook)", userId, newStreak, hoursSinceLastCook);
-            } else {
-                // More than 72 hours - streak broken, reset to 1
-                stats.setStreakCount(1);
-                log.info("User {} streak reset to 1 ({}h since last cook, exceeded 72h)", userId, hoursSinceLastCook);
-            }
-        }
-
-        // Track longest streak ever (historical best)
-        int currentStreak = stats.getStreakCount() != null ? stats.getStreakCount() : 0;
-        int prevLongest = stats.getLongestStreak() != null ? stats.getLongestStreak() : 0;
-        if (currentStreak > prevLongest) {
-            stats.setLongestStreak(currentStreak);
-            log.info("User {} new longest streak record: {}", userId, currentStreak);
-        }
-
-        // Track per-recipe cook counts → recipesCooked & recipesMastered
-        if (recipeId != null && !recipeId.isBlank()) {
-            Map<String, Integer> cookCounts = stats.getRecipeCookCounts();
-            if (cookCounts == null) {
-                cookCounts = new HashMap<>();
-                stats.setRecipeCookCounts(cookCounts);
-            }
-            int newCount = cookCounts.merge(recipeId, 1, Integer::sum);
-            stats.setRecipesCooked((long) cookCounts.size());
-            stats.setRecipesMastered(cookCounts.values().stream().filter(c -> c >= 5).count());
-            log.info("User {} cooked recipe {} (count: {}, total distinct: {}, mastered: {})",
-                    userId, recipeId, newCount, stats.getRecipesCooked(), stats.getRecipesMastered());
-        }
-
-        // Update lastCookAt timestamp
-        stats.setLastCookAt(now);
-
-        // Increment completion count
-        long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
-        stats.setCompletionCount(currentCount + 1);
-
-        // Handle challenge streak (separate from cooking streak, uses 24-hour window)
-        if (challengeCompleted) {
-            Instant lastChallenge = stats.getLastChallengeAt();
-
-            if (lastChallenge == null) {
-                // First challenge ever
-                stats.setChallengeStreak(1);
-                log.info("User {} started challenge streak: 1 (first challenge)", userId);
-            } else {
-                Duration sinceLastChallenge = Duration.between(lastChallenge, now);
-                long hoursSinceLastChallenge = sinceLastChallenge.toHours();
-
-                // Challenge streak uses 24-48 hour window (must complete roughly daily)
-                // More than 48 hours means you missed a day
-                if (hoursSinceLastChallenge <= 48) {
-                    int newChallengeStreak = (stats.getChallengeStreak() != null ? stats.getChallengeStreak() : 0) + 1;
-                    stats.setChallengeStreak(newChallengeStreak);
-                    log.info("User {} challenge streak continued: {} ({}h since last)", userId, newChallengeStreak, hoursSinceLastChallenge);
-                } else {
-                    stats.setChallengeStreak(1);
-                    log.info("User {} challenge streak reset to 1 ({}h since last, exceeded 48h)", userId, hoursSinceLastChallenge);
-                }
-            }
-            stats.setLastChallengeAt(now);
+        if ("COOKING_SESSION".equals(normalizedSource)) {
+            Instant now = Instant.now();
+            applyCookingCompletionProgress(stats, userId, recipeId, challengeCompleted, now);
         }
 
         // Save
@@ -394,7 +478,7 @@ public class StatisticsService {
                 userId, profile.getDisplayName(),
                 amount, stats.getCurrentXP(),
                 levelResult, actuallyNewBadges,
-                "COOKING_SESSION", null, null);
+            normalizedSource, recipeId, sessionId);
     }
 
     private Statistics processXpAndStatsUpdate(String userId, double xpAmount, List<String> newBadges, boolean incrementRecipeCount) {
@@ -799,10 +883,9 @@ public class StatisticsService {
             String source, String recipeId, String sessionId) {
         
         try {
-            // Only send if there's something meaningful to notify
-            if (!levelResult.leveledUp() && (newBadges == null || newBadges.isEmpty())) {
-                // Just XP earned without level-up or badges - skip notification to avoid spam
-                log.debug("Skipping gamification notification - no level-up or badges for user {}", userId);
+            boolean hasBadges = newBadges != null && !newBadges.isEmpty();
+            if (xpEarned <= 0 && !levelResult.leveledUp() && !hasBadges) {
+                log.debug("Skipping gamification notification - no XP, level-up, or badges for user {}", userId);
                 return;
             }
 

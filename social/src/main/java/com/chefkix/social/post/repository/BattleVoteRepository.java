@@ -12,6 +12,7 @@ import com.chefkix.social.post.entity.BattleVote;
 public interface BattleVoteRepository extends MongoRepository<BattleVote, String> {
     Optional<BattleVote> findByPostIdAndUserId(String postId, String userId);
     List<BattleVote> findByPostIdInAndUserId(List<String> postIds, String userId);
+    List<BattleVote> findAllByUserId(String userId);
     boolean existsByPostIdAndUserId(String postId, String userId);
     void deleteAllByPostId(String postId);
 }

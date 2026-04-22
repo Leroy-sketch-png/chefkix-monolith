@@ -11,4 +11,6 @@ public interface UserSettingsRepository extends MongoRepository<UserSettings, St
   Optional<UserSettings> findByUserId(String userId);
 
   boolean existsByUserId(String userId);
+
+  long deleteByUserId(String userId);
 }

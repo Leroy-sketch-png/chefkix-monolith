@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +28,7 @@ public class StreakCalculatorHelper {
         // If yesterday is not completed -> Streak resets to 0 (unless today is completed).
 
         int currentStreak = 0;
-        LocalDate today = LocalDate.now();
+        LocalDate today = utcToday();
         LocalDate checkDate = today;
 
         // If today is not completed, check if the streak ends at yesterday
@@ -66,6 +67,10 @@ public class StreakCalculatorHelper {
         }
 
         return new StreakResult(currentStreak, longestStreak);
+    }
+
+    protected LocalDate utcToday() {
+        return LocalDate.now(ZoneOffset.UTC);
     }
 
     @Data

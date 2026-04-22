@@ -12,6 +12,8 @@ import java.util.List;
 public interface ReplyRepository extends MongoRepository<Reply, String> {
     List<Reply> findByParentCommentId(String commentId);
 
+    List<Reply> findAllByUserId(String userId);
+
     List<Reply> findByParentCommentId(String commentId, Pageable pageable);
 
     List<Reply> findByParentCommentIdIn(Collection<String> commentIds);

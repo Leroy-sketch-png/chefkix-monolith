@@ -15,6 +15,8 @@ public interface CollectionProgressRepository extends MongoRepository<Collection
 
     List<CollectionProgress> findAllByUserId(String userId);
 
+    void deleteAllByUserId(String userId);
+
     List<CollectionProgress> findAllByCollectionId(String collectionId);
 
     long countByCollectionId(String collectionId);

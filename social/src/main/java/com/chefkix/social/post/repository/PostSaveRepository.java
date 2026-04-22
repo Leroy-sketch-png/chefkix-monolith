@@ -31,4 +31,6 @@ public interface PostSaveRepository extends MongoRepository<PostSave, String> {
      * Batch: find all saves by a user for a set of posts (eliminates N+1).
      */
     List<PostSave> findByUserIdAndPostIdIn(String userId, List<String> postIds);
+
+    List<PostSave> findAllByUserId(String userId);
 }

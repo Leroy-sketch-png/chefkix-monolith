@@ -14,6 +14,7 @@ public enum SessionStatus {
     PAUSED("paused"),             // Paused
     COMPLETED("completed"),       // Cooking finished (received 30% XP)
     POSTED("posted"),             // Post created (received remaining 70% XP)
+    POST_DELETED("post_deleted"), // Linked post was deleted later; XP stays awarded
     ABANDONED("abandoned"),       // Gave up / Timed out
     EXPIRED("expired");           // Post deadline passed (lost 70% XP)
 
@@ -26,6 +27,14 @@ public enum SessionStatus {
     @JsonValue
     public String getValue() {
         return value;
+    }
+
+    public boolean hasClaimedPostXp() {
+        return this == POSTED || this == POST_DELETED;
+    }
+
+    public boolean countsAsCompletedCook() {
+        return this == COMPLETED || hasClaimedPostXp();
     }
 
     @JsonCreator

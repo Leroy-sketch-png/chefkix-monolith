@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,7 @@ public class PantryService {
                 .unit(req.getUnit())
                 .category(req.getCategory() != null ? req.getCategory().toLowerCase() : "other")
                 .expiryDate(req.getExpiryDate())
-                .addedDate(LocalDate.now())
+            .addedDate(utcToday())
                 .build();
 
         return toResponse(pantryRepo.save(item));
@@ -101,7 +102,7 @@ public class PantryService {
     }
 
     public long clearExpired(String userId) {
-        List<PantryItem> expired = pantryRepo.findByUserIdAndExpiryDateBefore(userId, LocalDate.now());
+        List<PantryItem> expired = pantryRepo.findByUserIdAndExpiryDateBefore(userId, utcToday());
         pantryRepo.deleteAll(expired);
         return expired.size();
     }
@@ -117,7 +118,7 @@ public class PantryService {
                 .collect(Collectors.toSet());
 
         // Items expiring within 3 days
-        LocalDate now = LocalDate.now();
+        LocalDate now = utcToday();
         Set<String> expiringNormals = pantryItems.stream()
                 .filter(p -> p.getExpiryDate() != null && !p.getExpiryDate().isBefore(now) && p.getExpiryDate().isBefore(now.plusDays(4)))
                 .map(PantryItem::getNormalizedName)
@@ -202,7 +203,7 @@ public class PantryService {
     private PantryItemResponse toResponse(PantryItem item) {
         String freshness = "fresh";
         if (item.getExpiryDate() != null) {
-            LocalDate now = LocalDate.now();
+            LocalDate now = utcToday();
             if (item.getExpiryDate().isBefore(now)) {
                 freshness = "expired";
             } else if (item.getExpiryDate().isBefore(now.plusDays(4))) {
@@ -221,5 +222,9 @@ public class PantryService {
                 .addedDate(item.getAddedDate())
                 .freshness(freshness)
                 .build();
+    }
+
+    protected LocalDate utcToday() {
+        return LocalDate.now(ZoneOffset.UTC);
     }
 }

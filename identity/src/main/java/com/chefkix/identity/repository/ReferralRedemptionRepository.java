@@ -16,4 +16,8 @@ public interface ReferralRedemptionRepository extends MongoRepository<ReferralRe
     boolean existsByReferredUserId(String referredUserId);
 
     long countByReferrerUserId(String referrerUserId);
+
+    long deleteByReferrerUserId(String referrerUserId);
+
+    long deleteByReferredUserId(String referredUserId);
 }

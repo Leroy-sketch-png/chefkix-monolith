@@ -16,6 +16,8 @@ public interface UserProfileRepository extends MongoRepository<UserProfile, Stri
 
   Optional<UserProfile> findByUsername(String username);
 
+  List<UserProfile> findAllByFriendsFriendId(String friendId);
+
   /**
    * Find all profiles for given user IDs. Used for social features (followers, following, friends
    * lists).

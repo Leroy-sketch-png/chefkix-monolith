@@ -32,6 +32,8 @@ public interface ReportRepository extends MongoRepository<Report, String> {
      */
     List<Report> findByTargetTypeAndTargetId(String targetType, String targetId);
 
+    long deleteAllByTargetTypeAndTargetId(String targetType, String targetId);
+
     /**
      * Find all pending reports for admin review.
      */

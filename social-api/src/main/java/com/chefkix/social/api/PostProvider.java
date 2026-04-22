@@ -72,4 +72,13 @@ public interface PostProvider {
      * @param request the recent cook details (userId, sessionId, recipeId, recipeTitle, etc.)
      */
     void createRecentCookPost(RecentCookRequest request);
+
+    /**
+     * Hide or anonymize social-module data after a user account is deleted.
+     * Implementations may mix soft-delete, anonymization, and personal-state removal.
+     *
+     * @param userId deleted user ID
+     * @return number of affected records
+     */
+    long cleanupDeletedUserData(String userId);
 }

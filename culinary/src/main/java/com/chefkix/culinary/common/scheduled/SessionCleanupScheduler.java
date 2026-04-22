@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Cleans up stale cooking sessions that were never properly terminated.
@@ -41,7 +42,7 @@ public class SessionCleanupScheduler {
         try {
             log.info("Running stale session cleanup...");
 
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = utcNow();
 
             long abandonedPaused = expirePausedSessions(now);
             long expiredCompleted = expireCompletedSessions(now);
@@ -105,5 +106,9 @@ public class SessionCleanupScheduler {
 
         var result = mongoTemplate.updateMulti(query, update, CookingSession.class);
         return result.getModifiedCount();
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

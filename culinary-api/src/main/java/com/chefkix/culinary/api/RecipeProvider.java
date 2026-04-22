@@ -28,4 +28,13 @@ public interface RecipeProvider {
      * @return summary info (id, title, coverImage, author) or null if not found
      */
     RecipeSummaryInfo getRecipeSummary(String recipeId);
+
+    /**
+     * Archive or remove culinary-module data after a user account is deleted.
+     * Implementations may mix archival and personal-state deletion depending on data semantics.
+     *
+     * @param userId deleted user ID
+     * @return number of affected records
+     */
+    long cleanupDeletedUserData(String userId);
 }

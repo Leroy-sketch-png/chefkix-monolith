@@ -49,6 +49,8 @@ public interface ChallengeLogRepository extends MongoRepository<ChallengeLog, St
     })
     List<String> findUserIdsWithChallengeDate(String challengeDate, List<String> userIds);
 
+        void deleteAllByUserId(String userId);
+
     class SumResult {
         public long totalXp;
     }}
