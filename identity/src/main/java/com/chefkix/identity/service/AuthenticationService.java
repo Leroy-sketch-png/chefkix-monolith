@@ -23,6 +23,7 @@ import com.chefkix.identity.client.KeycloakAdminClient;
 // Feign removed in monolith
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.Set;
 import lombok.AccessLevel;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -79,9 +81,11 @@ public class AuthenticationService {
       // Call login function (this now throws RuntimeException with raw JSON on error)
       tokenResponse = keycloakService.login(request.getEmailOrUsername(), request.getPassword());
 
-      // CAREFUL CHECK: Guard against login returning null without throwing (rare but safe)
-      if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
-        throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+      // Fail closed if Keycloak returns an incomplete token pair.
+      if (tokenResponse == null
+          || !StringUtils.hasText(tokenResponse.getAccessToken())
+          || !StringUtils.hasText(tokenResponse.getRefreshToken())) {
+        throw new AppException(ErrorCode.UNAUTHENTICATED);
       }
 
       log.debug(">>> [AUTH] Keycloak login success.");
@@ -132,14 +136,15 @@ public class AuthenticationService {
                 });
 
     // 3. Update last login
-    user.setLastLogin(LocalDateTime.now());
+    LocalDateTime loginTimestamp = utcNow();
+    user.setLastLogin(loginTimestamp);
     userRepository.save(user);
 
     // 4. Sync UserActivity
     UserActivity activity =
         userActivityRepository.findByKeycloakId(user.getId()).orElse(new UserActivity());
     activity.setKeycloakId(user.getId());
-    activity.setLastLogin(LocalDateTime.now());
+    activity.setLastLogin(loginTimestamp);
     userActivityRepository.save(activity);
 
     log.debug(">>> [AUTH] Authentication process completed successfully.");
@@ -154,7 +159,9 @@ public class AuthenticationService {
     TokenExchangeResponse tokenResponse =
         keycloakService.exchangeAuthorizationCode(code, redirectUri, codeVerifier);
 
-    if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+    if (tokenResponse == null
+        || !StringUtils.hasText(tokenResponse.getAccessToken())
+        || !StringUtils.hasText(tokenResponse.getRefreshToken())) {
       throw new AppException(ErrorCode.UNAUTHENTICATED, "Google sign-in failed. Please try again.");
     }
 
@@ -221,6 +228,13 @@ public class AuthenticationService {
     // 1. Call Keycloak to refresh token
     TokenExchangeResponse tokenResponse = keycloakService.refreshToken(refreshToken);
 
+    if (tokenResponse == null
+        || !StringUtils.hasText(tokenResponse.getAccessToken())
+        || !StringUtils.hasText(tokenResponse.getRefreshToken())) {
+      log.warn("Refresh token exchange returned incomplete token payload");
+      throw new AppException(ErrorCode.UNAUTHENTICATED);
+    }
+
     // 2. Return new access + refresh token
     return AuthenticationResponse.builder()
         .accessToken(tokenResponse.getAccessToken())
@@ -272,7 +286,7 @@ public class AuthenticationService {
     user.setGoogleId(userInfo.getSub());
     user.setUserProfile(profile);
     user.setEnabled(true);
-    user.setLastLogin(LocalDateTime.now());
+    user.setLastLogin(utcNow());
     if (isBlank(user.getAuthProvider())) {
       user.setAuthProvider("google");
     }
@@ -472,5 +486,9 @@ public class AuthenticationService {
 
   private boolean isBlank(String value) {
     return value == null || value.isBlank();
+  }
+
+  private LocalDateTime utcNow() {
+    return LocalDateTime.now(ZoneOffset.UTC);
   }
 }
