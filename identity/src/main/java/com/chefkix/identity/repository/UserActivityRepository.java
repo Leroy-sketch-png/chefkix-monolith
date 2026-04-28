@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserActivityRepository extends MongoRepository<UserActivity, String> {
   Optional<UserActivity> findByKeycloakId(String id);
+
+  long deleteByKeycloakId(String id);
 }

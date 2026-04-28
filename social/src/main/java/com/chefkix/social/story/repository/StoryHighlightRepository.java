@@ -10,4 +10,6 @@ import java.util.List;
 public interface StoryHighlightRepository extends MongoRepository<StoryHighlight, String> {
     // Tìm toàn bộ Highlight của 1 User, cái nào tạo sau thì hiện lên đầu
     List<StoryHighlight> findByUserIdOrderByCreatedAtDesc(String userId);
+
+    void deleteAllByUserId(String userId);
 }

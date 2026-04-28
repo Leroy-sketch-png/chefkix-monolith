@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatMessageService {
     ChatMessageRepository chatMessageRepository;
     ConversationRepository conversationRepository;
+    ConversationLookupService conversationLookupService;
     ProfileProvider profileProvider;
     ContentModerationProvider contentModerationProvider;
 
@@ -78,7 +79,7 @@ public class ChatMessageService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         String userId = authentication.getName();
-        conversationRepository
+        conversationLookupService
                 .findById(conversationId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND))
                 .getParticipants()
@@ -166,7 +167,7 @@ public class ChatMessageService {
         }
 
         // 3. VALIDATE CONVERSATION & PARTICIPANTS
-        var conversation = conversationRepository
+    var conversation = conversationLookupService
                 .findById(request.getConversationId())
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
 
@@ -225,9 +226,9 @@ public class ChatMessageService {
         // 6. SAVE DB
         chatMessage = chatMessageRepository.save(chatMessage);
 
-        // Update conversation modified date
-        conversation.setModifiedDate(Instant.now());
-        conversationRepository.save(conversation);
+        // Legacy conversations may still use ObjectId-backed _id values. Update the
+        // timestamp via the compatibility lookup path instead of re-saving the entity.
+        conversationLookupService.touchModifiedDate(request.getConversationId(), Instant.now());
 
         log.info("Message created successfully - type: {}, id: {}", msgType, chatMessage.getId());
         return toChatMessageResponse(chatMessage);
@@ -344,8 +345,7 @@ public class ChatMessageService {
         chatMessage = chatMessageRepository.save(chatMessage);
 
         // 6. Cập nhật thời gian hoạt động của phòng chat
-        conversation.setModifiedDate(Instant.now());
-        conversationRepository.save(conversation);
+        conversationLookupService.touchModifiedDate(conversation.getId(), Instant.now());
 
         log.info("Created STORY_REPLY message id {} in conversation {}", chatMessage.getId(), conversation.getId());
 

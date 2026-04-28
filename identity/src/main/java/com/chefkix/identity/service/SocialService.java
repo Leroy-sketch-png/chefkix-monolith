@@ -107,15 +107,15 @@ public class SocialService {
       Follow follow = Follow.builder().followerId(followerId).followingId(followingId).build();
       try {
         followRepository.save(follow);
+        updateFollowCounts(followerId, followingId, 1);
+        log.info("User {} successfully FOLLOWED {}", followerId, followingId);
+
+        // Send notification for new follower
+        sendNewFollowerNotification(followerId, followerProfile, followingId);
       } catch (DuplicateKeyException e) {
         // Race condition: concurrent double-tap — already following, skip
         log.debug("Duplicate follow ignored for {} -> {}", followerId, followingId);
       }
-      updateFollowCounts(followerId, followingId, 1);
-      log.info("User {} successfully FOLLOWED {}", followerId, followingId);
-
-      // Send notification for new follower
-      sendNewFollowerNotification(followerId, followerProfile, followingId);
     }
 
     // --- MAP & RETURN ---

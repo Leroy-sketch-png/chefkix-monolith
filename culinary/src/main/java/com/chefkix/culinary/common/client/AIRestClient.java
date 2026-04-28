@@ -56,24 +56,58 @@ public class AIRestClient {
 
     public AIProcessResponse processRecipe(AIProcessRequest request) {
         log.debug("Calling AI service: POST /api/v1/process_recipe");
-        return webClient.post()
-                .uri("/api/v1/process_recipe")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(AIProcessResponse.class)
-                .block();
+        try {
+            AIServiceResponse<AIProcessResponse> wrapper = webClient.post()
+                    .uri("/api/v1/process_recipe")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<AIServiceResponse<AIProcessResponse>>() {})
+                    .block();
+
+            if (wrapper == null || !wrapper.isSuccess() || wrapper.getData() == null) {
+                log.error("AI process_recipe returned null or unsuccessful response");
+                throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+
+            return wrapper.getData();
+        } catch (WebClientResponseException e) {
+            log.error("AI process_recipe HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("AI process_recipe failed", e);
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
     }
 
     public AIMetaResponse calculateMetas(AIMetaRequest request) {
         log.debug("Calling AI service: POST /api/v1/calculate_metas");
-        return webClient.post()
-                .uri("/api/v1/calculate_metas")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(AIMetaResponse.class)
-                .block();
+        try {
+            AIServiceResponse<AIMetaResponse> wrapper = webClient.post()
+                    .uri("/api/v1/calculate_metas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<AIServiceResponse<AIMetaResponse>>() {})
+                    .block();
+
+            if (wrapper == null || !wrapper.isSuccess() || wrapper.getData() == null) {
+                log.error("AI calculate_metas returned null or unsuccessful response");
+                throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+
+            return wrapper.getData();
+        } catch (WebClientResponseException e) {
+            log.error("AI calculate_metas HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("AI calculate_metas failed", e);
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
     }
 
     // ─── NEW METHODS (proper envelope unwrapping, fail-closed) ──────

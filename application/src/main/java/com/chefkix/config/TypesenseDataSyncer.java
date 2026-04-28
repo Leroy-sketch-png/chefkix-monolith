@@ -123,7 +123,7 @@ public class TypesenseDataSyncer {
         doc.put("title", recipe.getTitle() != null ? recipe.getTitle() : "");
         doc.put("description", recipe.getDescription() != null ? recipe.getDescription() : "");
         doc.put("cuisine", recipe.getCuisineType() != null ? recipe.getCuisineType() : "");
-        doc.put("difficulty", recipe.getDifficulty() != null ? recipe.getDifficulty().name() : "");
+        doc.put("difficulty", recipe.getDifficulty() != null ? recipe.getDifficulty().getValue() : "");
         doc.put("totalTime", recipe.getTotalTimeMinutes());
         doc.put("cookCount", (int) recipe.getCookCount());
         doc.put("avgRating", recipe.getAverageRating() != null ? recipe.getAverageRating() : 0.0);

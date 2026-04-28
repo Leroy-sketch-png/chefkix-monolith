@@ -4,6 +4,11 @@ import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
+import com.chefkix.social.group.entity.Group;
+import com.chefkix.social.group.entity.GroupMember;
+import com.chefkix.social.group.enums.MemberStatus;
+import com.chefkix.social.group.enums.PrivacyType;
+import com.chefkix.social.group.repository.GroupRepository;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.post.enums.PostStatus;
 import com.chefkix.social.post.enums.PostType;
@@ -31,6 +36,7 @@ import com.chefkix.social.post.dto.response.RecipeReviewStatsResponse;
 import com.chefkix.social.post.dto.response.BattleVoteResponse;
 import com.chefkix.social.post.dto.response.TasteProfileResponse;
 import com.chefkix.social.post.entity.CoChef;
+import com.chefkix.social.post.entity.Collection;
 import com.chefkix.social.post.entity.PollData;
 import com.chefkix.social.post.entity.PollVote;
 import com.chefkix.social.post.entity.Post;
@@ -50,6 +56,8 @@ import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.social.post.repository.CommentLikeRepository;
 import com.chefkix.social.post.repository.ReplyLikeRepository;
+import com.chefkix.social.post.repository.CollectionRepository;
+import com.chefkix.social.post.repository.ReportRepository;
 import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.entity.PlateRating;
@@ -84,6 +92,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -107,7 +116,10 @@ public class PostService {
     ReplyRepository replyRepository;
     CommentLikeRepository commentLikeRepository;
     ReplyLikeRepository replyLikeRepository;
+    CollectionRepository collectionRepository;
+    ReportRepository reportRepository;
     MongoTemplate mongoTemplate;
+    GroupRepository groupRepository;
     GroupMemberRepository groupMemberRepository;
 
     KafkaTemplate<String, Object> kafkaTemplate;
@@ -477,6 +489,17 @@ public class PostService {
         }
         commentRepository.deleteAllByPostId(postId);
 
+        List<Collection> collectionsContainingPost = collectionRepository.findAllByPostIdsContaining(postId);
+        if (!collectionsContainingPost.isEmpty()) {
+            collectionsContainingPost.forEach(collection -> {
+                collection.getPostIds().removeIf(postId::equals);
+                collection.setItemCount(collection.getPostIds().size());
+            });
+            collectionRepository.saveAll(collectionsContainingPost);
+        }
+
+        reportRepository.deleteAllByTargetTypeAndTargetId("post", postId);
+
         postRepository.delete(post);
 
         // Real-time Typesense removal
@@ -533,7 +556,7 @@ public class PostService {
         PostLike postLike = new PostLike();
         postLike.setUserId(userId);
         postLike.setPostId(postId);
-        postLike.setCreatedDate(LocalDateTime.now());
+        postLike.setCreatedDate(utcNow());
         try {
             postLikeRepository.save(postLike);
         } catch (DuplicateKeyException e) {
@@ -664,6 +687,38 @@ public class PostService {
         return page;
     }
 
+    public Page<PostResponse> getGroupPosts(String groupId, Pageable pageable, String currentUserId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        Optional<GroupMember> membership = Optional.empty();
+        if (currentUserId != null && !currentUserId.isBlank()) {
+            membership = groupMemberRepository.findByGroupIdAndUserId(groupId, currentUserId);
+        }
+
+        if (membership.map(GroupMember::getStatus).orElse(null) == MemberStatus.BANNED) {
+            throw new AppException(ErrorCode.GROUP_BANNED);
+        }
+
+        boolean canViewPrivatePosts = membership
+                .map(GroupMember::getStatus)
+                .filter(status -> status == MemberStatus.ACTIVE)
+                .isPresent();
+        if (group.getPrivacyType() == PrivacyType.PRIVATE && !canViewPrivatePosts) {
+            throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION, "You must be an active member to view posts in this group.");
+        }
+
+        Page<PostResponse> responses = postRepository
+                .findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
+                        groupId,
+                        PostType.GROUP,
+                        PostStatus.ACTIVE,
+                        pageable)
+                .map(postMapper::toPostResponse);
+        enrichPageWithUserStatus(responses, currentUserId);
+        return responses;
+    }
+
     /**
      * Personalized "For You" feed using weighted 5-signal scoring.
      * Algorithm (from Master Plan):
@@ -710,7 +765,6 @@ public class PostService {
 
         Criteria baseCriteria = Criteria.where("hidden").is(false)
                 .and("userId").ne(currentUserId)
-                .and("postStatus").is(PostStatus.ACTIVE.name())
                 .and("postType").ne(PostType.GROUP.name()) // Exclude GROUP posts from personalized feed
                 .and("status").is(PostStatus.ACTIVE.name());
 
@@ -852,7 +906,7 @@ public class PostService {
      * Returns seasonal food tags based on current month (Northern Hemisphere).
      */
     private Set<String> getSeasonalTags() {
-        int month = java.time.LocalDate.now().getMonthValue();
+        int month = java.time.LocalDate.now(ZoneOffset.UTC).getMonthValue();
         Set<String> tags = new java.util.HashSet<>();
 
         // Spring: March-May
@@ -1532,7 +1586,7 @@ public class PostService {
         PostSave postSave = PostSave.builder()
                 .postId(postId)
                 .userId(userId)
-                .createdDate(LocalDateTime.now())
+            .createdDate(utcNow())
                 .build();
         try {
             postSaveRepository.save(postSave);
@@ -1805,5 +1859,9 @@ public class PostService {
         Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
         enrichPageWithUserStatus(responses, currentUserId);
         return responses;
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

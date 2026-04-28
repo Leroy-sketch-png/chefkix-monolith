@@ -110,16 +110,25 @@ public class TypesenseService {
 
     public Map<String, Object> search(String collection, Map<String, String> searchParams) {
         try {
+            Map<String, Object> multiSearchBody = Map.of(
+                    "searches", List.of(
+                            new LinkedHashMap<>(searchParams) {{
+                                put("collection", collection);
+                            }}
+                    )
+            );
+
             String result = restClient
-                    .get()
-                    .uri(uriBuilder -> {
-                        var builder = uriBuilder.path("/collections/{collection}/documents/search");
-                        searchParams.forEach(builder::queryParam);
-                        return builder.build(collection);
-                    })
+                    .post()
+                    .uri("/multi_search")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(multiSearchBody)
                     .retrieve()
                     .body(String.class);
-            return objectMapper.readValue(result, new TypeReference<>() {});
+
+            Map<String, Object> response = objectMapper.readValue(result, new TypeReference<>() {});
+            List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
+            return results != null && !results.isEmpty() ? results.get(0) : Map.of("found", 0, "hits", List.of());
         } catch (RestClientException e) {
             log.error("Search failed in collection {}: {}", collection, e.getMessage());
             return Map.of("found", 0, "hits", List.of());

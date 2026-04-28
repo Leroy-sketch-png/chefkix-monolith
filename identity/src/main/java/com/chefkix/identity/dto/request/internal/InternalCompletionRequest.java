@@ -12,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 public class InternalCompletionRequest {
   String userId;
   Integer xpAmount;
+  String recipeId;
+  boolean challengeCompleted;
   List<String> newBadges;
   /** Deterministic idempotency key to prevent double XP award on sync+Kafka fallback */
   String idempotencyKey;

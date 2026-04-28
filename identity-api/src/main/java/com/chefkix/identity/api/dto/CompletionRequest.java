@@ -31,6 +31,10 @@ public class CompletionRequest {
 
     int xpAmount;
 
+    String recipeId;
+
+    boolean challengeCompleted;
+
     List<String> newBadges;
 
     /**

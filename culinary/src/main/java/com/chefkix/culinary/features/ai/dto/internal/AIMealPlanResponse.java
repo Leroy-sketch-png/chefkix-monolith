@@ -1,6 +1,8 @@
 package com.chefkix.culinary.features.ai.dto.internal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -16,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AIMealPlanResponse {
 
     List<AIDayPlan> mealPlan;
@@ -29,6 +32,7 @@ public class AIMealPlanResponse {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class AIDayPlan {
         int day;
         AIMealSlot breakfast;
@@ -43,6 +47,7 @@ public class AIMealPlanResponse {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class AIMealSlot {
         String name;
         String description;

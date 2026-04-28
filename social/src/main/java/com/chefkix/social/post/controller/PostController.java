@@ -74,6 +74,17 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @GetMapping("/groups/{groupId}/posts")
+    public ResponseEntity<ApiResponse<List<PostResponse>>> getGroupPosts(
+            @PathVariable("groupId") String groupId,
+            @PageableDefault(size = 10) Pageable pageable,
+            Authentication authentication
+    ) {
+        String currentUserId = authentication != null ? authentication.getName() : null;
+        Page<PostResponse> result = postService.getGroupPosts(groupId, pageable, currentUserId);
+        return ResponseEntity.ok(ApiResponse.successPage(result));
+    }
+
     // Uses "PUT /{postId}" (standard REST)
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(

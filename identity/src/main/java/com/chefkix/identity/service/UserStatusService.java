@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +33,13 @@ public class UserStatusService {
 
         if (userActivity != null) {
             userActivity.setIsOnline(false);
-            userActivity.setLastActive(LocalDateTime.now()); // Save the offline timestamp
+            userActivity.setLastActive(utcNow()); // Save the offline timestamp in UTC
             userActivityRepository.save(userActivity);
             log.info("User {} is now OFFLINE at {}", keycloakId, userActivity.getLastActive());
         }
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

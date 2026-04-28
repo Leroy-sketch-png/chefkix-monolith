@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ConversationService {
+    static final String GROUP_CONVERSATION_AVATAR = "/placeholder-avatar.svg";
+
     ConversationRepository conversationRepository;
     ProfileProvider profileProvider;
     SimpMessagingTemplate messagingTemplate;
@@ -131,6 +133,12 @@ public class ConversationService {
 
         ConversationResponse conversationResponse = conversationMapper.toConversationResponse(conversation);
 
+        if ("GROUP".equals(conversation.getType())) {
+            conversationResponse.setConversationName(buildGroupConversationName(conversation, currentUserId));
+            conversationResponse.setConversationAvatar(GROUP_CONVERSATION_AVATAR);
+            return conversationResponse;
+        }
+
         conversation.getParticipants().stream()
                 .filter(participantInfo -> !participantInfo.getUserId().equals(currentUserId))
                 .findFirst()
@@ -151,14 +159,19 @@ public class ConversationService {
             // Build a response tailored to this participant (showing OTHER user's info)
             ConversationResponse response = conversationMapper.toConversationResponse(conversation);
 
-            // Find the "other" participant to set conversation name/avatar for this user
-            conversation.getParticipants().stream()
-                    .filter(p -> !p.getUserId().equals(participant.getUserId()))
-                    .findFirst()
-                    .ifPresent(other -> {
-                        response.setConversationName(other.getUsername());
-                        response.setConversationAvatar(other.getAvatar());
-                    });
+            if ("GROUP".equals(conversation.getType())) {
+                response.setConversationName(buildGroupConversationName(conversation, participant.getUserId()));
+                response.setConversationAvatar(GROUP_CONVERSATION_AVATAR);
+            } else {
+                // Find the "other" participant to set conversation name/avatar for this user
+                conversation.getParticipants().stream()
+                        .filter(p -> !p.getUserId().equals(participant.getUserId()))
+                        .findFirst()
+                        .ifPresent(other -> {
+                            response.setConversationName(other.getUsername());
+                            response.setConversationAvatar(other.getAvatar());
+                        });
+            }
 
             // Send to user-specific topic
             String destination = "/topic/user/" + participant.getUserId() + "/conversations";
@@ -182,18 +195,8 @@ public class ConversationService {
                     String targetUserId = null;
 
                     if ("GROUP".equals(conv.getType())) {
-                        // Build group display name from participant first names
-                        displayName = conv.getParticipants().stream()
-                                .filter(p -> !p.getUserId().equals(currentUserId))
-                                .map(p -> p.getFirstName() != null ? p.getFirstName() : p.getUsername())
-                                .filter(java.util.Objects::nonNull)
-                                .limit(3)
-                                .collect(java.util.stream.Collectors.joining(", "));
-                        if (displayName.isEmpty()) displayName = "Group Chat";
-                        long totalOthers = conv.getParticipants().stream()
-                                .filter(p -> !p.getUserId().equals(currentUserId)).count();
-                        if (totalOthers > 3) displayName += " +" + (totalOthers - 3);
-                        avatar = null;
+                        displayName = buildGroupConversationName(conv, currentUserId);
+                        avatar = GROUP_CONVERSATION_AVATAR;
                     } else {
                         // 1-on-1 chat: find the other participant
                         ParticipantInfo otherUser = conv.getParticipants().stream()
@@ -221,5 +224,35 @@ public class ConversationService {
                             .build();
                 })
                 .toList();
+    }
+
+    private String buildGroupConversationName(Conversation conversation, String currentUserId) {
+        List<String> participantNames = conversation.getParticipants().stream()
+                .filter(p -> !p.getUserId().equals(currentUserId))
+                .map(this::getParticipantDisplayName)
+                .filter(name -> name != null && !name.isBlank())
+                .limit(2)
+                .toList();
+
+        if (participantNames.isEmpty()) {
+            return "Group Chat";
+        }
+
+        long totalOthers = conversation.getParticipants().stream()
+                .filter(p -> !p.getUserId().equals(currentUserId))
+                .count();
+
+        String displayName = String.join(", ", participantNames);
+        if (totalOthers > participantNames.size()) {
+            displayName += " +" + (totalOthers - participantNames.size());
+        }
+        return displayName;
+    }
+
+    private String getParticipantDisplayName(ParticipantInfo participantInfo) {
+        if (participantInfo.getFirstName() != null && !participantInfo.getFirstName().isBlank()) {
+            return participantInfo.getFirstName();
+        }
+        return participantInfo.getUsername();
     }
 }

@@ -1,8 +1,11 @@
 package com.chefkix.config;
 
-import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
-import com.chefkix.social.chat.repository.ConversationRepository;
+import com.chefkix.social.chat.service.ConversationLookupService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -32,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * Unauthenticated CONNECT attempts are rejected.
  * User-scoped subscriptions are validated to prevent cross-user eavesdropping.
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 @Slf4j
@@ -40,8 +43,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtDecoder jwtDecoder;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
-    private final ConversationRepository conversationRepository;
-    private final CookingRoomRedisRepository cookingRoomRedisRepository;
+    private final MongoTemplate mongoTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
+    private final ConversationLookupService conversationLookupService;
     private final Validator validator;
 
     @Override
@@ -129,11 +134,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // Guard conversation topics: /topic/conversation/{conversationId}
                         if (destination.startsWith("/topic/conversation/")) {
                             String conversationId = destination.substring("/topic/conversation/".length());
-                            boolean isParticipant = conversationRepository.findById(conversationId)
-                                    .map(conversation -> conversation.getParticipants() != null
-                                            && conversation.getParticipants().stream()
-                                            .anyMatch(p -> userId.equals(p.getUserId())))
-                                    .orElse(false);
+                            boolean isParticipant = conversationLookupService.isParticipant(conversationId, userId);
 
                             if (!isParticipant) {
                                 log.warn("STOMP subscription blocked: user {} is not participant of conversation {}", userId, conversationId);
@@ -144,11 +145,24 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // Guard room topics: /topic/room/{roomCode}
                         if (destination.startsWith("/topic/room/")) {
                             String roomCode = destination.substring("/topic/room/".length());
-                            boolean isRoomParticipant = cookingRoomRedisRepository.findByRoomCode(roomCode)
-                                    .map(room -> room.getParticipants() != null
-                                            && room.getParticipants().stream()
-                                            .anyMatch(p -> userId.equals(p.getUserId())))
-                                    .orElse(false);
+                            boolean isRoomParticipant = false;
+
+                            try {
+                                String roomJson = redisTemplate.opsForValue().get("cooking-room:" + roomCode.toUpperCase());
+                                if (roomJson != null) {
+                                    JsonNode participants = objectMapper.readTree(roomJson).path("participants");
+                                    if (participants.isArray()) {
+                                        for (JsonNode participant : participants) {
+                                            if (userId.equals(participant.path("userId").asText())) {
+                                                isRoomParticipant = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                log.warn("Failed to verify room membership for {}: {}", roomCode, e.getMessage());
+                            }
 
                             if (!isRoomParticipant) {
                                 log.warn("STOMP subscription blocked: user {} is not participant of room {}", userId, roomCode);

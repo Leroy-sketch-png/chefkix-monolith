@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class GamificationService {
     public CompletionResponse completeRecipe(String recipeId, RecipeCompletionRequest request) {
         // 1. GET USER ID FROM TOKEN (Security - server determines identity)
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        LocalDate today = LocalDate.now();
+                LocalDate today = LocalDate.now(ZoneOffset.UTC);
 
         // 2. FIND ORIGINAL RECIPE
         Recipe recipe = recipeRepository.findById(recipeId)
@@ -101,7 +102,7 @@ public class GamificationService {
                 .actualDurationSeconds((int) totalElapsedSeconds)
                 .xpAwarded(finalXp)      // Save actual XP awarded
                 .isPublic(isPublic)
-                .completedAt(LocalDateTime.now())
+                .completedAt(LocalDateTime.now(ZoneOffset.UTC))
                 .build();
         completionRepository.save(completion);
 
@@ -110,6 +111,8 @@ public class GamificationService {
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount(finalXp)
+                .recipeId(recipeId)
+                .challengeCompleted(false)
                 .newBadges(badgesToAward)
                 .build();
 

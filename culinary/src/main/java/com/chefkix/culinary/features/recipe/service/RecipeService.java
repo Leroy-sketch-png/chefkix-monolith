@@ -55,6 +55,7 @@ public class RecipeService {
     private static final int MIN_SESSIONS_FOR_STRUGGLE = 3;
     private static final double SKIP_RATE_THRESHOLD = 30.0;
     private static final double COMPLETION_RATE_THRESHOLD = 60.0;
+    private static final String DELETED_USER_DISPLAY_NAME = "Deleted User";
 
     AsyncHelper asyncHelper;
     ProfileProvider profileProvider;
@@ -355,7 +356,7 @@ public class RecipeService {
         }
 
         // --- Seasonal tags for current month ---
-        int currentMonth = java.time.LocalDate.now().getMonthValue();
+        int currentMonth = java.time.LocalDate.now(java.time.ZoneOffset.UTC).getMonthValue();
         Set<String> seasonalTags = SEASONAL_TAGS.getOrDefault(currentMonth, Set.of());
 
         // --- Fetch candidate pool (top 50 published by trending, broad enough for scoring) ---
@@ -659,10 +660,17 @@ public class RecipeService {
                                     .recipeId(session.getRecipeId())
                                     .recipeTitle(session.getRecipeTitle())
                                     .coverImageUrl(session.getCoverImageUrl())
-                                    .cookUserId(session.getUserId())
                                     .completedAt(session.getCompletedAt())
                                     .rating(session.getRating())
                                     .xpEarned(session.getBaseXpAwarded());
+
+                if (session.isUserDeleted()) {
+                return item
+                    .cookDisplayName(DELETED_USER_DISPLAY_NAME)
+                    .build();
+                }
+
+                item.cookUserId(session.getUserId());
 
                     // Resolve cooker profile (fail-safe)
                     try {
@@ -718,7 +726,7 @@ public class RecipeService {
         }
 
         List<CookingSession> sessions = cookingSessionRepository.findByRecipeIdAndStatusIn(
-                recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.ABANDONED),
+            recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.POST_DELETED, SessionStatus.ABANDONED),
                 PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "completedAt"))).getContent();
 
         int totalSessions = sessions.size();
@@ -868,31 +876,49 @@ public class RecipeService {
         // Post count = sessions that successfully linked a post
         long postCount = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.POSTED);
 
-        // Recent cookers (last 5 who completed or posted)
-        Pageable top5 = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "completedAt"));
+        // Recent cookers should represent distinct people, not repeated sessions from one user.
+        Pageable recentCookersWindow = PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "completedAt"));
         Page<CookingSession> recentSessions = cookingSessionRepository
-                .findByRecipeIdAndStatusIn(recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED), top5);
+            .findByRecipeIdAndStatusIn(recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.POST_DELETED), recentCookersWindow);
 
-        List<RecipeSocialProofResponse.RecentCooker> recentCookers = recentSessions.getContent().stream()
-                .map(session -> {
-                    RecipeSocialProofResponse.RecentCooker.RecentCookerBuilder cooker =
-                            RecipeSocialProofResponse.RecentCooker.builder()
-                                    .userId(session.getUserId())
-                                    .completedAt(session.getCompletedAt());
-                    try {
-                        BasicProfileInfo profile = profileProvider.getBasicProfile(session.getUserId());
-                        if (profile != null) {
-                            cooker.username(profile.getUsername())
-                                  .displayName(profile.getDisplayName())
-                                  .avatarUrl(profile.getAvatarUrl());
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
-                        cooker.displayName("Chef");
+        LinkedHashMap<String, RecipeSocialProofResponse.RecentCooker> uniqueRecentCookers = new LinkedHashMap<>();
+        for (CookingSession session : recentSessions.getContent()) {
+            String uniqueCookerKey = session.isUserDeleted() || session.getUserId() == null || session.getUserId().isBlank()
+                    ? "deleted:" + session.getId()
+                    : session.getUserId();
+
+            if (uniqueRecentCookers.containsKey(uniqueCookerKey)) {
+                continue;
+            }
+
+            RecipeSocialProofResponse.RecentCooker.RecentCookerBuilder cooker =
+                    RecipeSocialProofResponse.RecentCooker.builder()
+                            .completedAt(session.getCompletedAt());
+
+            if (session.isUserDeleted()) {
+                uniqueRecentCookers.put(uniqueCookerKey, cooker.displayName(DELETED_USER_DISPLAY_NAME).build());
+            } else {
+                cooker.userId(session.getUserId());
+                try {
+                    BasicProfileInfo profile = profileProvider.getBasicProfile(session.getUserId());
+                    if (profile != null) {
+                        cooker.username(profile.getUsername())
+                              .displayName(profile.getDisplayName())
+                              .avatarUrl(profile.getAvatarUrl());
                     }
-                    return cooker.build();
-                })
-                .toList();
+                } catch (Exception e) {
+                    log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
+                    cooker.displayName("Chef");
+                }
+                uniqueRecentCookers.put(uniqueCookerKey, cooker.build());
+            }
+
+            if (uniqueRecentCookers.size() == 5) {
+                break;
+            }
+        }
+
+        List<RecipeSocialProofResponse.RecentCooker> recentCookers = List.copyOf(uniqueRecentCookers.values());
 
         return RecipeSocialProofResponse.builder()
                 .cookCount(recipe.getCookCount())

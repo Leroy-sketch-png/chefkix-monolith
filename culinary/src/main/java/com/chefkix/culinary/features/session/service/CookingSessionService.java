@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +86,7 @@ public class CookingSessionService {
                 .recipeTitle(recipe.getTitle())
                 .coverImageUrl(recipe.getCoverImageUrl())
                 .status(SessionStatus.IN_PROGRESS)
-                .startedAt(LocalDateTime.now())
+            .startedAt(utcNow())
                 .currentStep(1)
                 .completedSteps(new ArrayList<>())
                 .activeTimers(new ArrayList<>())
@@ -112,7 +113,7 @@ public class CookingSessionService {
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        LocalDateTime serverNow = LocalDateTime.now();
+        LocalDateTime serverNow = utcNow();
 
         // 2. Audit Log
         CookingSession.TimerEvent logEvent = CookingSession.TimerEvent.builder()
@@ -196,6 +197,8 @@ public class CookingSessionService {
                 challengeTitle += " & " + seasonalResult.get().getChallengeTitle();
             }
         }
+        boolean challengeCompleted =
+                challengeResult.isPresent() || weeklyResult.isPresent() || seasonalResult.isPresent();
 
         // 3e. Co-op XP multiplier (from co-cooking rooms)
         double coOpMultiplier = 1.0;
@@ -218,7 +221,7 @@ public class CookingSessionService {
         }
 
         // 4. Update Session Status
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = utcNow();
         session.setStatus(SessionStatus.COMPLETED);
         session.setCompletedAt(now);
         session.setPostDeadline(now.plusDays(14));
@@ -264,6 +267,8 @@ public class CookingSessionService {
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount((int) baseXp)
+            .recipeId(recipe.getId())
+            .challengeCompleted(challengeCompleted)
                 .newBadges(null) // Badges only on post, not on complete
                 .idempotencyKey(idempotencyKey)
                 .build();
@@ -278,7 +283,14 @@ public class CookingSessionService {
         } catch (Exception e) {
             log.error("Failed to sync XP with identity service for user {}: {}", userId, e.getMessage());
             // Fallback: send via Kafka for reliability
-            helper.sendXpEventWithChallenge(userId, baseXp, "COOKING_SESSION", sessionId, description, challengeResult.isPresent());
+            helper.sendXpEventWithChallenge(
+                    userId,
+                    baseXp,
+                    "COOKING_SESSION",
+                    sessionId,
+                    description,
+                    challengeCompleted,
+                    recipe.getId());
         }
 
         // 7. Achievement evaluation (fire-and-forget — never blocks completion)
@@ -339,33 +351,38 @@ public class CookingSessionService {
                 ? new ArrayList<>(recipe.getRewardBadges()) 
                 : new ArrayList<>();
 
-        // 4. Process Side Effects (Stats, Kafka with badges, Creator Bonus)
-        helper.updateRecipeStats(recipe.getId(), 0, finalXpToAward);
-        // Send XP + badges together in one event
-        helper.sendXpEventWithBadges(userId, finalXpToAward, "LINKING_POST", sessionId, 
-                "Linking Post ID: " + request.getPostId(), badgesEarned);
-        
-        boolean creatorBonusAwarded = helper.processCreatorBonus(recipe, userId, sessionId);
-
-        // 4.5. CRITICAL: Update Post's xpEarned in post-service database
-        // This ensures the XP displays correctly when fetching posts later.
-        // Without this, post.xpEarned stays at 0 forever (the dashboard "XP=0" bug).
+        // 4. Persist post XP before awarding side effects.
+        // If this write fails, the link must fail rather than silently returning a post
+        // that will display the wrong earned XP forever.
         try {
             postProvider.updatePostXp(request.getPostId(), finalXpToAward);
-            log.info("✅ Updated post {} with xpEarned={}", request.getPostId(), finalXpToAward);
+            log.info("Updated post {} with xpEarned={}", request.getPostId(), finalXpToAward);
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
-            // Log but don't fail - XP was already awarded to user via Kafka.
-            // The post display is secondary to the actual XP award.
-            log.error("⚠️ Failed to update post xpEarned (non-fatal): postId={}, xp={}, error={}", 
-                    request.getPostId(), finalXpToAward, e.getMessage());
+            log.error("Failed to persist post xpEarned for post {}: {}", request.getPostId(), e.getMessage());
+            throw new AppException(ErrorCode.POST_SERVICE_ERROR);
         }
 
-        // 5. Update Session
+        // 5. Process Side Effects (Stats, Kafka with badges, Creator Bonus)
+        helper.updateRecipeStats(recipe.getId(), 0, finalXpToAward);
+        helper.sendXpEventWithBadges(
+            userId,
+            finalXpToAward,
+            "LINKING_POST",
+            sessionId,
+            "Linking Post ID: " + request.getPostId(),
+            badgesEarned,
+            recipe.getId());
+
+        boolean creatorBonusAwarded = helper.processCreatorBonus(recipe, userId, sessionId);
+
+        // 6. Update Session
         session.setStatus(SessionStatus.POSTED);
         session.setPostId(request.getPostId());
         session.setPendingXp(0.0);
         session.setRemainingXpAwarded((double) finalXpToAward);
-        session.setLinkedAt(LocalDateTime.now());
+        session.setLinkedAt(utcNow());
         sessionRepository.save(session);
 
         return SessionLinkingResponse.builder()
@@ -407,6 +424,28 @@ public class CookingSessionService {
     public Page<SessionHistoryResponse.SessionItemDto> getSessionHistory(String userId, SessionHistoryQuery dto, Pageable pageable) {
         return sessionRepository.findSessionHistory(userId, dto, pageable)
                 .map(sessionMapper::toSessionItemDto);
+    }
+
+    @Transactional
+    public int markLinkedPostDeleted(String postId) {
+        if (postId == null || postId.isBlank()) {
+            return 0;
+        }
+
+        List<CookingSession> linkedSessions = sessionRepository.findAllByPostIdAndStatus(postId, SessionStatus.POSTED);
+        if (linkedSessions.isEmpty()) {
+            return 0;
+        }
+
+        LocalDateTime deletedAt = utcNow();
+        linkedSessions.forEach(session -> {
+            session.setStatus(SessionStatus.POST_DELETED);
+            session.setPostDeletedAt(deletedAt);
+            session.setPostId(null);
+        });
+        sessionRepository.saveAll(linkedSessions);
+        log.info("Marked {} cooking sessions as POST_DELETED for removed post {}", linkedSessions.size(), postId);
+        return linkedSessions.size();
     }
 
     public SessionNavigateResponse getSessionCurrentStep(String sessionId, SessionNavigateRequest request) {
@@ -456,10 +495,12 @@ public class CookingSessionService {
                 .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
-        if (!session.getActiveTimers().isEmpty()) throw new AppException(ErrorCode.CANNOT_PAUSE_WITH_ACTIVE_TIMERS);
+        if (session.getActiveTimers() != null && !session.getActiveTimers().isEmpty()) {
+            throw new AppException(ErrorCode.CANNOT_PAUSE_WITH_ACTIVE_TIMERS);
+        }
         if (session.getStatus() != SessionStatus.IN_PROGRESS) throw new AppException(ErrorCode.INVALID_ACTION);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = utcNow();
         LocalDateTime deadline = now.plusHours(3);
 
         session.setStatus(SessionStatus.PAUSED);
@@ -490,11 +531,13 @@ public class CookingSessionService {
         }
 
         // Null guard for resumeDeadline — if null, allow resume (no deadline set)
-        if (session.getResumeDeadline() != null && LocalDateTime.now().isAfter(session.getResumeDeadline())) {
+        if (session.getResumeDeadline() != null && utcNow().isAfter(session.getResumeDeadline())) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }
 
         session.setStatus(SessionStatus.IN_PROGRESS);
+        session.setPausedAt(null);
+        session.setResumeDeadline(null);
         sessionRepository.save(session);
 
         // Re-set cooking presence after resume
@@ -504,7 +547,7 @@ public class CookingSessionService {
         return SessionResumeResponse.builder()
                 .sessionId(session.getId())
                 .status(SessionStatus.IN_PROGRESS)
-                .resumeAt(LocalDateTime.now())
+                .resumeAt(utcNow())
                 .build();
     }
 
@@ -583,7 +626,7 @@ public class CookingSessionService {
         }
 
         // Can't abandon already completed, posted, or already abandoned sessions
-        if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus() == SessionStatus.POSTED) {
+        if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus().hasClaimedPostXp()) {
             throw new AppException(ErrorCode.SESSION_COMPLETED);
         }
         if (session.getStatus() == SessionStatus.ABANDONED) {
@@ -591,12 +634,12 @@ public class CookingSessionService {
             return SessionAbandonResponse.builder()
                     .sessionId(sessionId)
                     .status(SessionStatus.ABANDONED.getValue())
-                    .abandonedAt(LocalDateTime.now())
+                    .abandonedAt(utcNow())
                     .abandoned(true)
                     .build();
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = utcNow();
         session.setStatus(SessionStatus.ABANDONED);
         session.setAbandonedAt(now);
         sessionRepository.save(session);
@@ -713,7 +756,7 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        if (session.getStatus() != SessionStatus.COMPLETED && session.getStatus() != SessionStatus.POSTED) {
+        if (session.getStatus() == null || !session.getStatus().countsAsCompletedCook()) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
@@ -773,5 +816,9 @@ public class CookingSessionService {
                 .avatarUrl(avatarUrl)
                 .shareUrl(shareUrl)
                 .build();
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 }

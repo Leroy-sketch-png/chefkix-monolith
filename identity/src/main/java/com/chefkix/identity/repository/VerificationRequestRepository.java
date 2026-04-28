@@ -13,4 +13,6 @@ public interface VerificationRequestRepository extends MongoRepository<Verificat
   Optional<VerificationRequest> findTopByUserIdOrderByRequestedAtDesc(String userId);
 
   boolean existsByUserIdAndStatus(String userId, String status);
+
+  long deleteByUserId(String userId);
 }

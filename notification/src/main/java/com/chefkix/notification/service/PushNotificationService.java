@@ -98,6 +98,20 @@ public class PushNotificationService {
         log.info("Unregistered all {} FCM tokens for user={}", tokens.size(), userId);
     }
 
+    /**
+     * Hard-delete all push tokens after an account is deleted.
+     */
+    public long cleanupDeletedUserTokens(String userId) {
+        long tokenCount = pushTokenRepository.countByUserId(userId);
+        if (tokenCount == 0) {
+            return 0;
+        }
+
+        pushTokenRepository.deleteByUserId(userId);
+        log.info("Deleted {} push tokens for deleted user={}", tokenCount, userId);
+        return tokenCount;
+    }
+
     // ===============================================
     // PUSH NOTIFICATION SENDING
     // ===============================================

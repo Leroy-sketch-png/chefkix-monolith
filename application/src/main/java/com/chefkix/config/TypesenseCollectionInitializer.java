@@ -50,7 +50,7 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "authorName", "type", "string", "optional", true),
                         Map.of("name", "coverImageUrl", "type", "string", "optional", true),
                         Map.of("name", "createdAt", "type", "int64"),
-                        Map.of("name", "embedding", "type", "float[]", "num_dim", 768,
+                        Map.of("name", "embedding", "type", "float[]", "num_dim", 3072,
                                 "optional", true)
                 ),
                 "default_sorting_field", "createdAt",

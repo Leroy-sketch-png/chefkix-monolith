@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,7 +72,7 @@ public class GroupService {
                     .creatorId(currentUserId)
                     .ownerId(currentUserId)
                     .memberCount(1)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(utcNow())
                     .build();
 
             Group savedGroup = groupRepository.save(group);
@@ -82,7 +83,7 @@ public class GroupService {
                     .userId(currentUserId)
                     .role(MemberRole.ADMIN)
                     .status(MemberStatus.ACTIVE)
-                    .joinedAt(LocalDateTime.now())
+                    .joinedAt(utcNow())
                     .build();
 
             memberRepository.save(adminMember);
@@ -98,6 +99,95 @@ public class GroupService {
             log.error("Database error while creating group for user {}", currentUserId, e);
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Transactional
+    public long cleanupDeletedUserData(String userId) {
+        long affectedRecords = 0;
+        Set<String> dissolvedGroupIds = new HashSet<>();
+
+        List<GroupMember> userMemberships = new ArrayList<>(memberRepository.findByUserId(userId));
+        Map<String, GroupMember> membershipsByGroupId = userMemberships.stream()
+                .collect(Collectors.toMap(GroupMember::getGroupId, membership -> membership, (left, right) -> left));
+        Set<String> removedMembershipIds = new HashSet<>();
+
+        List<Group> ownedGroups = groupRepository.findAllByOwnerId(userId);
+        for (Group group : ownedGroups) {
+            GroupMember deletedOwnerMembership = membershipsByGroupId.get(group.getId());
+            List<GroupMember> activeSurvivors = memberRepository.findAllByGroupIdAndStatus(group.getId(), MemberStatus.ACTIVE)
+                    .stream()
+                    .filter(member -> !userId.equals(member.getUserId()))
+                    .toList();
+
+            Optional<GroupMember> successor = pickOwnershipSuccessor(activeSurvivors);
+            if (successor.isPresent()) {
+                GroupMember newOwnerMembership = successor.get();
+                group.setOwnerId(newOwnerMembership.getUserId());
+                if (Objects.equals(group.getCreatorId(), userId)) {
+                    group.setCreatorId(newOwnerMembership.getUserId());
+                }
+                groupRepository.save(group);
+                affectedRecords += 1;
+
+                if (newOwnerMembership.getRole() != MemberRole.ADMIN) {
+                    newOwnerMembership.setRole(MemberRole.ADMIN);
+                    memberRepository.save(newOwnerMembership);
+                    affectedRecords += 1;
+                }
+
+                if (deletedOwnerMembership != null) {
+                    if (deletedOwnerMembership.getStatus() == MemberStatus.ACTIVE) {
+                        decrementGroupMemberCount(group.getId());
+                    }
+                    memberRepository.delete(deletedOwnerMembership);
+                    removedMembershipIds.add(deletedOwnerMembership.getId());
+                    affectedRecords += 1;
+                }
+
+                eventPublisher.publishOwnershipTransferredEvent(group, newOwnerMembership.getUserId(), userId);
+            } else {
+                List<GroupMember> groupMembers = memberRepository.findAllByGroupId(group.getId());
+                if (!groupMembers.isEmpty()) {
+                    memberRepository.deleteAll(groupMembers);
+                    groupMembers.stream()
+                            .map(GroupMember::getId)
+                            .filter(Objects::nonNull)
+                            .forEach(removedMembershipIds::add);
+                    affectedRecords += groupMembers.size();
+                }
+
+                groupRepository.delete(group);
+                dissolvedGroupIds.add(group.getId());
+                affectedRecords += 1;
+            }
+        }
+
+        List<Group> creatorGroups = groupRepository.findAllByCreatorId(userId);
+        List<Group> creatorGroupsToUpdate = creatorGroups.stream()
+                .filter(group -> !dissolvedGroupIds.contains(group.getId()))
+                .filter(group -> Objects.equals(group.getCreatorId(), userId))
+                .filter(group -> !Objects.equals(group.getOwnerId(), userId))
+                .peek(group -> group.setCreatorId(group.getOwnerId()))
+                .toList();
+        if (!creatorGroupsToUpdate.isEmpty()) {
+            groupRepository.saveAll(creatorGroupsToUpdate);
+            affectedRecords += creatorGroupsToUpdate.size();
+        }
+
+        List<GroupMember> remainingMemberships = userMemberships.stream()
+                .filter(member -> member.getId() == null || !removedMembershipIds.contains(member.getId()))
+                .filter(member -> !dissolvedGroupIds.contains(member.getGroupId()))
+                .toList();
+        remainingMemberships.stream()
+                .filter(member -> member.getStatus() == MemberStatus.ACTIVE)
+                .forEach(member -> decrementGroupMemberCount(member.getGroupId()));
+
+        if (!remainingMemberships.isEmpty()) {
+            memberRepository.deleteAll(remainingMemberships);
+            affectedRecords += remainingMemberships.size();
+        }
+
+        return affectedRecords;
     }
 
     @Transactional
@@ -141,8 +231,8 @@ public class GroupService {
                 .userId(currentUserId)
                 .role(MemberRole.MEMBER)
                 .status(assignedStatus)
-                .requestedAt(LocalDateTime.now())
-                .joinedAt(assignedStatus == MemberStatus.ACTIVE ? LocalDateTime.now() : null)
+            .requestedAt(utcNow())
+            .joinedAt(assignedStatus == MemberStatus.ACTIVE ? utcNow() : null)
                 .build();
 
         memberRepository.save(newMember);
@@ -257,7 +347,7 @@ public class GroupService {
         if (action == RequestAction.ACCEPT) {
             // Update the member to ACTIVE
             pendingMember.setStatus(MemberStatus.ACTIVE);
-            pendingMember.setJoinedAt(LocalDateTime.now());
+            pendingMember.setJoinedAt(utcNow());
             memberRepository.save(pendingMember);
 
             // Atomic increment to prevent race conditions
@@ -422,11 +512,19 @@ public class GroupService {
     @Transactional(readOnly = true)
     public Page<GroupMemberResponse> getGroupMembers(String groupId, String currentUserId, Pageable pageable) {
 
-        // 1. SECURITY CHECK: Verify the requester is actually in the group AND is an Admin
-        GroupMember requester = memberRepository.findByGroupIdAndUserId(groupId, currentUserId)
-                .orElseThrow(() -> new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+        Optional<GroupMember> requester = memberRepository.findByGroupIdAndUserId(groupId, currentUserId);
 
-        if (requester.getRole() != MemberRole.ADMIN) {
+        if (requester.map(GroupMember::getStatus).orElse(null) == MemberStatus.BANNED) {
+            throw new AppException(ErrorCode.GROUP_BANNED);
+        }
+
+        boolean canViewMembers = group.getPrivacyType() == PrivacyType.PUBLIC
+                || requester.map(GroupMember::getStatus)
+                .filter(status -> status == MemberStatus.ACTIVE)
+                .isPresent();
+        if (!canViewMembers) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
@@ -589,6 +687,33 @@ public class GroupService {
         } catch (IllegalArgumentException e) {
             throw new AppException(ErrorCode.INVALID_INPUT);
         }
+    }
+
+    private Optional<GroupMember> pickOwnershipSuccessor(List<GroupMember> activeMembers) {
+        return activeMembers.stream()
+                .sorted(Comparator.comparingInt(this::memberRolePriority)
+                        .thenComparing(member -> member.getJoinedAt() != null ? member.getJoinedAt() : LocalDateTime.MAX))
+                .findFirst();
+    }
+
+    private int memberRolePriority(GroupMember member) {
+        return switch (member.getRole()) {
+            case ADMIN -> 0;
+            case MODERATOR -> 1;
+            case MEMBER -> 2;
+        };
+    }
+
+    private void decrementGroupMemberCount(String groupId) {
+        mongoTemplate.updateFirst(
+                Query.query(Criteria.where("id").is(groupId).and("memberCount").gt(0)),
+                new Update().inc("memberCount", -1),
+                Group.class
+        );
+    }
+
+    private LocalDateTime utcNow() {
+        return LocalDateTime.now(ZoneOffset.UTC);
     }
 
     private boolean isGroupAdmin(String groupId, String userId) {

@@ -15,6 +15,8 @@ import java.util.Set;
 @Repository
 public interface StoryRepository extends MongoRepository<Story, String> {
 
+        List<Story> findAllByUserId(String userId);
+
     // Lấy Story đang hoạt động (cho chính chủ hoặc bạn bè)
     List<Story> findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(
             String userId, Instant now);

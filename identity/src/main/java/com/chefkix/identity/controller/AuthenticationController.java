@@ -76,7 +76,7 @@ public class AuthenticationController {
       HttpServletResponse response,
       @CookieValue(name = "refresh_token", required = false) String refreshToken) {
 
-    if (refreshToken == null || refreshToken.isEmpty()) {
+    if (refreshToken == null || refreshToken.isBlank()) {
       HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
       throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
@@ -94,6 +94,12 @@ public class AuthenticationController {
       return ApiResponse.<Map<String, String>>builder()
           .data(Map.of("accessToken", authResponse.getAccessToken()))
           .build();
+
+    } catch (AppException e) {
+      if (e.getErrorCode() == ErrorCode.UNAUTHENTICATED) {
+        HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
+      }
+      throw e;
 
     } catch (WebClientResponseException.BadRequest | WebClientResponseException.Unauthorized e) {
       HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
@@ -170,14 +176,16 @@ public class AuthenticationController {
       HttpServletResponse response)
       throws ParseException, JOSEException {
 
+    String logoutMessage = "Logged out successfully";
+
     // 3. Call service (if token exists) to revoke token at Keycloak
-    if (refreshToken != null && !refreshToken.isEmpty()) {
-      authenticationService.logout(refreshToken);
+    if (refreshToken != null && !refreshToken.isBlank()) {
+      logoutMessage = authenticationService.logout(refreshToken);
     }
 
     // 4. ALWAYS delete HttpOnly cookie on the browser side
     HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
-    return ApiResponse.<String>builder().data("Logged out successfully").build();
+    return ApiResponse.<String>builder().data(logoutMessage).build();
   }
 }

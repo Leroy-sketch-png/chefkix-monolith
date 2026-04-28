@@ -32,6 +32,10 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
     // Get all members of a group with a specific status (e.g., all ACTIVE members, or all PENDING requests)
     Page<GroupMember> findAllByGroupIdAndStatus(String groupId, MemberStatus status, Pageable pageable);
 
+    List<GroupMember> findAllByGroupIdAndStatus(String groupId, MemberStatus status);
+
+    List<GroupMember> findAllByGroupId(String groupId);
+
     // Get all admins or moderators of a group
     List<GroupMember> findAllByGroupIdAndRoleInAndStatus(
             String groupId,

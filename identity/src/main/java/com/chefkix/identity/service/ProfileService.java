@@ -9,18 +9,25 @@ import com.chefkix.identity.dto.request.ProfileUpdateRequest;
 import com.chefkix.identity.dto.response.ProfileResponse;
 import com.chefkix.identity.dto.response.ProfileWithPostsResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
+import com.chefkix.identity.entity.Block;
+import com.chefkix.identity.entity.Follow;
+import com.chefkix.identity.entity.FriendRequest;
+import com.chefkix.identity.entity.Friendship;
 import com.chefkix.identity.entity.ResetPasswordRequest;
 import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.entity.Statistics;
+import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.events.UserIndexEvent;
 import com.chefkix.identity.enums.RelationshipStatus;
+import com.chefkix.shared.event.UserDeletedEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.exception.ErrorNormalizer;
 import com.chefkix.identity.mapper.ProfileMapper;
 import com.chefkix.identity.repository.*;
 import com.chefkix.identity.client.KeycloakAdminClient;
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.social.api.PostProvider;
 import com.chefkix.social.api.dto.PostSummary;
 import com.chefkix.identity.utils.SecurityUtils;
@@ -66,15 +73,29 @@ public class ProfileService {
   SignupRequestRepository signupRequestRepository;
   ResetPasswordRepository resetPasswordRepository;
   FollowRepository followRepository;
+  UserRepository userRepository;
+  UserSettingsRepository userSettingsRepository;
+  UserSubscriptionRepository userSubscriptionRepository;
+  CreatorTipSettingsRepository creatorTipSettingsRepository;
+  TipRepository tipRepository;
+  ReferralCodeRepository referralCodeRepository;
+  ReferralRedemptionRepository referralRedemptionRepository;
+  VerificationRequestRepository verificationRequestRepository;
+  UserEventRepository userEventRepository;
+  FriendRequestRepository friendRequestRepository;
+  BlockRepository blockRepository;
+  UserActivityRepository userActivityRepository;
 
   // === External Module Providers ===
   KeycloakAdminClient keycloakAdminClient;
   @Lazy PostProvider postProvider;
+  @Lazy RecipeProvider recipeProvider;
 
   // === Utilities & Services ===
   ErrorNormalizer errorNormalizer;
   EmailService emailService;
   BlockService blockService;
+  StatisticsCounterOperations statisticsCounterOperations;
   SecurityUtils securityUtils;
   SocialUtils socialUtils;
   ApplicationEventPublisher eventPublisher;
@@ -345,7 +366,8 @@ public class ProfileService {
    * 1. Delete from Keycloak (prevents login)
    * 2. Remove all follows
    * 3. Anonymize profile in MongoDB (preserves referential integrity for posts/comments)
-   * 4. Publish user deletion event for cross-module cleanup
+  * 4. Cleanup cross-module user data
+  * 5. Remove from search index
    */
   @Transactional
   public void deleteAccount(Authentication authentication) {
@@ -353,6 +375,21 @@ public class ProfileService {
 
     UserProfile profile = profileRepository.findByUserId(userId)
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    String originalEmail = profile.getEmail();
+    String originalUsername = profile.getUsername();
+    User localUser = null;
+    if (originalEmail != null && !originalEmail.isBlank() && originalUsername != null && !originalUsername.isBlank()) {
+      localUser = userRepository.findByEmailOrUsername(originalEmail, originalUsername).orElse(null);
+    }
+    if (localUser == null && originalEmail != null && !originalEmail.isBlank()) {
+      localUser = userRepository.findByEmail(originalEmail).orElse(null);
+    }
+    if (localUser == null && originalUsername != null && !originalUsername.isBlank()) {
+      localUser = userRepository.findByUsername(originalUsername).orElse(null);
+    }
+    if (localUser == null) {
+      localUser = userRepository.findByGoogleId(userId).orElse(null);
+    }
 
     // 1. Delete from Keycloak
     try {
@@ -369,13 +406,12 @@ public class ProfileService {
       throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete account from identity provider");
     }
 
-    // 2. Remove all follows (both directions)
-    followRepository.deleteAllByFollowerId(userId);
-    followRepository.deleteAllByFollowingId(userId);
+    // 2. Remove social relationships owned by this profile and repair surviving counters.
+    long followRecords = cleanupFollowRelationships(userId);
 
     // 3. Anonymize profile (keeps document for referential integrity)
-    profile.setEmail("[deleted]");
-    profile.setUsername("[deleted_" + userId.substring(0, 8) + "]");
+    profile.setEmail(buildDeletedProfileEmail(userId));
+    profile.setUsername(buildDeletedProfileUsername(userId));
     profile.setDisplayName("Deleted User");
     profile.setFirstName(null);
     profile.setLastName(null);
@@ -389,12 +425,30 @@ public class ProfileService {
     profile.setPreferences(null);
     profile.setFriends(null);
     profile.setVerified(false);
+    if (profile.getStatistics() != null) {
+      profile.getStatistics().setFollowerCount(0L);
+      profile.getStatistics().setFollowingCount(0L);
+      profile.getStatistics().setFriendCount(0L);
+      profile.getStatistics().setFriendRequestCount(0L);
+    }
     profileRepository.save(profile);
 
-    // 4. Remove from search index
+    long identityRecords = followRecords + cleanupIdentityUserData(userId, originalEmail, localUser);
+
+    // 4. Cleanup cross-module user data
+    long socialRecords = postProvider.cleanupDeletedUserData(userId);
+    long culinaryRecords = recipeProvider.cleanupDeletedUserData(userId);
+    eventPublisher.publishEvent(UserDeletedEvent.builder().userId(userId).build());
+
+    // 5. Remove from search index
     eventPublisher.publishEvent(UserIndexEvent.remove(userId));
 
-    log.info("Account deleted for userId={}", userId);
+    log.info(
+      "Account deleted for userId={}, identityRecordsAffected={}, socialRecordsAffected={}, culinaryRecordsAffected={}",
+      userId,
+      identityRecords,
+      socialRecords,
+      culinaryRecords);
   }
 
   /**
@@ -451,6 +505,156 @@ public class ProfileService {
   // ===================================================================
   // === PRIVATE HELPERS (Internal logic) ===
   // ===================================================================
+
+  private long cleanupIdentityUserData(String userId, String email, User localUser) {
+    long affectedRecords = 0;
+
+    if (email != null && !email.isBlank()) {
+      if (signupRequestRepository.findByEmail(email).isPresent()) {
+        signupRequestRepository.deleteByEmail(email);
+        affectedRecords += 1;
+      }
+
+      var resetPasswordRequest = resetPasswordRepository.findByEmail(email);
+      if (resetPasswordRequest.isPresent()) {
+        resetPasswordRepository.delete(resetPasswordRequest.get());
+        affectedRecords += 1;
+      }
+    }
+
+    affectedRecords += userSettingsRepository.deleteByUserId(userId);
+    affectedRecords += userSubscriptionRepository.deleteByUserId(userId);
+    affectedRecords += creatorTipSettingsRepository.deleteByUserId(userId);
+    affectedRecords += referralCodeRepository.deleteByUserId(userId);
+    affectedRecords += referralRedemptionRepository.deleteByReferrerUserId(userId);
+    affectedRecords += referralRedemptionRepository.deleteByReferredUserId(userId);
+    affectedRecords += verificationRequestRepository.deleteByUserId(userId);
+    affectedRecords += userEventRepository.deleteByUserId(userId);
+
+    List<Block> outgoingBlocks = blockRepository.findAllByBlockerId(userId);
+    if (!outgoingBlocks.isEmpty()) {
+      blockRepository.deleteAll(outgoingBlocks);
+      affectedRecords += outgoingBlocks.size();
+    }
+
+    List<Block> incomingBlocks = blockRepository.findAllByBlockedId(userId);
+    if (!incomingBlocks.isEmpty()) {
+      blockRepository.deleteAll(incomingBlocks);
+      affectedRecords += incomingBlocks.size();
+    }
+
+    List<FriendRequest> sentFriendRequests = friendRequestRepository.findAllBySenderId(userId);
+    if (!sentFriendRequests.isEmpty()) {
+      for (FriendRequest request : sentFriendRequests) {
+        if (request.getReceiverId() != null && !request.getReceiverId().isBlank()) {
+          statisticsCounterOperations.incrementCounter(
+              request.getReceiverId(), "friendRequestCount", -1);
+        }
+      }
+      friendRequestRepository.deleteAll(sentFriendRequests);
+      affectedRecords += sentFriendRequests.size();
+    }
+
+    List<FriendRequest> receivedFriendRequests = friendRequestRepository.findAllByReceiverId(userId);
+    if (!receivedFriendRequests.isEmpty()) {
+      friendRequestRepository.deleteAll(receivedFriendRequests);
+      affectedRecords += receivedFriendRequests.size();
+    }
+
+    List<UserProfile> linkedFriendProfiles = profileRepository.findAllByFriendsFriendId(userId);
+    for (UserProfile linkedProfile : linkedFriendProfiles) {
+      List<Friendship> existingFriends = linkedProfile.getFriends();
+      if (existingFriends == null || existingFriends.isEmpty()) {
+        continue;
+      }
+
+      List<Friendship> remainingFriends =
+          existingFriends.stream().filter(friendship -> !userId.equals(friendship.getFriendId())).toList();
+      int removedFriendCount = existingFriends.size() - remainingFriends.size();
+      if (removedFriendCount == 0) {
+        continue;
+      }
+
+      linkedProfile.setFriends(remainingFriends.isEmpty() ? null : remainingFriends);
+      profileRepository.save(linkedProfile);
+      if (linkedProfile.getUserId() != null && !linkedProfile.getUserId().isBlank()) {
+        statisticsCounterOperations.incrementCounter(
+            linkedProfile.getUserId(), "friendCount", -removedFriendCount);
+      }
+      affectedRecords += removedFriendCount;
+    }
+
+    if (localUser != null) {
+      String localUserId = localUser.getId();
+      if (localUserId != null && !localUserId.isBlank()) {
+        affectedRecords += userActivityRepository.deleteByKeycloakId(localUserId);
+        if (!localUserId.equals(userId)) {
+          affectedRecords += userActivityRepository.deleteByKeycloakId(userId);
+        }
+      } else {
+        affectedRecords += userActivityRepository.deleteByKeycloakId(userId);
+      }
+      userRepository.delete(localUser);
+      affectedRecords += 1;
+    } else {
+      affectedRecords += userActivityRepository.deleteByKeycloakId(userId);
+    }
+
+    long tippedByUser = tipRepository.findByTipperIdOrderByCreatedAtDesc(userId).size();
+    if (tippedByUser > 0) {
+      tipRepository.deleteAllByTipperId(userId);
+      affectedRecords += tippedByUser;
+    }
+
+    long tipsForUser = tipRepository.findByCreatorIdOrderByCreatedAtDesc(userId).size();
+    if (tipsForUser > 0) {
+      tipRepository.deleteAllByCreatorId(userId);
+      affectedRecords += tipsForUser;
+    }
+
+    return affectedRecords;
+  }
+
+  private long cleanupFollowRelationships(String userId) {
+    long affectedRecords = 0;
+
+    List<Follow> outgoingFollows = followRepository.findAllByFollowerId(userId);
+    if (!outgoingFollows.isEmpty()) {
+      for (Follow follow : outgoingFollows) {
+        if (follow.getFollowingId() != null && !follow.getFollowingId().isBlank()) {
+          statisticsCounterOperations.incrementCounter(follow.getFollowingId(), "followerCount", -1);
+        }
+      }
+      followRepository.deleteAll(outgoingFollows);
+      affectedRecords += outgoingFollows.size();
+    }
+
+    List<Follow> incomingFollows = followRepository.findAllByFollowingId(userId);
+    if (!incomingFollows.isEmpty()) {
+      for (Follow follow : incomingFollows) {
+        if (follow.getFollowerId() != null && !follow.getFollowerId().isBlank()) {
+          statisticsCounterOperations.incrementCounter(follow.getFollowerId(), "followingCount", -1);
+        }
+      }
+      followRepository.deleteAll(incomingFollows);
+      affectedRecords += incomingFollows.size();
+    }
+
+    return affectedRecords;
+  }
+
+  private String buildDeletedProfileEmail(String userId) {
+    return "deleted+" + deletedIdentitySuffix(userId) + "@deleted.chefkix.local";
+  }
+
+  private String buildDeletedProfileUsername(String userId) {
+    return "deleted_" + deletedIdentitySuffix(userId);
+  }
+
+  private String deletedIdentitySuffix(String userId) {
+    String normalized = userId == null ? "user" : userId.replaceAll("[^A-Za-z0-9]", "");
+    return normalized.isBlank() ? "user" : normalized;
+  }
 
   /**
    * [CORE] Build a ProfileWithPostsResponse object.

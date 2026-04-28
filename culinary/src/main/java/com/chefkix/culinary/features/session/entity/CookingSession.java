@@ -79,10 +79,15 @@ public class CookingSession {
     @Indexed
     LocalDateTime postDeadline; // postDeadline?: string
     LocalDateTime linkedAt;
+    LocalDateTime postDeletedAt;
 
     // --- Validation ---
     boolean flagged;        // flagged: boolean
     String flagReason;      // flagReason?: string
+
+    // --- Account deletion cleanup ---
+    boolean userDeleted;
+    LocalDateTime userDeletedAt;
 
     // ==========================================
     // INNER CLASSES (POJOs)

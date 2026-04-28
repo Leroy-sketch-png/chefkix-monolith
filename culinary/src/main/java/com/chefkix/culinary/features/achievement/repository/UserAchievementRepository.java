@@ -16,4 +16,6 @@ public interface UserAchievementRepository extends MongoRepository<UserAchieveme
     Optional<UserAchievement> findByUserIdAndAchievementCode(String userId, String achievementCode);
 
     long countByUserIdAndUnlocked(String userId, boolean unlocked);
+
+    void deleteAllByUserId(String userId);
 }

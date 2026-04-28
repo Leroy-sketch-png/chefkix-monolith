@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class BellNotificationListener {
 
+    private static final String POST_DELETED_IDEMPOTENCY_SCOPE = "post-deleted-delivery:notification";
+
     private final NotificationService notificationService;
     private final KafkaIdempotencyService idempotencyService;
 
@@ -117,6 +119,31 @@ public class BellNotificationListener {
                 notificationService.handleCommentEvent(commentEvent);
             } catch (Exception e) {
                 idempotencyService.removeProcessed(event.getEventId(), "comment-delivery");
+                throw e;
+            }
+        } else {
+            log.warn("Received unexpected event type: {}", event.getClass().getSimpleName());
+        }
+    }
+
+    @KafkaListener(
+            topics = "post-deleted-delivery",
+            groupId = "notification-group",
+            containerFactory = "notificationEventListenerFactory")
+    public void listenPostDeletedDelivery(BaseEvent event) {
+        if (!shouldProcess(event, POST_DELETED_IDEMPOTENCY_SCOPE)) {
+            return;
+        }
+        if (event instanceof PostDeletedEvent postDeletedEvent) {
+            if (!hasText(postDeletedEvent.getPostId())) {
+                log.error("Skipping invalid PostDeletedEvent: postId is blank");
+                return;
+            }
+            try {
+                log.info("Received PostDeletedEvent for post: {}", postDeletedEvent.getPostId());
+                notificationService.cleanupDeletedPostNotifications(postDeletedEvent.getPostId());
+            } catch (Exception e) {
+                idempotencyService.removeProcessed(event.getEventId(), POST_DELETED_IDEMPOTENCY_SCOPE);
                 throw e;
             }
         } else {

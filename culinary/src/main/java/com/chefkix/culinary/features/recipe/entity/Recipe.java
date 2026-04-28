@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.IndexDirection;
@@ -36,6 +37,9 @@ public class Recipe {
     // --- CORE IDENTITY ---
     @Id
     String id;
+
+    @Version
+    Long version;
 
     @Indexed // Single index for fast recipe lookup by userId
     String userId;

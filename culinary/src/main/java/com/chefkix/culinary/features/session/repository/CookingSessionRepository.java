@@ -18,12 +18,16 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
     // Find user's active session (to prevent starting 2 sessions simultaneously)
     Optional<CookingSession> findByUserIdAndStatus(String userId, SessionStatus status);
 
+    List<CookingSession> findAllByUserId(String userId);
+
     // Count how many times user has completed this recipe (for Mastery calculation)
     long countByUserIdAndRecipeIdAndStatus(String userId, String recipeId, SessionStatus status);
 
     Optional<CookingSession> findFirstByUserIdAndStatus(String userId, SessionStatus sessionStatus);
 
     Optional<CookingSession> findFirstByUserIdAndStatusIn(String userId, List<SessionStatus> statuses);
+
+    List<CookingSession> findAllByPostIdAndStatus(String postId, SessionStatus status);
 
     Page<CookingSession> findAllByUserIdAndStatusIn(String userId, List<SessionStatus> statuses, Pageable pageable);
 

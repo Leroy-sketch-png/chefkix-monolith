@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +19,8 @@ public interface ReplyLikeRepository extends MongoRepository<ReplyLike, String> 
     void deleteAllByReplyId(String replyId);
 
     void deleteAllByReplyIdIn(Collection<String> replyIds);
+
+    List<ReplyLike> findAllByUserId(String userId);
     
     long countByReplyId(String replyId);
 }
