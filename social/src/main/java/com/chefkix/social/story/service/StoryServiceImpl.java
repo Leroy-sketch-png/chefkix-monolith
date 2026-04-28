@@ -32,6 +32,8 @@ public class StoryServiceImpl implements StoryService {
                 .mediaUrl(mediaUrl)
                 .mediaType(request.mediaType())
                 .items(storyMapper.toStoryItems(request.items()))
+                .imageScale(request.imageScale())
+                .imageRotation(request.imageRotation())
                 .createdAt(now)
                 .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .isDeleted(false)

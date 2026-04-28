@@ -15,6 +15,8 @@ public record StoryCreateRequest(
         String mediaType, // Có thể dùng Enum, ở đây dùng String cho đơn giản
 
         //boolean isCloseFriendsOnly,
+        Double imageScale,
+        Double imageRotation,
 
         @Size(max = 100) String linkedRecipeId,
 

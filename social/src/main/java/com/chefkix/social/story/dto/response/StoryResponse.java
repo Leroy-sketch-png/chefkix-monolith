@@ -11,6 +11,8 @@ public record StoryResponse(
         String mediaUrl,
         String mediaType,
         //boolean isCloseFriendsOnly,
+        Double imageScale,
+        Double imageRotation,
         String linkedRecipeId,
         List<StoryItemDto> items,
         String createdAt,
