@@ -710,10 +710,10 @@ public class GroupService {
                 new Update().inc("memberCount", -1),
                 Group.class
         );
+    }
 
     private LocalDateTime utcNow() {
         return LocalDateTime.now(ZoneOffset.UTC);
-    }
     }
 
     private boolean isGroupAdmin(String groupId, String userId) {

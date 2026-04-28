@@ -22,10 +22,13 @@ Thumbs.db
 
 # === Logs ===
 *.log
+*.log.*.gz
 logs/
 
 # === Dev build artifacts (temp terminal output files) ===
 _*.txt
+_api_stress_report.json
+_guest_route_audit.json
 
 # === Environment ===
 .env

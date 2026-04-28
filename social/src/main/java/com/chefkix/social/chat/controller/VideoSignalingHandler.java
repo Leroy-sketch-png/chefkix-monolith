@@ -1,7 +1,7 @@
 package com.chefkix.social.chat.controller;
 
 import com.chefkix.social.chat.dto.request.SignalMessage;
-import com.chefkix.social.chat.repository.ConversationRepository;
+import com.chefkix.social.chat.service.ConversationLookupService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
@@ -23,7 +23,7 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
     private static final String SESSION_USER_ID = "userId";
 
     private final ObjectMapper objectMapper;
-    private final ConversationRepository conversationRepository;
+    private final ConversationLookupService conversationLookupService;
 
     // conversationId -> list of active user sessions
     private final ConcurrentHashMap<String, List<WebSocketSession>> conversations = new ConcurrentHashMap<>();
@@ -89,11 +89,7 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
             return;
         }
 
-        boolean isParticipant = conversationRepository.findById(conversationId)
-                .map(conversation -> conversation.getParticipants() != null
-                        && conversation.getParticipants().stream()
-                        .anyMatch(participant -> userId.equals(participant.getUserId())))
-                .orElse(false);
+        boolean isParticipant = conversationLookupService.isParticipant(conversationId, userId);
 
         if (!isParticipant) {
             log.warn("User {} attempted to join unauthorized video conversation {}", userId, conversationId);

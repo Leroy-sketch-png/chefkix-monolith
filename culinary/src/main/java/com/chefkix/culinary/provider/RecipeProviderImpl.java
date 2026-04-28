@@ -55,7 +55,9 @@ public class RecipeProviderImpl implements RecipeProvider {
         private final RecipeSaveRepository recipeSaveRepository;
         private final CookingSessionRepository cookingSessionRepository;
         private final ActiveCookingRedisRepository activeCookingRepository;
-        private final CookingRoomService cookingRoomService;
+        @org.springframework.beans.factory.annotation.Autowired
+        @org.springframework.context.annotation.Lazy
+        private CookingRoomService cookingRoomService;
         private final ApplicationEventPublisher eventPublisher;
 
     @Override

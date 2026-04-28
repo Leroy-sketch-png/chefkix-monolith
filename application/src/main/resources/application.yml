@@ -14,6 +14,9 @@ spring:
   application:
     name: chefkix-monolith
 
+  main:
+    allow-circular-references: true
+
   # ── MongoDB (single database, consolidated from 5) ──
   data:
     mongodb:
@@ -98,6 +101,8 @@ cloudinary:
 
 # ── Logging (sensible defaults, not microservice DEBUG spam) ──
 logging:
+  file:
+    name: monolith.log
   level:
     com.chefkix: INFO
     org.springframework.security: WARN

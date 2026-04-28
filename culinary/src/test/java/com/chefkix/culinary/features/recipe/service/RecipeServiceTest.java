@@ -21,8 +21,10 @@ import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,6 +100,60 @@ class RecipeServiceTest {
         assertThat(response.getRecentCookers().get(0).getUsername()).isNull();
         assertThat(response.getRecentCookers().get(0).getAvatarUrl()).isNull();
         verify(profileProvider, never()).getBasicProfile("deleted-user");
+    }
+
+    @Test
+    void getRecipeSocialProofKeepsDistinctRecentCookersOnly() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("viewer-1", null, List.of()));
+
+        Recipe recipe = Recipe.builder()
+                .id("recipe-1")
+                .userId("author-1")
+                .status(RecipeStatus.PUBLISHED)
+                .recipeVisibility(RecipeVisibility.PUBLIC)
+                .cookCount(80)
+                .averageRating(4.2)
+                .build();
+        CookingSession newestCook = CookingSession.builder()
+                .id("session-1")
+                .userId("user-1")
+                .recipeId("recipe-1")
+                .status(SessionStatus.POSTED)
+                .completedAt(LocalDateTime.of(2026, 4, 24, 12, 0))
+                .build();
+        CookingSession duplicateCook = CookingSession.builder()
+                .id("session-2")
+                .userId("user-1")
+                .recipeId("recipe-1")
+                .status(SessionStatus.COMPLETED)
+                .completedAt(LocalDateTime.of(2026, 4, 24, 11, 30))
+                .build();
+        CookingSession secondCooker = CookingSession.builder()
+                .id("session-3")
+                .userId("user-2")
+                .recipeId("recipe-1")
+                .status(SessionStatus.COMPLETED)
+                .completedAt(LocalDateTime.of(2026, 4, 24, 11, 0))
+                .build();
+
+        when(recipeRepository.findById("recipe-1")).thenReturn(Optional.of(recipe));
+        when(cookingSessionRepository.countByRecipeIdAndStatus("recipe-1", SessionStatus.POSTED)).thenReturn(1L);
+        when(cookingSessionRepository.findByRecipeIdAndStatusIn(eq("recipe-1"), any(List.class), any()))
+                .thenReturn(new PageImpl<>(List.of(newestCook, duplicateCook, secondCooker)));
+        when(profileProvider.getBasicProfile("user-1")).thenReturn(
+                BasicProfileInfo.builder().username("user1").displayName("User One").avatarUrl(null).build());
+        when(profileProvider.getBasicProfile("user-2")).thenReturn(
+                BasicProfileInfo.builder().username("user2").displayName("User Two").avatarUrl(null).build());
+
+        RecipeSocialProofResponse response = recipeService.getRecipeSocialProof("recipe-1");
+
+        assertThat(response.getRecentCookers()).hasSize(2);
+        assertThat(response.getRecentCookers())
+                .extracting(RecipeSocialProofResponse.RecentCooker::getUserId)
+                .containsExactly("user-1", "user-2");
+        assertThat(response.getRecentCookers().get(0).getCompletedAt())
+                .isEqualTo(LocalDateTime.of(2026, 4, 24, 12, 0));
     }
 
     @Test

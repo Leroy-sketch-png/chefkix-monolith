@@ -84,8 +84,8 @@ class RecipeProviderImplTest {
                                 recipeSaveRepository,
                                 cookingSessionRepository,
                                 activeCookingRedisRepository,
-                                cookingRoomService,
                 eventPublisher);
+        org.springframework.test.util.ReflectionTestUtils.setField(provider, "cookingRoomService", cookingRoomService);
     }
 
     @Test

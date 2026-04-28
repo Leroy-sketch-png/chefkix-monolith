@@ -112,6 +112,8 @@ public class AiIntegrationService {
                         step.setEstimatedHandsOnTime(dto.getEstimatedHandsOnTime());
                         step.setVisualCues(dto.getVisualCues());
                         step.setEquipmentNeeded(dto.getEquipmentNeeded());
+                        step.setGoal(dto.getGoal());
+                        step.setMicroSteps(dto.getMicroSteps());
 
                         return step;
                     })
@@ -126,6 +128,20 @@ public class AiIntegrationService {
         draft.setDifficultyMultiplier(aiData.getDifficultyMultiplier());
         draft.setRewardBadges(aiData.getBadges());
         draft.setSkillTags(aiData.getSkillTags());
+
+        if (aiData.getXpBreakdown() != null) {
+            Recipe.XpBreakdown breakdown = new Recipe.XpBreakdown();
+            breakdown.setBase(aiData.getXpBreakdown().getBase());
+            breakdown.setBaseReason(aiData.getXpBreakdown().getBaseReason());
+            breakdown.setSteps(aiData.getXpBreakdown().getSteps());
+            breakdown.setStepsReason(aiData.getXpBreakdown().getStepsReason());
+            breakdown.setTime(aiData.getXpBreakdown().getTime());
+            breakdown.setTimeReason(aiData.getXpBreakdown().getTimeReason());
+            breakdown.setTechniques(aiData.getXpBreakdown().getTechniques());
+            breakdown.setTechniquesReason(aiData.getXpBreakdown().getTechniquesReason());
+            breakdown.setTotal(aiData.getXpBreakdown().getTotal());
+            draft.setXpBreakdown(breakdown);
+        }
 
         // --- 6. ENRICHMENT METADATA ---
         // Process techniqueGuides (Map -> List of Keys)
