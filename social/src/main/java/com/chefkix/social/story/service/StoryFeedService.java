@@ -9,4 +9,6 @@ public interface StoryFeedService {
     List<UserStoryFeedResponse> getStoryFeed(String currentUserId);
 
     List<StoryResponse> getUserActiveStories(String currentUserId, String targetUserId);
+
+    StoryResponse getStoryById(String storyId);
 }

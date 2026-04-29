@@ -37,4 +37,10 @@ public class StoryFeedController {
         List<StoryResponse> response = storyFeedService.getUserActiveStories(getCurrentUserId(), targetUserId);
         return ApiResponse.success(response);
     }
+
+    @GetMapping("/{storyId}")
+    public ApiResponse<StoryResponse> getStoryById(@PathVariable("storyId") String storyId) {
+        StoryResponse response = storyFeedService.getStoryById(storyId);
+        return ApiResponse.success(response);
+    }
 }
