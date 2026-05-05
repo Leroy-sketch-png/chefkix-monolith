@@ -10,15 +10,24 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.core.convert.converter.Converter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Unified security configuration for the ChefKix monolith.
@@ -166,9 +175,72 @@ public class SecurityConfig {
         authoritiesConverter.setAuthorityPrefix("");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+                converter.setJwtGrantedAuthoritiesConverter(mergedAuthoritiesConverter(authoritiesConverter));
         return converter;
     }
+
+        private Converter<Jwt, Collection<GrantedAuthority>> mergedAuthoritiesConverter(
+                        JwtGrantedAuthoritiesConverter scopeAuthoritiesConverter) {
+                return jwt -> {
+                        Set<GrantedAuthority> authorities = new LinkedHashSet<>();
+
+                        Collection<GrantedAuthority> scopeAuthorities = scopeAuthoritiesConverter.convert(jwt);
+                        if (scopeAuthorities != null) {
+                                authorities.addAll(scopeAuthorities);
+                        }
+
+                        authorities.addAll(extractRealmAuthorities(jwt));
+                        authorities.addAll(extractClientAuthorities(jwt));
+
+                        return authorities;
+                };
+        }
+
+        private Collection<GrantedAuthority> extractRealmAuthorities(Jwt jwt) {
+                Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+                if (realmAccess == null) {
+                        return Collections.emptyList();
+                }
+
+                Object rolesClaim = realmAccess.get("roles");
+                if (!(rolesClaim instanceof Collection<?> roles)) {
+                        return Collections.emptyList();
+                }
+
+                return roles.stream()
+                                .filter(String.class::isInstance)
+                                .map(String.class::cast)
+                                .map(SimpleGrantedAuthority::new)
+                                .map(GrantedAuthority.class::cast)
+                                .toList();
+        }
+
+        private Collection<GrantedAuthority> extractClientAuthorities(Jwt jwt) {
+                Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+                if (resourceAccess == null || resourceAccess.isEmpty()) {
+                        return Collections.emptyList();
+                }
+
+                Set<GrantedAuthority> authorities = new LinkedHashSet<>();
+                for (Object clientAccessObj : resourceAccess.values()) {
+                        if (!(clientAccessObj instanceof Map<?, ?> clientAccess)) {
+                                continue;
+                        }
+
+                        Object rolesClaim = clientAccess.get("roles");
+                        if (!(rolesClaim instanceof Collection<?> roles)) {
+                                continue;
+                        }
+
+                        for (Object roleObj : roles) {
+                                if (roleObj instanceof String roleName) {
+                                        authorities.add(new SimpleGrantedAuthority(roleName));
+                                }
+                        }
+                }
+
+                return authorities;
+        }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
