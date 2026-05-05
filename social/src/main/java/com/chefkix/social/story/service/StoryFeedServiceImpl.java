@@ -3,6 +3,8 @@ package com.chefkix.social.story.service;
 // ... (các import)
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.dto.response.UserStoryFeedResponse;
 import com.chefkix.social.story.entity.Story;
@@ -154,5 +156,12 @@ public class StoryFeedServiceImpl implements StoryFeedService {
                 //.filter(story -> !story.getIsCloseFriendsOnly() || amICloseFriend)
                 .map(storyMapper::toStoryResponse)
                 .toList();
+    }
+
+    public StoryResponse getStoryById(String id) {
+        Story story = storyRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+
+        return storyMapper.toStoryResponse(story);
     }
 }

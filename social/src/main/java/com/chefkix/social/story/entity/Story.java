@@ -22,6 +22,8 @@ public class Story {
     String userId;
     String mediaUrl; // Ảnh hoặc Video nền
     String mediaType; // IMAGE hoặc VIDEO
+    Double imageScale;    // Tỷ lệ phóng to của ảnh nền
+    Double imageRotation;
 
     // Danh sách các "lớp phủ" trên Story (Text, Hashtag, Location, Link, Sticker)
     List<StoryItem> items;
