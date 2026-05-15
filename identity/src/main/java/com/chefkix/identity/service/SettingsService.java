@@ -4,7 +4,11 @@ import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.repository.UserSettingsRepository;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -60,6 +64,28 @@ public class SettingsService {
   /** Get privacy settings for a specific user (for enforcement checks). */
   public UserSettings.PrivacySettings getPrivacySettingsByUserId(String userId) {
     return getOrCreateSettings(userId).getPrivacy();
+  }
+
+  /**
+   * Batch-read privacy settings without creating missing documents.
+   * Missing settings should fall back to defaults at the call site.
+   */
+  public Map<String, UserSettings.PrivacySettings> getPrivacySettingsByUserIds(
+      Collection<String> userIds) {
+    if (userIds == null || userIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return settingsRepository.findAllByUserIdIn(userIds).stream()
+        .filter(settings -> settings.getUserId() != null)
+        .collect(
+            Collectors.toMap(
+                UserSettings::getUserId,
+                settings ->
+                    settings.getPrivacy() != null
+                        ? settings.getPrivacy()
+                        : UserSettings.PrivacySettings.builder().build(),
+                (left, right) -> left));
   }
 
   /** Get notification settings for a specific user (for notification enforcement). */

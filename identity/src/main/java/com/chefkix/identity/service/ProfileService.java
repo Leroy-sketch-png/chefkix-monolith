@@ -67,6 +67,9 @@ import org.springframework.transaction.annotation.Transactional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProfileService {
 
+  private static final int MAX_PROFILES_PAGE_SIZE = 100;
+  private static final int MAX_PROFILE_POSTS_PAGE_SIZE = 30;
+
   // === Repositories & Mappers ===
   UserProfileRepository profileRepository;
   ProfileMapper profileMapper;
@@ -141,44 +144,52 @@ public class ProfileService {
    * @param search Optional search term for displayName/username
    * @return Paginated profiles
    */
+  @Transactional(readOnly = true)
   public org.springframework.data.domain.Page<ProfileResponse> getProfilesPaginated(
       org.springframework.data.domain.Pageable pageable, String search) {
+    org.springframework.data.domain.Pageable safePageable =
+      clampPageSize(pageable, MAX_PROFILES_PAGE_SIZE);
     org.springframework.data.domain.Page<UserProfile> profilePage;
     
     if (search != null && !search.isBlank()) {
       // Search by displayName or username (case-insensitive)
       String searchLower = search.toLowerCase();
       profilePage = profileRepository.findByDisplayNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(
-          searchLower, searchLower, pageable);
+          searchLower, searchLower, safePageable);
     } else {
-      profilePage = profileRepository.findAll(pageable);
+      profilePage = profileRepository.findAll(safePageable);
     }
     
     return profilePage.map(profileMapper::toProfileResponse);
   }
 
   /** [PUBLIC] Get profile AND posts of the CURRENT user (for /me endpoint) */
+  @Transactional(readOnly = true)
   public ProfileWithPostsResponse getCurrentProfileWithPosts(
       Authentication authentication, Pageable pageable) {
     String currentUserId = securityUtils.getCurrentUserId(authentication);
+    Pageable safePageable = clampPageSize(pageable, MAX_PROFILE_POSTS_PAGE_SIZE);
     // When viewing "myself", targetUserId and currentUserId are the SAME
-    return buildProfileWithPosts(currentUserId, currentUserId, pageable);
+    return buildProfileWithPosts(currentUserId, currentUserId, safePageable);
   }
 
   /** [PUBLIC] Get profile AND posts of ANY user (for /{userId} endpoint) */
+  @Transactional(readOnly = true)
   public ProfileWithPostsResponse getProfileWithPostsByUserId(
       String targetUserId, Authentication authentication, Pageable pageable) {
     String currentUserId = securityUtils.getCurrentUserId(authentication);
+    Pageable safePageable = clampPageSize(pageable, MAX_PROFILE_POSTS_PAGE_SIZE);
     // When viewing "someone else", targetUserId (from URL) and currentUserId (from token) differ
-    return buildProfileWithPosts(targetUserId, currentUserId, pageable);
+    return buildProfileWithPosts(targetUserId, currentUserId, safePageable);
   }
 
   /** Get profile of the current user (profile only, no posts) */
+  @Transactional(readOnly = true)
   public ProfileResponse getCurrentProfile(Authentication authentication) {
     String userId = securityUtils.getCurrentUserId(authentication);
     UserProfile userProfile =
         profileRepository
-            .findByUserId(userId)
+            .findProfileOnlyByUserId(userId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
     ProfileResponse response = profileMapper.toProfileResponse(userProfile);
@@ -192,14 +203,15 @@ public class ProfileService {
   }
 
   /** Get profile for any user (profile only, no posts) */
+  @Transactional(readOnly = true)
   public ProfileResponse getProfileByUserId(String targetUserId, Authentication authentication) {
-    log.info("[PROFILE_GET] Fetching profile for target: {}", targetUserId);
+    log.debug("[PROFILE_GET] Fetching profile for target: {}", targetUserId);
 
     var targetProfile =
         profileRepository
-            .findByUserId(targetUserId)
+        .findProfileOnlyByUserId(targetUserId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-    log.info("[PROFILE_GET] Found profile: {}", targetProfile.getDisplayName());
+    log.debug("[PROFILE_GET] Found profile: {}", targetProfile.getDisplayName());
 
     ProfileResponse response = profileMapper.toProfileResponse(targetProfile);
 
@@ -223,19 +235,41 @@ public class ProfileService {
 
     String currentUserId = securityUtils.getCurrentUserId(authentication);
 
-    // Determine relationship status and follow state
-    RelationshipStatus status =
-        socialUtils.determineRelationshipStatus(currentUserId, targetProfile);
-    response.setRelationshipStatus(status);
-    log.info("[PROFILE_GET] Determined relationship status: {}", status);
+    // Fast-path self profile view to avoid unnecessary relationship/block repository lookups.
+    if (currentUserId.equals(targetUserId)) {
+      response.setRelationshipStatus(RelationshipStatus.SELF);
+      response.setFollowing(false);
+      response.setIsBlocked(false);
+      if (response.getFriends() == null) {
+        response.setFriends(Collections.emptyList());
+      }
+      return response;
+    }
 
-    boolean isFollowing =
-        followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
+    // Run independent relationship checks in parallel to reduce tail latency.
+    CompletableFuture<RelationshipStatus> statusFuture =
+      CompletableFuture.supplyAsync(
+        () -> socialUtils.determineRelationshipStatus(currentUserId, targetProfile), taskExecutor);
+    CompletableFuture<Boolean> followingFuture =
+      CompletableFuture.supplyAsync(
+        () -> followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId),
+        taskExecutor);
+    CompletableFuture<Boolean> blockedFuture =
+      CompletableFuture.supplyAsync(
+        () -> blockService.hasBlocked(currentUserId, targetUserId), taskExecutor);
+
+    CompletableFuture.allOf(statusFuture, followingFuture, blockedFuture).join();
+
+    RelationshipStatus status = statusFuture.join();
+    response.setRelationshipStatus(status);
+    log.debug("[PROFILE_GET] Determined relationship status: {}", status);
+
+    boolean isFollowing = followingFuture.join();
     response.setFollowing(isFollowing);
-    log.info("[PROFILE_GET] Follow check complete.");
+    log.debug("[PROFILE_GET] Follow check complete.");
 
     // Check if current user has blocked this profile
-    boolean isBlocked = blockService.hasBlocked(currentUserId, targetUserId);
+    boolean isBlocked = blockedFuture.join();
     response.setIsBlocked(isBlocked);
 
     if (response.getFriends() == null) {
@@ -669,7 +703,7 @@ public class ProfileService {
             () -> {
               UserProfile userProfile =
                   profileRepository
-                      .findByUserId(targetUserId)
+                    .findProfileOnlyByUserId(targetUserId)
                       .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
               ProfileResponse localResponse = profileMapper.toProfileResponse(userProfile);
@@ -720,6 +754,20 @@ public class ProfileService {
     if (value != null) {
       setter.accept(value);
     }
+  }
+
+  private Pageable clampPageSize(Pageable pageable, int maxPageSize) {
+    if (pageable == null) {
+      return org.springframework.data.domain.PageRequest.of(0, maxPageSize);
+    }
+
+    int clampedSize = Math.max(1, Math.min(pageable.getPageSize(), maxPageSize));
+    if (clampedSize == pageable.getPageSize()) {
+      return pageable;
+    }
+
+    return org.springframework.data.domain.PageRequest.of(
+        pageable.getPageNumber(), clampedSize, pageable.getSort());
   }
 
   // --- Helpers for Registration (verifyOtpAndCreateUser) ---

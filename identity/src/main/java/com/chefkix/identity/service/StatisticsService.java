@@ -733,9 +733,11 @@ import org.springframework.transaction.annotation.Transactional;
             default -> "statistics.xpWeekly";
         };
 
+        boolean isFriendsLeaderboard = "friends".equals(type);
+
         // 1. Get user profiles sorted by XP, with a ceiling to prevent DoS
         List<UserProfile> profiles;
-        if ("friends".equals(type) && friendIds != null && !friendIds.isEmpty()) {
+        if (isFriendsLeaderboard && friendIds != null && !friendIds.isEmpty()) {
             profiles = userProfileRepository.findAllByUserIdIn(friendIds)
                     .stream()
                     .filter(p -> p.getStatistics() != null)
@@ -743,39 +745,37 @@ import org.springframework.transaction.annotation.Transactional;
             // Add current user to friends list for comparison
             userProfileRepository.findByUserId(currentUserId).ifPresent(profiles::add);
         } else {
-            // Global leaderboard - top N users sorted by XP (fetch extra for privacy/block filtering)
-            int fetchLimit = limit * 3;
-            profiles = userProfileRepository.findAll(
-                            PageRequest.of(0, fetchLimit, Sort.by(Sort.Direction.DESC, sortField)))
-                    .getContent()
-                    .stream()
-                    .filter(p -> p.getStatistics() != null)
-                    .collect(Collectors.toList());
+            profiles = fetchProjectedGlobalLeaderboardProfiles(sortField, limit * 3);
         }
+
+        Map<String, com.chefkix.identity.entity.UserSettings.PrivacySettings> privacyByUserId =
+                settingsService.getPrivacySettingsByUserIds(
+                        profiles.stream()
+                                .map(UserProfile::getUserId)
+                                .filter(userId -> userId != null && !userId.isBlank())
+                                .collect(Collectors.toSet()));
 
         // PRIVACY: Filter out users who opted out of leaderboard
         profiles.removeIf(p -> {
-            if (p.getUserId().equals(currentUserId)) return false; // Never hide current user from themselves
-            try {
-                var privacy = settingsService.getPrivacySettingsByUserId(p.getUserId());
-                return privacy != null && Boolean.FALSE.equals(privacy.getShowOnLeaderboard());
-            } catch (Exception e) {
-                return false; // Default to showing if settings lookup fails
-            }
+            if (currentUserId != null && currentUserId.equals(p.getUserId())) return false; // Never hide current user from themselves
+            var privacy = privacyByUserId.get(p.getUserId());
+            return privacy != null && Boolean.FALSE.equals(privacy.getShowOnLeaderboard());
         });
 
         // PRIVACY: Filter out blocked users (bidirectional)
-        List<String> invisibleIds = blockService.getInvisibleUserIds(currentUserId);
+        Set<String> invisibleIds = new HashSet<>(blockService.getInvisibleUserIds(currentUserId));
         if (!invisibleIds.isEmpty()) {
             profiles.removeIf(p -> invisibleIds.contains(p.getUserId()));
         }
 
-        // 2. Sort by XP based on timeframe
-        profiles.sort((a, b) -> {
-            double xpA = getXpForTimeframe(a.getStatistics(), timeframe);
-            double xpB = getXpForTimeframe(b.getStatistics(), timeframe);
-            return Double.compare(xpB, xpA); // Descending order
-        });
+        // 2. Sort by XP based on timeframe when the source query did not already provide ordering.
+        if (isFriendsLeaderboard) {
+            profiles.sort((a, b) -> {
+                double xpA = getXpForTimeframe(a.getStatistics(), timeframe);
+                double xpB = getXpForTimeframe(b.getStatistics(), timeframe);
+                return Double.compare(xpB, xpA); // Descending order
+            });
+        }
 
         // 3. Find current user's rank
         int userRank = 0;
@@ -871,6 +871,30 @@ import org.springframework.transaction.annotation.Transactional;
             default -> stats.getXpWeekly() != null ? stats.getXpWeekly() : 0.0;
         };
     }
+
+            private List<UserProfile> fetchProjectedGlobalLeaderboardProfiles(String sortField, int fetchLimit) {
+            Query query = new Query()
+                .with(Sort.by(Sort.Direction.DESC, sortField))
+                .limit(fetchLimit);
+            query.fields()
+                .include("userId")
+                .include("username")
+                .include("displayName")
+                .include("avatarUrl")
+                .include("statistics.currentLevel")
+                .include("statistics.currentXP")
+                .include("statistics.xpWeekly")
+                .include("statistics.xpMonthly")
+                .include("statistics.completionCount")
+                .include("statistics.streakCount")
+                .include("statistics.badges")
+                .include("statistics.badgeTimestamps");
+
+            return mongoTemplate.find(query, UserProfile.class)
+                .stream()
+                .filter(p -> p.getStatistics() != null)
+                .collect(Collectors.toList());
+            }
 
     /**
      * Sends gamification notification via Kafka to notification-service.
