@@ -35,6 +35,7 @@ import com.chefkix.social.post.repository.PostSaveRepository;
 import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.social.post.repository.ReportRepository;
+import com.chefkix.social.post.repository.TasteProfileRedisRepository;
 import com.chefkix.social.post.mapper.PostMapper;
 import com.chefkix.shared.util.UploadImageFile;
 import java.util.ArrayList;
@@ -110,6 +111,8 @@ class PostServiceTest {
     private RecipeProvider recipeProvider;
     @Mock
     private Executor taskExecutor;
+        @Mock
+        private TasteProfileRedisRepository tasteProfileRedisRepository;
 
     @InjectMocks
     private PostService postService;
@@ -196,7 +199,6 @@ class PostServiceTest {
         when(postMapper.toPostResponse(post)).thenReturn(response);
         when(postLikeRepository.findByUserIdAndPostIdIn(currentUserId, List.of(post.getId()))).thenReturn(List.of());
         when(postSaveRepository.findByUserIdAndPostIdIn(currentUserId, List.of(post.getId()))).thenReturn(List.of());
-        when(plateRatingRepository.findByPostIdInAndUserId(List.of(post.getId()), currentUserId)).thenReturn(List.of());
 
         var result = postService.getGroupPosts(groupId, pageable, currentUserId);
 
@@ -252,12 +254,14 @@ class PostServiceTest {
 
         when(mongoTemplate.find(any(Query.class), eq(com.chefkix.social.post.entity.PostLike.class))).thenReturn(List.of());
         when(mongoTemplate.find(any(Query.class), eq(com.chefkix.social.post.entity.PostSave.class))).thenReturn(List.of());
+        when(tasteProfileRedisRepository.find(currentUserId)).thenReturn(Optional.empty());
         when(profileProvider.getUserPreferences(currentUserId)).thenReturn(List.of("ramen"));
+        when(profileProvider.getBehavioralPostWeights(currentUserId)).thenReturn(java.util.Collections.emptyMap());
+        when(profileProvider.getRecentSearchQueries(currentUserId)).thenReturn(List.of());
         when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of(candidate));
         when(postMapper.toPostResponse(candidate)).thenReturn(response);
         when(postLikeRepository.findByUserIdAndPostIdIn(currentUserId, List.of(candidate.getId()))).thenReturn(List.of());
         when(postSaveRepository.findByUserIdAndPostIdIn(currentUserId, List.of(candidate.getId()))).thenReturn(List.of());
-        when(plateRatingRepository.findByPostIdInAndUserId(List.of(candidate.getId()), currentUserId)).thenReturn(List.of());
 
         Page<PostResponse> result = postService.getAllPosts(2, pageable, currentUserId);
 
