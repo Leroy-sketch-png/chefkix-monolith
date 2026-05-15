@@ -14,8 +14,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/cooking-sessions")
@@ -41,14 +44,6 @@ public class CookingSessionController {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(sessionService.completeSession(userId, sessionId, request));
-    }
-
-    @GetMapping("/{sessionId}")
-    public ApiResponse<CurrentSessionResponse> getSessionBySessionId(
-            @PathVariable String sessionId
-    ) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ApiResponse.success(sessionService.getBySessionId(sessionId, userId));
     }
 
     @GetMapping
@@ -89,6 +84,12 @@ public class CookingSessionController {
                 .build();
     }
 
+    @GetMapping("/pending")
+    public ApiResponse<List<SessionHistoryResponse.SessionItemDto>> getPendingSessions() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ApiResponse.success(sessionService.getPendingSessions(userId));
+    }
+
     @PostMapping("/{sessionId}/timer-event")
     public ApiResponse<LoggedResponse> startTimerEvent(
             @Valid @PathVariable String sessionId,
@@ -110,19 +111,21 @@ public class CookingSessionController {
     }
 
     @GetMapping("/current")
-    public ApiResponse<CurrentSessionResponse> getCurrentSession(
+    public ResponseEntity<ApiResponse<CurrentSessionResponse>> getCurrentSession(
     ) {
         CurrentSessionResponse response = sessionService.getCurrentSession();
-        // Return 404-style response when no active session exists
-        // This prevents FE from receiving 200 OK with null/undefined data
+        // Return an actual 404 when no active session exists so clients can
+        // distinguish "no session" from a successful payload.
         if (response == null) {
-            return ApiResponse.<CurrentSessionResponse>builder()
-                    .success(false)
-                    .statusCode(404)
-                    .message("No active session")
-                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponse.<CurrentSessionResponse>builder()
+                            .success(false)
+                            .statusCode(404)
+                            .message("No active session")
+                            .build()
+            );
         }
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -132,6 +135,14 @@ public class CookingSessionController {
     @GetMapping("/friends-active")
     public ApiResponse<FriendCookingActivityResponse> getFriendsActiveCooking() {
         return ApiResponse.success(sessionService.getFriendsActiveCooking());
+    }
+
+    @GetMapping("/{sessionId:[a-fA-F0-9]{24}}")
+    public ApiResponse<CurrentSessionResponse> getSessionBySessionId(
+            @PathVariable String sessionId
+    ) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ApiResponse.success(sessionService.getBySessionId(sessionId, userId));
     }
 
     @PostMapping("/{sessionId}/pause")

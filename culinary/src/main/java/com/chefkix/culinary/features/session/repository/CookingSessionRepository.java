@@ -27,6 +27,9 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
 
     Optional<CookingSession> findFirstByUserIdAndStatusIn(String userId, List<SessionStatus> statuses);
 
+        List<CookingSession> findTop20ByUserIdAndStatusAndPostIdIsNullOrderByCompletedAtDesc(
+            String userId, SessionStatus status);
+
     List<CookingSession> findAllByPostIdAndStatus(String postId, SessionStatus status);
 
     Page<CookingSession> findAllByUserIdAndStatusIn(String userId, List<SessionStatus> statuses, Pageable pageable);

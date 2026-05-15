@@ -18,7 +18,12 @@ import java.util.List;
 @Document(collection = "cooking_sessions")
 @CompoundIndexes({
     @CompoundIndex(name = "user_status_idx", def = "{'userId': 1, 'status': 1}"),
-    @CompoundIndex(name = "user_recipe_status_idx", def = "{'userId': 1, 'recipeId': 1, 'status': 1}")
+    @CompoundIndex(name = "user_recipe_status_idx", def = "{'userId': 1, 'recipeId': 1, 'status': 1}"),
+    @CompoundIndex(name = "user_started_idx", def = "{'userId': 1, 'startedAt': -1}"),
+    @CompoundIndex(
+            name = "user_pending_completed_idx",
+            def = "{'userId': 1, 'status': 1, 'postId': 1, 'completedAt': -1}"
+    )
 })
 @Data
 @Builder
