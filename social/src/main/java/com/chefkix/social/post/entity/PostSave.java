@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Document(collection = "post_save")
 @CompoundIndexes({
     @CompoundIndex(name = "post_user_idx", def = "{'postId': 1, 'userId': 1}", unique = true),
+    @CompoundIndex(name = "user_post_idx", def = "{'userId': 1, 'postId': 1}"),
     @CompoundIndex(name = "user_saved_feed_idx", def = "{'userId': 1, 'createdDate': -1}")
 })
 @Data

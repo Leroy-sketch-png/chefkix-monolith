@@ -30,7 +30,11 @@ import java.util.List;
         // 5. For recipe reviews lookup (by recipe, newest first)
         @CompoundIndex(def = "{'recipeId': 1, 'postType': 1, 'createdAt': -1}", name = "idx_recipeId_postType_createdAt"),
         // 6. For active recipe battles (ending soonest first)
-        @CompoundIndex(def = "{'postType': 1, 'battleEndsAt': 1}", name = "idx_postType_battleEndsAt")
+        @CompoundIndex(def = "{'postType': 1, 'battleEndsAt': 1}", name = "idx_postType_battleEndsAt"),
+        // 7. For profile feed with hidden=false and createdAt sort (postType filter is inequality).
+        @CompoundIndex(def = "{'userId': 1, 'hidden': 1, 'createdAt': -1}", name = "idx_user_hidden_createdAt"),
+        // 7. For profile feed endpoint (/posts/feed?userId=...) with hidden/group filters
+        @CompoundIndex(def = "{'userId': 1, 'hidden': 1, 'postType': 1, 'createdAt': -1}", name = "idx_user_hidden_postType_createdAt")
 })@Data
 @NoArgsConstructor
 @AllArgsConstructor

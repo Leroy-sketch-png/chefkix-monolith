@@ -6,6 +6,7 @@ import com.chefkix.social.post.enums.PostType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -49,4 +50,11 @@ public interface PostRepository extends MongoRepository<Post, String> {
     // Legacy (kept for backward compat, prefer hidden-aware variants above)
     Page<Post> findAllByUserId(String userId, Pageable pageable);
     long countByUserId(String userId);
+
+    /**
+     * Lean fetch for feed/saved views.
+     * Excludes commentIds, which can grow large and are not used in PostResponse.
+     */
+    @Query(value = "{ '_id': { '$in': ?0 } }", fields = "{ 'commentIds': 0 }")
+    List<Post> findLeanByIdIn(List<String> ids);
 }
