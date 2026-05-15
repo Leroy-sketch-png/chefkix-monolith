@@ -58,6 +58,7 @@ import com.chefkix.social.post.repository.CommentLikeRepository;
 import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.repository.CollectionRepository;
 import com.chefkix.social.post.repository.ReportRepository;
+import com.chefkix.social.post.repository.TasteProfileRedisRepository;
 import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.entity.PlateRating;
@@ -105,6 +106,9 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PostService {
 
+    private static final int MAX_PROFILE_POSTS_PAGE_SIZE = 30;
+    private static final int MAX_SAVED_POSTS_PAGE_SIZE = 30;
+
     PostMapper postMapper;
     PostRepository postRepository;
     PostLikeRepository postLikeRepository;
@@ -118,6 +122,7 @@ public class PostService {
     ReplyLikeRepository replyLikeRepository;
     CollectionRepository collectionRepository;
     ReportRepository reportRepository;
+    TasteProfileRedisRepository tasteProfileRedisRepository;
     MongoTemplate mongoTemplate;
     GroupRepository groupRepository;
     GroupMemberRepository groupMemberRepository;
@@ -577,6 +582,7 @@ public class PostService {
 
         // Award social XP to the liker (1 XP per like)
         sendSocialXpEvent(userId, 1.0, "SOCIAL_LIKE", post.getId(), "Liked a post");
+        tasteProfileRedisRepository.evict(userId);
 
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostLikeResponse.builder().isLiked(true).likeCount((int) likeCount).build();
@@ -601,6 +607,8 @@ public class PostService {
                 Query.query(Criteria.where("id").is(postId)),
                 new Update().inc("likes", -1).set("updatedAt", Instant.now()),
                 Post.class);
+
+        tasteProfileRedisRepository.evict(userId);
 
         long likeCount = postLikeRepository.countByPostId(postId);
         return PostLikeResponse.builder().isLiked(false).likeCount((int) likeCount).build();
@@ -976,6 +984,11 @@ public class PostService {
      * comments (1.8x), creation (2.5x), search queries (0.3x per word).
      */
     private Map<String, Double> buildWeightedTasteProfile(String currentUserId) {
+        Optional<Map<String, Double>> cachedTasteProfile = tasteProfileRedisRepository.find(currentUserId);
+        if (cachedTasteProfile.isPresent()) {
+            return cachedTasteProfile.get();
+        }
+
         // Get recent liked posts (last 100)
         Query likeQuery = new Query(Criteria.where("userId").is(currentUserId))
                 .with(Sort.by(Sort.Direction.DESC, "createdDate"))
@@ -1037,7 +1050,10 @@ public class PostService {
             }
         }
 
-        if (tagWeights.isEmpty()) return Map.of();
+        if (tagWeights.isEmpty()) {
+            tasteProfileRedisRepository.save(currentUserId, Map.of());
+            return Map.of();
+        }
 
         // Normalize to 0..1 range
         double maxWeight = tagWeights.values().stream().mapToDouble(Double::doubleValue).max().orElse(1.0);
@@ -1047,6 +1063,7 @@ public class PostService {
                 .limit(30) // Top 30 taste tags
                 .forEach(e -> normalized.put(e.getKey(), e.getValue() / maxWeight));
 
+        tasteProfileRedisRepository.save(currentUserId, normalized);
         return normalized;
     }
 
@@ -1158,10 +1175,24 @@ public class PostService {
         return ids;
     }
 
+    private Pageable clampPageable(Pageable pageable, int maxPageSize) {
+        if (pageable == null) {
+            return PageRequest.of(0, maxPageSize, Sort.by("createdAt").descending());
+        }
+
+        int clampedSize = Math.max(1, Math.min(pageable.getPageSize(), maxPageSize));
+        if (clampedSize == pageable.getPageSize()) {
+            return pageable;
+        }
+
+        return PageRequest.of(pageable.getPageNumber(), clampedSize, pageable.getSort());
+    }
+
     public Page<PostResponse> getAllPostsByUserId(String userId, Pageable pageable, String currentUserId) {
+        Pageable safePageable = clampPageable(pageable, MAX_PROFILE_POSTS_PAGE_SIZE);
         Pageable sortedPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
+                safePageable.getPageNumber(),
+                safePageable.getPageSize(),
                 Sort.by("createdAt").descending()
         );
 
@@ -1171,6 +1202,8 @@ public class PostService {
                 .and("postType").ne(PostType.GROUP.name());
 
         Query query = new Query(criteria).with(Sort.by("createdAt").descending());
+        // commentIds can be very large and are not needed by PostResponse feed cards.
+        query.fields().exclude("commentIds");
         query.skip((long) sortedPageable.getPageNumber() * sortedPageable.getPageSize());
         query.limit(sortedPageable.getPageSize());
 
@@ -1320,10 +1353,16 @@ public class PostService {
                     .forEach(v -> battleVoteMap.put(v.getPostId(), v.getChoice()));
         }
 
-        // Batch plate rating lookup
-        var plateRatings = plateRatingRepository.findByPostIdInAndUserId(postIds, currentUserId);
-        var plateRatingMap = plateRatings.stream()
-                .collect(Collectors.toMap(PlateRating::getPostId, PlateRating::getRating));
+        // Batch plate rating lookup only for posts that can be plate-rated.
+        List<String> ratablePostIds = content.stream()
+            .filter(p -> p.getPhotoUrls() != null && !p.getPhotoUrls().isEmpty())
+            .map(PostResponse::getId)
+            .collect(Collectors.toList());
+        Map<String, String> plateRatingMap = new HashMap<>();
+        if (!ratablePostIds.isEmpty()) {
+            plateRatingRepository.findByPostIdInAndUserId(ratablePostIds, currentUserId)
+                .forEach(pr -> plateRatingMap.put(pr.getPostId(), pr.getRating()));
+        }
 
         content.forEach(post -> {
             post.setIsLiked(likedPostIds.contains(post.getId()));
@@ -1599,6 +1638,7 @@ public class PostService {
 
         // Award social XP to the saver (1 XP per save)
         sendSocialXpEvent(userId, 1.0, "SOCIAL_SAVE", postId, "Saved a post");
+        tasteProfileRedisRepository.evict(userId);
         
         long saveCount = postSaveRepository.countByPostId(postId);
         return PostSaveResponse.builder()
@@ -1609,6 +1649,7 @@ public class PostService {
 
     private PostSaveResponse unsavePost(String postId, String userId) {
         postSaveRepository.deleteByPostIdAndUserId(postId, userId);
+        tasteProfileRedisRepository.evict(userId);
         
         long saveCount = postSaveRepository.countByPostId(postId);
         return PostSaveResponse.builder()
@@ -1623,9 +1664,10 @@ public class PostService {
     @Transactional(readOnly = true)
     public Page<PostResponse> getSavedPosts(Pageable pageable) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        Pageable safePageable = clampPageable(pageable, MAX_SAVED_POSTS_PAGE_SIZE);
         
         // Get saved post IDs for user
-        Page<PostSave> savedPosts = postSaveRepository.findByUserIdOrderByCreatedDateDesc(userId, pageable);
+        Page<PostSave> savedPosts = postSaveRepository.findByUserIdOrderByCreatedDateDesc(userId, safePageable);
         
         // Extract post IDs
         List<String> postIds = savedPosts.getContent().stream()
@@ -1633,11 +1675,11 @@ public class PostService {
                 .collect(Collectors.toList());
         
         if (postIds.isEmpty()) {
-            return Page.empty(pageable);
+            return Page.empty(safePageable);
         }
         
         // Fetch actual posts (preserving order)
-        List<Post> posts = postRepository.findAllById(postIds);
+        List<Post> posts = postRepository.findLeanByIdIn(postIds);
         
         // Create a map for quick lookup
         Map<String, Post> postMap = posts.stream()
@@ -1652,17 +1694,17 @@ public class PostService {
 
         // Batch-enrich like/save status (2 queries instead of 2*N)
         if (!responses.isEmpty()) {
-            var likedPosts = postLikeRepository.findByUserIdAndPostIdIn(userId, postIds);
-            var savedPostsSet = postSaveRepository.findByUserIdAndPostIdIn(userId, postIds);
+            var responsePostIds = responses.stream().map(PostResponse::getId).collect(Collectors.toList());
+            var likedPosts = postLikeRepository.findByUserIdAndPostIdIn(userId, responsePostIds);
             var likedPostIds = likedPosts.stream().map(l -> l.getPostId()).collect(Collectors.toSet());
-            var savedPostIds = savedPostsSet.stream().map(s -> s.getPostId()).collect(Collectors.toSet());
             responses.forEach(r -> {
                 r.setIsLiked(likedPostIds.contains(r.getId()));
-                r.setIsSaved(savedPostIds.contains(r.getId()));
+                // This endpoint only returns saved posts for current user.
+                r.setIsSaved(true);
             });
         }
         
-        return new PageImpl<>(responses, pageable, savedPosts.getTotalElements());
+        return new PageImpl<>(responses, safePageable, savedPosts.getTotalElements());
     }
 
     @Transactional(readOnly = true)
