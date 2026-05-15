@@ -30,7 +30,8 @@ import java.util.Map;
 @Document(collection = "recipes")
 // Compound index for fast News Feed queries: get published recipes, sorted newest first
 @CompoundIndexes({
-        @CompoundIndex(name = "published_date_idx", def = "{'isPublished': 1, 'createdAt': -1}")
+    @CompoundIndex(name = "published_date_idx", def = "{'isPublished': 1, 'createdAt': -1}"),
+    @CompoundIndex(name = "status_trending_idx", def = "{'status': 1, 'trendingScore': -1}")
 })
 public class Recipe {
 

@@ -63,14 +63,13 @@ public class RecipeProviderImpl implements RecipeProvider {
     @Override
     public CreatorInsightsInfo getCreatorInsights(String userId) {
         InternalCreatorInsightsResponse internal = recipeService.getRecipeWithAboveTenCooks(userId);
-        int publishedCount = (int) recipeRepository.countByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);
 
         List<CreatorInsightsInfo.TopRecipeInfo> highPerforming = internal.getHighPerformingRecipes() != null
                 ? internal.getHighPerformingRecipes().stream().map(this::mapTopRecipe).collect(Collectors.toList())
                 : List.of();
 
         return CreatorInsightsInfo.builder()
-                .totalRecipesPublished(publishedCount)
+                .totalRecipesPublished((int) internal.getTotalRecipesPublished())
                 .avgRating(internal.getAvgRating() != null ? internal.getAvgRating() : 0.0)
                 .topRecipes(internal.getTopRecipe() != null ? List.of(mapTopRecipe(internal.getTopRecipe())) : List.of())
                 .highPerformingRecipes(highPerforming)

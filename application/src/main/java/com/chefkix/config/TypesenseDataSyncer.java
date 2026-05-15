@@ -4,8 +4,6 @@ import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeIngredientRepository;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.events.RecipeIndexEvent;
-import com.chefkix.identity.events.UserIndexEvent;
-import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.social.post.events.PostIndexEvent;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.culinary.common.enums.RecipeStatus;
@@ -238,37 +236,69 @@ public class TypesenseDataSyncer {
     // USER INDEXING (real-time)
     // ========================================================================
 
-    private Map<String, Object> userProfileToDocument(UserProfile profile) {
+    private Map<String, Object> userProfileToDocument(Object profile) {
         Map<String, Object> doc = new LinkedHashMap<>();
-        doc.put("id", profile.getUserId());
-        doc.put("username", profile.getUsername());
-        doc.put("displayName", profile.getDisplayName());
-        doc.put("firstName", profile.getFirstName());
-        doc.put("lastName", profile.getLastName());
-        doc.put("bio", profile.getBio());
-        doc.put("avatarUrl", profile.getAvatarUrl());
-        var stats = profile.getStatistics();
-        doc.put("followerCount", stats != null && stats.getFollowerCount() != null ? stats.getFollowerCount().intValue() : 0);
-        doc.put("recipeCount", stats != null && stats.getTotalRecipesPublished() != null ? stats.getTotalRecipesPublished().intValue() : 0);
+        doc.put("id", getStringValue(profile, "getUserId"));
+        doc.put("username", getStringValue(profile, "getUsername"));
+        doc.put("displayName", getStringValue(profile, "getDisplayName"));
+        doc.put("firstName", getStringValue(profile, "getFirstName"));
+        doc.put("lastName", getStringValue(profile, "getLastName"));
+        doc.put("bio", getStringValue(profile, "getBio"));
+        doc.put("avatarUrl", getStringValue(profile, "getAvatarUrl"));
+
+        Object stats = invokeNoArg(profile, "getStatistics");
+        doc.put("followerCount", getIntValue(stats, "getFollowerCount"));
+        doc.put("recipeCount", getIntValue(stats, "getTotalRecipesPublished"));
         return doc;
     }
 
     @EventListener
-    public void onUserIndexEvent(UserIndexEvent event) {
-        if (!typesenseService.isHealthy()) {
-            log.warn("Typesense unreachable -- skipping real-time index for user {}", event.userId());
+    public void onUserIndexEvent(Object event) {
+        if (event == null || !"com.chefkix.identity.events.UserIndexEvent".equals(event.getClass().getName())) {
             return;
         }
+
+        String userId = getStringValue(event, "userId");
+        String action = getStringValue(event, "action");
+        Object profile = invokeNoArg(event, "profile");
+
+        if (!typesenseService.isHealthy()) {
+            log.warn("Typesense unreachable -- skipping real-time index for user {}", userId);
+            return;
+        }
+
         try {
-            if ("INDEX".equals(event.action())) {
-                typesenseService.upsertDocument("users", userProfileToDocument(event.profile()));
-                log.info("Real-time indexed user {} in Typesense", event.userId());
-            } else if ("REMOVE".equals(event.action())) {
-                typesenseService.deleteDocument("users", event.userId());
-                log.info("Real-time removed user {} from Typesense", event.userId());
+            if ("INDEX".equals(action)) {
+                typesenseService.upsertDocument("users", userProfileToDocument(profile));
+                log.info("Real-time indexed user {} in Typesense", userId);
+            } else if ("REMOVE".equals(action)) {
+                typesenseService.deleteDocument("users", userId);
+                log.info("Real-time removed user {} from Typesense", userId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for user {}: {}", event.userId(), e.getMessage());
+            log.error("Real-time Typesense index failed for user {}: {}", userId, e.getMessage());
         }
+    }
+
+    private Object invokeNoArg(Object target, String methodName) {
+        if (target == null) {
+            return null;
+        }
+
+        try {
+            return target.getClass().getMethod(methodName).invoke(target);
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
+    private String getStringValue(Object target, String methodName) {
+        Object value = invokeNoArg(target, methodName);
+        return value != null ? value.toString() : "";
+    }
+
+    private int getIntValue(Object target, String methodName) {
+        Object value = invokeNoArg(target, methodName);
+        return value instanceof Number number ? number.intValue() : 0;
     }
 }

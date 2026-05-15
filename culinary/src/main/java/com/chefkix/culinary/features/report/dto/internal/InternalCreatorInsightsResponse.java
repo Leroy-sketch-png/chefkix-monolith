@@ -22,6 +22,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InternalCreatorInsightsResponse {
 
+    long totalRecipesPublished;
+
     TopRecipeDto topRecipe;
 
     List<TopRecipeDto> highPerformingRecipes;

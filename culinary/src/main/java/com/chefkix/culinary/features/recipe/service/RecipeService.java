@@ -21,6 +21,8 @@ import com.chefkix.culinary.common.helper.RecipeHelper;
 import com.chefkix.culinary.features.recipe.events.RecipeIndexEvent;
 import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
+import com.chefkix.culinary.features.recipe.repository.projection.CreatorInsightsRecipeProjection;
+import com.chefkix.culinary.features.recipe.repository.TonightsPickRedisRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import com.chefkix.culinary.features.interaction.service.InteractionService; // InteractionService import
@@ -42,6 +44,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -64,6 +70,7 @@ public class RecipeService {
     RecipeHelper recipeHelper;
     InteractionService interactionService;
     CookingSessionRepository cookingSessionRepository;
+    TonightsPickRedisRepository tonightsPickRedisRepository;
     ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -317,6 +324,12 @@ public class RecipeService {
         }
         final String currentUserId = rawUserId;
         final boolean authenticated = currentUserId != null && !"anonymousUser".equals(currentUserId);
+        final String cacheKey = buildTonightsPickCacheKey(currentUserId, authenticated);
+
+        Optional<RecommendationResponse> cachedRecommendation = tonightsPickRedisRepository.find(cacheKey);
+        if (cachedRecommendation.isPresent()) {
+            return cachedRecommendation.get();
+        }
 
         // --- Gather user signals (all nullable/empty-safe) ---
         Set<String> userPreferences = Set.of();
@@ -381,14 +394,28 @@ public class RecipeService {
         if (maxTrending == 0.0) maxTrending = 1.0;
         final double normTrending = maxTrending;
 
-        Recipe pick = candidatePage.getContent().stream()
-                // Exclude user's own recipes and recently cooked
-                .filter(r -> !authenticated || !r.getUserId().equals(currentUserId))
-                .filter(r -> !finalCookedIds.contains(r.getId()))
-                .max(Comparator.comparingDouble(r -> scoreTonightsPick(
-                        r, finalPrefs, finalHistoryCuisines, seasonalTags,
-                        targetDifficulties, normTrending)))
-                .orElse(null);
+        List<Map.Entry<Recipe, Double>> scoredCandidates = candidatePage.getContent().stream()
+            // Exclude user's own recipes and recently cooked
+            .filter(r -> !authenticated || !r.getUserId().equals(currentUserId))
+            .filter(r -> !finalCookedIds.contains(r.getId()))
+            .map(r -> Map.entry(
+                r,
+                scoreTonightsPick(
+                    r,
+                    finalPrefs,
+                    finalHistoryCuisines,
+                    seasonalTags,
+                    targetDifficulties,
+                    normTrending
+                )
+            ))
+            .toList();
+
+        Map.Entry<Recipe, Double> pickEntry = scoredCandidates.stream()
+            .max(Map.Entry.comparingByValue())
+            .orElse(null);
+
+        Recipe pick = pickEntry != null ? pickEntry.getKey() : null;
 
         // Last fallback: just the top trending recipe
         if (pick == null) {
@@ -406,8 +433,10 @@ public class RecipeService {
 
         // Build recommendation metadata
         List<String> signals = new ArrayList<>();
-        double totalScore = scoreTonightsPick(pick, finalPrefs, finalHistoryCuisines,
-                seasonalTags, targetDifficulties, normTrending);
+        double totalScore = pickEntry != null && pickEntry.getKey().getId().equals(pick.getId())
+            ? pickEntry.getValue()
+            : scoreTonightsPick(pick, finalPrefs, finalHistoryCuisines,
+            seasonalTags, targetDifficulties, normTrending);
 
         String cuisine = pick.getCuisineType() != null ? pick.getCuisineType() : "";
         if (!finalPrefs.isEmpty() && finalPrefs.contains(cuisine.toLowerCase())) {
@@ -438,12 +467,29 @@ public class RecipeService {
             whyRecommended = signals.get(0) + " and " + (signals.size() - 1) + " more reason" + (signals.size() > 2 ? "s" : "");
         }
 
-        return RecommendationResponse.builder()
+        RecommendationResponse recommendation = RecommendationResponse.builder()
                 .recipe(response)
                 .whyRecommended(whyRecommended)
                 .matchSignals(signals)
                 .confidenceScore(totalScore)
                 .build();
+
+        tonightsPickRedisRepository.save(cacheKey, recommendation, ttlUntilNextUtcMidnight());
+
+        return recommendation;
+    }
+
+    private String buildTonightsPickCacheKey(String userId, boolean authenticated) {
+        String scope = authenticated ? userId : "guest";
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        return "recipe:tonights-pick:" + today + ":" + scope;
+    }
+
+    private Duration ttlUntilNextUtcMidnight() {
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay(ZoneOffset.UTC);
+        Duration ttl = Duration.between(now, nextMidnight);
+        return ttl.isNegative() || ttl.isZero() ? Duration.ofMinutes(5) : ttl;
     }
 
     /**
@@ -544,12 +590,15 @@ public class RecipeService {
     }
 
     public InternalCreatorInsightsResponse getRecipeWithAboveTenCooks(String userId) {
-        // Get all published recipes for this user
-        List<Recipe> allRecipes = recipeRepository.findByUserIdAndStatus(userId, RecipeStatus.PUBLISHED);
+        List<CreatorInsightsRecipeProjection> allRecipes = recipeRepository.findByUserIdAndStatus(
+            userId,
+            RecipeStatus.PUBLISHED,
+            CreatorInsightsRecipeProjection.class);
         
         // Handle case where user has no recipes
         if (allRecipes.isEmpty()) {
             return InternalCreatorInsightsResponse.builder()
+                .totalRecipesPublished(0)
                     .topRecipe(null)
                     .highPerformingRecipes(List.of())
                     .avgRating(null)
@@ -557,28 +606,49 @@ public class RecipeService {
         }
         
         // Find top recipe by cook count
-        Recipe top = allRecipes.stream()
+        CreatorInsightsRecipeProjection top = allRecipes.stream()
                 .max((r1, r2) -> Long.compare(r1.getCookCount(), r2.getCookCount()))
                 .orElse(allRecipes.get(0));
         
         // Filter high-performing recipes (10+ cooks)
-        List<Recipe> performantRecipes = allRecipes.stream()
+        List<CreatorInsightsRecipeProjection> performantRecipes = allRecipes.stream()
                 .filter(r -> r.getCookCount() >= 10)
+            .sorted((left, right) -> Long.compare(right.getCookCount(), left.getCookCount()))
                 .toList();
         
         // Calculate average rating across all recipes (only count those with ratings > 0)
         Double avgRating = allRecipes.stream()
                 .filter(r -> r.getAverageRating() != null && r.getAverageRating() > 0)
-                .mapToDouble(Recipe::getAverageRating)
+            .mapToDouble(CreatorInsightsRecipeProjection::getAverageRating)
                 .average()
                 .orElse(0.0);
 
         return InternalCreatorInsightsResponse.builder()
-                .topRecipe(recipeMapper.toRecipeDto(top))
-                .highPerformingRecipes(performantRecipes.stream().map(recipeMapper::toRecipeDto).toList())
+            .totalRecipesPublished(allRecipes.size())
+            .topRecipe(toCreatorInsightsRecipeDto(top))
+            .highPerformingRecipes(performantRecipes.stream().map(this::toCreatorInsightsRecipeDto).toList())
                 .avgRating(avgRating > 0 ? avgRating : null)
                 .build();
     }
+
+        private InternalCreatorInsightsResponse.TopRecipeDto toCreatorInsightsRecipeDto(
+            CreatorInsightsRecipeProjection recipe) {
+        String coverImageUrl = null;
+        if (recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()) {
+            coverImageUrl = recipe.getCoverImageUrl().get(0);
+        }
+
+        return InternalCreatorInsightsResponse.TopRecipeDto.builder()
+            .id(recipe.getId())
+            .title(recipe.getTitle())
+            .cookCount(recipe.getCookCount())
+            .xpGenerated(recipe.getCreatorXpEarned() != null ? recipe.getCreatorXpEarned() : 0.0)
+            .coverImageUrl(coverImageUrl)
+            .cookTimeMinutes(recipe.getCookTimeMinutes() != null ? recipe.getCookTimeMinutes() : 0)
+            .difficulty(recipe.getDifficulty() != null ? recipe.getDifficulty().getValue() : null)
+            .averageRating(recipe.getAverageRating() != null ? recipe.getAverageRating() : 0.0)
+            .build();
+        }
 
     // ===============================================
     // CREATOR ANALYTICS

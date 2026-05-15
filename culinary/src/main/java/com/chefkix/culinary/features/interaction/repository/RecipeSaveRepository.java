@@ -11,11 +11,12 @@ import java.util.Optional;
 public interface RecipeSaveRepository extends MongoRepository<RecipeSave, String> {
     boolean existsByRecipeIdAndUserId(String recipeId, String userId);
     Optional<RecipeSave> findByRecipeIdAndUserId(String recipeId, String userId);
-    
+
     // Get all recipes saved by a user (for /saved endpoint)
     List<RecipeSave> findAllByUserId(String userId);
     Page<RecipeSave> findAllByUserId(String userId, Pageable pageable);
-    
+    List<RecipeSave> findByUserIdAndRecipeIdIn(String userId, List<String> recipeIds);
+
     // Count saves for a user
     long countByUserId(String userId);
 }

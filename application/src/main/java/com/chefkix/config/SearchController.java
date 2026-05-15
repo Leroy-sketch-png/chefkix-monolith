@@ -1,6 +1,7 @@
 package com.chefkix.config;
 
-import com.chefkix.culinary.common.client.AIRestClient;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -10,30 +11,58 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Validated
 @RestController
 @RequestMapping("/search")
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SearchController {
 
     TypesenseService typesenseService;
     MongoTemplate mongoTemplate;
-    AIRestClient aiRestClient;
+    ObjectMapper objectMapper;
+    RestClient aiRestClient;
 
     static final int NATURAL_LANGUAGE_WORD_THRESHOLD = 3;
+
+    public SearchController(
+            TypesenseService typesenseService,
+            MongoTemplate mongoTemplate,
+            ObjectMapper objectMapper,
+            @Value("${app.services.ai-url:http://localhost:8000}") String aiUrl,
+            @Value("${app.services.ai-api-key:}") String aiApiKey) {
+        this.typesenseService = typesenseService;
+        this.mongoTemplate = mongoTemplate;
+        this.objectMapper = objectMapper;
+
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(5_000);
+        requestFactory.setReadTimeout(10_000);
+
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl(aiUrl)
+                .requestFactory(requestFactory);
+
+        if (StringUtils.hasText(aiApiKey)) {
+            builder.defaultHeader("X-AI-Service-Key", aiApiKey);
+        }
+
+        this.aiRestClient = builder.build();
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> unifiedSearch(
@@ -137,7 +166,7 @@ public class SearchController {
 
         // Natural language query -> try hybrid search
         try {
-            float[] embedding = aiRestClient.generateEmbedding(query);
+            float[] embedding = generateEmbedding(query);
             if (embedding != null) {
                 log.debug("Using hybrid search for query: '{}'", query);
                 return typesenseService.hybridSearch("recipes", query, queryBy, embedding, limit);
@@ -148,5 +177,41 @@ public class SearchController {
 
         // Fallback to keyword-only
         return searchCollection("recipes", query, queryBy, limit, page);
+    }
+
+    @SuppressWarnings("unchecked")
+    private float[] generateEmbedding(String text) {
+        try {
+            String responseBody = aiRestClient.post()
+                    .uri("/api/v1/embed")
+                    .body(Map.of("text", text))
+                    .retrieve()
+                    .body(String.class);
+
+            if (responseBody == null || responseBody.isBlank()) {
+                return null;
+            }
+
+            Map<String, Object> response = objectMapper.readValue(responseBody, new TypeReference<>() {});
+            if (!Boolean.TRUE.equals(response.get("success"))) {
+                return null;
+            }
+
+            Map<String, Object> data = (Map<String, Object>) response.get("data");
+            if (data == null || data.get("embedding") == null) {
+                return null;
+            }
+
+            List<Number> embedding = (List<Number>) data.get("embedding");
+            float[] vector = new float[embedding.size()];
+            for (int i = 0; i < embedding.size(); i++) {
+                vector[i] = embedding.get(i).floatValue();
+            }
+
+            return vector;
+        } catch (Exception e) {
+            log.warn("Embedding generation failed (search falls back to keyword): {}", e.getMessage());
+            return null;
+        }
     }
 }

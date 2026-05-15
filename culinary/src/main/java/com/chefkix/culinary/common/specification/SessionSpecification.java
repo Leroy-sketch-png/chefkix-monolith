@@ -18,17 +18,17 @@ public class SessionSpecification {
      */
     public static Criteria getCriteria(String userId, SessionHistoryQuery query) {
         List<Criteria> criteriaList = new ArrayList<>();
+        String statusFilter = query != null ? query.getEffectiveStatusFilter() : null;
 
         // 1. Filter by User ID (REQUIRED)
         criteriaList.add(Criteria.where("userId").is(userId));
 
         // 2. Filter by Status (statusFilter)
-        if (StringUtils.hasText(query.getStatusFilter()) && !"all".equalsIgnoreCase(query.getStatusFilter())) {
+        if (StringUtils.hasText(statusFilter) && !"all".equalsIgnoreCase(statusFilter)) {
             try {
-                // Convert status string to Enum (e.g., "completed" -> SessionStatus.COMPLETED)
-                SessionStatus status = SessionStatus.valueOf(query.getStatusFilter().toUpperCase());
+                SessionStatus status = SessionStatus.fromValue(statusFilter);
                 criteriaList.add(Criteria.where("status").is(status));
-            } catch (IllegalArgumentException e) {
+            } catch (RuntimeException e) {
                 // Ignore if value is invalid, or throw Exception (optional)
                 // Currently, we filter by a non-existent value so query returns empty.
                 criteriaList.add(Criteria.where("status").is("INVALID_STATUS_FILTER"));

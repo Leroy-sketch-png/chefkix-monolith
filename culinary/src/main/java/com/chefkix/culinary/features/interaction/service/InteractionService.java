@@ -93,6 +93,7 @@ public class InteractionService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public Page<RecipeSummaryResponse> getSavedRecipes(int page, int size) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -102,8 +103,12 @@ public class InteractionService {
 
         if (recipeIds.isEmpty()) return Page.empty(pageable);
 
-        List<Recipe> recipes = recipeRepository.findAllByIdIn(recipeIds);
+        List<Recipe> recipes = recipeRepository.findSummaryFieldsByIdIn(recipeIds);
         Map<String, Recipe> recipeMap = recipes.stream().collect(Collectors.toMap(Recipe::getId, r -> r));
+
+        var likedRecipeIds = recipeLikeRepository.findByUserIdAndRecipeIdIn(userId, recipeIds).stream()
+                .map(RecipeLike::getRecipeId)
+                .collect(Collectors.toSet());
 
         List<RecipeSummaryResponse> responses = recipeIds.stream()
                 .map(recipeMap::get)
@@ -111,7 +116,7 @@ public class InteractionService {
                 .map(recipe -> {
                     RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
                     response.setIsSaved(true);
-                    response.setIsLiked(recipeLikeRepository.existsByRecipeIdAndUserId(recipe.getId(), userId));
+                    response.setIsLiked(likedRecipeIds.contains(recipe.getId()));
                     return response;
                 })
                 .toList();
@@ -119,6 +124,7 @@ public class InteractionService {
         return new org.springframework.data.domain.PageImpl<>(responses, pageable, savesPage.getTotalElements());
     }
 
+    @Transactional(readOnly = true)
     public Page<RecipeSummaryResponse> getLikedRecipes(int page, int size) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -128,8 +134,12 @@ public class InteractionService {
 
         if (recipeIds.isEmpty()) return Page.empty(pageable);
 
-        List<Recipe> recipes = recipeRepository.findAllByIdIn(recipeIds);
+        List<Recipe> recipes = recipeRepository.findSummaryFieldsByIdIn(recipeIds);
         Map<String, Recipe> recipeMap = recipes.stream().collect(Collectors.toMap(Recipe::getId, r -> r));
+
+        var savedRecipeIds = recipeSaveRepository.findByUserIdAndRecipeIdIn(userId, recipeIds).stream()
+                .map(RecipeSave::getRecipeId)
+                .collect(Collectors.toSet());
 
         List<RecipeSummaryResponse> responses = recipeIds.stream()
                 .map(recipeMap::get)
@@ -137,7 +147,7 @@ public class InteractionService {
                 .map(recipe -> {
                     RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
                     response.setIsLiked(true);
-                    response.setIsSaved(recipeSaveRepository.existsByRecipeIdAndUserId(recipe.getId(), userId));
+                    response.setIsSaved(savedRecipeIds.contains(recipe.getId()));
                     return response;
                 })
                 .toList();

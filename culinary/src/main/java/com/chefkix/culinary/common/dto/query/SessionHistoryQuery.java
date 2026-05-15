@@ -20,5 +20,12 @@ public class SessionHistoryQuery {
 
     // Filter by status (e.g.: "completed", "posted", "all")
     private String statusFilter;
+    private String status;
 
+    public String getEffectiveStatusFilter() {
+        if (statusFilter != null && !statusFilter.isBlank()) {
+            return statusFilter;
+        }
+        return status;
+    }
 }

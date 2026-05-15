@@ -426,6 +426,14 @@ public class CookingSessionService {
                 .map(sessionMapper::toSessionItemDto);
     }
 
+    public List<SessionHistoryResponse.SessionItemDto> getPendingSessions(String userId) {
+        return sessionRepository
+                .findTop20ByUserIdAndStatusAndPostIdIsNullOrderByCompletedAtDesc(userId, SessionStatus.COMPLETED)
+                .stream()
+                .map(sessionMapper::toSessionItemDto)
+                .toList();
+    }
+
     @Transactional
     public int markLinkedPostDeleted(String postId) {
         if (postId == null || postId.isBlank()) {
