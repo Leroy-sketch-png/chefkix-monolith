@@ -129,6 +129,8 @@ public class SecurityConfig {
             "/posts/battles/active",        // PostController GET /battles/active
 
             // --- User collections (social module) ---
+            "/collections/*",               // CollectionController GET /{collectionId} (public collections only)
+            "/collections/*/posts",         // CollectionController GET /{collectionId}/posts (public collections only)
             "/collections/user/*",          // CollectionController GET /user/{userId} (public collections)
 
             // --- Knowledge graph (culinary module) ---

@@ -2,6 +2,7 @@ package com.chefkix.notification.service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +45,7 @@ public class NotificationService {
 
     private static final String USER_TOPIC_PREFIX = "/topic/user/";
     private static final int POST_PREVIEW_LENGTH = 50;
+    private static final Pattern XP_AMOUNT_PATTERN = Pattern.compile("(\\d+)\\s*XP", Pattern.CASE_INSENSITIVE);
 
     // ===============================================
     // HELPER METHODS
@@ -207,15 +209,36 @@ public class NotificationService {
             if (!xpAndLevelUpsEnabled) {
                 log.debug("Skipping XP_AWARDED notification for user {} — xpAndLevelUps disabled", recipientId);
             } else {
-                createAndBroadcastNotification(
-                        recipientId,
-                        recipientId,
-                        displayName,
-                        null,
-                        resolveGamificationTargetId(event),
-                        buildXpAwardedContent(event),
-                        NotificationType.XP_AWARDED,
-                        "Created XP notification");
+                Map<String, String> xpData = new HashMap<>();
+                xpData.put("xpAmount", String.valueOf(Math.round(event.getXpEarned())));
+                if (event.getSource() != null) xpData.put("source", event.getSource());
+                if (event.getRecipeId() != null) xpData.put("recipeId", event.getRecipeId());
+                if (event.getSessionId() != null) xpData.put("sessionId", event.getSessionId());
+                if (event.getRecipeTitle() != null && !event.getRecipeTitle().isBlank()) {
+                    xpData.put("recipeName", event.getRecipeTitle());
+                    xpData.put("recipeTitle", event.getRecipeTitle());
+                }
+                if (event.getPendingXp() != null && event.getPendingXp() > 0) {
+                    xpData.put("pendingXp", String.valueOf(Math.round(event.getPendingXp())));
+                }
+
+                Notification xpNotification = Notification.builder()
+                        .recipientId(recipientId)
+                        .type(NotificationType.XP_AWARDED)
+                        .isRead(false)
+                        .content(buildXpAwardedContent(event))
+                        .targetEntityId(resolveGamificationTargetId(event))
+                        .latestActorId(recipientId)
+                        .latestActorName(displayName)
+                        .count(1)
+                        .actorIds(Set.of(recipientId))
+                        .createdAt(Instant.now())
+                        .data(xpData)
+                        .build();
+
+                notificationRepository.save(xpNotification);
+                broadcastNotification(recipientId, notificationMapper.toNotificationResponse(xpNotification), "CREATE");
+                log.info("Created XP notification for recipient: {} regarding target: {}", recipientId, xpNotification.getTargetEntityId());
             }
         }
 
@@ -229,6 +252,11 @@ public class NotificationService {
                         event.getNewLevel(),
                         event.getNewTitle() != null ? " You're now a " + event.getNewTitle() + "!" : "");
 
+                Map<String, String> levelData = new HashMap<>();
+                levelData.put("newLevel", String.valueOf(event.getNewLevel()));
+                if (event.getNewTitle() != null) levelData.put("newTitle", event.getNewTitle());
+                if (event.getXpEarned() > 0) levelData.put("xpAmount", String.valueOf(Math.round(event.getXpEarned())));
+
                 Notification levelUpNotification = Notification.builder()
                         .recipientId(recipientId)
                         .type(NotificationType.LEVEL_UP)
@@ -240,6 +268,7 @@ public class NotificationService {
                         .count(1)
                         .actorIds(Set.of(recipientId))
                         .createdAt(Instant.now())
+                        .data(levelData)
                         .build();
 
                 notificationRepository.save(levelUpNotification);
@@ -263,6 +292,10 @@ public class NotificationService {
                                 "You earned %d new badges: %s!",
                                 event.getNewBadges().size(), badgeList);
 
+                Map<String, String> badgeData = new HashMap<>();
+                badgeData.put("badgeNames", badgeList);
+                badgeData.put("badgeCount", String.valueOf(event.getNewBadges().size()));
+
                 Notification badgeNotification = Notification.builder()
                         .recipientId(recipientId)
                         .type(NotificationType.BADGE_EARNED)
@@ -274,6 +307,7 @@ public class NotificationService {
                         .count(event.getNewBadges().size())
                         .actorIds(Set.of(recipientId))
                         .createdAt(Instant.now())
+                        .data(badgeData)
                         .build();
 
                 notificationRepository.save(badgeNotification);
@@ -313,6 +347,26 @@ public class NotificationService {
             return;
         }
 
+        // Build structured data map for client-side rendering
+        Map<String, String> reminderData = new HashMap<>();
+        if (event.getStreakCount() != null) reminderData.put("streakCount", String.valueOf(event.getStreakCount()));
+        if (event.getHoursRemaining() != null) reminderData.put("hoursRemaining", String.valueOf(event.getHoursRemaining()));
+        if (event.getDaysRemaining() != null) reminderData.put("daysRemaining", String.valueOf(event.getDaysRemaining()));
+        if (event.getRecipeTitle() != null) {
+            reminderData.put("recipeTitle", event.getRecipeTitle());
+            reminderData.put("recipeName", event.getRecipeTitle());
+        }
+        if (event.getSessionId() != null) reminderData.put("sessionId", event.getSessionId());
+        if (event.getRoomCode() != null) reminderData.put("roomCode", event.getRoomCode());
+        if (event.getChallengeCategory() != null) reminderData.put("challengeCategory", event.getChallengeCategory());
+        if (reminderType == NotificationType.CREATOR_BONUS) {
+            Integer xpBonus = extractXpAmount(event.getContent());
+            if (xpBonus != null) {
+                reminderData.put("xpBonus", String.valueOf(xpBonus));
+                reminderData.put("xpAmount", String.valueOf(xpBonus));
+            }
+        }
+
         Notification notification = Notification.builder()
                 .recipientId(recipientId)
                 .type(reminderType)
@@ -324,6 +378,7 @@ public class NotificationService {
                 .count(1)
                 .actorIds(Set.of(recipientId))
                 .createdAt(Instant.now())
+                .data(reminderData.isEmpty() ? null : reminderData)
                 .build();
 
         notificationRepository.save(notification);
@@ -332,6 +387,21 @@ public class NotificationService {
         broadcastNotification(recipientId, response, "CREATE");
 
         log.info("Created {} notification for user: {} - {}", reminderType, recipientId, event.getContent());
+    }
+
+    private Integer extractXpAmount(String content) {
+        if (content == null || content.isBlank()) {
+            return null;
+        }
+        var matcher = XP_AMOUNT_PATTERN.matcher(content);
+        if (!matcher.find()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(matcher.group(1));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     public void handleTagEvent(UserMentionEvent event) {
@@ -747,10 +817,15 @@ public class NotificationService {
     private String buildXpAwardedContent(GamificationNotificationEvent event) {
         long roundedXp = Math.round(event.getXpEarned());
         String normalizedSource = event.getSource() != null ? event.getSource().toUpperCase(Locale.ROOT) : "";
+        String recipeTitle = event.getRecipeTitle();
 
         return switch (normalizedSource) {
-            case "LINKING_POST" -> String.format("You earned %d XP for posting your cook.", roundedXp);
-            case "COOKING_SESSION" -> String.format("You earned %d XP for completing your cooking session.", roundedXp);
+            case "LINKING_POST" -> recipeTitle != null && !recipeTitle.isBlank()
+                    ? String.format("You earned %d XP for posting your cook of %s.", roundedXp, recipeTitle)
+                    : String.format("You earned %d XP for posting your cook.", roundedXp);
+            case "COOKING_SESSION" -> recipeTitle != null && !recipeTitle.isBlank()
+                    ? String.format("You earned %d XP for completing %s.", roundedXp, recipeTitle)
+                    : String.format("You earned %d XP for completing your cooking session.", roundedXp);
             default -> String.format("You earned %d XP.", roundedXp);
         };
     }

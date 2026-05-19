@@ -1,6 +1,7 @@
 package com.chefkix.notification.entity;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
@@ -42,4 +43,7 @@ public class Notification {
     private String latestActorName;
     private String latestActorAvatarUrl;
     private Set<String> actorIds;
+
+    /** Structured payload for gamified notification types (XP_AWARDED, LEVEL_UP, BADGE_EARNED). */
+    private Map<String, String> data;
 }

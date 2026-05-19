@@ -21,6 +21,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class VideoSignalingHandler extends TextWebSocketHandler {
 
     private static final String SESSION_USER_ID = "userId";
+    /** 64 KB — sufficient for any WebRTC SDP/ICE payload; blocks oversized abuse messages */
+    private static final int MAX_PAYLOAD_BYTES = 64 * 1024;
 
     private final ObjectMapper objectMapper;
     private final ConversationLookupService conversationLookupService;
@@ -48,6 +50,12 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
             String userId = getAuthenticatedUserId(session);
             if (userId == null) {
                 session.close(CloseStatus.POLICY_VIOLATION.withReason("Authentication required"));
+                return;
+            }
+
+            if (message.getPayloadLength() > MAX_PAYLOAD_BYTES) {
+                log.warn("Video WebSocket message from user {} exceeds payload limit ({} bytes), closing", userId, message.getPayloadLength());
+                session.close(CloseStatus.MESSAGE_TOO_BIG.withReason("Payload too large"));
                 return;
             }
 

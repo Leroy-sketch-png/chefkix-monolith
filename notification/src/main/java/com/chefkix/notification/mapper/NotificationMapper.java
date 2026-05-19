@@ -14,6 +14,7 @@ public interface NotificationMapper {
     @Mapping(target = "actorInfo.actorId", source = "latestActorId")
     @Mapping(target = "actorInfo.actorName", source = "latestActorName")
     @Mapping(target = "actorInfo.avatarUrl", source = "latestActorAvatarUrl")
+    @Mapping(target = "data", source = "data")
     NotificationResponse toNotificationResponse(Notification notification);
 
     @Mapping(target = "recipientId", source = "postOwnerId")

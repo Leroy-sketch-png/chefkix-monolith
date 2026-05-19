@@ -111,6 +111,7 @@ public class GamificationService {
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount(finalXp)
+                .sessionId(completion.getId())
                 .recipeId(recipeId)
                 .challengeCompleted(false)
                 .newBadges(badgesToAward)

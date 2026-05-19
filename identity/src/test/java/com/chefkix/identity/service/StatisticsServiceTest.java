@@ -3,23 +3,28 @@ package com.chefkix.identity.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.api.RecipeProvider;
+import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.mapper.ProfileMapper;
 import com.chefkix.identity.repository.UserProfileRepository;
+import com.chefkix.shared.event.GamificationNotificationEvent;
 import com.chefkix.shared.service.KafkaIdempotencyService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,6 +52,8 @@ class StatisticsServiceTest {
     @Mock
     @Lazy
     private RecipeProvider recipeProvider;
+        @Mock
+        private SessionProvider sessionProvider;
 
     @InjectMocks
     private StatisticsService statisticsService;
@@ -159,4 +166,52 @@ class StatisticsServiceTest {
                 assertThat(response.getCompletionCount()).isEqualTo(3L);
                 verify(userProfileRepository).save(profile);
         }
+
+    @Test
+    void updateAfterCompletionSendsCookingSessionNotificationWithSessionMetadata() {
+        String userId = "user-1";
+        String idempotencyKey = "xp:COOKING_SESSION:user-1:session-1";
+        Statistics stats = Statistics.builder()
+                .currentLevel(1)
+                .currentXP(100.0)
+                .currentXPGoal(1000.0)
+                .completionCount(2L)
+                .streakCount(1)
+                .longestStreak(1)
+                .build();
+        UserProfile profile = UserProfile.builder()
+                .userId(userId)
+                .displayName("Chef Kix")
+                .statistics(stats)
+                .build();
+        InternalCompletionRequest request = InternalCompletionRequest.builder()
+                .userId(userId)
+                .xpAmount(120)
+                .recipeId("recipe-1")
+                .sessionId("session-1")
+                .challengeCompleted(false)
+                .idempotencyKey(idempotencyKey)
+                .build();
+
+        when(idempotencyService.tryProcess(idempotencyKey, "xp-delivery")).thenReturn(true);
+        when(userProfileRepository.findByUserId(userId)).thenReturn(Optional.of(profile));
+        when(userProfileRepository.save(profile)).thenReturn(profile);
+        when(sessionProvider.getSession("session-1")).thenReturn(SessionInfo.builder()
+                .id("session-1")
+                .recipeId("recipe-1")
+                .recipeTitle("Miso Ramen")
+                .pendingXp(280.0)
+                .build());
+
+        statisticsService.updateAfterCompletion(request);
+
+        ArgumentCaptor<GamificationNotificationEvent> eventCaptor = ArgumentCaptor.forClass(GamificationNotificationEvent.class);
+        verify(kafkaTemplate).send(eq("gamification-delivery"), eventCaptor.capture());
+        GamificationNotificationEvent event = eventCaptor.getValue();
+        assertThat(event.getSource()).isEqualTo("COOKING_SESSION");
+        assertThat(event.getSessionId()).isEqualTo("session-1");
+        assertThat(event.getRecipeId()).isEqualTo("recipe-1");
+        assertThat(event.getRecipeTitle()).isEqualTo("Miso Ramen");
+        assertThat(event.getPendingXp()).isEqualTo(280.0);
+    }
 }

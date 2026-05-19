@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.api.RecipeProvider;
+import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.identity.api.NotificationPreferencesProvider;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserProfile;
@@ -63,6 +64,8 @@ class XpNotificationContractTest {
     private KafkaIdempotencyService statisticsIdempotencyService;
     @Mock
     private RecipeProvider recipeProvider;
+    @Mock
+    private SessionProvider sessionProvider;
 
     @Mock
     private NotificationRepository notificationRepository;
@@ -92,7 +95,8 @@ class XpNotificationContractTest {
                 settingsService,
                 blockService,
                 statisticsIdempotencyService,
-                recipeProvider);
+                recipeProvider,
+                sessionProvider);
 
         NotificationService notificationService = new NotificationService(
                 notificationRepository,

@@ -1,6 +1,7 @@
 package com.chefkix.notification.dto.response;
 
 import java.time.Instant;
+import java.util.Map;
 
 import com.chefkix.notification.enums.NotificationType;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,4 +48,7 @@ public class NotificationResponse {
     }
 
     private ActorInfo actorInfo;
+
+    /** Structured payload for gamified notification types. Keys: xpAmount, newLevel, badgeNames, recipeName, streakCount. */
+    private Map<String, String> data;
 }

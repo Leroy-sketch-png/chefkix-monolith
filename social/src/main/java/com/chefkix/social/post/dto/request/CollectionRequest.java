@@ -1,7 +1,9 @@
 package com.chefkix.social.post.dto.request;
 
+import com.chefkix.social.post.entity.DifficultyStep;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +26,16 @@ public class CollectionRequest {
     String description;
 
     boolean isPublic;
+
+    String collectionType;
+
+    List<String> recipeIds;
+
+    String difficulty;
+
+    Integer estimatedTotalMinutes;
+
+    Integer totalXp;
+
+    List<DifficultyStep> difficultyProgression;
 }
