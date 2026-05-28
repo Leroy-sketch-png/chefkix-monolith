@@ -55,7 +55,7 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
 
             if (message.getPayloadLength() > MAX_PAYLOAD_BYTES) {
                 log.warn("Video WebSocket message from user {} exceeds payload limit ({} bytes), closing", userId, message.getPayloadLength());
-                session.close(CloseStatus.MESSAGE_TOO_BIG.withReason("Payload too large"));
+                session.close(new CloseStatus(1009, "Payload too large"));
                 return;
             }
 
