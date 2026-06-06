@@ -29,6 +29,8 @@ public class GamificationNotificationEvent extends BaseEvent {
     private String source;
     private String recipeId;
     private String sessionId;
+    private Double pendingXp;
+    private String recipeTitle;
 
     @Builder
     public GamificationNotificationEvent(String userId, String displayName,
@@ -36,7 +38,8 @@ public class GamificationNotificationEvent extends BaseEvent {
                                          boolean leveledUp, int previousLevel,
                                          int newLevel, String newTitle,
                                          List<String> newBadges, String source,
-                                         String recipeId, String sessionId) {
+                                         String recipeId, String sessionId,
+                                         Double pendingXp, String recipeTitle) {
         super("GAMIFICATION_ACTION", userId);
         this.displayName = displayName;
         this.xpEarned = xpEarned;
@@ -49,5 +52,7 @@ public class GamificationNotificationEvent extends BaseEvent {
         this.source = source;
         this.recipeId = recipeId;
         this.sessionId = sessionId;
+        this.pendingXp = pendingXp;
+        this.recipeTitle = recipeTitle;
     }
 }

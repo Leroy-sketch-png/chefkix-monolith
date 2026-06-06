@@ -1,5 +1,6 @@
 package com.chefkix.social.post.service;
 
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.dto.request.CollectionRequest;
@@ -8,6 +9,7 @@ import com.chefkix.social.post.dto.response.CollectionResponse;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.entity.Collection;
 import com.chefkix.social.post.entity.CollectionProgress;
+import com.chefkix.social.post.entity.DifficultyStep;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.mapper.PostMapper;
 import com.chefkix.social.post.repository.CollectionProgressRepository;
@@ -15,15 +17,19 @@ import com.chefkix.social.post.repository.CollectionRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Slf4j
@@ -31,15 +37,35 @@ import org.springframework.transaction.annotation.Transactional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CollectionService {
 
+    private static final String COLLECTION_TYPE_BOOKMARK = "BOOKMARK";
+    private static final String COLLECTION_TYPE_LEARNING_PATH = "LEARNING_PATH";
+    private static final String COLLECTION_TYPE_SEASONAL = "SEASONAL";
+    private static final int DEFAULT_RECIPE_XP = 50;
+
     CollectionRepository collectionRepository;
     CollectionProgressRepository collectionProgressRepository;
     PostRepository postRepository;
     PostMapper postMapper;
+    RecipeProvider recipeProvider;
 
     private static final int MAX_COLLECTIONS_PER_USER = 50;
 
     private String getCurrentUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    private String getCurrentUserIdOrNull() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        String name = authentication.getName();
+        if (!StringUtils.hasText(name) || "anonymousUser".equalsIgnoreCase(name)) {
+            return null;
+        }
+
+        return name;
     }
 
     @Transactional
@@ -53,13 +79,23 @@ public class CollectionService {
         Collection collection = Collection.builder()
                 .userId(userId)
                 .name(request.getName().trim())
-                .description(request.getDescription() != null ? request.getDescription().trim() : null)
+                .description(trimToNull(request.getDescription()))
                 .isPublic(request.isPublic())
                 .postIds(new ArrayList<>())
+                .recipeIds(new ArrayList<>())
+                .difficultyProgression(new ArrayList<>())
                 .itemCount(0)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+
+        String collectionType = normalizeCollectionType(request.getCollectionType(), COLLECTION_TYPE_BOOKMARK);
+        collection.setCollectionType(collectionType);
+        if (COLLECTION_TYPE_LEARNING_PATH.equals(collectionType)) {
+            applyLearningPathFields(collection, request, true);
+        } else {
+            applyRecipeCollectionFields(collection, request, true);
+        }
 
         collection = collectionRepository.save(collection);
         return toResponse(collection);
@@ -77,12 +113,12 @@ public class CollectionService {
     }
 
     public CollectionResponse getCollection(String collectionId) {
-        String userId = getCurrentUserId();
+        String userId = getCurrentUserIdOrNull();
         Collection collection = collectionRepository.findById(collectionId)
                 .orElseThrow(() -> new AppException(ErrorCode.COLLECTION_NOT_FOUND));
 
         // Only owner or public collections
-        if (!collection.getUserId().equals(userId) && !collection.isPublic()) {
+        if (!collection.isPublic() && !collection.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -90,11 +126,11 @@ public class CollectionService {
     }
 
     public List<PostResponse> getCollectionPosts(String collectionId) {
-        String userId = getCurrentUserId();
+        String userId = getCurrentUserIdOrNull();
         Collection collection = collectionRepository.findById(collectionId)
                 .orElseThrow(() -> new AppException(ErrorCode.COLLECTION_NOT_FOUND));
 
-        if (!collection.getUserId().equals(userId) && !collection.isPublic()) {
+        if (!collection.isPublic() && !collection.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -116,9 +152,21 @@ public class CollectionService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        String existingType = normalizeCollectionType(collection.getCollectionType(), COLLECTION_TYPE_BOOKMARK);
+        String requestedType = normalizeCollectionType(request.getCollectionType(), existingType);
+        if (!existingType.equals(requestedType)) {
+            throw new AppException(ErrorCode.INVALID_OPERATION);
+        }
+
         collection.setName(request.getName().trim());
-        collection.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
+        collection.setDescription(trimToNull(request.getDescription()));
         collection.setPublic(request.isPublic());
+        collection.setCollectionType(requestedType);
+        if (COLLECTION_TYPE_LEARNING_PATH.equals(requestedType)) {
+            applyLearningPathFields(collection, request, false);
+        } else {
+            applyRecipeCollectionFields(collection, request, false);
+        }
         collection.setUpdatedAt(Instant.now());
 
         collection = collectionRepository.save(collection);
@@ -159,7 +207,7 @@ public class CollectionService {
         }
         if (!collection.getPostIds().contains(postId)) {
             collection.getPostIds().add(postId);
-            collection.setItemCount(collection.getPostIds().size());
+            collection.setItemCount(calculateItemCount(collection));
 
             // Update cover image from latest added post
             Post post = postRepository.findById(postId).orElse(null);
@@ -185,8 +233,9 @@ public class CollectionService {
 
         if (collection.getPostIds() != null) {
             collection.getPostIds().remove(postId);
-            collection.setItemCount(collection.getPostIds().size());
         }
+
+        collection.setItemCount(calculateItemCount(collection));
 
         collection.setUpdatedAt(Instant.now());
         collection = collectionRepository.save(collection);
@@ -299,6 +348,209 @@ public class CollectionService {
     // ===============================================
     // MAPPING
     // ===============================================
+
+    private void applyRecipeCollectionFields(Collection collection, CollectionRequest request, boolean isCreate) {
+        if (request.getRecipeIds() == null) {
+            if (isCreate) {
+                collection.setRecipeIds(new ArrayList<>());
+            }
+            collection.setItemCount(calculateItemCount(collection));
+            return;
+        }
+
+        List<String> recipeIds = normalizeRecipeIds(request.getRecipeIds());
+        String coverImageUrl = recipeIds.isEmpty() ? null : validateRecipeIds(recipeIds);
+
+        collection.setRecipeIds(new ArrayList<>(recipeIds));
+        collection.setItemCount(calculateItemCount(collection));
+
+        if (StringUtils.hasText(coverImageUrl)) {
+            collection.setCoverImageUrl(coverImageUrl);
+        } else if (collection.getPostIds() == null || collection.getPostIds().isEmpty()) {
+            collection.setCoverImageUrl(null);
+        }
+    }
+
+    private void applyLearningPathFields(Collection collection, CollectionRequest request, boolean isCreate) {
+        boolean recipeStructureChanged = isCreate
+                || request.getRecipeIds() != null
+                || request.getDifficultyProgression() != null;
+
+        List<DifficultyStep> stages = request.getDifficultyProgression() != null
+                ? normalizeDifficultyProgression(request.getDifficultyProgression())
+                : copyDifficultyProgression(collection.getDifficultyProgression());
+
+        List<String> recipeIds;
+        if (!stages.isEmpty()) {
+            recipeIds = flattenRecipeIds(stages);
+        } else if (request.getRecipeIds() != null) {
+            recipeIds = normalizeRecipeIds(request.getRecipeIds());
+        } else {
+            recipeIds = copyStringList(collection.getRecipeIds());
+        }
+
+        if (recipeIds.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_OPERATION);
+        }
+
+        collection.setPostIds(new ArrayList<>());
+        collection.setRecipeIds(new ArrayList<>(recipeIds));
+        collection.setDifficultyProgression(new ArrayList<>(stages));
+        collection.setDifficulty(resolveLearningPathDifficulty(
+                request.getDifficulty(),
+                stages,
+                recipeStructureChanged,
+                collection.getDifficulty()));
+        collection.setEstimatedTotalMinutes(resolveEstimatedTotalMinutes(
+                request.getEstimatedTotalMinutes(),
+                recipeStructureChanged,
+                collection.getEstimatedTotalMinutes()));
+        collection.setTotalXp(resolveTotalXp(
+                request.getTotalXp(),
+                recipeStructureChanged,
+                collection.getTotalXp(),
+                recipeIds.size()));
+        collection.setItemCount(calculateItemCount(collection));
+
+        if (recipeStructureChanged) {
+            String coverImageUrl = validateRecipeIds(recipeIds);
+            collection.setCoverImageUrl(StringUtils.hasText(coverImageUrl) ? coverImageUrl : null);
+        }
+    }
+
+    private String normalizeCollectionType(String rawType, String defaultType) {
+        String resolved = StringUtils.hasText(rawType) ? rawType.trim().toUpperCase(Locale.ROOT) : defaultType;
+        if (!COLLECTION_TYPE_BOOKMARK.equals(resolved)
+                && !COLLECTION_TYPE_LEARNING_PATH.equals(resolved)
+                && !COLLECTION_TYPE_SEASONAL.equals(resolved)) {
+            throw new AppException(ErrorCode.INVALID_OPERATION);
+        }
+        return resolved;
+    }
+
+    private List<String> normalizeRecipeIds(List<String> recipeIds) {
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        for (String recipeId : recipeIds) {
+            if (StringUtils.hasText(recipeId)) {
+                normalized.add(recipeId.trim());
+            }
+        }
+        return new ArrayList<>(normalized);
+    }
+
+    private List<DifficultyStep> normalizeDifficultyProgression(List<DifficultyStep> stages) {
+        List<DifficultyStep> normalizedStages = new ArrayList<>();
+        LinkedHashSet<String> seenRecipeIds = new LinkedHashSet<>();
+
+        for (int index = 0; index < stages.size(); index++) {
+            DifficultyStep stage = stages.get(index);
+            List<String> stageRecipeIds = new ArrayList<>();
+
+            if (stage != null && stage.getRecipeIds() != null) {
+                for (String recipeId : normalizeRecipeIds(stage.getRecipeIds())) {
+                    if (seenRecipeIds.add(recipeId)) {
+                        stageRecipeIds.add(recipeId);
+                    }
+                }
+            }
+
+            normalizedStages.add(DifficultyStep.builder()
+                    .label(StringUtils.hasText(stage != null ? stage.getLabel() : null)
+                            ? stage.getLabel().trim()
+                            : "Stage " + (index + 1))
+                    .difficulty(StringUtils.hasText(stage != null ? stage.getDifficulty() : null)
+                            ? stage.getDifficulty().trim()
+                            : "Beginner")
+                    .recipeIds(stageRecipeIds)
+                    .order(index)
+                    .build());
+        }
+
+        return normalizedStages;
+    }
+
+    private List<String> flattenRecipeIds(List<DifficultyStep> stages) {
+        List<String> recipeIds = new ArrayList<>();
+        for (DifficultyStep stage : stages) {
+            if (stage.getRecipeIds() != null) {
+                recipeIds.addAll(stage.getRecipeIds());
+            }
+        }
+        return recipeIds;
+    }
+
+    private String validateRecipeIds(List<String> recipeIds) {
+        String firstCoverImageUrl = null;
+        for (String recipeId : recipeIds) {
+            if (!StringUtils.hasText(recipeId) || recipeProvider.getRecipeSummary(recipeId) == null) {
+                throw new AppException(ErrorCode.INVALID_OPERATION);
+            }
+
+            if (firstCoverImageUrl == null) {
+                var summary = recipeProvider.getRecipeSummary(recipeId);
+                if (summary != null && StringUtils.hasText(summary.getCoverImageUrl())) {
+                    firstCoverImageUrl = summary.getCoverImageUrl();
+                }
+            }
+        }
+        return firstCoverImageUrl;
+    }
+
+    private String resolveLearningPathDifficulty(
+            String requestedDifficulty,
+            List<DifficultyStep> stages,
+            boolean recipeStructureChanged,
+            String existingDifficulty) {
+        if (StringUtils.hasText(requestedDifficulty)) {
+            return requestedDifficulty.trim();
+        }
+        if (!stages.isEmpty() && StringUtils.hasText(stages.get(stages.size() - 1).getDifficulty())) {
+            return stages.get(stages.size() - 1).getDifficulty().trim();
+        }
+        return recipeStructureChanged ? null : existingDifficulty;
+    }
+
+    private Integer resolveEstimatedTotalMinutes(
+            Integer requestedMinutes,
+            boolean recipeStructureChanged,
+            Integer existingMinutes) {
+        if (requestedMinutes != null) {
+            return requestedMinutes;
+        }
+        return recipeStructureChanged ? null : existingMinutes;
+    }
+
+    private Integer resolveTotalXp(
+            Integer requestedTotalXp,
+            boolean recipeStructureChanged,
+            Integer existingTotalXp,
+            int recipeCount) {
+        if (requestedTotalXp != null) {
+            return requestedTotalXp;
+        }
+        if (!recipeStructureChanged && existingTotalXp != null) {
+            return existingTotalXp;
+        }
+        return recipeCount * DEFAULT_RECIPE_XP;
+    }
+
+    private List<String> copyStringList(List<String> values) {
+        return values == null ? new ArrayList<>() : new ArrayList<>(values);
+    }
+
+    private List<DifficultyStep> copyDifficultyProgression(List<DifficultyStep> stages) {
+        return stages == null ? new ArrayList<>() : new ArrayList<>(stages);
+    }
+
+    private int calculateItemCount(Collection collection) {
+        int postCount = collection.getPostIds() != null ? collection.getPostIds().size() : 0;
+        int recipeCount = collection.getRecipeIds() != null ? collection.getRecipeIds().size() : 0;
+        return postCount + recipeCount;
+    }
+
+    private String trimToNull(String value) {
+        return StringUtils.hasText(value) ? value.trim() : null;
+    }
 
     private CollectionResponse toResponse(Collection collection) {
         return CollectionResponse.builder()

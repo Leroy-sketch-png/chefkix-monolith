@@ -328,7 +328,13 @@ public class RecipeService {
 
         Optional<RecommendationResponse> cachedRecommendation = tonightsPickRedisRepository.find(cacheKey);
         if (cachedRecommendation.isPresent()) {
-            return cachedRecommendation.get();
+            RecommendationResponse cached = cachedRecommendation.get();
+            if (isCurrentRecipeRecommendation(cached)) {
+                return cached;
+            }
+            String staleRecipeId = cached.getRecipe() != null ? cached.getRecipe().getId() : null;
+            log.warn("[TONIGHTS_PICK] Ignoring stale cached recommendation for key {} and recipe {}",
+                    cacheKey, staleRecipeId);
         }
 
         // --- Gather user signals (all nullable/empty-safe) ---
@@ -477,6 +483,15 @@ public class RecipeService {
         tonightsPickRedisRepository.save(cacheKey, recommendation, ttlUntilNextUtcMidnight());
 
         return recommendation;
+    }
+
+    private boolean isCurrentRecipeRecommendation(RecommendationResponse recommendation) {
+        if (recommendation == null || recommendation.getRecipe() == null) {
+            return false;
+        }
+
+        String recipeId = recommendation.getRecipe().getId();
+        return recipeId != null && !recipeId.isBlank() && recipeRepository.existsById(recipeId);
     }
 
     private String buildTonightsPickCacheKey(String userId, boolean authenticated) {

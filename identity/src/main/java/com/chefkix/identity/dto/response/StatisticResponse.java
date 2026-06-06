@@ -53,6 +53,8 @@ public class StatisticResponse {
   @Builder.Default Double xpWeekly = 0.0;
   /** XP earned this month (resets 1st) */
   @Builder.Default Double xpMonthly = 0.0;
+  /** Cumulative all-time XP — never resets on level-up. True lifetime total. */
+  @Builder.Default Double totalXpAllTime = 0.0;
 
   // Creator stats
   /** Total times other users cooked your recipes */

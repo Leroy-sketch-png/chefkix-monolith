@@ -33,6 +33,8 @@ public class CompletionRequest {
 
     String recipeId;
 
+    String sessionId;
+
     boolean challengeCompleted;
 
     List<String> newBadges;

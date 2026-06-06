@@ -267,6 +267,7 @@ public class CookingSessionService {
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
                 .xpAmount((int) baseXp)
+                .sessionId(sessionId)
             .recipeId(recipe.getId())
             .challengeCompleted(challengeCompleted)
                 .newBadges(null) // Badges only on post, not on complete

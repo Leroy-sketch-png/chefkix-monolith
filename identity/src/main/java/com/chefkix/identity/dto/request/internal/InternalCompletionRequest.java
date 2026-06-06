@@ -13,6 +13,7 @@ public class InternalCompletionRequest {
   String userId;
   Integer xpAmount;
   String recipeId;
+  String sessionId;
   boolean challengeCompleted;
   List<String> newBadges;
   /** Deterministic idempotency key to prevent double XP award on sync+Kafka fallback */

@@ -3,6 +3,8 @@ package com.chefkix.identity.service;
 import com.chefkix.shared.event.GamificationNotificationEvent;
 import com.chefkix.shared.event.ReminderEvent;
 import com.chefkix.shared.service.KafkaIdempotencyService;
+import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.LeaderboardResponse;
 import com.chefkix.identity.dto.response.CreatorStatsResponse;
@@ -64,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
   KafkaIdempotencyService idempotencyService;
 
   @Lazy RecipeProvider recipeProvider;
+    @Lazy SessionProvider sessionProvider;
 
   /**
    * Main method handling logic after completing a Recipe (Called from Recipe Service). Performs: Add
@@ -158,6 +161,17 @@ import org.springframework.transaction.annotation.Transactional;
             profile.setStatistics(stats);
             userProfileRepository.save(profile);
 
+                sendGamificationNotification(
+                    userId,
+                    profile.getDisplayName(),
+                    request.getXpAmount(),
+                    stats.getCurrentXP(),
+                    levelResult,
+                    actuallyAddedBadges,
+                    "COOKING_SESSION",
+                    request.getRecipeId(),
+                    request.getSessionId());
+
             log.info(
                     "Recipe Completed for User {}: +{} XP, New Level: {}, Added Badges: {}",
                     userId,
@@ -230,11 +244,14 @@ import org.springframework.transaction.annotation.Transactional;
     int previousLevel = stats.getCurrentLevel();
     stats.setCurrentXP(stats.getCurrentXP() + xpAmount);
 
-    // Track weekly and monthly XP for leaderboard
+    // Track weekly, monthly, and all-time XP for leaderboard
     double currentWeeklyXp = stats.getXpWeekly() != null ? stats.getXpWeekly() : 0.0;
     double currentMonthlyXp = stats.getXpMonthly() != null ? stats.getXpMonthly() : 0.0;
+    double currentAllTimeXp = stats.getTotalXpAllTime() != null ? stats.getTotalXpAllTime() : 0.0;
     stats.setXpWeekly(currentWeeklyXp + xpAmount);
     stats.setXpMonthly(currentMonthlyXp + xpAmount);
+    // totalXpAllTime is cumulative — never resets on level-up. This is the honest all-time ranking field.
+    stats.setTotalXpAllTime(currentAllTimeXp + xpAmount);
 
     boolean leveledUp = false;
 
@@ -729,7 +746,7 @@ import org.springframework.transaction.annotation.Transactional;
 
         String sortField = switch (timeframe) {
             case "monthly" -> "statistics.xpMonthly";
-            case "all_time" -> "statistics.currentXP";
+            case "all_time" -> "statistics.totalXpAllTime";
             default -> "statistics.xpWeekly";
         };
 
@@ -867,7 +884,7 @@ import org.springframework.transaction.annotation.Transactional;
         return switch (timeframe) {
             case "weekly" -> stats.getXpWeekly() != null ? stats.getXpWeekly() : 0.0;
             case "monthly" -> stats.getXpMonthly() != null ? stats.getXpMonthly() : 0.0;
-            case "all_time" -> stats.getCurrentXP() != null ? stats.getCurrentXP() : 0.0;
+            case "all_time" -> stats.getTotalXpAllTime() != null ? stats.getTotalXpAllTime() : 0.0;
             default -> stats.getXpWeekly() != null ? stats.getXpWeekly() : 0.0;
         };
     }
@@ -883,6 +900,7 @@ import org.springframework.transaction.annotation.Transactional;
                 .include("avatarUrl")
                 .include("statistics.currentLevel")
                 .include("statistics.currentXP")
+                .include("statistics.totalXpAllTime")
                 .include("statistics.xpWeekly")
                 .include("statistics.xpMonthly")
                 .include("statistics.completionCount")
@@ -913,6 +931,26 @@ import org.springframework.transaction.annotation.Transactional;
                 return;
             }
 
+            String resolvedRecipeId = recipeId;
+            Double pendingXp = null;
+            String recipeTitle = null;
+            if (sessionId != null && !sessionId.isBlank()) {
+                try {
+                    SessionInfo session = sessionProvider.getSession(sessionId);
+                    if (session != null) {
+                        if (resolvedRecipeId == null || resolvedRecipeId.isBlank()) {
+                            resolvedRecipeId = session.getRecipeId();
+                        }
+                        recipeTitle = session.getRecipeTitle();
+                        if ("COOKING_SESSION".equals(source)) {
+                            pendingXp = session.getPendingXp();
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to enrich gamification notification for session {}: {}", sessionId, e.getMessage());
+                }
+            }
+
             GamificationNotificationEvent event = GamificationNotificationEvent.builder()
                     .userId(userId)
                     .displayName(displayName != null ? displayName : "Chef")
@@ -924,8 +962,10 @@ import org.springframework.transaction.annotation.Transactional;
                     .newTitle(levelResult.newTitle())
                     .newBadges(newBadges)
                     .source(source)
-                    .recipeId(recipeId)
+                    .recipeId(resolvedRecipeId)
                     .sessionId(sessionId)
+                    .pendingXp(pendingXp)
+                    .recipeTitle(recipeTitle)
                     .build();
 
             kafkaTemplate.send(GAMIFICATION_TOPIC, event);

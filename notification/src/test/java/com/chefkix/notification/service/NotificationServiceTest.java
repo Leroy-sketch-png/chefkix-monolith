@@ -96,6 +96,39 @@ class NotificationServiceTest {
     }
 
     @Test
+    void handleGamificationEventIncludesCookingSessionMetadataInXpNotification() {
+        when(notificationPreferencesProvider.isNotificationEnabled("user-1", "xpAndLevelUps")).thenReturn(true);
+
+        GamificationNotificationEvent event = GamificationNotificationEvent.builder()
+                .userId("user-1")
+                .displayName("Chef Kix")
+                .xpEarned(30.0)
+                .totalXp(130.0)
+                .leveledUp(false)
+                .previousLevel(1)
+                .newLevel(1)
+                .newBadges(java.util.List.of())
+                .source("COOKING_SESSION")
+                .recipeId("recipe-1")
+                .sessionId("session-1")
+                .pendingXp(70.0)
+                .recipeTitle("Miso Ramen")
+                .build();
+
+        notificationService.handleGamificationEvent(event);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+        verify(notificationRepository).save(notificationCaptor.capture());
+        Notification notification = notificationCaptor.getValue();
+        assertThat(notification.getType()).isEqualTo(NotificationType.XP_AWARDED);
+        assertThat(notification.getContent()).contains("30 XP", "Miso Ramen");
+        assertThat(notification.getData())
+                .containsEntry("pendingXp", "70")
+                .containsEntry("recipeName", "Miso Ramen")
+                .containsEntry("recipeTitle", "Miso Ramen");
+    }
+
+    @Test
     void handleGamificationEventSkipsXpAwardedForCreatorBonusSource() {
         when(notificationPreferencesProvider.isNotificationEnabled("creator-1", "xpAndLevelUps")).thenReturn(true);
 

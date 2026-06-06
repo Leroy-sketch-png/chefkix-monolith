@@ -2,10 +2,6 @@ package com.chefkix.config;
 
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeIngredientRepository;
-import com.chefkix.culinary.features.recipe.entity.Recipe;
-import com.chefkix.culinary.features.recipe.events.RecipeIndexEvent;
-import com.chefkix.social.post.events.PostIndexEvent;
-import com.chefkix.social.post.entity.Post;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -50,7 +47,7 @@ public class TypesenseDataSyncer {
 
     private void syncRecipes() {
         Query query = new Query(Criteria.where("status").is(RecipeStatus.PUBLISHED));
-        List<Recipe> recipes = mongoTemplate.find(query, Recipe.class);
+        List<Document> recipes = mongoTemplate.find(query, Document.class, "recipes");
 
         if (recipes.isEmpty()) {
             log.info("No published recipes to sync");
@@ -115,38 +112,64 @@ public class TypesenseDataSyncer {
         log.info("Synced {}/{} knowledge ingredients to Typesense", synced, ingredients.size());
     }
 
-    private Map<String, Object> recipeToDocument(Recipe recipe) {
+    private Map<String, Object> recipeToDocument(Object recipe) {
         Map<String, Object> doc = new LinkedHashMap<>();
-        doc.put("id", recipe.getId());
-        doc.put("title", recipe.getTitle() != null ? recipe.getTitle() : "");
-        doc.put("description", recipe.getDescription() != null ? recipe.getDescription() : "");
-        doc.put("cuisine", recipe.getCuisineType() != null ? recipe.getCuisineType() : "");
-        doc.put("difficulty", recipe.getDifficulty() != null ? recipe.getDifficulty().getValue() : "");
-        doc.put("totalTime", recipe.getTotalTimeMinutes());
-        doc.put("cookCount", (int) recipe.getCookCount());
-        doc.put("avgRating", recipe.getAverageRating() != null ? recipe.getAverageRating() : 0.0);
+        doc.put("id", getStringValue(recipe, "getId"));
+        doc.put("title", getStringValue(recipe, "getTitle"));
+        doc.put("description", getStringValue(recipe, "getDescription"));
+        doc.put("cuisine", getStringValue(recipe, "getCuisineType"));
+
+        Object difficulty = invokeNoArg(recipe, "getDifficulty");
+        if (difficulty != null) {
+            Object difficultyValue = invokeNoArg(difficulty, "getValue");
+            doc.put("difficulty", difficultyValue != null ? difficultyValue.toString() : difficulty.toString());
+        } else {
+            doc.put("difficulty", "");
+        }
+
+        doc.put("totalTime", getIntValue(recipe, "getTotalTimeMinutes"));
+        doc.put("cookCount", getIntValue(recipe, "getCookCount"));
+        doc.put("avgRating", getDoubleValue(recipe, "getAverageRating"));
 
         List<String> ingredientNames = new ArrayList<>();
-        if (recipe.getFullIngredientList() != null) {
-            recipe.getFullIngredientList().forEach(ing -> {
-                if (ing.getName() != null) ingredientNames.add(ing.getName());
-            });
+        Object ingredients = invokeNoArg(recipe, "getFullIngredientList");
+        if (ingredients instanceof Collection<?> list) {
+            for (Object item : list) {
+                String ingredientName = getStringValue(item, "getName");
+                if (!ingredientName.isBlank()) {
+                    ingredientNames.add(ingredientName);
+                }
+            }
         }
         doc.put("ingredients", ingredientNames);
 
-        doc.put("tags", recipe.getDietaryTags() != null ? recipe.getDietaryTags() : List.of());
-        doc.put("authorId", recipe.getUserId() != null ? recipe.getUserId() : "");
-        doc.put("coverImageUrl",
-                recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()
-                        ? recipe.getCoverImageUrl().get(0) : "");
-        doc.put("createdAt",
-                recipe.getCreatedAt() != null ? recipe.getCreatedAt().getEpochSecond() : 0L);
+        Object tags = invokeNoArg(recipe, "getDietaryTags");
+        doc.put("tags", tags instanceof Collection<?> ? tags : List.of());
+        doc.put("authorId", getStringValue(recipe, "getUserId"));
+
+        Object coverImages = invokeNoArg(recipe, "getCoverImageUrl");
+        if (coverImages instanceof List<?> list && !list.isEmpty() && list.get(0) != null) {
+            doc.put("coverImageUrl", list.get(0).toString());
+        } else {
+            doc.put("coverImageUrl", "");
+        }
+
+        Object createdAt = invokeNoArg(recipe, "getCreatedAt");
+        if (createdAt != null) {
+            Object epochSecond = invokeNoArg(createdAt, "getEpochSecond");
+            doc.put("createdAt", epochSecond instanceof Number number ? number.longValue() : 0L);
+        } else {
+            doc.put("createdAt", 0L);
+        }
 
         return doc;
     }
 
-    public void indexRecipe(Recipe recipe) {
-        if (recipe.getStatus() != RecipeStatus.PUBLISHED) return;
+    public void indexRecipe(Object recipe) {
+        Object status = invokeNoArg(recipe, "getStatus");
+        if (status == null || !RecipeStatus.PUBLISHED.name().equals(status.toString())) {
+            return;
+        }
         typesenseService.upsertDocument("recipes", recipeToDocument(recipe));
     }
 
@@ -161,21 +184,29 @@ public class TypesenseDataSyncer {
      * and the startup sync will re-index on next boot.
      */
     @EventListener
-    public void onRecipeIndexEvent(RecipeIndexEvent event) {
+    public void onRecipeIndexEvent(Object event) {
+        if (event == null || !"com.chefkix.culinary.features.recipe.events.RecipeIndexEvent".equals(event.getClass().getName())) {
+            return;
+        }
+
+        String recipeId = getStringValue(event, "recipeId");
+        String action = getStringValue(event, "action");
+        Object recipe = invokeNoArg(event, "recipe");
+
         if (!typesenseService.isHealthy()) {
-            log.warn("Typesense unreachable -- skipping real-time index for recipe {}", event.recipeId());
+            log.warn("Typesense unreachable -- skipping real-time index for recipe {}", recipeId);
             return;
         }
         try {
-            if ("INDEX".equals(event.action())) {
-                indexRecipe(event.recipe());
-                log.info("Real-time indexed recipe {} in Typesense", event.recipeId());
-            } else if ("REMOVE".equals(event.action())) {
-                removeRecipe(event.recipeId());
-                log.info("Real-time removed recipe {} from Typesense", event.recipeId());
+            if ("INDEX".equals(action)) {
+                indexRecipe(recipe);
+                log.info("Real-time indexed recipe {} in Typesense", recipeId);
+            } else if ("REMOVE".equals(action)) {
+                removeRecipe(recipeId);
+                log.info("Real-time removed recipe {} from Typesense", recipeId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for recipe {}: {}", event.recipeId(), e.getMessage());
+            log.error("Real-time Typesense index failed for recipe {}: {}", recipeId, e.getMessage());
         }
     }
 
@@ -185,7 +216,7 @@ public class TypesenseDataSyncer {
 
     private void syncPosts() {
         Query query = new Query(Criteria.where("hidden").ne(true));
-        List<Post> posts = mongoTemplate.find(query, Post.class);
+        List<Document> posts = mongoTemplate.find(query, Document.class, "posts");
 
         if (posts.isEmpty()) {
             log.info("No posts to sync");
@@ -200,35 +231,51 @@ public class TypesenseDataSyncer {
         log.info("Synced {}/{} posts to Typesense", synced, posts.size());
     }
 
-    private Map<String, Object> postToDocument(Post post) {
+    private Map<String, Object> postToDocument(Object post) {
         Map<String, Object> doc = new LinkedHashMap<>();
-        doc.put("id", post.getId());
-        doc.put("content", post.getContent() != null ? post.getContent() : "");
-        doc.put("authorId", post.getUserId() != null ? post.getUserId() : "");
-        doc.put("authorName", post.getDisplayName() != null ? post.getDisplayName() : "");
-        doc.put("likeCount", post.getLikes() != null ? post.getLikes() : 0);
-        doc.put("commentCount", post.getCommentCount() != null ? post.getCommentCount() : 0);
-        doc.put("recipeTitle", post.getRecipeTitle() != null ? post.getRecipeTitle() : "");
-        doc.put("createdAt", post.getCreatedAt() != null ? post.getCreatedAt().getEpochSecond() : 0L);
+        doc.put("id", getStringValue(post, "getId"));
+        doc.put("content", getStringValue(post, "getContent"));
+        doc.put("authorId", getStringValue(post, "getUserId"));
+        doc.put("authorName", getStringValue(post, "getDisplayName"));
+        doc.put("likeCount", getIntValue(post, "getLikes"));
+        doc.put("commentCount", getIntValue(post, "getCommentCount"));
+        doc.put("recipeTitle", getStringValue(post, "getRecipeTitle"));
+
+        Object createdAt = invokeNoArg(post, "getCreatedAt");
+        if (createdAt != null) {
+            Object epochSecond = invokeNoArg(createdAt, "getEpochSecond");
+            doc.put("createdAt", epochSecond instanceof Number number ? number.longValue() : 0L);
+        } else {
+            doc.put("createdAt", 0L);
+        }
+
         return doc;
     }
 
     @EventListener
-    public void onPostIndexEvent(PostIndexEvent event) {
+    public void onPostIndexEvent(Object event) {
+        if (event == null || !"com.chefkix.social.post.events.PostIndexEvent".equals(event.getClass().getName())) {
+            return;
+        }
+
+        String postId = getStringValue(event, "postId");
+        String action = getStringValue(event, "action");
+        Object post = invokeNoArg(event, "post");
+
         if (!typesenseService.isHealthy()) {
-            log.warn("Typesense unreachable -- skipping real-time index for post {}", event.postId());
+            log.warn("Typesense unreachable -- skipping real-time index for post {}", postId);
             return;
         }
         try {
-            if ("INDEX".equals(event.action())) {
-                typesenseService.upsertDocument("posts", postToDocument(event.post()));
-                log.info("Real-time indexed post {} in Typesense", event.postId());
-            } else if ("REMOVE".equals(event.action())) {
-                typesenseService.deleteDocument("posts", event.postId());
-                log.info("Real-time removed post {} from Typesense", event.postId());
+            if ("INDEX".equals(action)) {
+                typesenseService.upsertDocument("posts", postToDocument(post));
+                log.info("Real-time indexed post {} in Typesense", postId);
+            } else if ("REMOVE".equals(action)) {
+                typesenseService.deleteDocument("posts", postId);
+                log.info("Real-time removed post {} from Typesense", postId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for post {}: {}", event.postId(), e.getMessage());
+            log.error("Real-time Typesense index failed for post {}: {}", postId, e.getMessage());
         }
     }
 
@@ -300,5 +347,10 @@ public class TypesenseDataSyncer {
     private int getIntValue(Object target, String methodName) {
         Object value = invokeNoArg(target, methodName);
         return value instanceof Number number ? number.intValue() : 0;
+    }
+
+    private double getDoubleValue(Object target, String methodName) {
+        Object value = invokeNoArg(target, methodName);
+        return value instanceof Number number ? number.doubleValue() : 0.0;
     }
 }

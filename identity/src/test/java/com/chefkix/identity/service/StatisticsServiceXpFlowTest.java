@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.api.RecipeProvider;
+import com.chefkix.culinary.api.SessionProvider;
+import com.chefkix.culinary.api.dto.SessionInfo;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.mapper.ProfileMapper;
@@ -46,6 +48,8 @@ class StatisticsServiceXpFlowTest {
     private KafkaIdempotencyService idempotencyService;
     @Mock
     private RecipeProvider recipeProvider;
+    @Mock
+    private SessionProvider sessionProvider;
 
     @InjectMocks
     private StatisticsService statisticsService;
@@ -135,6 +139,13 @@ class StatisticsServiceXpFlowTest {
 
     @Test
     void rewardXpFullAppliesCookingProgressOnlyForCookingSessionEvents() {
+        when(sessionProvider.getSession("session-1")).thenReturn(SessionInfo.builder()
+            .id("session-1")
+            .recipeId("recipe-1")
+            .recipeTitle("Miso Ramen")
+            .pendingXp(95.0)
+            .build());
+
         statisticsService.rewardXpFull(
                 "user-1",
                 40.0,
@@ -150,5 +161,11 @@ class StatisticsServiceXpFlowTest {
         assertThat(stats.getChallengeStreak()).isEqualTo(3);
         assertThat(stats.getRecipeCookCounts()).containsEntry("recipe-1", 1);
         assertThat(stats.getRecipesCooked()).isEqualTo(1L);
+
+        ArgumentCaptor<GamificationNotificationEvent> eventCaptor = ArgumentCaptor.forClass(GamificationNotificationEvent.class);
+        verify(kafkaTemplate).send(org.mockito.ArgumentMatchers.<String>eq("gamification-delivery"), eventCaptor.capture());
+        GamificationNotificationEvent event = eventCaptor.getValue();
+        assertThat(event.getPendingXp()).isEqualTo(95.0);
+        assertThat(event.getRecipeTitle()).isEqualTo("Miso Ramen");
     }
 }

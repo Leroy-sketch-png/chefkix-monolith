@@ -49,6 +49,13 @@ public class Statistics {
   /** Monthly XP earned (reset 1st of each month) - used for monthly leaderboard */
   @Min(0) @Builder.Default Double xpMonthly = 0.0;
 
+  /**
+   * Cumulative all-time XP earned across all levels.
+   * Unlike currentXP (which resets to excess on level-up), this never decreases.
+   * Used for all-time leaderboard so high-level users are never punished for leveling up.
+   */
+  @Min(0) @Builder.Default Double totalXpAllTime = 0.0;
+
   @Builder.Default Title title = Title.BEGINNER;
 
   @Builder.Default Integer streakCount = 0;
