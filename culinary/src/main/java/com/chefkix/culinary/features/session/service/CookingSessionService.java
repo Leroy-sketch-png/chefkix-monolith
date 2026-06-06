@@ -624,6 +624,28 @@ public class CookingSessionService {
      * Sets status to ABANDONED. Cannot be resumed.
      */
     @Transactional
+    public SessionAbandonResponse abandonActiveSession() {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<CookingSession> sessionOpt = sessionRepository
+                .findFirstByUserIdAndStatusIn(userId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED));
+
+        if (sessionOpt.isEmpty()) {
+            return SessionAbandonResponse.builder()
+                    .sessionId(null)
+                    .status("none")
+                    .abandonedAt(null)
+                    .abandoned(false)
+                    .build();
+        }
+
+        return abandonSession(sessionOpt.get().getId());
+    }
+
+    /**
+     * Abandon a cooking session.
+     * Sets status to ABANDONED. Cannot be resumed.
+     */
+    @Transactional
     public SessionAbandonResponse abandonSession(String sessionId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         

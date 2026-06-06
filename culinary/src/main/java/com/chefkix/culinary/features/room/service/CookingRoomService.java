@@ -7,6 +7,7 @@ import com.chefkix.culinary.features.room.dto.request.InviteToRoomRequest;
 import com.chefkix.culinary.features.room.dto.request.JoinRoomRequest;
 import com.chefkix.culinary.features.room.dto.response.CookingRoomResponse;
 import com.chefkix.culinary.features.room.dto.response.FriendsActiveRoomResponse;
+import com.chefkix.culinary.features.room.dto.response.LeaveActiveRoomsResponse;
 import com.chefkix.culinary.features.room.dto.response.LeaveRoomResponse;
 import com.chefkix.culinary.features.room.model.CookingRoom;
 import com.chefkix.culinary.features.room.model.RoomEvent;
@@ -180,6 +181,42 @@ public class CookingRoomService {
     // ────────────────────────────────────────────────────────
     // LEAVE ROOM
     // ────────────────────────────────────────────────────────
+
+    @Transactional
+    public LeaveActiveRoomsResponse leaveActiveRooms(String userId) {
+        List<CookingRoom> rooms = roomRepository.findAll().stream()
+                .filter(room -> !CookingRoom.STATUS_DISSOLVED.equals(room.getStatus()))
+                .filter(room -> room.getParticipants().stream()
+                        .anyMatch(participant -> participant.getUserId().equals(userId)))
+                .toList();
+
+        int roomsLeft = 0;
+        int roomsDissolved = 0;
+        List<String> roomCodes = new ArrayList<>();
+
+        for (CookingRoom room : rooms) {
+            try {
+                LeaveRoomResponse response = leaveRoom(userId, room.getRoomCode());
+                roomsLeft++;
+                if (response.isRoomDissolved()) {
+                    roomsDissolved++;
+                }
+                roomCodes.add(room.getRoomCode());
+            } catch (AppException e) {
+                if (e.getErrorCode() == ErrorCode.ROOM_NOT_FOUND || e.getErrorCode() == ErrorCode.NOT_IN_ROOM) {
+                    log.warn("Skipped stale active-room cleanup for user {} room {}: {}", userId, room.getRoomCode(), e.getMessage());
+                    continue;
+                }
+                throw e;
+            }
+        }
+
+        return LeaveActiveRoomsResponse.builder()
+                .roomsLeft(roomsLeft)
+                .roomsDissolved(roomsDissolved)
+                .roomCodes(roomCodes)
+                .build();
+    }
 
     @Transactional
     public LeaveRoomResponse leaveRoom(String userId, String roomCode) {

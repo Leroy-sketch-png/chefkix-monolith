@@ -5,6 +5,7 @@ import com.chefkix.culinary.features.room.dto.request.InviteToRoomRequest;
 import com.chefkix.culinary.features.room.dto.request.JoinRoomRequest;
 import com.chefkix.culinary.features.room.dto.response.CookingRoomResponse;
 import com.chefkix.culinary.features.room.dto.response.FriendsActiveRoomResponse;
+import com.chefkix.culinary.features.room.dto.response.LeaveActiveRoomsResponse;
 import com.chefkix.culinary.features.room.dto.response.LeaveRoomResponse;
 import com.chefkix.culinary.features.room.service.CookingRoomService;
 import com.chefkix.shared.dto.ApiResponse;
@@ -36,6 +37,12 @@ public class CookingRoomController {
     public ApiResponse<CookingRoomResponse> joinRoom(@Valid @RequestBody JoinRoomRequest request) {
         String userId = getUserId();
         return ApiResponse.success(roomService.joinRoom(userId, request));
+    }
+
+    @PostMapping("/leave-active")
+    public ApiResponse<LeaveActiveRoomsResponse> leaveActiveRooms() {
+        String userId = getUserId();
+        return ApiResponse.success(roomService.leaveActiveRooms(userId));
     }
 
     @PostMapping("/{roomCode}/leave")

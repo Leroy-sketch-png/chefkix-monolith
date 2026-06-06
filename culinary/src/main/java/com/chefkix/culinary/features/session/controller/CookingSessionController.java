@@ -90,6 +90,11 @@ public class CookingSessionController {
         return ApiResponse.success(sessionService.getPendingSessions(userId));
     }
 
+    @PostMapping("/abandon-active")
+    public ApiResponse<SessionAbandonResponse> abandonActiveSession() {
+        return ApiResponse.success(sessionService.abandonActiveSession());
+    }
+
     @PostMapping("/{sessionId}/timer-event")
     public ApiResponse<LoggedResponse> startTimerEvent(
             @Valid @PathVariable String sessionId,
