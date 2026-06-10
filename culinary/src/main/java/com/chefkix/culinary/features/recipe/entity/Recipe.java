@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.recipe.entity;
 
 import com.chefkix.culinary.common.enums.Difficulty;
+import com.chefkix.culinary.common.enums.MealRole;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.common.enums.RecipeVisibility;
 import lombok.*;
@@ -91,6 +92,8 @@ public class Recipe {
 
     @Builder.Default
     List<String> dietaryTags = new ArrayList<>();
+
+    MealRole mealRole;
 
     Integer caloriesPerServing;
 

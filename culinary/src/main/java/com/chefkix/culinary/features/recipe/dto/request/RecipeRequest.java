@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.recipe.dto.request;
 
 import com.chefkix.culinary.common.enums.Difficulty;
+import com.chefkix.culinary.common.enums.MealRole;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -44,6 +45,7 @@ public class RecipeRequest {
     @Min(0) @Max(2880) int totalTimeMinutes;
     @Min(0) @Max(100) int servings;
     @Size(max = 100) String cuisineType;
+    MealRole mealRole;
     @Size(max = 30) List<String> dietaryTags;
     @Min(0) @Max(50000) Integer caloriesPerServing;
 

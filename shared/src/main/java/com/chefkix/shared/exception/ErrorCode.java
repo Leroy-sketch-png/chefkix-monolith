@@ -149,6 +149,8 @@ public enum ErrorCode {
 
     PANTRY_ITEM_NOT_FOUND(404, "Pantry item not found", HttpStatus.NOT_FOUND),
     MEAL_PLAN_NOT_FOUND(404, "Meal plan not found", HttpStatus.NOT_FOUND),
+    COOK_PLAN_NOT_FOUND(404, "Cook plan not found", HttpStatus.NOT_FOUND),
+    NO_VALID_COOK_PLAN(422, "No recipes satisfy the active cooking constraints", HttpStatus.UNPROCESSABLE_ENTITY),
     SHOPPING_LIST_NOT_FOUND(404, "Shopping list not found", HttpStatus.NOT_FOUND),
 
     // ─── ADMIN / MODERATION / BAN ──────────────────────────────────

@@ -5,6 +5,7 @@ import com.chefkix.identity.api.dto.AchievementStatsSnapshot;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
+import com.chefkix.identity.api.dto.PlanningPreferences;
 import com.chefkix.identity.dto.request.internal.InternalCompletionRequest;
 import com.chefkix.identity.dto.response.RecipeCompletionResponse;
 import com.chefkix.identity.dto.response.internal.InternalBasicProfileResponse;
@@ -12,6 +13,7 @@ import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.UserEvent;
+import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.enums.TrackingEventType;
 import com.chefkix.identity.repository.UserRepository;
 import com.chefkix.identity.repository.UserProfileRepository;
@@ -180,6 +182,24 @@ public class ProfileProviderImpl implements ProfileProvider {
     }
 
     @Override
+    public PlanningPreferences getPlanningPreferences(String userId) {
+        UserSettings.CookingPreferences preferences = userSettingsRepository.findByUserId(userId)
+                .map(UserSettings::getCooking)
+                .orElseGet(UserSettings.CookingPreferences::new);
+
+        return PlanningPreferences.builder()
+                .dietaryRestrictions(safeList(preferences.getDietaryRestrictions()))
+                .allergies(safeList(preferences.getAllergies()))
+                .dislikedIngredients(safeList(preferences.getDislikedIngredients()))
+                .preferredCuisines(safeList(preferences.getPreferredCuisines()))
+                .maxCookingTimeMinutes(preferences.getMaxCookingTimeMinutes())
+                .defaultServings(preferences.getDefaultServings() != null
+                        ? preferences.getDefaultServings()
+                        : 2)
+                .build();
+    }
+
+    @Override
     public int getUserLevel(String userId) {
         return userProfileRepository.findByUserId(userId)
                 .map(UserProfile::getStatistics)
@@ -253,5 +273,9 @@ public class ProfileProviderImpl implements ProfileProvider {
     @Override
     public long deleteUserEventData(String userId) {
         return userEventRepository.deleteByUserId(userId);
+    }
+
+    private List<String> safeList(List<String> values) {
+        return values != null ? List.copyOf(values) : List.of();
     }
 }

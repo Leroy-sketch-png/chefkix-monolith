@@ -162,6 +162,22 @@ public class UserSettings {
 
     @Builder.Default Boolean soundEffects = true;
 
+    @Builder.Default KitchenAudioPreferences kitchenAudio = new KitchenAudioPreferences();
+
     @Builder.Default Boolean keepScreenOn = true;
+  }
+
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder
+  public static class KitchenAudioPreferences {
+    @Builder.Default Boolean spokenGuidanceEnabled = false;
+
+    @Builder.Default Boolean timerVoiceEnabled = true;
+
+    @Builder.Default Boolean timerChimesEnabled = true;
+
+    @Builder.Default Boolean soundEffectsEnabled = true;
   }
 }

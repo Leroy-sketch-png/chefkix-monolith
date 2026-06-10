@@ -4,6 +4,7 @@ import com.chefkix.identity.api.dto.AchievementStatsSnapshot;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
 import com.chefkix.identity.api.dto.CompletionResult;
+import com.chefkix.identity.api.dto.PlanningPreferences;
 
 import java.time.Instant;
 import java.util.List;
@@ -127,6 +128,11 @@ public interface ProfileProvider {
      * @return list of preference IDs (e.g., "italian", "bbq", "vegan"), never null
      */
     List<String> getUserPreferences(String userId);
+
+    /**
+     * Get the persisted household planning constraints used by cook-plan generation.
+     */
+    PlanningPreferences getPlanningPreferences(String userId);
 
     /**
      * Get user's current gamification level.

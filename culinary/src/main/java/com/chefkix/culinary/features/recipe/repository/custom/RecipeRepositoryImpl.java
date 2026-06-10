@@ -106,8 +106,14 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                 .include("id")
                 .include("title")
                 .include("coverImageUrl")
+                .include("prepTimeMinutes")
+                .include("cookTimeMinutes")
                 .include("totalTimeMinutes")
+                .include("servings")
                 .include("difficulty")
+                .include("cuisineType")
+                .include("dietaryTags")
+                .include("mealRole")
                 .include("fullIngredientList");
         return mongoTemplate.find(query, Recipe.class);
     }
