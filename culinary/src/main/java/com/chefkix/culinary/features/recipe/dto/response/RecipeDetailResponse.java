@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.recipe.dto.response;
 
 import com.chefkix.culinary.common.enums.Difficulty;
+import com.chefkix.culinary.common.enums.MealRole;
 import com.chefkix.culinary.common.enums.RecipeStatus;
 import com.chefkix.culinary.common.dto.response.AuthorResponse;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -41,6 +42,7 @@ public class RecipeDetailResponse {
     int totalTimeMinutes;
     int servings;
     String cuisineType;
+    MealRole mealRole;
     List<String> dietaryTags;
     Integer caloriesPerServing;
 

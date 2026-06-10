@@ -251,6 +251,26 @@ public class SettingsService {
     if (app.getSoundEffects() != null) {
       settings.getApp().setSoundEffects(app.getSoundEffects());
     }
+    if (app.getKitchenAudio() != null) {
+      UserSettings.KitchenAudioPreferences incoming = app.getKitchenAudio();
+      UserSettings.KitchenAudioPreferences current = settings.getApp().getKitchenAudio();
+      if (current == null) {
+        current = UserSettings.KitchenAudioPreferences.builder().build();
+        settings.getApp().setKitchenAudio(current);
+      }
+      if (incoming.getSpokenGuidanceEnabled() != null) {
+        current.setSpokenGuidanceEnabled(incoming.getSpokenGuidanceEnabled());
+      }
+      if (incoming.getTimerVoiceEnabled() != null) {
+        current.setTimerVoiceEnabled(incoming.getTimerVoiceEnabled());
+      }
+      if (incoming.getTimerChimesEnabled() != null) {
+        current.setTimerChimesEnabled(incoming.getTimerChimesEnabled());
+      }
+      if (incoming.getSoundEffectsEnabled() != null) {
+        current.setSoundEffectsEnabled(incoming.getSoundEffectsEnabled());
+      }
+    }
     if (app.getKeepScreenOn() != null) {
       settings.getApp().setKeepScreenOn(app.getKeepScreenOn());
     }
@@ -266,7 +286,8 @@ public class SettingsService {
 
   /** Get or create default settings for a user. */
   private UserSettings getOrCreateSettings(String userId) {
-    return settingsRepository
+    UserSettings settings =
+        settingsRepository
         .findByUserId(userId)
         .orElseGet(
             () -> {
@@ -274,6 +295,15 @@ public class SettingsService {
               UserSettings newSettings = UserSettings.builder().userId(userId).build();
               return settingsRepository.save(newSettings);
             });
+    if (settings.getApp() == null) {
+      settings.setApp(UserSettings.AppPreferences.builder().build());
+      return settingsRepository.save(settings);
+    }
+    if (settings.getApp().getKitchenAudio() == null) {
+      settings.getApp().setKitchenAudio(UserSettings.KitchenAudioPreferences.builder().build());
+      return settingsRepository.save(settings);
+    }
+    return settings;
   }
 
   private String getCurrentUserId() {
