@@ -195,6 +195,86 @@ class CookPlanServiceTest {
     }
 
     @Test
+    void rejectsGenericCuisinePairingsWithoutIngredientAffinity() {
+        Recipe bowl = recipe(
+                "power-bowl",
+                "Protein Power Bowl",
+                "International",
+                MealRole.MAIN,
+                15,
+                25,
+                2,
+                List.of(
+                        ingredient("Quinoa", "150", "g"),
+                        ingredient("Mixed greens", "4", "cups")));
+        Recipe sourdough = recipe(
+                "sourdough",
+                "Sourdough Bread",
+                "International",
+                MealRole.BREAD,
+                30,
+                45,
+                1,
+                List.of(
+                        ingredient("Bread flour", "500", "g"),
+                        ingredient("Water", "350", "ml")));
+
+        when(recipeRepository.findPublishedForIngredientMatching())
+                .thenReturn(List.of(bowl, sourdough));
+
+        CookPlan plan = service.create("user-1", request(4, 90));
+
+        assertThat(plan.getCookBatches()).isEmpty();
+        assertThat(plan.getUnmetConstraints())
+                .anyMatch(message -> message.contains("Fewer than two compatible recipes"));
+    }
+
+    @Test
+    void scalesWholeBatchBreadAsOneLoafAndOmitsTapWater() {
+        Recipe riceBowl = recipe(
+                "rice-bowl",
+                "Vietnamese Tofu Rice Bowl",
+                "Vietnamese",
+                MealRole.MAIN,
+                10,
+                20,
+                2,
+                List.of(ingredient("Rice", "1", "cup")));
+        Recipe bread = recipe(
+                "bread",
+                "Vietnamese Baguette",
+                "Vietnamese",
+                MealRole.BREAD,
+                20,
+                30,
+                1,
+                List.of(
+                        ingredient("Bread flour", "500", "g"),
+                        ingredient("Water", "350", "ml")));
+
+        when(recipeRepository.findPublishedForIngredientMatching())
+                .thenReturn(List.of(riceBowl, bread));
+
+        CookPlan plan = service.create("user-1", request(4, 90));
+
+        CookPlan.CookPlanDish plannedBread = plan.getCookBatches().get(0).getDishes().stream()
+                .filter(dish -> "bread".equals(dish.getRecipeId()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(plannedBread.getSourceServings()).isEqualTo(8);
+        assertThat(plannedBread.getPlannedServings()).isEqualTo(8);
+        assertThat(plan.getShoppingList())
+                .extracting(CookPlan.ShoppingItem::getIngredient)
+                .contains("Bread flour")
+                .doesNotContain("Water");
+        assertThat(plan.getShoppingList().stream()
+                .filter(item -> "Bread flour".equals(item.getIngredient()))
+                .findFirst()
+                .orElseThrow()
+                .getQuantity()).isEqualTo("500");
+    }
+
+    @Test
     void returnsActionableNoPlanInsteadOfUnsafeFallback() {
         Recipe onlySafeRecipe = recipe(
                 "safe-one",

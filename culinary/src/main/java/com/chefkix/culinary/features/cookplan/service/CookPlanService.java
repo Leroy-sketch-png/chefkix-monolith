@@ -46,6 +46,15 @@ public class CookPlanService {
 
     private static final int MIN_DISHES = 2;
     private static final int MAX_DISHES = 4;
+    private static final int DEFAULT_WHOLE_BATCH_SERVINGS = 8;
+    private static final Set<String> GENERIC_CUISINES = Set.of(
+            "international",
+            "global",
+            "other",
+            "fusion");
+    private static final Set<String> NON_SHOPPING_STAPLES = Set.of(
+            "water",
+            "tap water");
 
     private final CookPlanRepository cookPlanRepository;
     private final RecipeRepository recipeRepository;
@@ -266,7 +275,7 @@ public class CookPlanService {
             List<RecipeCandidate> companions = candidates.stream()
                     .filter(candidate -> candidate != anchor)
                     .filter(candidate -> isCompanionRole(candidate.mealRole()))
-                    .filter(candidate -> sameCuisine(anchor.recipe(), candidate.recipe()))
+                    .filter(candidate -> isCompatibleCompanion(anchor, candidate))
                     .sorted(Comparator.comparingDouble((RecipeCandidate candidate) ->
                                     candidate.score()
                                             + compatibilityScore(candidate, cluster, selectedIngredients))
@@ -330,8 +339,27 @@ public class CookPlanService {
 
     private boolean sameCuisine(Recipe first, Recipe second) {
         String firstCuisine = normalize(first.getCuisineType());
-        return !firstCuisine.isBlank()
+        return isSpecificCuisine(firstCuisine)
                 && firstCuisine.equals(normalize(second.getCuisineType()));
+    }
+
+    private boolean isCompatibleCompanion(
+            RecipeCandidate anchor,
+            RecipeCandidate companion) {
+        if (sameCuisine(anchor.recipe(), companion.recipe())) {
+            return true;
+        }
+        String anchorCuisine = normalize(anchor.recipe().getCuisineType());
+        String companionCuisine = normalize(companion.recipe().getCuisineType());
+        if (isSpecificCuisine(anchorCuisine) && isSpecificCuisine(companionCuisine)) {
+            return false;
+        }
+        return companion.ingredientNames().stream()
+                .anyMatch(anchor.ingredientNames()::contains);
+    }
+
+    private boolean isSpecificCuisine(String cuisine) {
+        return !cuisine.isBlank() && !GENERIC_CUISINES.contains(cuisine);
     }
 
     private RecipeCandidate candidate(
@@ -416,7 +444,7 @@ public class CookPlanService {
                 .mealRole(candidate.mealRole())
                 .activeMinutes(candidate.activeMinutes())
                 .totalTimeMinutes(recipe.getTotalTimeMinutes())
-                .sourceServings(Math.max(1, recipe.getServings()))
+                .sourceServings(effectiveSourceServings(recipe))
                 .plannedServings(plannedServings)
                 .pantryIngredientCount(candidate.pantryIngredientCount())
                 .shoppingIngredientCount(candidate.shoppingIngredientCount())
@@ -458,13 +486,18 @@ public class CookPlanService {
             Set<String> pantryNames) {
         Map<String, ShoppingAccumulator> shopping = new LinkedHashMap<>();
         for (Recipe recipe : recipes) {
-            int sourceServings = Math.max(1, recipe.getServings());
+            int sourceServings = effectiveSourceServings(recipe);
             BigDecimal scale = BigDecimal.valueOf(plannedServings)
                     .divide(BigDecimal.valueOf(sourceServings), 2, RoundingMode.HALF_UP);
+            if (isWholeBatchRecipe(recipe)) {
+                scale = scale.max(BigDecimal.ONE);
+            }
 
             for (Ingredient ingredient : ingredients(recipe)) {
                 String normalizedName = normalize(ingredient.getName());
-                if (normalizedName.isBlank() || pantryNames.contains(normalizedName)) {
+                if (normalizedName.isBlank()
+                        || NON_SHOPPING_STAPLES.contains(normalizedName)
+                        || pantryNames.contains(normalizedName)) {
                     continue;
                 }
                 String unit = normalize(ingredient.getUnit());
@@ -476,6 +509,18 @@ public class CookPlanService {
             }
         }
         return shopping.values().stream().map(ShoppingAccumulator::toItem).toList();
+    }
+
+    private int effectiveSourceServings(Recipe recipe) {
+        int declaredServings = Math.max(1, recipe.getServings());
+        return isWholeBatchRecipe(recipe) && declaredServings == 1
+                ? DEFAULT_WHOLE_BATCH_SERVINGS
+                : declaredServings;
+    }
+
+    private boolean isWholeBatchRecipe(Recipe recipe) {
+        MealRole role = resolveMealRole(recipe);
+        return role == MealRole.BREAD || role == MealRole.DESSERT;
     }
 
     private PantryContext pantryContext(List<PantryItem> pantry, LocalDate planDate) {
