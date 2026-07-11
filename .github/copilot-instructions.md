@@ -1,5 +1,5 @@
 # ChefKix Monolith — AI Agent Instructions
-<!-- Cross-ref: workspace root .github/copilot-instructions.md (philosophy) + AGENTS.md (live audit trail) -->
+<!-- Cross-ref: workspace root .github/copilot-instructions.md (philosophy) + AGENTS.md (audit trail) + SCOPE.md (role contract + work queue) -->
 
 # LIVE FIXES (read before touching any Java file)
 - CookingSessionService.java:243 — NPE when `profileProvider.getBasicProfile()` returns null (auto-draft silently dropped). Fixed with null guard.
