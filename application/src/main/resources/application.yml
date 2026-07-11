@@ -54,7 +54,7 @@ spring:
           issuer-uri: http://localhost:8180/realms/nottisn
 
 # ── Keycloak IDP (identity module — admin client) ──
-# SECURITY: NEVER deploy with these defaults. Set IDP_CLIENT_SECRET env var in production.
+# DEV DEFAULTS: override IDP_CLIENT_SECRET in production.
 idp:
   url: ${IDP_URL:http://localhost:8180}
   client-id: ${IDP_CLIENT_ID:chefkix-be}

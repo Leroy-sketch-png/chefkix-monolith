@@ -23,12 +23,17 @@ Thumbs.db
 # === Logs ===
 *.log
 *.log.*.gz
+*.tmp
 logs/
 
 # === Dev build artifacts (temp terminal output files) ===
 _*.txt
 _api_stress_report.json
 _guest_route_audit.json
+
+# === IDE classpath dumps ===
+cp.txt
+**/cp.txt
 
 # === Environment ===
 .env
