@@ -1750,6 +1750,17 @@ public class PostService {
         }
 
         postRepository.save(post);
+
+        // Publish event so identity module can increment totalRecipesPublished
+        kafkaTemplate.send("post-delivery",
+                PostCreatedEvent.builder()
+                        .userId(post.getUserId())
+                        .postId(post.getId())
+                        .build());
+
+        // Real-time Typesense indexing
+        eventPublisher.publishEvent(PostIndexEvent.index(post));
+
         log.info("Auto-created RECENT_COOK post for user {} (recipe: {})", request.getUserId(), request.getRecipeTitle());
     }
 

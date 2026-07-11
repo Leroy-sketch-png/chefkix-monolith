@@ -27,7 +27,8 @@ public enum TrackingEventType {
     SEARCH_REFINED("SEARCH_REFINED"),
     PAGE_VIEWED("PAGE_VIEWED"),
     POST_CREATED("POST_CREATED"),
-    RECIPE_CREATED("RECIPE_CREATED");
+    RECIPE_CREATED("RECIPE_CREATED"),
+    BATTLE_VOTE("BATTLE_VOTE");
 
     @JsonValue
     private final String value;
