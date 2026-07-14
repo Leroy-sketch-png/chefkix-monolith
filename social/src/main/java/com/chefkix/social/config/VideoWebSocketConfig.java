@@ -20,13 +20,16 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Configuration
 @EnableWebSocket
 @RequiredArgsConstructor
 @Slf4j
 public class VideoWebSocketConfig implements WebSocketConfigurer {
+
+    static final String VIDEO_SIGNALING_PROTOCOL = "chefkix.video";
+    static final String BEARER_PROTOCOL_PREFIX = "bearer.";
+    private static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
     private final VideoSignalingHandler signalingHandler;
     private final JwtDecoder jwtDecoder;
@@ -90,22 +93,37 @@ public class VideoWebSocketConfig implements WebSocketConfigurer {
     }
 
     private String extractToken(ServerHttpRequest request) {
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        return extractBearerToken(request.getHeaders());
+    }
+
+    static String extractBearerToken(HttpHeaders headers) {
+        String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
         }
 
-        String accessToken = UriComponentsBuilder.fromUri(request.getURI())
-                .build()
-                .getQueryParams()
-                .getFirst("access_token");
-        if (StringUtils.hasText(accessToken)) {
-            return accessToken;
+        for (String protocolHeader : headers.getOrEmpty(SEC_WEBSOCKET_PROTOCOL)) {
+            String token = extractBearerProtocolToken(protocolHeader);
+            if (StringUtils.hasText(token)) {
+                return token;
+            }
         }
 
-        return UriComponentsBuilder.fromUri(request.getURI())
-                .build()
-                .getQueryParams()
-                .getFirst("token");
+        return null;
+    }
+
+    private static String extractBearerProtocolToken(String protocolHeader) {
+        if (!StringUtils.hasText(protocolHeader)) {
+            return null;
+        }
+
+        for (String protocol : protocolHeader.split(",")) {
+            String value = protocol.trim();
+            if (value.startsWith(BEARER_PROTOCOL_PREFIX)) {
+                return value.substring(BEARER_PROTOCOL_PREFIX.length());
+            }
+        }
+
+        return null;
     }
 }
