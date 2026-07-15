@@ -125,7 +125,7 @@ chefkix:
     host: ${TYPESENSE_HOST:localhost}
     port: ${TYPESENSE_PORT:8108}
     protocol: ${TYPESENSE_PROTOCOL:http}
-    api-key: ${TYPESENSE_API_KEY:chefkix-typesense-dev-key}
+    api-key: ${TYPESENSE_API_KEY}
   grocery:
     affiliate:
       enabled: ${GROCERY_AFFILIATE_ENABLED:false}
