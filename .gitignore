@@ -37,4 +37,7 @@ cp.txt
 
 # === Environment ===
 .env
+.env.*
 *.env.local
+*.keys
+!.env.example
