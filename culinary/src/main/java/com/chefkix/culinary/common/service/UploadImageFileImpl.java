@@ -33,6 +33,7 @@ public class UploadImageFileImpl implements UploadImageFile {
     private static final List<String> ALLOWED_IMAGE_TYPES = List.of(
             "image/jpeg", "image/png", "image/webp", "image/gif"
     );
+    private static final String OPTIMIZED_IMAGE_EAGER_TRANSFORM = "c_limit,w_1600,h_1600,q_auto,f_auto";
 
     @Override
     public String uploadImageFile(MultipartFile file) {
@@ -44,15 +45,31 @@ public class UploadImageFileImpl implements UploadImageFile {
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
-                            "resource_type", "image"
+                            "resource_type", "image",
+                            "eager", OPTIMIZED_IMAGE_EAGER_TRANSFORM
                     ));
 
-            return uploadResult.get("secure_url").toString();
+            return extractOptimizedImageUrl(uploadResult);
 
         } catch (IOException e) {
             log.error("Error uploading file to Cloudinary", e);
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE);
         }
+    }
+
+    String extractOptimizedImageUrl(Map<String, Object> uploadResult) {
+        Object eagerObj = uploadResult.get("eager");
+        if (eagerObj instanceof List<?> eagerList && !eagerList.isEmpty()) {
+            Object first = eagerList.get(0);
+            if (first instanceof Map<?, ?> eagerMap) {
+                Object eagerSecureUrl = eagerMap.get("secure_url");
+                if (eagerSecureUrl != null) {
+                    return eagerSecureUrl.toString();
+                }
+            }
+        }
+
+        return uploadResult.get("secure_url").toString();
     }
 
     private void validateImageFile(MultipartFile file) {
