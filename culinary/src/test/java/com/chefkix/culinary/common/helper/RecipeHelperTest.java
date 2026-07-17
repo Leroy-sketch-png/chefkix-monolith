@@ -83,6 +83,20 @@ class RecipeHelperTest {
   }
 
   @Test
+  void calculateFinalXpForLinkingRoundsFractionalXp() {
+    CookingSession session = CookingSession.builder()
+        .pendingXp(33.0)
+        .completedAt(LocalDateTime.now(ZoneOffset.UTC))
+        .build();
+
+    int finalXp = helper.calculateFinalXpForLinking(
+        session,
+        PostLinkInfo.builder().photoCount(1).build());
+
+    assertThat(finalXp).isEqualTo(17);
+  }
+
+  @Test
   void validateSessionForLinkingRejectsExpiredSession() {
     CookingSession session = CookingSession.builder()
         .id("session-1")

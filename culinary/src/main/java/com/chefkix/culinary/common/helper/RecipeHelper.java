@@ -106,7 +106,7 @@ public class RecipeHelper {
         else decayMult = 0.0;
 
         double pendingXpBase = (session.getPendingXp() != null) ? session.getPendingXp() : 0;
-        int finalXp = (int) (pendingXpBase * photoMult * decayMult);
+        int finalXp = (int) Math.round(pendingXpBase * photoMult * decayMult);
         
         return finalXp;
     }

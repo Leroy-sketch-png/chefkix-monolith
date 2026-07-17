@@ -41,7 +41,7 @@ public interface StatisticsMapper {
     long hoursSinceLastCook = sinceLastCook.toHours();
     
     // "Cooked today" means within the streak window (72 hours for cooking streaks)
-    boolean withinWindow = hoursSinceLastCook < STREAK_WINDOW_HOURS;
+    boolean withinWindow = hoursSinceLastCook <= STREAK_WINDOW_HOURS;
     target.setCookedToday(withinWindow);
     
     // Calculate hours until streak breaks
