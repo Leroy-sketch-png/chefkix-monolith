@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -137,7 +138,11 @@ public class UploadImageFileImpl implements UploadImageFile {
 
         try {
             allOf.join();
-        } catch (Exception e) {
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof AppException appException) {
+                log.warn("[UPLOAD_MULTI] Rejected upload: {}", appException.getMessage());
+                throw appException;
+            }
             log.error("[UPLOAD_MULTI] Error during parallel upload", e);
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "One or more files failed to upload");
         }

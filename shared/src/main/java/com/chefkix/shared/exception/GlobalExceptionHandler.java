@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
                 .statusCode(413)
-                .message("File too large. Maximum upload size is 10MB per file.")
+                .message("Upload is too large. Images are limited to 10MB each and videos to 50MB.")
                 .build();
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }

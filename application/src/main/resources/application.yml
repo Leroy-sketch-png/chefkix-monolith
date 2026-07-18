@@ -17,6 +17,11 @@ spring:
   main:
     allow-circular-references: true
 
+  servlet:
+    multipart:
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE:50MB}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:105MB}
+
   # ── MongoDB (single database, consolidated from 5) ──
   data:
     mongodb:
