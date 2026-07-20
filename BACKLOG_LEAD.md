@@ -32,6 +32,7 @@
 
 - [ ] **Synthetic Data Generation (The Exploit):** Use ChefKix's existing 7-provider API rotator to generate 10k-20k food Q&A pairs. *CRITICAL: Send ONLY the textual metadata (ingredient lists, step descriptions) to the free text-only APIs to generate Q&A, then bind those Q&As to the corresponding images from Recipes5k/RecipeGen. This bypasses the need for expensive Vision APIs.*
 - [ ] **SmolVLM Fine-Tuning:** Run QLoRA fine-tuning on `SmolVLM-256M` (for on-device speed) and `SmolVLM-2B` (for server-side reasoning). 
+- [ ] **Evaluation:** Benchmark the fine-tuned models against GPT-4o zero-shot on a held-out set of food tasks.
 - [ ] **GGUF Export:** Export both models to GGUF Q4 for llama.cpp execution.
 
 ## EPIC 5: Orchestration & Personalization
