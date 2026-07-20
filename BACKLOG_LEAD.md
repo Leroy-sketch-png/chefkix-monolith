@@ -1,12 +1,12 @@
 # IRON CHEF v2: LEAD BACKLOG (THE CUNNING EXPLOITS)
 
-> **Role:** Architect, Visionary, Intelligence Lead.
-> **Mandate:** Focus exclusively on the deep-water tasks. No grunt work. Build the intelligence that makes this a thesis-worthy contribution. The API wrappers die here.
+> **Track:** ML & Data Science (Reasoning Engine)
+> **Mandate:** Focus on Graph Neural Networks, Large Language Model orchestration, and Computational Food Science. You own the deep intelligence layer.
 
 ## EPIC 1: Layer 2 — The Heterogeneous Knowledge Graph (The Brain)
 *Building the foundation of context-dependent substitution and grounded reasoning.*
 
-- [ ] **Data Exploit Integration:** Download and parse the 2.2M RecipeNLG dataset into a normalized vocabulary. 
+- [ ] **Data Exploit Integration:** Write chunked-processing scripts to parse the 2.2M RecipeNLG dataset into a normalized vocabulary (avoids Out-Of-Memory crashes when building the PyG graph).  
 - [ ] **Feature Stacking (The 3-Vector Node):** Download Epicure embeddings (`epicure-core`), FooDB compound fingerprints, and USDA FDC nutritional data. Stack these into a single 3-part feature vector for each Ingredient node.
 - [ ] **PyTorch Geometric Construction:** Build the `HeteroData` graph. 4 node types (Ingredient, Recipe, Technique, Cuisine). 4 edge types.
 - [ ] **Substitution Ground-Truth Extraction:** Write the regex pipeline to extract "or use X" / "substitute with X" from recipe texts. These are the positive labels for the GNN.
@@ -30,7 +30,7 @@
 ## EPIC 4: Layer 4 — The VLM Orchestrator (JARVIS)
 *The brain that talks to the user and queries the graph.*
 
-- [ ] **Synthetic Data Generation (The Exploit):** Use ChefKix's existing 7-provider API rotator to generate 10k-20k food Q&A pairs (based on Recipes5k and RecipeGen visual states). Use one provider to judge and filter the output.
+- [ ] **Synthetic Data Generation (The Exploit):** Use ChefKix's existing 7-provider API rotator to generate 10k-20k food Q&A pairs. *CRITICAL: Send ONLY the textual metadata (ingredient lists, step descriptions) to the free text-only APIs to generate Q&A, then bind those Q&As to the corresponding images from Recipes5k/RecipeGen. This bypasses the need for expensive Vision APIs.*
 - [ ] **SmolVLM Fine-Tuning:** Run QLoRA fine-tuning on `SmolVLM-256M` (for on-device speed) and `SmolVLM-2B` (for server-side reasoning). 
 - [ ] **GGUF Export:** Export both models to GGUF Q4 for llama.cpp execution.
 

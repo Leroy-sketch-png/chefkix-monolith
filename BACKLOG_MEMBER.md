@@ -1,12 +1,12 @@
 # IRON CHEF v2: MEMBER BACKLOG (THE EXECUTION ENGINE)
 
-> **Role:** Execution Member, Perception Lead, Data Engineer.
-> **Mandate:** Your job is to build the pipelines, run the benchmarks, and wire the hardware. The Lead relies on your execution speed so they can focus on the novel GNN and VLM architectures. Be painstaking, be precise, and build robust scaffolding.
+> **Track:** Systems & Computer Vision (Perception Engine)
+> **Mandate:** Focus on real-time object detection, hardware optimization, and full-stack systems integration. You own the "Eyes" and the "Nervous System".
 
 ## EPIC 1: Layer 1 — The Perception Baseline (YOLO vs RT-DETR)
 *Building the eyes of the cooking copilot.*
 
-- [ ] **Data Pipeline Automation:** Write simple Bash scripts / Kaggle templates to download Food-101, Recipes5k, RecipeGen, and Roboflow FOOD-INGREDIENTS. Automate the unpacking so it's a 1-click operation.
+- [ ] **Data Pipeline Architecture:** Engineer the Kaggle templates and automation scripts to reliably download and unpack Food-101, Recipes5k, RecipeGen, and Roboflow FOOD-INGREDIENTS.
 - [ ] **Taxonomy Validation:** Ensure the Roboflow dataset labels map correctly to our Phase 1 `taxonomy.yaml`.
 - [ ] **YOLO Training:** Run the training loops for YOLOv8n and YOLOv11n on the FOOD-INGREDIENTS dataset. Export step reports with mAP@50 and mAP@50:95.
 - [ ] **RT-DETR Training:** Run the training loop for the RT-DETR-L challenger model. Compare metrics against the YOLO baselines.
@@ -22,18 +22,18 @@
 ## EPIC 3: Voice-Vision Copilot Frontend Wiring (The JARVIS Interface)
 *Connecting the frontend sensors to the intelligence backend.*
 
-- [ ] **Camera Integration:** In `chefkix-fe/src/components/cooking/CookingPanel.tsx`, wire the camera feed to send frames (or extracted features) to the backend Layer 1 endpoint.
-- [ ] **Voice State Management:** Connect `useVoiceMode.ts` state to trigger the Graph-RAG pipeline. When the user asks a question, package the audio command + the current camera frame.
+- [ ] **Camera Integration:** In `chefkix-fe/src/components/cooking/CookingPanel.tsx`, capture camera frames as Base64 JPEGs and transmit them to the backend Layer 1 endpoint over standard WebSocket (avoids complex WebRTC termination on the Python backend).
+- [ ] **Voice State Management:** Connect `useVoiceMode.ts` state to trigger the Graph-RAG pipeline. Package the audio command + the latest Base64 camera frame.
 - [ ] **TTS Execution:** Implement the Text-To-Speech (TTS) hook to play the VLM's string response back to the user via the `KitchenAudioCoordinator`.
 
 ## EPIC 4: Hardware & Compute Support
 *Keeping the engines running.*
 
-- [ ] **Kaggle T4 Babysitting:** Monitor the training runs. Manage the checkpoint downloads. Ensure we don't hit idle timeouts on Kaggle.
-- [ ] **A100 Burst Execution Support (3-Day Window):** 
-  - Prep the environment scripts for the A100.
-  - Run the massive hyperparameter sweeps for the HGAT while the Lead monitors.
-  - Automate the checkpoint backup to Google Drive / local storage.
+- [ ] **Compute Cluster Management:** Orchestrate the training workloads. Manage Kaggle T4 schedules to avoid idle timeouts.
+- [ ] **A100 Burst Execution Architecture (3-Day Window):** 
+  - Engineer the environment setup for the A100.
+  - Coordinate the massive hyperparameter sweeps for the HGAT.
+  - Automate the checkpoint backup to remote storage.
 
 ## EPIC 5: Thesis Engineering Chapters
 *Documenting the systems engineering.*
