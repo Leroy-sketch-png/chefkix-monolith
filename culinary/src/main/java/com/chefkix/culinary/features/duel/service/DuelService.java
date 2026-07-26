@@ -39,30 +39,24 @@ public class DuelService {
     private final ProfileProvider profileProvider;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    // ============================================
-    // CREATE DUEL
-    // ============================================
 
     public DuelResponse createDuel(String challengerId, CreateDuelRequest request) {
-        // Validate no self-challenge
         if (challengerId.equals(request.getOpponentId())) {
             throw new AppException(ErrorCode.DUEL_CANNOT_CHALLENGE_SELF);
         }
 
-        // Validate recipe exists
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // Validate no active duel between these users on this recipe
+        Instant now = Instant.now();
         duelRepository.findActiveBetween(challengerId, request.getOpponentId(), request.getRecipeId())
-                .ifPresent(d -> { throw new AppException(ErrorCode.DUEL_ALREADY_EXISTS); });
+                .filter(duel -> !expireIfOverdue(duel, now))
+                .ifPresent(duel -> { throw new AppException(ErrorCode.DUEL_ALREADY_EXISTS); });
 
-        // Check block relationship
         if (profileProvider.isBlocked(challengerId, request.getOpponentId())) {
             throw new AppException(ErrorCode.DUEL_NOT_PARTICIPANT);
         }
 
-        Instant now = Instant.now();
         CookingDuel duel = CookingDuel.builder()
                 .challengerId(challengerId)
                 .opponentId(request.getOpponentId())
@@ -78,20 +72,17 @@ public class DuelService {
 
         duel = duelRepository.save(duel);
 
-        // Notify opponent
         sendDuelNotification(duel, "INVITE", request.getOpponentId());
 
         return toResponse(duel);
     }
 
-    // ============================================
-    // ACCEPT / DECLINE / CANCEL
-    // ============================================
 
-    @Transactional
+    @Transactional(noRollbackFor = AppException.class)
     public DuelResponse acceptDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         validateOpponent(duel, userId);
+        expireIfOverdue(duel, Instant.now());
         validateStatus(duel, DuelStatus.PENDING);
 
         duel.setStatus(DuelStatus.ACCEPTED);
@@ -99,16 +90,16 @@ public class DuelService {
         duel.setCookDeadline(Instant.now().plus(COOK_WINDOW));
         duel = duelRepository.save(duel);
 
-        // Notify challenger
         sendDuelNotification(duel, "ACCEPTED", duel.getChallengerId());
 
         return toResponse(duel);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = AppException.class)
     public DuelResponse declineDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         validateOpponent(duel, userId);
+        expireIfOverdue(duel, Instant.now());
         validateStatus(duel, DuelStatus.PENDING);
 
         duel.setStatus(DuelStatus.DECLINED);
@@ -119,12 +110,13 @@ public class DuelService {
         return toResponse(duel);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = AppException.class)
     public DuelResponse cancelDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         if (!duel.getChallengerId().equals(userId)) {
             throw new AppException(ErrorCode.DUEL_NOT_PARTICIPANT);
         }
+        expireIfOverdue(duel, Instant.now());
         validateStatus(duel, DuelStatus.PENDING);
 
         duel.setStatus(DuelStatus.CANCELLED);
@@ -133,21 +125,17 @@ public class DuelService {
         return toResponse(duel);
     }
 
-    // ============================================
-    // LINK SESSION TO DUEL
-    // ============================================
 
     /**
-     * Called after a cooking session is completed. Checks if this session
-     * is part of an active duel and links it.
      */
     @Transactional
     public void onSessionCompleted(String userId, CookingSession session) {
-        // Find active duels for this user + recipe
         List<CookingDuel> duels = duelRepository.findByParticipantAndStatusIn(
                 userId, List.of(DuelStatus.ACCEPTED, DuelStatus.IN_PROGRESS));
+        Instant now = Instant.now();
 
         for (CookingDuel duel : duels) {
+            if (expireIfOverdue(duel, now)) continue;
             if (!duel.getRecipeId().equals(session.getRecipeId())) continue;
 
             boolean isChallenger = duel.getChallengerId().equals(userId);
@@ -171,39 +159,43 @@ public class DuelService {
         }
     }
 
-    // ============================================
-    // QUERIES
-    // ============================================
 
     public DuelResponse getDuel(String userId, String duelId) {
         CookingDuel duel = getDuelOrThrow(duelId);
         validateParticipant(duel, userId);
+        expireIfOverdue(duel, Instant.now());
         return toResponse(duel);
     }
 
     public List<DuelResponse> getMyDuels(String userId) {
-        return duelRepository.findByParticipant(userId).stream()
+        List<CookingDuel> duels = duelRepository.findByParticipant(userId);
+        reconcileOverdue(duels, Instant.now());
+        return duels.stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public List<DuelResponse> getMyActiveDuels(String userId) {
-        return duelRepository.findByParticipantAndStatusIn(
-                        userId, List.of(DuelStatus.PENDING, DuelStatus.ACCEPTED, DuelStatus.IN_PROGRESS))
-                .stream()
+        List<CookingDuel> duels = duelRepository.findByParticipantAndStatusIn(
+                userId, List.of(DuelStatus.PENDING, DuelStatus.ACCEPTED, DuelStatus.IN_PROGRESS));
+        Instant now = Instant.now();
+        reconcileOverdue(duels, now);
+        return duels.stream()
+                .filter(duel -> duel.getStatus() != DuelStatus.EXPIRED)
                 .map(this::toResponse)
                 .toList();
     }
 
     public List<DuelResponse> getPendingInvites(String userId) {
-        return duelRepository.findByOpponentIdAndStatus(userId, DuelStatus.PENDING).stream()
+        List<CookingDuel> duels = duelRepository.findByOpponentIdAndStatus(userId, DuelStatus.PENDING);
+        Instant now = Instant.now();
+        reconcileOverdue(duels, now);
+        return duels.stream()
+                .filter(duel -> duel.getStatus() != DuelStatus.EXPIRED)
                 .map(this::toResponse)
                 .toList();
     }
 
-    // ============================================
-    // SCORING
-    // ============================================
 
     private int computeScore(CookingSession session) {
         int score = 0;
@@ -211,13 +203,11 @@ public class DuelService {
         int totalSteps = recipe != null && recipe.getSteps() != null ? recipe.getSteps().size() : 0;
         int estimatedTimeMinutes = recipe != null ? recipe.getTotalTimeMinutes() : 0;
 
-        // Base: step completion (max 60 points)
         if (totalSteps > 0 && session.getCompletedSteps() != null) {
             double ratio = (double) session.getCompletedSteps().size() / totalSteps;
             score += (int) (ratio * 60);
         }
 
-        // Time bonus: faster = better (max 25 points)
         if (estimatedTimeMinutes > 0 && session.getStartedAt() != null && session.getCompletedAt() != null) {
             long actualMinutes = Duration.between(session.getStartedAt(), session.getCompletedAt()).toMinutes();
             double timeRatio = (double) estimatedTimeMinutes / Math.max(1, actualMinutes);
@@ -225,7 +215,6 @@ public class DuelService {
             score += timeScore;
         }
 
-        // Completion bonus (15 points for finishing)
         if ("COMPLETED".equals(session.getStatus().name())) {
             score += 15;
         }
@@ -248,13 +237,11 @@ public class DuelService {
         } else if (oScore > cScore) {
             duel.setWinnerId(duel.getOpponentId());
         }
-        // else: tie, winnerId stays null
 
         duel.setStatus(DuelStatus.COMPLETED);
         duel.setCompletedAt(Instant.now());
         duelRepository.save(duel);
 
-        // Award bonus XP to winner
         if (duel.getWinnerId() != null) {
             XpRewardEvent xpEvent = XpRewardEvent.builder()
                     .userId(duel.getWinnerId())
@@ -266,7 +253,6 @@ public class DuelService {
             log.info("Awarded {} bonus XP to duel winner {}", duel.getBonusXp(), duel.getWinnerId());
         }
 
-        // Notify both
         sendDuelNotification(duel, "COMPLETED", duel.getChallengerId());
         sendDuelNotification(duel, "COMPLETED", duel.getOpponentId());
 
@@ -276,9 +262,6 @@ public class DuelService {
                 duel.getOpponentId(), oScore);
     }
 
-    // ============================================
-    // HELPERS
-    // ============================================
 
     private CookingDuel getDuelOrThrow(String duelId) {
         return duelRepository.findById(duelId)
@@ -301,6 +284,26 @@ public class DuelService {
         if (duel.getStatus() != expected) {
             throw new AppException(ErrorCode.DUEL_NOT_PENDING);
         }
+    }
+
+    private void reconcileOverdue(List<CookingDuel> duels, Instant now) {
+        duels.forEach(duel -> expireIfOverdue(duel, now));
+    }
+
+    private boolean expireIfOverdue(CookingDuel duel, Instant now) {
+        Instant deadline = switch (duel.getStatus()) {
+            case PENDING -> duel.getAcceptDeadline();
+            case ACCEPTED, IN_PROGRESS -> duel.getCookDeadline();
+            default -> null;
+        };
+
+        if (deadline == null || deadline.isAfter(now)) {
+            return false;
+        }
+
+        duel.setStatus(DuelStatus.EXPIRED);
+        duelRepository.save(duel);
+        return true;
     }
 
     private void sendDuelNotification(CookingDuel duel, String action, String targetUserId) {

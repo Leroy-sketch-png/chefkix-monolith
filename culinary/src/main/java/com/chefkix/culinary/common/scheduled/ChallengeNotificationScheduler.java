@@ -4,6 +4,7 @@ import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
 import com.chefkix.culinary.features.challenge.repository.SeasonalChallengeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengePoolService;
+import com.chefkix.culinary.features.challenge.service.ChallengeLifecyclePolicy;
 import com.chefkix.culinary.features.challenge.entity.SeasonalChallenge;
 import com.chefkix.shared.event.ReminderEvent;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Sends daily challenge notifications via Kafka reminder-delivery topic.
- * <p>
- * - CHALLENGE_AVAILABLE (00:05 UTC): Notify active users about the new daily challenge.
- * - CHALLENGE_REMINDER  (20:00 UTC): Remind users who haven't completed today's challenge.
- * <p>
- * Follows the same pattern as {@link PostDeadlineScheduler} and
- * {@code com.chefkix.identity.scheduled.StreakWarningScheduler}.
- * <p>
- * Queries the {@code user_profiles} collection directly via MongoTemplate (same DB)
- * to avoid cross-module entity dependencies.
  */
 @Slf4j
 @Component
@@ -51,7 +42,6 @@ public class ChallengeNotificationScheduler {
     private static final int ACTIVE_DAYS_THRESHOLD = 7;
 
     /**
-     * Daily at 00:05 UTC — notify active users about the new daily challenge.
      */
     @Scheduled(cron = "0 5 0 * * *")
     public void sendChallengeAvailableNotifications() {
@@ -93,8 +83,6 @@ public class ChallengeNotificationScheduler {
     }
 
     /**
-     * Daily at 20:00 UTC — remind active users who haven't completed today's challenge.
-     * Only 4 hours remain until midnight reset.
      */
     @Scheduled(cron = "0 0 20 * * *")
     public void sendChallengeReminderNotifications() {
@@ -108,7 +96,6 @@ public class ChallengeNotificationScheduler {
             String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
             List<Document> activeUsers = findActiveUsers();
 
-            // Batch query: get all userIds who already completed today's challenge
             List<String> allUserIds = activeUsers.stream()
                     .map(u -> u.getString("userId"))
                     .filter(id -> id != null)
@@ -122,7 +109,6 @@ public class ChallengeNotificationScheduler {
                 String displayName = user.getString("displayName");
                 if (userId == null) continue;
 
-                // Skip users who already completed today's challenge
                 if (completedUserIds.contains(userId)) {
                     continue;
                 }
@@ -150,8 +136,6 @@ public class ChallengeNotificationScheduler {
     }
 
     /**
-     * Saturday at 10:00 UTC — remind active users about the weekly challenge
-     * if they haven't completed it yet. ~48 hours before week ends (Sunday midnight).
      */
     @Scheduled(cron = "0 0 10 * * SAT")
     public void sendWeeklyChallengeReminders() {
@@ -168,7 +152,6 @@ public class ChallengeNotificationScheduler {
 
             List<Document> activeUsers = findActiveUsers();
 
-            // Batch query: get all userIds who already completed this week's challenge
             List<String> allUserIds = activeUsers.stream()
                     .map(u -> u.getString("userId"))
                     .filter(id -> id != null)
@@ -208,7 +191,6 @@ public class ChallengeNotificationScheduler {
     }
 
     /**
-     * Daily at 09:00 UTC — remind about seasonal challenges ending within 24 hours.
      */
     @Scheduled(cron = "0 0 9 * * *")
     public void sendSeasonalChallengeReminders() {
@@ -217,8 +199,9 @@ public class ChallengeNotificationScheduler {
             Instant twentyFourHoursFromNow = now.plus(24, ChronoUnit.HOURS);
 
             List<SeasonalChallenge> endingSoon = seasonalChallengeRepository
-                    .findByStatusAndEndsAtAfter("ACTIVE", now)
+                    .findByStatusIn(List.of("ACTIVE", "UPCOMING"))
                     .stream()
+                    .filter(sc -> ChallengeLifecyclePolicy.isActive(sc.getStartsAt(), sc.getEndsAt(), now))
                     .filter(sc -> sc.getEndsAt().isBefore(twentyFourHoursFromNow))
                     .toList();
 
@@ -258,9 +241,6 @@ public class ChallengeNotificationScheduler {
     }
 
     /**
-     * Finds users who have been active in the last {@value ACTIVE_DAYS_THRESHOLD} days.
-     * Uses direct MongoTemplate query on user_profiles collection to avoid
-     * cross-module entity dependency on identity module.
      */
     private List<Document> findActiveUsers() {
         Instant threshold = Instant.now().minus(ACTIVE_DAYS_THRESHOLD, ChronoUnit.DAYS);
