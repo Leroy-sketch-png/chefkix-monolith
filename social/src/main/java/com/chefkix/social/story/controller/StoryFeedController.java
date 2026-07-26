@@ -1,6 +1,5 @@
 package com.chefkix.social.story.controller;
 
-// ... (các import)
 
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.social.story.dto.response.StoryResponse;

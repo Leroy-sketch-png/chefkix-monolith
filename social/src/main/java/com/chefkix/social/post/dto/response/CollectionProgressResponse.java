@@ -24,10 +24,8 @@ public class CollectionProgressResponse {
     int currentRecipeIndex;
     int totalXpEarned;
 
-    /** Total recipes in the learning path (for progress bar: completedRecipeIds.size / totalRecipes) */
     int totalRecipes;
 
-    /** Computed: completedRecipeIds.size / totalRecipes */
     double progressPercent;
 
     Instant startedAt;

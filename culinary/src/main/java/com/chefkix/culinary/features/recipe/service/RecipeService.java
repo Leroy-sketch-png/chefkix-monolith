@@ -25,7 +25,7 @@ import com.chefkix.culinary.features.recipe.repository.projection.CreatorInsight
 import com.chefkix.culinary.features.recipe.repository.TonightsPickRedisRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import com.chefkix.culinary.features.interaction.service.InteractionService; // InteractionService import
+import com.chefkix.culinary.features.interaction.service.InteractionService;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.common.enums.SessionStatus;
@@ -94,8 +94,6 @@ public class RecipeService {
 
             recipeMapper.updateRecipeFromRequest(existingRecipe, request);
 
-            // NOTE: isPublished bypass removed — publishing only via DraftService.publishRecipe()
-            // which enforces mandatory field validation + AI safety checks
 
             authorFuture.join();
             existingRecipe = recipeRepository.save(existingRecipe);
@@ -103,7 +101,6 @@ public class RecipeService {
             RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(existingRecipe);
             response.setAuthor(authorFuture.get());
 
-            // Check like/save status via InteractionService
             response.setIsLiked(interactionService.isLiked(recipeId, currentUserId));
             response.setIsSaved(interactionService.isSaved(recipeId, currentUserId));
 
@@ -117,7 +114,6 @@ public class RecipeService {
         }
     }
 
-    // --- TOGGLE METHODS MOVED TO INTERACTION SERVICE ---
 
     @Transactional
     public void deleteRecipe(String recipeId) {
@@ -130,17 +126,14 @@ public class RecipeService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Prevent deleting recipes that have active cooking sessions
         long activeSessions = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.IN_PROGRESS)
                 + cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.PAUSED);
         if (activeSessions > 0) {
             throw new AppException(ErrorCode.INVALID_REQUEST);
         }
 
-        // Soft-delete: archive instead of hard delete to preserve data integrity
         recipe.setStatus(RecipeStatus.ARCHIVED);
         recipeRepository.save(recipe);
-        // Real-time Typesense removal — archived recipes must not appear in search
         eventPublisher.publishEvent(RecipeIndexEvent.remove(recipeId));
         log.info("[RECIPE_DELETE] User {} archived recipe {}", currentUserId, recipeId);
     }
@@ -151,7 +144,6 @@ public class RecipeService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // Prevent unauthorized access to non-published recipes
         boolean isOwner = recipe.getUserId().equals(viewerId);
         if (!isOwner) {
             if (recipe.getStatus() == RecipeStatus.DRAFT || recipe.getStatus() == RecipeStatus.ARCHIVED) {
@@ -172,7 +164,6 @@ public class RecipeService {
         boolean isSaved = false;
 
         if (!"anonymousUser".equals(viewerId)) {
-            // Call through Service instead of Repository directly
             isLiked = interactionService.isLiked(recipeId, viewerId);
             isSaved = interactionService.isSaved(recipeId, viewerId);
         }
@@ -188,7 +179,6 @@ public class RecipeService {
     }
 
     public Page<RecipeDetailResponse> searchRecipes(RecipeSearchQuery query, Pageable pageable) {
-        // Populate visibility context for privacy-aware search
         try {
             String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
             query.setCurrentUserId(currentUserId);
@@ -236,7 +226,6 @@ public class RecipeService {
         return pageResult.map(recipe -> {
             RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
 
-            // Call through InteractionService
             response.setIsLiked(interactionService.isLiked(response.getId(), currentUserId));
             response.setIsSaved(interactionService.isSaved(response.getId(), currentUserId));
 
@@ -252,7 +241,6 @@ public class RecipeService {
         });
     }
 
-    // --- GET LIKED/SAVED RECIPES METHODS MOVED TO INTERACTION SERVICE ---
 
     public Page<RecipeSummaryResponse> getRecipesByUser(String targetUserId, int page, int size) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -263,18 +251,13 @@ public class RecipeService {
 
         return recipesPage.map(recipe -> {
             RecipeSummaryResponse response = recipeMapper.toRecipeSummaryResponse(recipe);
-            // Call through InteractionService
             response.setIsLiked(interactionService.isLiked(recipe.getId(), currentUserId));
             response.setIsSaved(interactionService.isSaved(recipe.getId(), currentUserId));
             return response;
         });
     }
 
-    // ===============================================
-    // RECOMMENDATIONS
-    // ===============================================
 
-    /** Seasonal tags by month range (Northern Hemisphere). */
     private static final Map<Integer, Set<String>> SEASONAL_TAGS = Map.ofEntries(
             Map.entry(3, Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light")),
             Map.entry(4, Set.of("spring", "salad", "asparagus", "strawberry", "peas", "herbs", "fresh", "light")),
@@ -290,7 +273,6 @@ public class RecipeService {
             Map.entry(2, Set.of("winter", "holiday", "christmas", "comfort food", "hot chocolate", "baking", "cookies", "roast"))
     );
 
-    /** Map user gamification level to appropriate recipe difficulties. */
     private static Set<Difficulty> appropriateDifficulties(int userLevel) {
         if (userLevel <= 3) return Set.of(Difficulty.BEGINNER);
         if (userLevel <= 7) return Set.of(Difficulty.BEGINNER, Difficulty.INTERMEDIATE);
@@ -299,19 +281,6 @@ public class RecipeService {
     }
 
     /**
-     * Tonight's Pick — multi-signal personalized recipe recommendation.
-     * <p>
-     * Scoring algorithm (5 signals):
-     * <ul>
-     *   <li><b>Taste match (0.30)</b>: user preferences + cuisine from cooking history</li>
-     *   <li><b>Trending (0.20)</b>: trendingScore (social proof)</li>
-     *   <li><b>Seasonal (0.20)</b>: month-appropriate tags</li>
-     *   <li><b>Difficulty fit (0.15)</b>: matches user's skill level</li>
-     *   <li><b>Quality (0.15)</b>: averageRating + cookCount</li>
-     * </ul>
-     * <p>
-     * Filters: published only, not user's own, not recently cooked.
-     * Cold start: preferences (if any) + seasonal + trending. Degrades gracefully.
      */
     @Transactional(readOnly = true)
     public RecommendationResponse getTonightsPick() {
@@ -337,7 +306,6 @@ public class RecipeService {
                     cacheKey, staleRecipeId);
         }
 
-        // --- Gather user signals (all nullable/empty-safe) ---
         Set<String> userPreferences = Set.of();
         Set<String> cookedRecipeIds = Set.of();
         Set<String> historyCuisines = Set.of();
@@ -374,11 +342,9 @@ public class RecipeService {
             }
         }
 
-        // --- Seasonal tags for current month ---
         int currentMonth = java.time.LocalDate.now(java.time.ZoneOffset.UTC).getMonthValue();
         Set<String> seasonalTags = SEASONAL_TAGS.getOrDefault(currentMonth, Set.of());
 
-        // --- Fetch candidate pool (top 50 published by trending, broad enough for scoring) ---
         Page<Recipe> candidatePage = recipeRepository.findByStatus(
                 RecipeStatus.PUBLISHED,
                 PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "trendingScore")));
@@ -387,13 +353,11 @@ public class RecipeService {
             throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
         }
 
-        // --- Filter & score candidates ---
         final Set<String> finalCookedIds = cookedRecipeIds;
         final Set<String> finalPrefs = userPreferences;
         final Set<String> finalHistoryCuisines = historyCuisines;
         final Set<Difficulty> targetDifficulties = appropriateDifficulties(userLevel);
 
-        // Normalize trending scores for this batch
         double maxTrending = candidatePage.getContent().stream()
                 .mapToDouble(r -> r.getTrendingScore() != null ? r.getTrendingScore() : 0.0)
                 .max().orElse(1.0);
@@ -401,7 +365,6 @@ public class RecipeService {
         final double normTrending = maxTrending;
 
         List<Map.Entry<Recipe, Double>> scoredCandidates = candidatePage.getContent().stream()
-            // Exclude user's own recipes and recently cooked
             .filter(r -> !authenticated || !r.getUserId().equals(currentUserId))
             .filter(r -> !finalCookedIds.contains(r.getId()))
             .map(r -> Map.entry(
@@ -423,7 +386,6 @@ public class RecipeService {
 
         Recipe pick = pickEntry != null ? pickEntry.getKey() : null;
 
-        // Last fallback: just the top trending recipe
         if (pick == null) {
             pick = candidatePage.getContent().get(0);
         }
@@ -437,7 +399,6 @@ public class RecipeService {
                     .userId(pick.getUserId()).displayName("Chef").build());
         }
 
-        // Build recommendation metadata
         List<String> signals = new ArrayList<>();
         double totalScore = pickEntry != null && pickEntry.getKey().getId().equals(pick.getId())
             ? pickEntry.getValue()
@@ -508,15 +469,12 @@ public class RecipeService {
     }
 
     /**
-     * Multi-signal scoring for Tonight's Pick candidate.
      *
-     * @return score between 0.0 and 1.0
      */
     private double scoreTonightsPick(Recipe recipe, Set<String> userPrefs,
                                      Set<String> historyCuisines, Set<String> seasonalTags,
                                      Set<Difficulty> targetDifficulties, double maxTrending) {
 
-        // 1. Taste match (0.30) — user preferences + cooking history cuisines
         double tasteScore = 0.0;
         String cuisine = recipe.getCuisineType() != null ? recipe.getCuisineType().toLowerCase() : "";
         List<String> recipeTags = new ArrayList<>();
@@ -528,18 +486,15 @@ public class RecipeService {
             long prefMatches = recipeTags.stream()
                     .filter(tag -> userPrefs.contains(tag.toLowerCase()))
                     .count();
-            // Also check cuisine against preferences
             if (userPrefs.contains(cuisine)) prefMatches++;
             tasteScore = Math.min(prefMatches * 0.4, 1.0);
         }
         if (!historyCuisines.isEmpty() && historyCuisines.contains(cuisine)) {
-            tasteScore = Math.max(tasteScore, 0.6); // Cuisine history is strong signal
+tasteScore = Math.max(tasteScore, 0.6);
         }
 
-        // 2. Trending (0.20) — normalized trending score
         double trendingScore = (recipe.getTrendingScore() != null ? recipe.getTrendingScore() : 0.0) / maxTrending;
 
-        // 3. Seasonal (0.20) — month-appropriate tag matching
         double seasonalScore = 0.0;
         if (!seasonalTags.isEmpty()) {
             long seasonMatches = recipeTags.stream()
@@ -548,15 +503,13 @@ public class RecipeService {
             seasonalScore = Math.min(seasonMatches * 0.4, 1.0);
         }
 
-        // 4. Difficulty fit (0.15) — match user's skill level
         double difficultyScore = 0.0;
         if (recipe.getDifficulty() != null && targetDifficulties.contains(recipe.getDifficulty())) {
             difficultyScore = 1.0;
         } else if (recipe.getDifficulty() == Difficulty.BEGINNER) {
-            difficultyScore = 0.5; // Beginner recipes are universally accessible
+difficultyScore = 0.5;
         }
 
-        // 5. Quality (0.15) — rating + cook count as social proof
         double qualityScore = 0.0;
         if (recipe.getAverageRating() != null && recipe.getAverageRating() > 0) {
             qualityScore += (recipe.getAverageRating() / 5.0) * 0.6;
@@ -573,16 +526,12 @@ public class RecipeService {
     }
 
     /**
-     * Similar Recipes — content-based recommendations.
-     * Matches by cuisine type, difficulty, and dietary tags.
-     * Excludes the source recipe itself.
      */
     @Transactional(readOnly = true)
     public Page<RecipeDetailResponse> getSimilarRecipes(String recipeId, int size) {
         Recipe source = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // Build search query matching cuisine and/or difficulty
         RecipeSearchQuery query = new RecipeSearchQuery();
         if (source.getCuisineType() != null) {
             query.setCuisineType(source.getCuisineType());
@@ -595,7 +544,6 @@ public class RecipeService {
         Page<RecipeDetailResponse> results = recipeRepository.searchRecipes(query, pageable)
                 .map(recipeMapper::toRecipeDetailResponse);
 
-        // Filter out the source recipe
         List<RecipeDetailResponse> filtered = results.getContent().stream()
                 .filter(r -> !r.getId().equals(recipeId))
                 .limit(size)
@@ -610,7 +558,6 @@ public class RecipeService {
             RecipeStatus.PUBLISHED,
             CreatorInsightsRecipeProjection.class);
         
-        // Handle case where user has no recipes
         if (allRecipes.isEmpty()) {
             return InternalCreatorInsightsResponse.builder()
                 .totalRecipesPublished(0)
@@ -620,18 +567,15 @@ public class RecipeService {
                     .build();
         }
         
-        // Find top recipe by cook count
         CreatorInsightsRecipeProjection top = allRecipes.stream()
                 .max((r1, r2) -> Long.compare(r1.getCookCount(), r2.getCookCount()))
                 .orElse(allRecipes.get(0));
         
-        // Filter high-performing recipes (10+ cooks)
         List<CreatorInsightsRecipeProjection> performantRecipes = allRecipes.stream()
                 .filter(r -> r.getCookCount() >= 10)
             .sorted((left, right) -> Long.compare(right.getCookCount(), left.getCookCount()))
                 .toList();
         
-        // Calculate average rating across all recipes (only count those with ratings > 0)
         Double avgRating = allRecipes.stream()
                 .filter(r -> r.getAverageRating() != null && r.getAverageRating() > 0)
             .mapToDouble(CreatorInsightsRecipeProjection::getAverageRating)
@@ -665,13 +609,8 @@ public class RecipeService {
             .build();
         }
 
-    // ===============================================
-    // CREATOR ANALYTICS
-    // ===============================================
 
     /**
-     * Per-recipe performance metrics for the creator dashboard.
-     * Returns all published recipes with their individual stats + an aggregate summary.
      */
     @Transactional(readOnly = true)
     public CreatorPerformanceResponse getCreatorPerformance() {
@@ -717,8 +656,6 @@ public class RecipeService {
     }
 
     /**
-     * Who recently cooked the creator's recipes.
-     * Returns paginated cooking sessions with cooker profile info.
      */
     @Transactional(readOnly = true)
     public RecentCookResponse getRecentCooksOfMyRecipes(int page, int size) {
@@ -735,9 +672,8 @@ public class RecipeService {
         Page<CookingSession> sessionsPage = cookingSessionRepository
                 .findByRecipeIdInAndStatus(recipeIds, SessionStatus.COMPLETED, pageable);
 
-        // Resolve cooker profiles — batch-friendly approach
         List<RecentCookResponse.RecentCookItem> cooks = sessionsPage.getContent().stream()
-                .filter(s -> !userId.equals(s.getUserId())) // Exclude self-cooks
+.filter(s -> !userId.equals(s.getUserId()))
                 .map(session -> {
                     RecentCookResponse.RecentCookItem.RecentCookItemBuilder item =
                             RecentCookResponse.RecentCookItem.builder()
@@ -757,7 +693,6 @@ public class RecipeService {
 
                 item.cookUserId(session.getUserId());
 
-                    // Resolve cooker profile (fail-safe)
                     try {
                         BasicProfileInfo cookerProfile = profileProvider.getBasicProfile(session.getUserId());
                         if (cookerProfile != null) {
@@ -780,14 +715,8 @@ public class RecipeService {
                 .build();
     }
 
-    // ===============================================
-    // STEP HEATMAP (Wave 4 — Creator unique value)
-    // ===============================================
 
     /**
-     * Step-level analytics for a recipe: completion rate, skip rate, avg time, struggle points.
-     * Only the recipe owner can access this (creator-only endpoint).
-     * Aggregates data from all terminal sessions (COMPLETED, POSTED, ABANDONED).
      */
     @Transactional(readOnly = true)
     public StepHeatmapResponse getStepHeatmap(String recipeId) {
@@ -816,7 +745,6 @@ public class RecipeService {
 
         int totalSessions = sessions.size();
         if (totalSessions == 0) {
-            // Return step structure with zero data
             List<StepHeatmapResponse.StepAnalytics> emptySteps = recipe.getSteps().stream()
                     .map(step -> StepHeatmapResponse.StepAnalytics.builder()
                             .stepNumber(step.getStepNumber())
@@ -838,15 +766,13 @@ public class RecipeService {
                     .build();
         }
 
-        // Per-step counters
-        int[] completionCount = new int[totalSteps + 1]; // 1-indexed
+int[] completionCount = new int[totalSteps + 1];
         int[] skipCount = new int[totalSteps + 1];
         long[] totalTimeMs = new long[totalSteps + 1];
         int[] timeEntryCount = new int[totalSteps + 1];
         int[] abandonedAt = new int[totalSteps + 1];
 
         for (CookingSession session : sessions) {
-            // Track step completions
             if (session.getCompletedSteps() != null) {
                 for (Integer stepNum : session.getCompletedSteps()) {
                     if (stepNum >= 1 && stepNum <= totalSteps) {
@@ -855,9 +781,7 @@ public class RecipeService {
                 }
             }
 
-            // Track timer events (skip/complete + timing)
             if (session.getTimerEvents() != null) {
-                // Group timer events by step to compute duration per step
                 Map<Integer, List<CookingSession.TimerEvent>> eventsByStep = session.getTimerEvents().stream()
                         .filter(e -> e.getStepNumber() != null && e.getStepNumber() >= 1 && e.getStepNumber() <= totalSteps)
                         .collect(Collectors.groupingBy(CookingSession.TimerEvent::getStepNumber));
@@ -881,7 +805,7 @@ public class RecipeService {
                             && startEvent.getServerTimestamp() != null && endEvent.getServerTimestamp() != null) {
                         long durationMs = java.time.Duration.between(
                                 startEvent.getServerTimestamp(), endEvent.getServerTimestamp()).toMillis();
-                        if (durationMs > 0 && durationMs < 7200000) { // Cap at 2 hours to exclude outliers
+if (durationMs > 0 && durationMs < 7200000) {
                             totalTimeMs[stepNum] += durationMs;
                             timeEntryCount[stepNum]++;
                         }
@@ -889,7 +813,6 @@ public class RecipeService {
                 }
             }
 
-            // Track where sessions were abandoned
             if (session.getStatus() == SessionStatus.ABANDONED && session.getCurrentStep() != null) {
                 int step = session.getCurrentStep();
                 if (step >= 1 && step <= totalSteps) {
@@ -898,7 +821,6 @@ public class RecipeService {
             }
         }
 
-        // Build analytics per step
         List<StepHeatmapResponse.StepAnalytics> stepAnalytics = recipe.getSteps().stream()
                 .map(step -> {
                     int sn = step.getStepNumber();
@@ -908,7 +830,6 @@ public class RecipeService {
                             ? (totalTimeMs[sn] / (double) timeEntryCount[sn]) / 1000.0
                             : null;
 
-                    // Struggle point: skip rate > 30% OR completion rate < 60% (with meaningful data)
                     boolean struggle = totalSessions >= MIN_SESSIONS_FOR_STRUGGLE
                             && (skRate > SKIP_RATE_THRESHOLD || compRate < COMPLETION_RATE_THRESHOLD);
 
@@ -933,13 +854,8 @@ public class RecipeService {
                 .build();
     }
 
-    // ===============================================
-    // SOCIAL PROOF (spec: 09-posts.txt / vision)
-    // ===============================================
 
     /**
-     * Community validation for a recipe: cook count, rating, recent cookers, post count.
-     * Powers the "12 people made this" widget on recipe detail page.
      */
     @Transactional(readOnly = true)
     public RecipeSocialProofResponse getRecipeSocialProof(String recipeId) {
@@ -958,10 +874,8 @@ public class RecipeService {
             }
         }
 
-        // Post count = sessions that successfully linked a post
         long postCount = cookingSessionRepository.countByRecipeIdAndStatus(recipeId, SessionStatus.POSTED);
 
-        // Recent cookers should represent distinct people, not repeated sessions from one user.
         Pageable recentCookersWindow = PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "completedAt"));
         Page<CookingSession> recentSessions = cookingSessionRepository
             .findByRecipeIdAndStatusIn(recipeId, List.of(SessionStatus.COMPLETED, SessionStatus.POSTED, SessionStatus.POST_DELETED), recentCookersWindow);

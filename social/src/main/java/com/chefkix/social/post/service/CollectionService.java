@@ -117,7 +117,6 @@ public class CollectionService {
         Collection collection = collectionRepository.findById(collectionId)
                 .orElseThrow(() -> new AppException(ErrorCode.COLLECTION_NOT_FOUND));
 
-        // Only owner or public collections
         if (!collection.isPublic() && !collection.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
@@ -196,12 +195,10 @@ public class CollectionService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Verify post exists
         if (!postRepository.existsById(postId)) {
             throw new AppException(ErrorCode.POST_NOT_FOUND);
         }
 
-        // Idempotent — don't add twice
         if (collection.getPostIds() == null) {
             collection.setPostIds(new ArrayList<>());
         }
@@ -209,7 +206,6 @@ public class CollectionService {
             collection.getPostIds().add(postId);
             collection.setItemCount(calculateItemCount(collection));
 
-            // Update cover image from latest added post
             Post post = postRepository.findById(postId).orElse(null);
             if (post != null && post.getPhotoUrls() != null && !post.getPhotoUrls().isEmpty()) {
                 collection.setCoverImageUrl(post.getPhotoUrls().get(0));
@@ -242,9 +238,6 @@ public class CollectionService {
         return toResponse(collection);
     }
 
-    // ===============================================
-    // LEARNING PATH — Enrollment & Progress
-    // ===============================================
 
     @Transactional
     public CollectionProgressResponse enroll(String collectionId) {
@@ -256,7 +249,6 @@ public class CollectionService {
             throw new AppException(ErrorCode.INVALID_OPERATION);
         }
 
-        // Idempotent — return existing progress if already enrolled
         CollectionProgress existing = collectionProgressRepository
                 .findByUserIdAndCollectionId(userId, collectionId).orElse(null);
         if (existing != null) {
@@ -272,7 +264,6 @@ public class CollectionService {
                 .build();
         progress = collectionProgressRepository.save(progress);
 
-        // Increment enrolled count
         collection.setEnrolledCount(collection.getEnrolledCount() + 1);
         collectionRepository.save(collection);
 
@@ -301,12 +292,10 @@ public class CollectionService {
                 .findByUserIdAndCollectionId(userId, collectionId)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_ENROLLED));
 
-        // Idempotent — skip if already completed
         if (!progress.getCompletedRecipeIds().contains(completedRecipeId)) {
             progress.getCompletedRecipeIds().add(completedRecipeId);
             progress.setTotalXpEarned(progress.getTotalXpEarned() + xpEarned);
 
-            // Advance index to next uncompleted recipe
             List<String> pathRecipes = collection.getRecipeIds();
             if (pathRecipes != null) {
                 int nextIndex = progress.getCurrentRecipeIndex();
@@ -322,13 +311,8 @@ public class CollectionService {
         return toProgressResponse(progress, collection);
     }
 
-    // ===============================================
-    // FEATURED / SEASONAL COLLECTIONS
-    // ===============================================
 
     /**
-     * Get all featured collections (public, isFeatured=true), ordered by updatedAt DESC.
-     * Used on Explore page for "Season's Best" and curated sections.
      */
     public List<CollectionResponse> getFeaturedCollections() {
         return collectionRepository.findAllByIsFeaturedTrueAndIsPublicTrue(
@@ -337,7 +321,6 @@ public class CollectionService {
     }
 
     /**
-     * Get featured collections matching a specific season tag.
      */
     public List<CollectionResponse> getFeaturedCollectionsBySeason(String seasonTag) {
         return collectionRepository.findAllByIsFeaturedTrueAndSeasonTag(
@@ -345,9 +328,6 @@ public class CollectionService {
         ).stream().map(this::toResponse).toList();
     }
 
-    // ===============================================
-    // MAPPING
-    // ===============================================
 
     private void applyRecipeCollectionFields(Collection collection, CollectionRequest request, boolean isCreate) {
         if (request.getRecipeIds() == null) {

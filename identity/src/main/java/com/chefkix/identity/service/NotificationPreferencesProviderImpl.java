@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of {@link NotificationPreferencesProvider}.
- * Delegates to {@link SettingsService} to check user notification preferences.
  */
 @Service
 @Slf4j
@@ -26,7 +24,7 @@ public class NotificationPreferencesProviderImpl implements NotificationPreferen
             UserSettings.InAppNotificationSettings inApp =
                     settingsService.getNotificationSettingsByUserId(userId).getInApp();
             if (inApp == null) {
-                return true; // Default to enabled
+return true;
             }
 
             return switch (category) {
@@ -37,12 +35,12 @@ public class NotificationPreferencesProviderImpl implements NotificationPreferen
                 case "postDeadline" -> !Boolean.FALSE.equals(inApp.getPostDeadline());
                 case "streakWarning" -> !Boolean.FALSE.equals(inApp.getStreakWarning());
                 case "dailyChallenge" -> !Boolean.FALSE.equals(inApp.getDailyChallenge());
-                default -> true; // Unknown category defaults to enabled
+default -> true;
             };
         } catch (Exception e) {
             log.warn("Failed to check notification preference for user {} category {}: {}",
                     userId, category, e.getMessage());
-            return true; // Default to enabled on error
+return true;
         }
     }
 }

@@ -32,44 +32,28 @@ public class PostController {
 
     PostService postService;
 
-    // Uses "POST /" (standard REST)
-    // Returns ResponseEntity for 201 status
-    // ========================================================================
-    // 1. CREATE PERSONAL POST
-    // Endpoint: POST /api/v1/posts
-    // ========================================================================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PostResponse>> createPersonalPost(
             @Valid @ModelAttribute PostCreationRequest request
     ) {
-        // 1. Get the current logged-in user's ID
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Call service to process
         PostResponse result = postService.createPersonalPost(request, currentUserId);
 
-        // 3. Return standard REST (201 Created)
         ApiResponse<PostResponse> body = ApiResponse.created(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
 
-    // ========================================================================
-    // 2. CREATE GROUP POST
-    // Endpoint: POST /api/v1/groups/{groupId}/posts
-    // ========================================================================
     @PostMapping(value = "/groups/{groupId}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PostResponse>> createGroupPost(
             @PathVariable("groupId") String groupId,
             @Valid @ModelAttribute PostCreationRequest request
     ) {
-        // 1. Get the current logged-in user's ID
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Call service to process (pass groupId)
         PostResponse result = postService.createGroupPost(groupId, request, currentUserId);
 
-        // 3. Return standard REST (201 Created)
         ApiResponse<PostResponse> body = ApiResponse.created(result);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
@@ -85,15 +69,13 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
-    // Uses "PUT /{postId}" (standard REST)
     @PutMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostResponse>> updatePost(
-            @PathVariable("postId") String postId, // Get ID from Path
+@PathVariable("postId") String postId,
             @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
 
         PostResponse result = postService.updatePost(postId, postUpdateRequest);
 
-        // Use factory method "success"
         ApiResponse<PostResponse> body = ApiResponse.success(result, "Updated successfully");
 
         return ResponseEntity.ok(body);
@@ -114,7 +96,6 @@ public class PostController {
             @PageableDefault(size = 5) Pageable pageable,
             Authentication authentication) {
         
-        // Get current user ID from JWT (may be null if unauthenticated)
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getAllPosts(mode, pageable, currentUserId);
 
@@ -137,7 +118,6 @@ public class PostController {
             @PageableDefault(size = 5) Pageable pageable,
             Authentication authentication) {
         
-        // Get current user ID from JWT (may be null if unauthenticated)
         String currentUserId = authentication != null ? authentication.getName() : null;
         Page<PostResponse> result = postService.getAllPostsByUserId(userId, pageable, currentUserId);
 
@@ -145,8 +125,6 @@ public class PostController {
     }
 
     /**
-     * Get all posts saved/bookmarked by the current user.
-     * Returns paginated list of saved posts, most recent first.
      */
     @GetMapping("/saved")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getSavedPosts(
@@ -168,8 +146,6 @@ public class PostController {
     }
 
     /**
-     * Search posts by content, tags, or display name.
-     * GET /api/v1/posts/search?q=keyword
      */
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<PostResponse>>> searchPosts(
@@ -182,13 +158,8 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.successPage(result));
     }
 
-    // ========================================================================
-    // RECIPE REVIEWS
-    // ========================================================================
 
     /**
-     * Get all reviews for a specific recipe, newest first.
-     * GET /api/v1/posts/reviews/recipe/{recipeId}
      */
     @GetMapping("/reviews/recipe/{recipeId}")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getReviewsForRecipe(
@@ -201,8 +172,6 @@ public class PostController {
     }
 
     /**
-     * Get aggregate review stats for a recipe (average rating + total count).
-     * GET /api/v1/posts/reviews/recipe/{recipeId}/stats
      */
     @GetMapping("/reviews/recipe/{recipeId}/stats")
     public ResponseEntity<ApiResponse<RecipeReviewStatsResponse>> getRecipeReviewStats(
@@ -211,13 +180,8 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    // ========================================================================
-    // RECIPE BATTLES
-    // ========================================================================
 
     /**
-     * Vote in a recipe battle (toggle: same choice removes vote).
-     * POST /api/v1/posts/battles/{postId}/vote?choice=A|B
      */
     @PostMapping("/battles/{postId}/vote")
     public ResponseEntity<ApiResponse<BattleVoteResponse>> voteBattle(
@@ -228,8 +192,6 @@ public class PostController {
     }
 
     /**
-     * Get active recipe battles (not yet ended), ordered by ending soonest.
-     * GET /api/v1/posts/battles/active
      */
     @GetMapping("/battles/active")
     public ResponseEntity<ApiResponse<List<PostResponse>>> getActiveBattles(
@@ -241,8 +203,6 @@ public class PostController {
     }
 
     /**
-     * Get the authenticated user's taste profile (cuisine distribution from 5-signal analysis).
-     * GET /api/v1/posts/taste-profile
      */
     @GetMapping("/taste-profile")
     public ResponseEntity<ApiResponse<TasteProfileResponse>> getTasteProfile(Authentication authentication) {

@@ -19,21 +19,13 @@ import java.util.List;
 
 @Document(collection = "post")
 @CompoundIndexes({
-        // 1. For lighting-fast Personal Profile feeds
         @CompoundIndex(def = "{'userId': 1, 'createdAt': -1}", name = "idx_userId_createdAt"),
-        // 2. For lightning-fast Group feeds
         @CompoundIndex(def = "{'groupId': 1, 'createdAt': -1}", name = "idx_groupId_createdAt"),
-        // 3. For global "Hot" feed (hidden=false filtered by hotScore desc)
         @CompoundIndex(def = "{'hidden': 1, 'hotScore': -1}", name = "idx_hidden_hotScore"),
-        // 4. For global "New" feed (hidden=false filtered by createdAt desc)
         @CompoundIndex(def = "{'hidden': 1, 'createdAt': -1}", name = "idx_hidden_createdAt"),
-        // 5. For recipe reviews lookup (by recipe, newest first)
         @CompoundIndex(def = "{'recipeId': 1, 'postType': 1, 'createdAt': -1}", name = "idx_recipeId_postType_createdAt"),
-        // 6. For active recipe battles (ending soonest first)
         @CompoundIndex(def = "{'postType': 1, 'battleEndsAt': 1}", name = "idx_postType_battleEndsAt"),
-        // 7. For profile feed with hidden=false and createdAt sort (postType filter is inequality).
         @CompoundIndex(def = "{'userId': 1, 'hidden': 1, 'createdAt': -1}", name = "idx_user_hidden_createdAt"),
-        // 7. For profile feed endpoint (/posts/feed?userId=...) with hidden/group filters
         @CompoundIndex(def = "{'userId': 1, 'hidden': 1, 'postType': 1, 'createdAt': -1}", name = "idx_user_hidden_postType_createdAt")
 })@Data
 @NoArgsConstructor
@@ -54,19 +46,18 @@ public class Post {
   String videoUrl;
   String slug;
   String postUrl;
-  @Indexed String sessionId; // Linked to Cooking Session
-  @Indexed String recipeId;  // ID of the cooked recipe
+@Indexed String sessionId;
+@Indexed String recipeId;
 
   @TextIndexed(weight = 7)
-  String recipeTitle; // Recipe name (e.g., "Pho Bo")
-  @Builder.Default boolean isPrivateRecipe = false; // Flag marking private recipe
-  double xpEarned; // XP earned from this post
+String recipeTitle;
+@Builder.Default boolean isPrivateRecipe = false;
+double xpEarned;
 
-  // Co-cooking attribution (Stream 4)
-  String roomCode; // Room code if cooked in co-cooking session
-  List<CoChef> coChefs; // Other participants who cooked together
+String roomCode;
+List<CoChef> coChefs;
 
-  @Builder.Default boolean hidden = false; // Auto-hidden when report threshold reached
+@Builder.Default boolean hidden = false;
 
   @Builder.Default Integer likes = 0;
   @Builder.Default Integer commentCount = 0;
@@ -78,31 +69,26 @@ public class Post {
   List<String> commentIds;
 
 
-  // this is for group posts
-  PostType postType; // Enum: PERSONAL, GROUP, QUICK, POLL
+PostType postType;
     @Indexed
     String groupId;
     @Builder.Default
     PostStatus status = PostStatus.ACTIVE;
 
-  // Poll data (only present when postType == POLL)
   PollData pollData;
 
-  // Recipe Review data (only present when postType == RECIPE_REVIEW)
-  Integer reviewRating; // 1-5 star rating for the recipe
+Integer reviewRating;
 
-  // Recipe Battle data (only present when postType == RECIPE_BATTLE)
-  String battleRecipeIdA;     // First recipe in the battle
-  String battleRecipeIdB;     // Second recipe in the battle
+String battleRecipeIdA;
+String battleRecipeIdB;
   String battleRecipeTitleA;
   String battleRecipeTitleB;
-  String battleRecipeImageA;  // Cover image for recipe A
-  String battleRecipeImageB;  // Cover image for recipe B
+String battleRecipeImageA;
+String battleRecipeImageB;
   @Builder.Default Integer battleVotesA = 0;
   @Builder.Default Integer battleVotesB = 0;
-  Instant battleEndsAt;       // 48h countdown from creation
+Instant battleEndsAt;
 
-  // Rate This Plate data (for posts with photos)
   @Builder.Default Integer fireCount = 0;
   @Builder.Default Integer cringeCount = 0;
 

@@ -7,14 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired for reminder notifications (streak at risk, post deadline, challenge ending).
- * <p>
- * Producer: culinary module (scheduler), identity module (scheduler).
- * Consumer: notification module.
- * <p>
- * NOTE: {@code reminderType} uses String (not enum) so that shared module
- * stays decoupled from notification-specific enum types. Notification module
- * maps these strings to its own {@code NotificationType} enum on consumption.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -22,7 +14,6 @@ import lombok.NoArgsConstructor;
 @JsonTypeName("REMINDER_ACTION")
 public class ReminderEvent extends BaseEvent {
 
-    /** Reminder category, e.g. "STREAK_AT_RISK", "POST_DEADLINE", "CHALLENGE_ENDING", "ROOM_INVITE". */
     private String reminderType;
     private String displayName;
     private String content;
@@ -33,7 +24,6 @@ public class ReminderEvent extends BaseEvent {
     private String recipeTitle;
     private Integer daysRemaining;
     private String challengeCategory;
-    /** Co-cooking room code — used for ROOM_INVITE deep-link (/cook-together?roomCode=XXX). */
     private String roomCode;
 
     @Builder

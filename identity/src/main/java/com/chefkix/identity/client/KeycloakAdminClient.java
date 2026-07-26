@@ -18,13 +18,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Keycloak Admin REST API client.
- * <p>
- * Replaces the old {@code @FeignClient(name="identity-client", url="${idp.url}")} since
- * Spring Cloud OpenFeign is not available in the monolith.
- * Uses WebClient (already a dependency for KeycloakService).
  */
 @Slf4j
 @Component
@@ -41,8 +37,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Exchange credentials for tokens (password grant or refresh_token grant).
-     * Replaces: {@code @PostMapping("/realms/nottisn/protocol/openid-connect/token")}
      */
     public TokenExchangeResponse exchangeToken(TokenExchangeParam param) {
         MultiValueMap<String, String> formData = toFormData(param);
@@ -58,8 +52,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Create a user in Keycloak.
-     * Replaces: {@code @PostMapping("/admin/realms/nottisn/users")}
      */
     public ResponseEntity<?> createUser(String adminToken, UserCreationParam param) {
         return webClient.post()
@@ -74,8 +66,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Trigger actions email (e.g., VERIFY_EMAIL).
-     * Replaces: {@code @PostMapping("/admin/realms/{realm}/users/{userId}/execute-actions-email")}
      */
     public ResponseEntity<Void> executeActionsEmail(String bearerToken, String realm,
                                                      String userId, List<String> actions) {
@@ -91,8 +81,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Reset a user's password in Keycloak.
-     * Replaces: {@code @PutMapping("/admin/realms/nottisn/users/{userId}/reset-password")}
      */
     public ResponseEntity<?> resetPassword(String bearerToken, String userId,
                                             ResetPasswordParam param) {
@@ -107,9 +95,19 @@ public class KeycloakAdminClient {
                 .block();
     }
 
+    public ResponseEntity<?> enableUser(String bearerToken, String userId) {
+        return webClient.put()
+                .uri("/admin/realms/nottisn/users/{userId}", userId)
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of("enabled", true))
+                .retrieve()
+                .toBodilessEntity()
+                .timeout(REQUEST_TIMEOUT)
+                .block();
+    }
+
     /**
-     * Logout all sessions for a user in Keycloak.
-     * Forces re-authentication on all devices after password reset.
      */
     public void logoutUser(String bearerToken, String userId) {
         try {
@@ -127,8 +125,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Delete a user from Keycloak.
-     * Used for account deletion (GDPR right to erasure).
      */
     public void deleteUser(String bearerToken, String userId) {
         webClient.delete()
@@ -142,8 +138,6 @@ public class KeycloakAdminClient {
     }
 
     /**
-     * Convert a POJO's fields to form data (replicates Feign's @QueryMap behavior for
-     * application/x-www-form-urlencoded bodies).
      */
     private MultiValueMap<String, String> toFormData(Object param) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -152,8 +146,6 @@ public class KeycloakAdminClient {
             try {
                 Object value = field.get(param);
                 if (value != null) {
-                    // Use snake_case field name from @JsonProperty if present,
-                    // otherwise use the Java field name
                     String name = field.getName();
                     var jsonProp = field.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty.class);
                     if (jsonProp != null && !jsonProp.value().isEmpty()) {

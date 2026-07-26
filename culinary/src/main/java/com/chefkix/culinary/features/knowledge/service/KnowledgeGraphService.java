@@ -24,7 +24,6 @@ public class KnowledgeGraphService {
     KnowledgeIngredientRepository ingredientRepo;
     KnowledgeTechniqueRepository techniqueRepo;
 
-    // --- Ingredients ---
 
     public List<KnowledgeIngredient> searchIngredients(String query) {
         if (query == null || query.isBlank()) return Collections.emptyList();
@@ -50,7 +49,6 @@ public class KnowledgeGraphService {
         return ingredientRepo.findAll();
     }
 
-    // --- Techniques ---
 
     public List<KnowledgeTechnique> searchTechniques(String query) {
         if (query == null || query.isBlank()) return Collections.emptyList();

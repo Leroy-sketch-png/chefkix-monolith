@@ -20,7 +20,6 @@ import com.chefkix.identity.repository.UserActivityRepository;
 import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.repository.UserRepository;
 import com.chefkix.identity.client.KeycloakAdminClient;
-// Feign removed in monolith
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -74,14 +73,11 @@ public class AuthenticationService {
 
     TokenExchangeResponse tokenResponse;
 
-    // 1. Call Keycloak login
     try {
       log.debug(">>> [AUTH] Calling Keycloak login for user={}", request.getEmailOrUsername());
 
-      // Call login function (this now throws RuntimeException with raw JSON on error)
       tokenResponse = keycloakService.login(request.getEmailOrUsername(), request.getPassword());
 
-      // Fail closed if Keycloak returns an incomplete token pair.
       if (tokenResponse == null
           || !StringUtils.hasText(tokenResponse.getAccessToken())
           || !StringUtils.hasText(tokenResponse.getRefreshToken())) {
@@ -91,15 +87,12 @@ public class AuthenticationService {
       log.debug(">>> [AUTH] Keycloak login success.");
 
     } catch (AppException e) {
-      // Re-throw AppException as-is
       throw e;
     } catch (Exception e) {
-      // Parse Keycloak error to provide user-friendly message
       log.error(">>> [AUTH] Login failed. Raw Keycloak Message: {}", e.getMessage());
 
       String errorMessage = e.getMessage();
       if (errorMessage != null) {
-        // Check for common Keycloak error patterns
         if (errorMessage.contains("invalid_grant")
             || errorMessage.contains("Invalid user credentials")) {
           throw new AppException(ErrorCode.INVALID_CREDENTIALS);
@@ -113,15 +106,10 @@ public class AuthenticationService {
         }
       }
 
-      // Default to invalid credentials for any auth failure
       throw new AppException(ErrorCode.INVALID_CREDENTIALS);
     }
 
-    // -------------------------------------------------------------
-    // IF CODE REACHES HERE, LOGIN WAS 100% SUCCESSFUL
-    // -------------------------------------------------------------
 
-    // 2. Sync local user
     log.debug(">>> [AUTH] Syncing user in local DB...");
     User user =
         userRepository
@@ -135,12 +123,10 @@ public class AuthenticationService {
                   return userRepository.save(newUser);
                 });
 
-    // 3. Update last login
     LocalDateTime loginTimestamp = utcNow();
     user.setLastLogin(loginTimestamp);
     userRepository.save(user);
 
-    // 4. Sync UserActivity
     UserActivity activity =
         userActivityRepository.findByKeycloakId(user.getId()).orElse(new UserActivity());
     activity.setKeycloakId(user.getId());
@@ -173,11 +159,8 @@ public class AuthenticationService {
   }
 
   /**
-   * Change password for authenticated user. Email is extracted from JWT token, NOT from request
-   * body (security).
    */
   public void changePassword(String email, String oldPassword, String newPassword) {
-    // Verify old password by attempting login
     TokenExchangeResponse tokenResponse;
     try {
       tokenResponse = keycloakService.login(email, oldPassword);
@@ -212,7 +195,6 @@ public class AuthenticationService {
               .value(newPassword)
               .build());
 
-      // Revoke all existing sessions — force re-authentication on all devices
       keycloakAdminClient.logoutUser("Bearer " + token.getAccessToken(), userId);
 
       log.info("Password successfully changed for userId={}", userId);
@@ -223,9 +205,7 @@ public class AuthenticationService {
     }
   }
 
-  /** Refresh access token using Keycloak */
   public AuthenticationResponse refreshToken(String refreshToken) {
-    // 1. Call Keycloak to refresh token
     TokenExchangeResponse tokenResponse = keycloakService.refreshToken(refreshToken);
 
     if (tokenResponse == null
@@ -235,7 +215,6 @@ public class AuthenticationService {
       throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
-    // 2. Return new access + refresh token
     return AuthenticationResponse.builder()
         .accessToken(tokenResponse.getAccessToken())
         .refreshToken(tokenResponse.getRefreshToken())
@@ -245,7 +224,6 @@ public class AuthenticationService {
         .build();
   }
 
-  /** Logout user via Keycloak */
   public String logout(String refreshToken) {
     try {
       keycloakService.logout(refreshToken);

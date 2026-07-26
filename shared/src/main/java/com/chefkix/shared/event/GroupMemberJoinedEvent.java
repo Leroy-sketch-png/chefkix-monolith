@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user officially becomes an ACTIVE member of a group.
- * <p>
- * Producer: social module (group). Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user requests to join a PRIVATE group.
- * <p>
- * Producer: social module (group). Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -28,8 +25,6 @@ public class GroupJoinRequestedEvent extends BaseEvent {
                                    String requesterDisplayName, String requesterAvatarUrl,
                                    String adminId) {
 
-        // The adminId is passed as the BaseEvent 'userId' so the notification
-        // module knows exactly whose bell icon to light up.
         super("GROUP_JOIN_REQUESTED", adminId);
 
         this.groupId = groupId;

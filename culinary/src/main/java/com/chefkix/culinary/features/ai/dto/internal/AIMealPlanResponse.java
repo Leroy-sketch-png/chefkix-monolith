@@ -9,8 +9,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Response DTO matching the Python AI service /api/v1/generate_meal_plan output.
- * Deserialized from the "data" field of AIServiceResponse envelope.
  */
 @Data
 @Builder

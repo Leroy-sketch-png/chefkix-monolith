@@ -12,8 +12,6 @@ public class HttpOnlyCookieUtils {
   private static boolean secureCookies = false;
 
   /**
-   * Configure cookie domain and secure flag for deployment environment.
-   * Call from application startup (e.g., @PostConstruct in a config bean).
    */
   public static void configure(String domain, boolean secure) {
     cookieDomain = domain;
@@ -21,11 +19,7 @@ public class HttpOnlyCookieUtils {
   }
 
   /**
-   * Creates and adds an HttpOnly cookie to the response with proper SameSite attribute.
-   * Uses ResponseCookie for better control over cookie attributes.
    * 
-   * Domain is configurable via configure() for production deployment.
-   * Without explicit domain, cookies are port-specific and cannot be shared.
    */
   public static void addHttpOnlyCookie(
       HttpServletResponse response, String name, String value, int maxAgeInSeconds) {
@@ -34,7 +28,6 @@ public class HttpOnlyCookieUtils {
     response.addHeader("Set-Cookie", cookie.toString());
   }
 
-  /** Get cookie value from request */
   public static String getCookieValue(HttpServletRequest request, String name) {
     if (request.getCookies() == null) return null;
     for (Cookie cookie : request.getCookies()) {
@@ -45,7 +38,6 @@ public class HttpOnlyCookieUtils {
     return null;
   }
 
-  /** Delete cookie by setting maxAge = 0 */
   public static void deleteHttpOnlyCookie(HttpServletResponse response, String name) {
     ResponseCookie cookie = buildCookie(name, "", 0);
 
@@ -60,7 +52,6 @@ public class HttpOnlyCookieUtils {
         .maxAge(maxAgeInSeconds)
         .sameSite("Lax");
 
-    // Browsers often reject `Domain=localhost`; host-only cookies are correct for local dev.
     if (StringUtils.hasText(cookieDomain) && !"localhost".equalsIgnoreCase(cookieDomain.trim())) {
       builder.domain(cookieDomain.trim());
     }

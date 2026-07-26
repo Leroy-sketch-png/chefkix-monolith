@@ -15,15 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Cleans up stale cooking sessions that were never properly terminated.
  *
- * Two categories:
- * 1. PAUSED sessions whose resumeDeadline has passed → ABANDONED
- *    (User paused but never came back within the 3-hour window)
- * 2. COMPLETED sessions whose postDeadline has passed → EXPIRED
- *    (User finished cooking but never posted within 14 days — 70% pending XP forfeited)
- * 3. IN_PROGRESS sessions older than 12 hours → ABANDONED
- *    (Safety net — no real cooking session lasts 12 hours. User likely closed the app.)
  */
 @Slf4j
 @Component
@@ -35,9 +27,8 @@ public class SessionCleanupScheduler {
     private static final int STALE_IN_PROGRESS_HOURS = 12;
 
     /**
-     * Run every hour to catch stale sessions promptly.
      */
-    @Scheduled(fixedRate = 3600000)  // Every 1 hour
+@Scheduled(fixedRate = 3600000)
     public void cleanupStaleSessions() {
         try {
             log.info("Running stale session cleanup...");
@@ -56,7 +47,6 @@ public class SessionCleanupScheduler {
     }
 
     /**
-     * PAUSED sessions past their resumeDeadline → ABANDONED.
      */
     private long expirePausedSessions(LocalDateTime now) {
         Query query = new Query();
@@ -72,8 +62,6 @@ public class SessionCleanupScheduler {
     }
 
     /**
-     * COMPLETED sessions past their postDeadline with no postId → EXPIRED.
-     * The 70% pending XP is forfeited (pendingXp stays on record but is never awarded).
      */
     private long expireCompletedSessions(LocalDateTime now) {
         Query query = new Query();
@@ -89,9 +77,6 @@ public class SessionCleanupScheduler {
     }
 
     /**
-     * IN_PROGRESS sessions older than 12 hours → ABANDONED.
-     * Safety net for sessions where the user closed the app without pausing/completing.
-     * Redis presence auto-expires after 4 hours, but the MongoDB doc stays IN_PROGRESS forever.
      */
     private long abandonStaleInProgressSessions(LocalDateTime now) {
         LocalDateTime cutoff = now.minusHours(STALE_IN_PROGRESS_HOURS);

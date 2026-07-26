@@ -2,7 +2,7 @@ package com.chefkix.culinary.features.recipe.mapper;
 
 import com.chefkix.culinary.features.recipe.dto.request.StepRequest;
 import com.chefkix.culinary.features.recipe.dto.response.StepResponse;
-import com.chefkix.culinary.features.recipe.entity.Step; // Entity import
+import com.chefkix.culinary.features.recipe.entity.Step;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = {IngredientMapper.class})

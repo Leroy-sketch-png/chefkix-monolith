@@ -56,7 +56,7 @@ public class GroupController {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         groupService.handleLeaveOrCancel(groupId, currentUserId);
 
-        return ApiResponse.success("Successfully left group"); // 204 No Content
+return ApiResponse.success("Successfully left group");
     }
 
     @GetMapping("/{groupId}/requests")
@@ -99,7 +99,6 @@ public class GroupController {
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Pass the password down to the service
         groupService.transferOwnership(groupId, request.getTargetUserId(), currentUserId, request.getPassword());
 
         return ApiResponse.success("Ownership has been successfully transferred");
@@ -118,29 +117,22 @@ public class GroupController {
 
     @GetMapping("/explore")
     public ApiResponse<List<GroupResponse>> exploreGroups(
-            // @ModelAttribute automatically maps URL parameters to your DTO fields!
             @ModelAttribute GroupExploreQuery query,
 
-            // We only need page and size here, because our DTO handles the custom 'sortBy'
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        // 1. Get the current logged-in user
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 2. Inject the user ID into the query object so the Service/Repository can use it
         query.setCurrentUserId(currentUserId);
 
-        // 3. Execute the search
         Page<GroupResponse> responses = groupService.exploreGroups(query, pageable);
 
-        // 4. Return the paginated results
         return ApiResponse.successPage(responses);
     }
 
     @GetMapping("/{groupId}/members")
     public ApiResponse<List<GroupMemberResponse>> getGroupMembers(
             @PathVariable("groupId") String groupId,
-            // Default: Show 20 members per page, newest first!
             @PageableDefault(size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -157,7 +149,6 @@ public class GroupController {
     ) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Pass the optional status down to the service
         Slice<GroupResponse> responses = groupService.getMyGroups(currentUserId, status, pageable);
 
         return ApiResponse.success(responses);

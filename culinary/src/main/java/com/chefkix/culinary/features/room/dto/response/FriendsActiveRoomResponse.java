@@ -6,8 +6,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Active cooking room visible to a user's friends.
- * Spec: vision_and_spec/24-advanced-multiplayer.txt §5
  */
 @Data
 @Builder

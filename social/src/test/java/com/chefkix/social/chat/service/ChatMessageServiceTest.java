@@ -20,12 +20,14 @@ import com.chefkix.social.chat.mapper.ChatMessageMapper;
 import com.chefkix.social.chat.repository.ChatMessageRepository;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
+import com.chefkix.shared.event.StoryReplyEvent;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -114,5 +116,74 @@ class ChatMessageServiceTest {
         assertThat(response.getMessage()).isEqualTo("legacy conversation send");
         verify(conversationLookupService).touchModifiedDate(eq(conversationId), any(Instant.class));
         verify(conversationRepository, never()).save(any());
+    }
+
+    @Test
+    void storyReplyPersistsOwnerContextWithoutBackendDisplayCopy() {
+        Conversation conversation = Conversation.builder()
+                .id("conversation-1")
+                .participantsHash("owner-1_replier-1")
+                .build();
+        StoryReplyEvent event = StoryReplyEvent.builder()
+                .storyId("story-1")
+                .storyOwnerId("owner-1")
+                .replierId("replier-1")
+                .replyText("That looks delicious")
+                .storyMediaUrl("https://cdn.example/story-1.jpg")
+                .build();
+
+        when(conversationRepository.findByParticipantsHash("owner-1_replier-1"))
+                .thenReturn(java.util.Optional.of(conversation));
+        when(contentModerationProvider.moderate("That looks delicious", "chat"))
+                .thenReturn(ContentModerationProvider.ModerationResult.approved());
+        when(profileProvider.getBasicProfile("replier-1")).thenReturn(BasicProfileInfo.builder()
+                .userId("replier-1")
+                .displayName("Replying Cook")
+                .build());
+        when(chatMessageRepository.save(any(ChatMessage.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.processStoryReplyEvent(event);
+
+        ArgumentCaptor<ChatMessage> messageCaptor = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(chatMessageRepository).save(messageCaptor.capture());
+        ChatMessage saved = messageCaptor.getValue();
+        assertThat(saved.getType()).isEqualTo(MessageType.STORY_REPLY);
+        assertThat(saved.getRelatedId()).isEqualTo("story-1");
+        assertThat(saved.getStoryOwnerId()).isEqualTo("owner-1");
+        assertThat(saved.getSharedPostImage()).isEqualTo("https://cdn.example/story-1.jpg");
+        assertThat(saved.getSharedPostTitle()).isNull();
+        verify(conversationLookupService).touchModifiedDate(eq("conversation-1"), any(Instant.class));
+    }
+
+    @Test
+    void storyReplyResponseReturnsPersistedOwnerContext() {
+        Conversation conversation = Conversation.builder()
+                .id("conversation-1")
+                .participants(List.of(ParticipantInfo.builder().userId("user-1").build()))
+                .build();
+        ChatMessage stored = ChatMessage.builder()
+                .id("message-1")
+                .conversationId("conversation-1")
+                .message("That looks delicious")
+                .type(MessageType.STORY_REPLY)
+                .relatedId("story-1")
+                .storyOwnerId("owner-1")
+                .sharedPostImage("https://cdn.example/story-1.jpg")
+                .sender(ParticipantInfo.builder().userId("replier-1").build())
+                .createdDate(Instant.parse("2026-07-23T10:00:00Z"))
+                .build();
+
+        when(conversationLookupService.findById("conversation-1"))
+                .thenReturn(java.util.Optional.of(conversation));
+        when(chatMessageRepository.findAllByConversationIdOrderByCreatedDateAsc(
+                eq("conversation-1"), any()))
+                .thenReturn(List.of(stored));
+
+        ChatMessageResponse response = service.getMessages("conversation-1").get(0);
+
+        assertThat(response.getStoryOwnerId()).isEqualTo("owner-1");
+        assertThat(response.getRelatedId()).isEqualTo("story-1");
+        assertThat(response.getSharedPostTitle()).isNull();
     }
 }

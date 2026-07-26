@@ -15,10 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * OTP generation and HMAC utilities for the identity module.
- * <p>
- * Email delivery is handled by the notification module via Kafka (otp-delivery topic).
- * This service provides cryptographic helpers only.
  */
 @Service("identityEmailService")
 @RequiredArgsConstructor
@@ -31,7 +27,7 @@ public class EmailService {
 
   public String generateOtpCode() {
     SecureRandom rnd = new SecureRandom();
-    int code = rnd.nextInt(900_000) + 100_000; // 6-digit
+int code = rnd.nextInt(900_000) + 100_000;
     return String.valueOf(code);
   }
 

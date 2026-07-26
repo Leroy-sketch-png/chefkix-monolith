@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Response for GET /challenges/community.
- * Shows active community challenges with live progress.
  */
 @Data
 @Builder
@@ -22,30 +20,23 @@ public class CommunityChallengeResponse {
     String description;
     String emoji;
 
-    // Goal
     int targetCount;
     String targetUnit;
 
-    // Live progress (from Redis)
     long currentProgress;
     long participantCount;
-    double progressPercent; // 0.0 - 100.0
+double progressPercent;
 
-    // Reward
     int rewardXpPerUser;
     String rewardBadgeId;
 
-    // Scheduling
-    String startsAt; // ISO8601
-    String endsAt;   // ISO8601
-    String status;   // ACTIVE, COMPLETED, EXPIRED
+String startsAt;
+String endsAt;
+String status;
 
-    // User-specific
-    boolean hasContributed; // whether current user is in participants set
+boolean hasContributed;
 
-    // Criteria for display
     Map<String, Object> criteria;
 
-    // Tags
     List<String> tags;
 }

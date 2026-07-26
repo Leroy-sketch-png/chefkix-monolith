@@ -16,12 +16,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
- * Saturday morning nudge for users who haven't cooked in 3+ days.
- * Sends a friendly "weekend cooking inspiration" reminder via Kafka.
- * <p>
- * Runs every Saturday at 10:00 UTC.
- * Targets users who have cooked before but haven't in the last 3 days,
- * encouraging them to get back in the kitchen on the weekend.
  */
 @Slf4j
 @Component
@@ -44,7 +38,6 @@ public class WeekendNudgeScheduler {
     };
 
     /**
-     * Every Saturday at 10:00 UTC — nudge inactive users to cook on the weekend.
      */
     @Scheduled(cron = "0 0 10 * * SAT")
     public void sendWeekendNudges() {
@@ -80,9 +73,6 @@ public class WeekendNudgeScheduler {
     }
 
     /**
-     * Finds users who have cooked before (lastCookAt exists) but not in the last N days.
-     * This avoids nudging brand-new users who never cooked, and avoids nudging
-     * users who are already active.
      */
     private List<Document> findInactiveUsersWhoPreviouslyCooked() {
         Instant inactiveThreshold = Instant.now().minus(INACTIVE_DAYS, ChronoUnit.DAYS);

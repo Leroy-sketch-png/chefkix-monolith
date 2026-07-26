@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 
 import java.util.Map;
 
-// DTO cho từng Sticker
 public record StoryItemDto(
         @NotBlank String type,
         double x,

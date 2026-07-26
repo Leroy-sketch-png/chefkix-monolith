@@ -8,10 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Standalone email event (does NOT extend {@link BaseEvent}).
- * <p>
- * Produced by identity module, consumed by notification module.
- * Used for OTP codes, welcome emails, and transactional emails.
  */
 @Data
 @Builder

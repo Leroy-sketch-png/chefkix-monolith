@@ -1,4 +1,3 @@
-// OtpController.java
 package com.chefkix.identity.controller;
 
 import com.chefkix.identity.dto.request.AuthenticationRequest;
@@ -16,14 +15,16 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class OtpController {
-  private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60; // 7 days
+private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60;
 
   ProfileService profileService;
   SignupRequestService signupRequestService;
@@ -33,21 +34,28 @@ public class OtpController {
   public ApiResponse<AuthenticationResponse> verifyOtp(
       @RequestBody @Valid EmailVerificationRequest request,
       HttpServletResponse response) {
-    // 1. Verify OTP, create Keycloak user + MongoDB profile, get plaintext password
-    String password = profileService.verifyOtpAndCreateUser(request.getEmail(), request.getOtp());
+    profileService.verifyOtpAndCreateUser(
+        request.getEmail(), request.getOtp(), request.getPassword());
 
-    // 2. Auto-login: authenticate the newly created user via Keycloak
-    AuthenticationResponse authResponse = authenticationService.authenticate(
-        AuthenticationRequest.builder()
-            .emailOrUsername(request.getEmail())
-            .password(password)
-            .build());
+    AuthenticationResponse authResponse;
+    try {
+      authResponse = authenticationService.authenticate(
+          AuthenticationRequest.builder()
+              .emailOrUsername(request.getEmail())
+              .password(request.getPassword())
+              .build());
+    } catch (RuntimeException exception) {
+      log.warn(
+          "Account created for {} but automatic sign-in failed; user can sign in manually",
+          request.getEmail(),
+          exception);
+      return ApiResponse.success(
+          null, "Email verified and account created. Please sign in to continue.");
+    }
 
-    // 3. Set refresh token as HttpOnly cookie (same pattern as login endpoint)
     HttpOnlyCookieUtils.addHttpOnlyCookie(
         response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN);
 
-    // 4. Null out refresh token from body (prevent JS access)
     authResponse.setRefreshToken(null);
 
     return ApiResponse.success(authResponse, "Email verified and signed in successfully");

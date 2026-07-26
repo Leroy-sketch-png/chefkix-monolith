@@ -19,8 +19,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Tracks a user's progress through a learning-path Collection.
- * One document per (userId, collectionId) pair.
  */
 @Document(collection = "collection_progress")
 @CompoundIndexes({
@@ -42,15 +40,12 @@ public class CollectionProgress {
     @Indexed
     String collectionId;
 
-    /** Recipe IDs the user has finished cooking (subset of Collection.recipeIds) */
     @Builder.Default
     List<String> completedRecipeIds = new ArrayList<>();
 
-    /** Zero-based index into Collection.recipeIds indicating next recipe */
     @Builder.Default
     int currentRecipeIndex = 0;
 
-    /** Total XP earned from recipes completed within this learning path */
     @Builder.Default
     int totalXpEarned = 0;
 

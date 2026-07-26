@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 
 /**
- * Rate limiting guard for auth-sensitive endpoints.
  */
 @Service
 @RequiredArgsConstructor
@@ -20,11 +19,9 @@ public class AuthRateLimitService {
 
   StringRedisTemplate redisTemplate;
 
-  // Login brute-force guard: max 8 attempts per 15 minutes per IP.
   static final int LOGIN_MAX_ATTEMPTS = 8;
   static final Duration LOGIN_WINDOW = Duration.ofMinutes(15);
 
-  // Forgot password spam guard: max 5 requests per hour per IP+email.
   static final int FORGOT_PASSWORD_MAX_ATTEMPTS = 5;
   static final Duration FORGOT_PASSWORD_WINDOW = Duration.ofHours(1);
 

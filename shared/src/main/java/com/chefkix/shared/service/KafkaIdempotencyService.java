@@ -8,14 +8,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 
 /**
- * Redis-based idempotency service for Kafka event processing.
- * <p>
- * Prevents duplicate processing when Kafka redelivers messages due to:
- * - Consumer restarts
- * - Partition rebalancing
- * - Network issues
- * <p>
- * Events are deduplicated using their unique eventId stored in Redis with TTL.
  */
 @Slf4j
 @Service
@@ -28,12 +20,7 @@ public class KafkaIdempotencyService {
     private static final Duration DEFAULT_TTL = Duration.ofHours(24);
 
     /**
-     * Attempts to mark an event as processed.
-     * Returns true if the event was NOT previously processed (safe to process).
-     * Returns false if the event was already processed (skip it).
      *
-     * @param eventId unique event identifier
-     * @return true if event should be processed, false if duplicate
      */
     public boolean tryProcess(String eventId) {
         if (eventId == null || eventId.isBlank()) {
@@ -54,7 +41,6 @@ public class KafkaIdempotencyService {
     }
 
     /**
-     * Removes the idempotency mark for an event (no topic), allowing it to be retried.
      */
     public void removeProcessed(String eventId) {
         if (eventId == null || eventId.isBlank()) return;
@@ -64,11 +50,7 @@ public class KafkaIdempotencyService {
     }
 
     /**
-     * Attempts to mark an event as processed with a specific topic for debugging.
      *
-     * @param eventId unique event identifier
-     * @param topic   Kafka topic for logging
-     * @return true if event should be processed, false if duplicate
      */
     public boolean tryProcess(String eventId, String topic) {
         if (eventId == null || eventId.isBlank()) {
@@ -89,11 +71,7 @@ public class KafkaIdempotencyService {
     }
 
     /**
-     * Removes the idempotency mark for an event, allowing it to be retried.
-     * Call this when event processing fails and the message should be retried by DefaultErrorHandler.
      *
-     * @param eventId unique event identifier
-     * @param topic   Kafka topic
      */
     public void removeProcessed(String eventId, String topic) {
         if (eventId == null || eventId.isBlank()) return;

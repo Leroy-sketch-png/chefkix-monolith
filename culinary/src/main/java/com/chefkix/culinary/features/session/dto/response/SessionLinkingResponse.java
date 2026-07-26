@@ -12,6 +12,6 @@ public class SessionLinkingResponse {
     private String postId;
     private List<String> badgesEarned;
     private int xpAwarded;
-    private int totalXpForRecipe; // Integer for clean game system values
+private int totalXpForRecipe;
     private boolean creatorBonusAwarded;
 }

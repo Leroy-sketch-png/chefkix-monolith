@@ -14,11 +14,9 @@ public interface RecipeLikeRepository extends MongoRepository<RecipeLike, String
     Optional<RecipeLike> findByRecipeIdAndUserId(String recipeId, String userId);
     List<RecipeLike> findAllByCreatedAtAfter(Instant date);
 
-    // Get all recipes liked by a user (for /liked endpoint)
     List<RecipeLike> findAllByUserId(String userId);
     Page<RecipeLike> findAllByUserId(String userId, Pageable pageable);
     List<RecipeLike> findByUserIdAndRecipeIdIn(String userId, List<String> recipeIds);
 
-    // Count likes for a user
     long countByUserId(String userId);
 }

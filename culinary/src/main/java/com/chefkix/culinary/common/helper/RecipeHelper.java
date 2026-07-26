@@ -55,7 +55,6 @@ public class RecipeHelper {
         this.mongoTemplate = mongoTemplate;
     }
 
-    // --- CALCULATION & ANTI-CHEAT LOGIC ---
 
     public void calculateRemainingTime(CookingSession session) {
         if (session.getActiveTimers() == null || session.getActiveTimers().isEmpty()) return;
@@ -80,8 +79,6 @@ public class RecipeHelper {
     }
 
     public double calculateMasteryMultiplier(String userId, String recipeId) {
-        // Count COMPLETED + POSTED sessions (not just POSTED)
-        // Previously only counted POSTED, which meant users could bypass mastery decay by never posting
         long completedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.COMPLETED);
         long postedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POSTED);
         long deletedPostedCount = sessionRepository.countByUserIdAndRecipeIdAndStatus(userId, recipeId, SessionStatus.POST_DELETED);
@@ -111,7 +108,6 @@ public class RecipeHelper {
         return finalXp;
     }
 
-    // --- LOGIC TIMER ---
 
     public void handleTimerStart(CookingSession session, Recipe recipe, int stepNumber, LocalDateTime now) {
         if (session.getActiveTimers() == null) {
@@ -178,7 +174,6 @@ public class RecipeHelper {
         }
     }
 
-    // --- LOGIC VALIDATION ---
 
     public CookingSession validateSessionForLinking(String sessionId, String userId) {
         CookingSession session = sessionRepository.findById(sessionId)
@@ -201,14 +196,13 @@ public class RecipeHelper {
             }
             return postData;
         } catch (AppException e) {
-            throw e; // re-throw our own exceptions
+throw e;
         } catch (Exception e) {
             log.error("Post Service Error: {}", e.getMessage());
             throw new AppException(ErrorCode.POST_SERVICE_ERROR);
         }
     }
 
-    // --- LOGIC SIDE EFFECTS (DB/KAFKA) ---
 
     public void updateRecipeStats(String recipeId, int cookCountInc, int xpEarnedInc) {
         Query query = Query.query(Criteria.where("_id").is(recipeId));
@@ -269,9 +263,7 @@ public class RecipeHelper {
                 userId, amount, source, badges, challengeCompleted);
     }
 
-    // sendBadgeEvent is now deprecated - use sendXpEventWithBadges instead
     public void sendBadgeEvent(String userId, List<String> badges, String sessionId, String recipeId) {
-        // Badges are now sent via XP event
         log.warn("sendBadgeEvent called but badges should be sent with XP event. userId={}, badges={}", userId, badges);
     }
 
@@ -295,9 +287,6 @@ public class RecipeHelper {
     }
 
     /**
-     * Increment/decrement multiple stats at once.
-     * @param recipeId Recipe ID
-     * @param statsIncrements Map<Field name, Increment amount> (e.g., "wins" -> 1, "exp" -> 100)
      */
     public void incrementRecipeStats(String recipeId, Map<String, Number> statsIncrements) {
         if (statsIncrements == null || statsIncrements.isEmpty()) {
@@ -307,15 +296,11 @@ public class RecipeHelper {
         Query query = Query.query(Criteria.where("_id").is(recipeId));
         Update update = new Update();
 
-        // Iterate through map and create inc commands for each field
-        // Automatically adds "statistics." prefix so calling code is cleaner
         statsIncrements.forEach(update::inc);
 
-        // Only call DB once
         mongoTemplate.updateFirst(query, update, "recipes");
     }
 
-    // --- MAPPING (Could use MapStruct but keeping logic here to keep Service clean) ---
 
     public StartSessionResponse mapToStartResponse(CookingSession session, Recipe recipe) {
         return StartSessionResponse.builder()
@@ -338,7 +323,6 @@ public class RecipeHelper {
     public CurrentSessionResponse mapToCurrentSessionResponse(CookingSession session, Recipe recipe) {
         if (recipe == null) return null;
         
-        // Build recipe info with all needed fields
         CurrentSessionResponse.SessionRecipeInfo recipeDto = CurrentSessionResponse.SessionRecipeInfo.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
@@ -347,7 +331,6 @@ public class RecipeHelper {
                 .coverImageUrl(recipe.getCoverImageUrl())
                 .build();
 
-        // Calculate days remaining until post deadline (if applicable)
         Integer daysRemaining = null;
         if (session.getPostDeadline() != null) {
             long days = java.time.temporal.ChronoUnit.DAYS.between(
@@ -367,11 +350,9 @@ public class RecipeHelper {
                 .completedSteps(session.getCompletedSteps())
                 .activeTimers(session.getActiveTimers())
                 .recipe(recipeDto)
-                // XP tracking fields (populated after completion)
                 .baseXpAwarded(session.getBaseXpAwarded() != null ? session.getBaseXpAwarded().intValue() : null)
                 .pendingXp(session.getPendingXp() != null ? session.getPendingXp().intValue() : null)
                 .remainingXpAwarded(session.getRemainingXpAwarded() != null ? session.getRemainingXpAwarded().intValue() : null)
-                // Post linking fields
                 .postId(session.getPostId())
                 .postDeadline(session.getPostDeadline())
                 .daysRemaining(daysRemaining)

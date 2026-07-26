@@ -13,7 +13,6 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TokenExchangeParam {
-  // using snake case like this is not best practise but keycloak accepts this fields only
   String grant_type;
   String client_id;
   String client_secret;

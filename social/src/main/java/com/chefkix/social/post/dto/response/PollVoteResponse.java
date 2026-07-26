@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PollVoteResponse {
-    String userVote; // "A" or "B"
+String userVote;
     int votesA;
     int votesB;
 }

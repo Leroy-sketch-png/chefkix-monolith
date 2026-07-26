@@ -10,9 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Public statistics endpoints. INTERNAL-ONLY operations (add_xp, update_completion)
- * have been removed from REST — they are called via SPI interfaces within the JVM only.
- * See: ProfileProvider.addXp(), ProfileProvider.updateAfterCompletion()
  */
 @RestController
 @RequestMapping("/auth")
@@ -22,8 +19,6 @@ public class StatisticController {
 
   StatisticsService statisticsService;
 
-  // REMOVED: POST /{userId}/add_xp — IDOR vulnerability. XP is awarded via Kafka xp-delivery only.
-  // REMOVED: POST /update_completion — internal SPI only, not a REST endpoint.
 
   @GetMapping("/me/creator-stats")
   public ApiResponse<CreatorStatsResponse> getMyCreatorStats() {

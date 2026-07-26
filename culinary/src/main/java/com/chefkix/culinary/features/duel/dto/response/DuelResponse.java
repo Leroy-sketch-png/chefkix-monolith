@@ -14,7 +14,6 @@ import java.time.Instant;
 public class DuelResponse {
     String id;
 
-    // Participants
     String challengerId;
     String challengerName;
     String challengerAvatar;
@@ -22,30 +21,24 @@ public class DuelResponse {
     String opponentName;
     String opponentAvatar;
 
-    // Recipe
     String recipeId;
     String recipeTitle;
     String recipeCoverUrl;
 
-    // State
     DuelStatus status;
     String message;
 
-    // Scores (null until sessions complete)
     Integer challengerScore;
     Integer opponentScore;
     String winnerId;
     int bonusXp;
 
-    // Sessions (null until cooking starts)
     String challengerSessionId;
     String opponentSessionId;
 
-    // Deadlines
     Instant acceptDeadline;
     Instant cookDeadline;
 
-    // Timestamps
     Instant createdAt;
     Instant acceptedAt;
     Instant completedAt;

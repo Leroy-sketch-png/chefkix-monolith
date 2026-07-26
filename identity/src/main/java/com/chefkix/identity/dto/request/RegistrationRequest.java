@@ -16,7 +16,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RegistrationRequest {
 
-  // Auth info
   @NotBlank(message = "USERNAME_REQUIRED")
   @Size(min = 4, max = 20, message = "INVALID_USERNAME")
   String username;
@@ -29,7 +28,6 @@ public class RegistrationRequest {
   @Email(message = "INVALID_EMAIL")
   String email;
 
-  // Personal info - Required for Keycloak user creation
   @NotBlank(message = "FIRST_NAME_REQUIRED")
   @Size(max = 50, message = "First name must be at most 50 characters")
   String firstName;
@@ -54,12 +52,11 @@ public class RegistrationRequest {
   String bio;
 
   @Size(max = 20, message = "Account type must be at most 20 characters")
-  String accountType; // normal, chef — validated in service layer
+String accountType;
 
   @Size(max = 100, message = "Location must be at most 100 characters")
   String location;
 
-  // Preferences & settings
   @Size(max = 20, message = "Maximum 20 preferences")
   List<String> preferences;
 }

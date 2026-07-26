@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Response DTO for POST /api/v1/validate_recipe on the Python AI service.
- * Python response uses camelCase aliases (by_alias=True in model_dump).
  */
 @Data
 @NoArgsConstructor

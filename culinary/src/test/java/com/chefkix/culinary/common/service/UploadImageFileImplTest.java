@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.cloudinary.Transformation;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,28 @@ import org.springframework.mock.web.MockMultipartFile;
 class UploadImageFileImplTest {
 
   private final UploadImageFileImpl service = new UploadImageFileImpl(null, null);
+
+  @Test
+  void buildUploadOptionsUsesTypedEagerTransformationRequiredByCloudinaryJava() {
+    Map<String, Object> options = service.buildUploadOptions("story-photo");
+
+    assertThat(options)
+        .containsEntry("public_id", "story-photo")
+        .containsEntry("resource_type", "image");
+    assertThat(options.get("eager")).isInstanceOf(List.class);
+
+    List<?> eager = (List<?>) options.get("eager");
+    assertThat(eager).hasSize(1);
+    assertThat(eager.getFirst()).isInstanceOf(Transformation.class);
+
+    String generated = ((Transformation<?>) eager.getFirst()).generate();
+    assertThat(generated)
+        .contains("c_limit")
+        .contains("w_1600")
+        .contains("h_1600")
+        .contains("q_auto")
+        .contains("f_auto");
+  }
 
   @Test
   void extractOptimizedImageUrlPrefersEagerSecureUrl() {

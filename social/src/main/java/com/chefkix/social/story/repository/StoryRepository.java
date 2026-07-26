@@ -17,16 +17,17 @@ public interface StoryRepository extends MongoRepository<Story, String> {
 
         List<Story> findAllByUserId(String userId);
 
-    // Lấy Story đang hoạt động (cho chính chủ hoặc bạn bè)
     List<Story> findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(
             String userId, Instant now);
 
-    // Lấy Story đã vào kho lưu trữ (chỉ chính chủ)
     Page<Story> findByUserIdAndIsDeletedFalseAndExpiresAtBeforeOrderByCreatedAtDesc(
             String userId, Instant now, Pageable pageable);
 
-    // Kiểm tra tồn tại để validate trước khi xóa
     Optional<Story> findByIdAndUserIdAndIsDeletedFalse(String id, String userId);
+
+    Optional<Story> findByIdAndIsDeletedFalseAndExpiresAtAfter(String id, Instant now);
+
+    Optional<Story> findByIdAndIsDeletedFalse(String id);
 
     List<Story> findByUserIdInAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(Set<String> followingIds, Instant now);
 

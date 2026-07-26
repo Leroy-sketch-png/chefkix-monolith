@@ -25,6 +25,4 @@ public class UserCreationRequest {
   @Size(min = 6, max = 100, message = "Password must be at least 6 characters long")
   String password;
 
-  //    @Size(max = 100, message = "Display name cannot exceed 100 characters")
-  //    String displayName;
 }

@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user gains a new follower.
- * <p>
- * Producer: identity module. Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

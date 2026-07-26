@@ -18,7 +18,7 @@ public class StoryInteractionEvent extends BaseEvent {
     private String userDisplayName;
     private String userAvatarUrl;
 
-    private String interactionType; // "VIEW", "LIKE", "REACTION"
+private String interactionType;
 
     @Builder
     public StoryInteractionEvent(String storyId, String userId, String storyOwnerId, String userDisplayName, String userAvatarUrl, String interactionType) {

@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Document(collection = "story_interactions")
-// Đảm bảo 1 user chỉ có 1 record tương tác cho 1 story
 @CompoundIndex(def = "{'storyId': 1, 'userId': 1}", unique = true)
 @Data
 @Builder
@@ -21,15 +20,11 @@ public class StoryInteraction {
     String storyId;
     String userId;
 
-    // View data
     boolean isViewed;
     Instant lastViewedAt;
 
-    // Reaction data (🔥, ❤️, 🤤)
     String reaction;
 
-    // Sticker data (Lưu kết quả vote Poll hoặc trả lời Q&A)
-    // Key: stickerId, Value: Lựa chọn của user
     @Builder.Default
     Map<String, String> stickerInteractions = new HashMap<>();
 }

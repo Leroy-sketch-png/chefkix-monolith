@@ -34,6 +34,7 @@ public class ChatMessage {
     @Indexed
     String relatedId;
 
+    String storyOwnerId;
     String sharedPostImage;
     String sharedPostTitle;
 
@@ -42,21 +43,13 @@ public class ChatMessage {
     @Indexed
     Instant createdDate;
 
-    // --- Reply support ---
-    /** ID of the message this is replying to (null if not a reply) */
     String replyToId;
-    /** Cached snippet of the replied-to message content */
     String replyToContent;
-    /** Cached sender name of the replied-to message */
     String replyToSenderName;
 
-    // --- Reactions ---
-    /** Reactions on this message. Each entry: emoji + list of userIds who reacted. */
     @Builder.Default
     List<Reaction> reactions = new ArrayList<>();
 
-    // --- Soft delete ---
-    /** True if the sender deleted this message. Content is cleared but metadata preserved. */
     @Builder.Default
     Boolean deleted = false;
 

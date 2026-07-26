@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Response for GET /cooking-sessions/friends-active.
- * Shows which of the user's following are currently cooking.
  */
 @Data
 @Builder
@@ -35,6 +33,6 @@ public class FriendCookingActivityResponse {
         int currentStep;
         int totalSteps;
         LocalDateTime startedAt;
-        String roomCode; // null for solo, present for co-cooking invite
+String roomCode;
     }
 }

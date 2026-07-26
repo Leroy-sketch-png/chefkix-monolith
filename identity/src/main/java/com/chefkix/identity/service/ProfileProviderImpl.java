@@ -33,11 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Implementation of the cross-module {@link ProfileProvider} contract.
- * <p>
- * Delegates to internal identity services, mapping between API-module DTOs
- * and identity-module internal DTOs. This replaces the Feign clients
- * (ProfileClient) that recipe, post, and chat services used to call.
  */
 @Service
 @RequiredArgsConstructor
@@ -71,7 +66,6 @@ public class ProfileProviderImpl implements ProfileProvider {
 
     @Override
     public CompletionResult updateAfterCompletion(CompletionRequest request) {
-        // Map API-module DTO → identity-internal DTO
         InternalCompletionRequest internalReq = InternalCompletionRequest.builder()
                 .userId(request.getUserId())
                 .xpAmount(request.getXpAmount())
@@ -84,7 +78,6 @@ public class ProfileProviderImpl implements ProfileProvider {
 
         RecipeCompletionResponse response = statisticsService.updateAfterCompletion(internalReq);
 
-        // Map identity-internal response → API-module DTO
         return CompletionResult.builder()
                 .userId(response.getUserId())
                 .currentLevel(response.getCurrentLevel() != null ? response.getCurrentLevel() : 1)
@@ -122,7 +115,6 @@ public class ProfileProviderImpl implements ProfileProvider {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         if (user.getCreatedAt() == null) {
-            // Fallback for legacy users without createdAt — treat as old account (no restriction)
             return Instant.EPOCH;
         }
         return user.getCreatedAt().toInstant(ZoneOffset.UTC);
@@ -151,7 +143,7 @@ public class ProfileProviderImpl implements ProfileProvider {
                         && settings.getPrivacy().getShowCookingActivity() != null
                         ? settings.getPrivacy().getShowCookingActivity()
                         : true)
-                .orElse(true); // Default: broadcast cooking activity
+.orElse(true);
     }
 
     @Override
@@ -220,8 +212,8 @@ public class ProfileProviderImpl implements ProfileProvider {
             double weight = switch (event.getEventType()) {
                 case RECIPE_VIEWED -> 0.5;
                 case POST_DWELLED -> computeDwellWeight(event);
-                case POST_COMMENTED -> 1.8; // commenting shows strong engagement
-                case RECIPE_CREATED -> 2.5; // creating a recipe = strongest intent signal
+case POST_COMMENTED -> 1.8;
+case RECIPE_CREATED -> 2.5;
                 default -> 0.0;
             };
             if (weight > 0) {
@@ -232,11 +224,9 @@ public class ProfileProviderImpl implements ProfileProvider {
     }
 
     /**
-     * Graduated dwell weight: longer dwell = stronger interest signal.
-     * 2-5s = casual browse (0.75), 5-10s = engaged read (1.5), 10s+ = deep interest (2.5)
      */
     private double computeDwellWeight(UserEvent event) {
-        if (event.getMetadata() == null) return 1.5; // fallback for legacy events
+if (event.getMetadata() == null) return 1.5;
         Object dwellMsObj = event.getMetadata().get("dwellMs");
         if (dwellMsObj == null) return 1.5;
 
@@ -251,9 +241,9 @@ public class ProfileProviderImpl implements ProfileProvider {
             }
         }
 
-        if (dwellMs < 5_000) return 0.75;   // 2-5s: casual browse
-        if (dwellMs < 10_000) return 1.5;    // 5-10s: engaged read
-        return 2.5;                           // 10s+: deep interest
+if (dwellMs < 5_000) return 0.75;
+if (dwellMs < 10_000) return 1.5;
+return 2.5;
     }
 
     @Override

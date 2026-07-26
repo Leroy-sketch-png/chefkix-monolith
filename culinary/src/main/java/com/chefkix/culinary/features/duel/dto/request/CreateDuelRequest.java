@@ -18,5 +18,5 @@ public class CreateDuelRequest {
     @Size(max = 100)
     String recipeId;
     @Size(max = 200, message = "Message must be 200 characters or less")
-    String message; // optional trash talk
+String message;
 }

@@ -23,9 +23,9 @@ public class EnrichmentMetadata {
     @Builder.Default
     List<String> seasonalTags = new ArrayList<>();
 
-    Map<String, List<String>> ingredientSubstitutions; // Ingredient substitutions
+Map<String, List<String>> ingredientSubstitutions;
 
-    CulturalContext culturalContext; // Inner class
+CulturalContext culturalContext;
 
     String recipeStory;
     String chefNotes;

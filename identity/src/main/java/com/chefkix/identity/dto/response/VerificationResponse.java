@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class VerificationResponse {
   String id;
   String userId;
-  String status; // PENDING, APPROVED, REJECTED
+String status;
   String reason;
   String adminNotes;
   Instant requestedAt;

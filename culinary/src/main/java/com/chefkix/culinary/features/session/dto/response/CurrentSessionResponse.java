@@ -12,34 +12,27 @@ import java.util.List;
 @Builder
 public class CurrentSessionResponse {
 
-    // --- MAIN FIELDS ---
     private String sessionId;
     private String recipeId;
-    private SessionStatus status; // "in_progress", "paused", "completed", "posted"
+private SessionStatus status;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
 
-    // --- PROGRESS ---
     private Integer currentStep;
     private List<Integer> completedSteps;
 
-    // --- TIMER (Calculated) ---
     private List<CookingSession.ActiveTimer> activeTimers;
 
-    // --- RECIPE SNAPSHOT ---
     private SessionRecipeInfo recipe;
     
-    // --- XP TRACKING (set after completion) ---
-    private Integer baseXpAwarded;  // 30% XP awarded immediately at completion
-    private Integer pendingXp;      // 70% XP pending until post is created
-    private Integer remainingXpAwarded; // XP actually awarded when post was linked
+private Integer baseXpAwarded;
+private Integer pendingXp;
+private Integer remainingXpAwarded;
     
-    // --- POST LINKING ---
     private String postId;
     private LocalDateTime postDeadline;
     private Integer daysRemaining;
 
-    // --- INNER DTO FOR RECIPE SNAPSHOT ---
     @Data
     @Builder
     public static class SessionRecipeInfo {

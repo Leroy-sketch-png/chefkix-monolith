@@ -7,12 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a post is deleted.
- * <p>
- * Producer: social module (post). Consumer: identity module (profile post count).
- * <p>
- * NOTE: Fixed bug from chefkix-be where @JsonTypeName was incorrectly
- * set to "POST_CREATED_ACTION" instead of "POST_DELETED_ACTION".
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

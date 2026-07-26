@@ -4,8 +4,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Request DTO for auto-creating a RECENT_COOK post after cooking session completion.
- * Used by culinary module via PostProvider cross-module call.
  */
 @Data
 @NoArgsConstructor

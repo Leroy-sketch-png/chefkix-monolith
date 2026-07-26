@@ -15,10 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * User-facing moderation endpoints.
- * Banned users can check ban status and submit appeals.
  *
- * Monolith path: /api/v1/moderation/*
  */
 @RestController
 @RequestMapping("/moderation")
@@ -29,8 +26,6 @@ public class ModerationController {
     ModerationService moderationService;
 
     /**
-     * GET /api/v1/moderation/ban-status — Check if current user is banned.
-     * Returns ban details or null if not banned.
      */
     @GetMapping("/ban-status")
     public ResponseEntity<ApiResponse<BanResponse>> getBanStatus(Authentication authentication) {
@@ -40,7 +35,6 @@ public class ModerationController {
     }
 
     /**
-     * POST /api/v1/moderation/appeals — Submit an appeal against a ban.
      */
     @PostMapping("/appeals")
     public ResponseEntity<ApiResponse<Appeal>> createAppeal(

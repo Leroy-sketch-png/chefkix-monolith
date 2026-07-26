@@ -16,7 +16,6 @@ public class RecipeCompletionResponse {
 
   Long completionCount;
 
-  // Level-up tracking for frontend celebration
   Boolean leveledUp;
   Integer oldLevel;
   Integer newLevel;

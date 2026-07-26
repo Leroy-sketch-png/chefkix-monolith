@@ -32,7 +32,6 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
 
     @Override
     public HighlightResponse createHighlight(String userId, HighlightCreateRequest request) {
-        // Bảo mật: Xác minh xem tất cả các storyIds này có đúng là của user này không
         validateStoryOwnership(request.storyIds(), userId);
 
         StoryHighlight highlight = StoryHighlight.builder()
@@ -61,10 +60,8 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
         StoryHighlight highlight = highlightRepo.findById(highlightId)
                 .orElseThrow(() -> new RuntimeException("Highlight không tồn tại"));
 
-        // Lấy toàn bộ Story trong mảng (Bỏ qua các story user đã bấm XÓA MỀM)
         List<Story> stories = storyRepo.findByIdInAndIsDeletedFalse(highlight.getStoryIds());
 
-        // Đảm bảo video được phát đúng thứ tự mà user đã cất công sắp xếp lúc tạo
         Map<String, Story> storyMap = stories.stream()
                 .collect(Collectors.toMap(Story::getId, s -> s));
 
@@ -79,13 +76,11 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     public void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request) {
         StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
 
-        // Nếu user tick chọn thêm/bớt Story
         if (request.storyIds() != null) {
             validateStoryOwnership(request.storyIds(), currentUserId);
             highlight.setStoryIds(request.storyIds());
         }
 
-        // Đổi tên hoặc ảnh bìa
         if (request.title() != null && !request.title().isBlank()) {
             highlight.setTitle(request.title());
         }
@@ -99,10 +94,9 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     @Override
     public void deleteHighlight(String highlightId, String currentUserId) {
         StoryHighlight highlight = getHighlightAndVerifyOwner(highlightId, currentUserId);
-        highlightRepo.delete(highlight); // Chỉ xóa cái Vỏ (Highlight), Ruột (Story) vẫn còn trong DB
+highlightRepo.delete(highlight);
     }
 
-    // --- INTERNAL HELPERS ---
 
     private void validateStoryOwnership(List<String> storyIds, String userId) {
         if (storyIds == null || storyIds.isEmpty()) return;

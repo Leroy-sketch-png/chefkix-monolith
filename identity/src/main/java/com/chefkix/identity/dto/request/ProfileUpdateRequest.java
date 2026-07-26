@@ -12,8 +12,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
- * DTO for profile update requests. All fields are optional — only non-null fields are applied.
- * Validation constraints prevent abuse (megabyte bios, unlimited preferences, etc.).
  */
 @Data
 @NoArgsConstructor
@@ -22,7 +20,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProfileUpdateRequest {
 
-  // Personal info
   @Size(max = 50, message = "First name must be at most 50 characters")
   String firstName;
 
@@ -50,7 +47,6 @@ public class ProfileUpdateRequest {
   @Size(max = 100, message = "Location must be at most 100 characters")
   String location;
 
-  // Preferences & settings
   @Size(max = 20, message = "Preferences must contain at most 20 items")
   List<String> preferences;
 }

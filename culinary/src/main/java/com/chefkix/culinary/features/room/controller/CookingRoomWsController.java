@@ -15,11 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * WebSocket controller for real-time co-cooking events.
- * Clients publish to /app/room.* destinations; events are broadcast
- * to /topic/room/{roomCode} for all room participants.
  *
- * Pattern follows ChatWebSocketController: @MessageMapping → service → broadcast.
  */
 @Slf4j
 @Controller
@@ -34,12 +30,10 @@ public class CookingRoomWsController {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
-        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't navigate
+if (roomService.isSpectator(request.getRoomCode(), userId)) return;
 
-        // Update participant state in Redis
         roomService.updateParticipantStep(request.getRoomCode(), userId, request.getStepNumber());
 
-        // Broadcast to room
         roomService.broadcastEvent(request.getRoomCode(), RoomEventType.STEP_NAVIGATED,
                 userId, null,
                 Map.of("stepNumber", request.getStepNumber()));
@@ -50,9 +44,8 @@ public class CookingRoomWsController {
         String userId = getUserId();
         if (request.getRoomCode() == null || request.getStepNumber() == null) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
-        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete steps
+if (roomService.isSpectator(request.getRoomCode(), userId)) return;
 
-        // Update completed steps in Redis
         roomService.updateParticipantCompletedSteps(
                 request.getRoomCode(), userId,
                 request.getStepNumber(), request.getCompletedSteps());
@@ -72,7 +65,7 @@ public class CookingRoomWsController {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
-        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't start timers
+if (roomService.isSpectator(request.getRoomCode(), userId)) return;
 
         Map<String, Object> data = new HashMap<>();
         if (request.getStepNumber() != null) data.put("stepNumber", request.getStepNumber());
@@ -87,7 +80,7 @@ public class CookingRoomWsController {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
-        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete timers
+if (roomService.isSpectator(request.getRoomCode(), userId)) return;
 
         Map<String, Object> data = new HashMap<>();
         if (request.getStepNumber() != null) data.put("stepNumber", request.getStepNumber());
@@ -112,7 +105,7 @@ public class CookingRoomWsController {
         String userId = getUserId();
         if (request.getRoomCode() == null) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
-        if (roomService.isSpectator(request.getRoomCode(), userId)) return; // Spectators can't complete sessions
+if (roomService.isSpectator(request.getRoomCode(), userId)) return;
 
         Map<String, Object> data = new HashMap<>();
         data.put("userId", userId);

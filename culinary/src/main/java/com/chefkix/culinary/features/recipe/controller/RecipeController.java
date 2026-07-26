@@ -28,34 +28,28 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    // 1. UPDATE
     @PutMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> update(@PathVariable String id,
                                                     @Valid @RequestBody RecipeRequest request) {
         return ApiResponse.success(recipeService.updateRecipe(id, request), "Recipe updated successfully");
     }
 
-    // 2. DELETE (soft-delete / archive)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable String id) {
         recipeService.deleteRecipe(id);
         return ApiResponse.success(null, "Recipe deleted successfully");
     }
 
-    // 3. GET DETAIL
     @GetMapping("/{id}")
     public ApiResponse<RecipeDetailResponse> getById(@PathVariable String id) {
         return ApiResponse.success(recipeService.getRecipeById(id));
     }
 
-    // 3b. SOCIAL PROOF — community validation for a recipe
     @GetMapping("/{id}/social-proof")
     public ApiResponse<RecipeSocialProofResponse> getSocialProof(@PathVariable String id) {
         return ApiResponse.success(recipeService.getRecipeSocialProof(id));
     }
 
-    // 4. SEARCH & FILTER
-    // GET /recipes — main search endpoint (accepts query params from RecipeSearchQuery)
     @GetMapping
     public ApiResponse<List<RecipeDetailResponse>> search(
             @ModelAttribute RecipeSearchQuery query,
@@ -65,7 +59,6 @@ public class RecipeController {
         return ApiResponse.successPage(pageResult);
     }
 
-    // GET /recipes/search — alias for FE convenience (same logic, cleaner semantic URL)
     @GetMapping("/search")
     public ApiResponse<List<RecipeDetailResponse>> searchAlias(
             @ModelAttribute RecipeSearchQuery query,
@@ -74,7 +67,6 @@ public class RecipeController {
         return search(query, pageable);
     }
 
-    // 5. TRENDING
     @GetMapping("/trending")
     public ApiResponse<List<RecipeDetailResponse>> getTrending(
             @RequestParam(defaultValue = "0") int page,
@@ -83,7 +75,6 @@ public class RecipeController {
         return ApiResponse.successPage(recipeService.getTrendingRecipes(page, size));
     }
 
-    // 6. FRIENDS FEED
     @GetMapping("/feed")
     public ApiResponse<List<RecipeSummaryResponse>> getFriendsFeed(
             @RequestParam(defaultValue = "0") int page,
@@ -91,7 +82,6 @@ public class RecipeController {
         return ApiResponse.successPage(recipeService.getFriendsFeed(page, size));
     }
 
-    // 7. GET RECIPES BY USER
     @GetMapping("/user/{userId}")
     public ApiResponse<List<RecipeSummaryResponse>> getRecipesByUser(
             @PathVariable String userId,
@@ -100,17 +90,12 @@ public class RecipeController {
         return ApiResponse.successPage(recipeService.getRecipesByUser(userId, page, size));
     }
 
-    // ===============================================
-    // RECOMMENDATIONS
-    // ===============================================
 
-    // 10. TONIGHT'S PICK — personalized daily recommendation
     @GetMapping("/tonight-pick")
     public ApiResponse<RecommendationResponse> getTonightsPick() {
         return ApiResponse.success(recipeService.getTonightsPick());
     }
 
-    // 11. SIMILAR RECIPES — content-based recommendations by cuisine, difficulty, ingredients
     @GetMapping("/{id}/similar")
     public ApiResponse<List<RecipeDetailResponse>> getSimilarRecipes(
             @PathVariable String id,
@@ -118,17 +103,12 @@ public class RecipeController {
         return ApiResponse.successPage(recipeService.getSimilarRecipes(id, size));
     }
 
-    // ===============================================
-    // CREATOR ANALYTICS (spec: 21-creator-analytics.txt)
-    // ===============================================
 
-    // 8. CREATOR PERFORMANCE — per-recipe metrics
     @GetMapping("/creator/performance")
     public ApiResponse<CreatorPerformanceResponse> getCreatorPerformance() {
         return ApiResponse.success(recipeService.getCreatorPerformance(), "Creator performance retrieved");
     }
 
-    // 9. CREATOR RECENT COOKS — who cooked your recipes
     @GetMapping("/creator/recent-cooks")
     public ApiResponse<RecentCookResponse> getRecentCooks(
             @RequestParam(defaultValue = "0") int page,
@@ -136,7 +116,6 @@ public class RecipeController {
         return ApiResponse.success(recipeService.getRecentCooksOfMyRecipes(page, size), "Recent cooks retrieved");
     }
 
-    // 10. STEP HEATMAP — per-step analytics for a recipe (creator-only)
     @GetMapping("/{id}/step-heatmap")
     public ApiResponse<StepHeatmapResponse> getStepHeatmap(@PathVariable String id) {
         return ApiResponse.success(recipeService.getStepHeatmap(id), "Step heatmap retrieved");

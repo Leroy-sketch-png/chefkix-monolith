@@ -23,10 +23,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service for sending push notifications via Firebase Cloud Messaging (FCM).
  * 
- * <p>Handles token registration, deregistration, and multi-device push delivery.
- * Implements automatic token cleanup when FCM reports invalid tokens.</p>
  */
 @Slf4j
 @Service
@@ -41,13 +38,8 @@ public class PushNotificationService {
     @NonFinal
     boolean pushEnabled;
 
-    // ===============================================
-    // TOKEN MANAGEMENT
-    // ===============================================
 
     /**
-     * Register or update an FCM push token for a user's device.
-     * If the device already has a token, it will be updated.
      */
     public PushToken registerToken(String userId, RegisterPushTokenRequest request) {
         Optional<PushToken> existing = pushTokenRepository.findByUserIdAndDeviceId(userId, request.getDeviceId());
@@ -77,7 +69,6 @@ public class PushNotificationService {
     }
 
     /**
-     * Unregister a specific device's token.
      */
     public void unregisterToken(String userId, String deviceId) {
         pushTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
@@ -89,7 +80,6 @@ public class PushNotificationService {
     }
 
     /**
-     * Unregister all tokens for a user (logout from all devices).
      */
     public void unregisterAllTokens(String userId) {
         List<PushToken> tokens = pushTokenRepository.findByUserIdAndActiveTrue(userId);
@@ -99,7 +89,6 @@ public class PushNotificationService {
     }
 
     /**
-     * Hard-delete all push tokens after an account is deleted.
      */
     public long cleanupDeletedUserTokens(String userId) {
         long tokenCount = pushTokenRepository.countByUserId(userId);
@@ -112,17 +101,9 @@ public class PushNotificationService {
         return tokenCount;
     }
 
-    // ===============================================
-    // PUSH NOTIFICATION SENDING
-    // ===============================================
 
     /**
-     * Send a push notification to all of a user's devices.
      * 
-     * @param userId Recipient user ID
-     * @param title Notification title
-     * @param body Notification body
-     * @param data Optional data payload for app handling
      */
     public CompletableFuture<Void> sendToUser(String userId, String title, String body, Map<String, String> data) {
         if (!pushEnabled) {
@@ -144,7 +125,6 @@ public class PushNotificationService {
     }
 
     /**
-     * Send to multiple FCM tokens and handle failures.
      */
     private CompletableFuture<Void> sendMulticast(
             List<String> fcmTokens, 
@@ -197,7 +177,6 @@ public class PushNotificationService {
                 log.info("Push sent to user={}: {}/{} successful", 
                         userId, response.getSuccessCount(), fcmTokens.size());
 
-                // Handle invalid tokens
                 handleFailedTokens(fcmTokens, response, userId);
             } catch (FirebaseMessagingException e) {
                 log.error("Failed to send push to user={}: {}", userId, e.getMessage());
@@ -206,7 +185,6 @@ public class PushNotificationService {
     }
 
     /**
-     * Mark failed/invalid tokens as inactive.
      */
     private void handleFailedTokens(List<String> fcmTokens, BatchResponse response, String userId) {
         List<SendResponse> responses = response.getResponses();
@@ -216,7 +194,6 @@ public class PushNotificationService {
                 FirebaseMessagingException exception = sendResponse.getException();
                 String errorCode = exception != null ? exception.getMessagingErrorCode().name() : "UNKNOWN";
 
-                // Token is invalid or unregistered - deactivate it
                 if (isTokenInvalid(exception)) {
                     String invalidToken = fcmTokens.get(i);
                     pushTokenRepository.findByFcmToken(invalidToken)
@@ -227,7 +204,6 @@ public class PushNotificationService {
                             });
                 }
             } else {
-                // Update last used timestamp for successful sends
                 String successToken = fcmTokens.get(i);
                 pushTokenRepository.findByFcmToken(successToken)
                         .ifPresent(token -> {

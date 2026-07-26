@@ -11,11 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of ContentModerationProvider SPI.
- * Wraps AIRestClient for cross-module AI moderation.
  *
- * Fail-open for non-recipe content: if AI service is down,
- * posts/comments/chat are allowed through with a warning log.
  */
 @Service
 @Slf4j
@@ -53,7 +49,6 @@ public class ContentModerationProviderImpl implements ContentModerationProvider 
             log.warn("AI moderation unavailable for {} content: {}",
                     contentType, e.getMessage());
 
-            // Fail-closed for all content types when moderation service is down
             log.error("Flagging {} content for review -- AI moderation service is down", contentType);
             return new ModerationResult("flag", "unknown", "medium", 0.0,
                     "AI moderation unavailable -- content held for manual review");

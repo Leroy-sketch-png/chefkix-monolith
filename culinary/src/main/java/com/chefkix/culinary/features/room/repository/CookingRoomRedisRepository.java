@@ -19,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Redis-backed repository for ephemeral cooking rooms.
- * Rooms are stored as JSON strings with a 4-hour TTL.
  */
 @Repository
 @Slf4j
@@ -32,7 +30,7 @@ public class CookingRoomRedisRepository {
     ObjectMapper objectMapper;
 
     private static final String KEY_PREFIX = "cooking-room:";
-    private static final long TTL_SECONDS = 4 * 60 * 60; // 4 hours
+private static final long TTL_SECONDS = 4 * 60 * 60;
 
     private String key(String roomCode) {
         return KEY_PREFIX + roomCode.toUpperCase();
@@ -70,15 +68,12 @@ public class CookingRoomRedisRepository {
     }
 
     /**
-     * Refresh TTL on activity to prevent expiration during active cooking.
      */
     public void refreshTtl(String roomCode) {
         redisTemplate.expire(key(roomCode.toUpperCase()), TTL_SECONDS, TimeUnit.SECONDS);
     }
 
     /**
-     * Retrieve all active cooking rooms from Redis.
-     * Scans for all keys with the room prefix and deserializes them.
      */
     public List<CookingRoom> findAll() {
         Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");

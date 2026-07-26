@@ -27,7 +27,6 @@ public class CookingSessionController {
 
     private final CookingSessionService sessionService;
 
-    // 1. Start Session
     @PostMapping
     public ApiResponse<StartSessionResponse> startSession(
             @Valid @RequestBody StartSessionRequest request
@@ -36,7 +35,6 @@ public class CookingSessionController {
         return ApiResponse.success(sessionService.startSession(userId, request));
     }
 
-    // 2. Complete Session (Receive 30% XP)
     @PostMapping("/{sessionId}/complete")
     public ApiResponse<SessionCompletionResponse> completeSession(
             @PathVariable String sessionId,
@@ -55,25 +53,15 @@ public class CookingSessionController {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-// 1. Service returns Page<SessionItemDto>
         Page<SessionHistoryResponse.SessionItemDto> pageResult =
                 sessionService.getSessionHistory(userId, query, pageable);
 
-        // 2. Create Pagination Meta
         PaginationMeta paginationMeta = PaginationMeta.from(pageResult);
 
-        // 3. Package data and Pagination into SessionHistoryResponse DTO
         SessionHistoryResponse historyResponse = SessionHistoryResponse.builder()
                 .sessions(pageResult.getContent())
-                // NOTE: SessionHistoryResponse needs a PaginationMeta field to match this logic.
-                // If you don't want to modify SessionHistoryResponse, you can pass it directly into ApiResponse.
                 .build();
 
-        // 4. Return ApiResponse with DTO and Pagination Meta (using custom successPage method)
-        // We need to rebuild the successPage method to place Pagination in the main DTO.
-
-        // SINCE WE CANNOT ADD A PAGINATION FIELD TO SessionHistoryResponse
-        // AND CANNOT USE THE OLD successPage METHOD, WE MUST BUILD MANUALLY:
 
         return ApiResponse.<SessionHistoryResponse>builder()
                 .success(true)
@@ -119,8 +107,6 @@ public class CookingSessionController {
     public ResponseEntity<ApiResponse<CurrentSessionResponse>> getCurrentSession(
     ) {
         CurrentSessionResponse response = sessionService.getCurrentSession();
-        // Return an actual 404 when no active session exists so clients can
-        // distinguish "no session" from a successful payload.
         if (response == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     ApiResponse.<CurrentSessionResponse>builder()
@@ -134,8 +120,6 @@ public class CookingSessionController {
     }
 
     /**
-     * Get active cooking sessions of people the current user follows.
-     * Powers the "Friends Cooking Now" widget on dashboard and explore pages.
      */
     @GetMapping("/friends-active")
     public ApiResponse<FriendCookingActivityResponse> getFriendsActiveCooking() {
@@ -167,11 +151,6 @@ public class CookingSessionController {
     }
 
     /**
-     * Mark a step as completed.
-     * Navigation and completion are separate:
-     * - navigate = move cursor (which step is displayed)
-     * - complete-step = mark a step done (add to completedSteps[])
-     * Users can complete steps in any order (non-linear cooking).
      */
     @PostMapping("/{sessionId}/complete-step")
     public ApiResponse<CompleteStepResponse> completeStep(
@@ -193,8 +172,6 @@ public class CookingSessionController {
     }
 
     /**
-     * Abandon a cooking session.
-     * Sets status to ABANDONED. Cannot be resumed.
      */
     @PostMapping("/{sessionId}/abandon")
     public ApiResponse<SessionAbandonResponse> abandonSession(
@@ -205,8 +182,6 @@ public class CookingSessionController {
     }
 
     /**
-     * Get aggregated cook card data for a completed session.
-     * Powers the shareable cook card feature (download/share cooking achievements).
      */
     @GetMapping("/{sessionId}/cook-card")
     public ApiResponse<CookCardDataResponse> getCookCardData(@PathVariable String sessionId) {

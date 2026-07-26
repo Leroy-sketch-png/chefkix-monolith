@@ -27,15 +27,11 @@ public class StoryController {
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<StoryResponse> create(
-            @RequestPart("file") MultipartFile file, // Hứng file ảnh thật
-            @RequestPart("story") @Valid StoryCreateRequest request // Hứng metadata (Stickers, Text...)
+@RequestPart("file") MultipartFile file,
+@RequestPart("story") @Valid StoryCreateRequest request
     ) {
-        // 1. Upload file lên Cloudinary và lấy URL về
-        // Giả sử hàm upload của bạn trả về String URL
         String uploadedUrl = uploadImageFile.uploadImageFile(file);
 
-        // 2. Tạo Story với URL vừa lấy được
-        // Bạn cần update StoryCreateRequest hoặc Map nó sang Entity với mediaUrl là uploadedUrl
         StoryResponse response = storyService.createStory(getCurrentUserId(), request, uploadedUrl);
 
         return ApiResponse.created(response);

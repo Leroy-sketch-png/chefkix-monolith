@@ -13,7 +13,6 @@ public class GroupSpecification {
     public static Criteria getCriteria(GroupExploreQuery query) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        // 1. Keyword Search (escaped to prevent regex injection / ReDoS)
         if (StringUtils.hasText(query.getKeyword())) {
             String escaped = Pattern.quote(query.getKeyword().trim());
             criteriaList.add(new Criteria().orOperator(
@@ -22,12 +21,10 @@ public class GroupSpecification {
             ));
         }
 
-        // 2. Privacy Filter
         if (StringUtils.hasText(query.getPrivacy())) {
             criteriaList.add(Criteria.where("privacyType").is(query.getPrivacy().toUpperCase()));
         }
 
-        // 3. IsJoined Filter
         if (query.getIsJoined() != null && query.getJoinedGroupIds() != null) {
             if (query.getIsJoined()) {
                 criteriaList.add(Criteria.where("_id").in(query.getJoinedGroupIds()));
@@ -36,7 +33,6 @@ public class GroupSpecification {
             }
         }
 
-        // 4. Combine
         if (criteriaList.isEmpty()) {
             return new Criteria();
         }

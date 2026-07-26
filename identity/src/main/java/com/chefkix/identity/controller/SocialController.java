@@ -26,11 +26,7 @@ public class SocialController {
   BlockService blockService;
   SecurityUtils securityUtils;
 
-  // ===================================================================================
-  // --- CORE: Follow System (Instagram Model) ---
-  // ===================================================================================
 
-  /** Toggle follow/unfollow a user. Mutual follows = implicit friends. */
   @PostMapping("/toggle-follow/{followingId}")
   public ApiResponse<ProfileResponse> profileFollow(
       @PathVariable("followingId") String followingId, Authentication authentication) {
@@ -38,8 +34,6 @@ public class SocialController {
   }
 
   /**
-   * Get list of profiles that the current user is following. Returns full ProfileResponse objects
-   * for FE.
    */
   @GetMapping("/following")
   public ApiResponse<List<ProfileResponse>> getFollowing(Authentication authentication) {
@@ -48,7 +42,6 @@ public class SocialController {
   }
 
   /**
-   * Get list of profiles that follow the current user. Returns full ProfileResponse objects for FE.
    */
   @GetMapping("/followers")
   public ApiResponse<List<ProfileResponse>> getFollowers(Authentication authentication) {
@@ -57,8 +50,6 @@ public class SocialController {
   }
 
   /**
-   * Get list of mutual followers (friends) for the current user. Friends = users who mutually
-   * follow each other. Returns full ProfileResponse objects for FE.
    */
   @GetMapping("/friends")
   public ApiResponse<List<ProfileResponse>> getFriends(Authentication authentication) {
@@ -66,7 +57,6 @@ public class SocialController {
     return ApiResponse.success(socialService.getFriendProfiles(userId));
   }
 
-  /** Check if the current user and another user mutually follow each other. */
   @GetMapping("/is-mutual/{targetUserId}")
   public ApiResponse<Boolean> isMutualFollow(
       @PathVariable("targetUserId") String targetUserId, Authentication authentication) {
@@ -74,7 +64,6 @@ public class SocialController {
     return ApiResponse.success(socialService.isMutualFollow(userId, targetUserId));
   }
 
-  /** Get suggested users to follow based on preference overlap and popularity. */
   @GetMapping("/suggested")
   public ApiResponse<List<ProfileResponse>> getSuggestedFollows(
       @RequestParam(defaultValue = "10") int limit, Authentication authentication) {
@@ -82,13 +71,8 @@ public class SocialController {
     return ApiResponse.success(socialService.getSuggestedFollows(userId, Math.min(limit, 30)));
   }
 
-  // ===================================================================================
-  // --- Block System (Safety Feature) ---
-  // ===================================================================================
 
   /**
-   * Block a user. This will: - Remove any follow relationships (both directions) - Hide content
-   * between both users (mutual invisibility)
    */
   @PostMapping("/block/{userId}")
   public ApiResponse<BlockResponse> blockUser(
@@ -97,7 +81,6 @@ public class SocialController {
         blockService.blockUser(userId, authentication), "User blocked successfully");
   }
 
-  /** Unblock a user. */
   @DeleteMapping("/block/{userId}")
   public ApiResponse<Void> unblockUser(
       @PathVariable("userId") String userId, Authentication authentication) {
@@ -105,13 +88,11 @@ public class SocialController {
     return ApiResponse.success(null, "User unblocked successfully");
   }
 
-  /** Get list of users the current user has blocked. */
   @GetMapping("/blocked-users")
   public ApiResponse<List<BlockResponse>> getBlockedUsers(Authentication authentication) {
     return ApiResponse.success(blockService.getBlockedUsers(authentication));
   }
 
-  /** Check if the current user has blocked a specific user. */
   @GetMapping("/is-blocked/{targetUserId}")
   public ApiResponse<Boolean> isBlocked(
       @PathVariable("targetUserId") String targetUserId, Authentication authentication) {
@@ -119,13 +100,8 @@ public class SocialController {
     return ApiResponse.success(blockService.hasBlocked(userId, targetUserId));
   }
 
-  // Friend request endpoints REMOVED — use follow system. Mutual follows = friends.
-  // Deleted in audit 2025-03: toggle-friend-request, accept-friend, reject-friend, unfriend
-  // These created a parallel social graph alongside the follow system, causing data inconsistency.
 
   /**
-   * Get a list of friend by text-change that like the keyword (display name) to mention them And
-   * please use regex as [userId|displayName] to handle the tag friends properly
    */
   @GetMapping("/friends/search-mention")
   public ApiResponse<List<UserMentionResponse>> searchMention(

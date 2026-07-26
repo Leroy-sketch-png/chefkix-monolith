@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class JoinGroupResponse {
     private String groupId;
-    private String membershipStatus; // "ACTIVE" or "PENDING"
+private String membershipStatus;
     private String message;
 }

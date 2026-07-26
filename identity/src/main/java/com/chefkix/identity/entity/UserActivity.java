@@ -15,10 +15,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document(collection = "user_activity") // Collection name in MongoDB
+@Document(collection = "user_activity")
 public class UserActivity {
 
-  @Id String id; // Mongo ID is String (ObjectId as string)
+@Id String id;
 
   @Indexed(unique = true)
   String keycloakId;

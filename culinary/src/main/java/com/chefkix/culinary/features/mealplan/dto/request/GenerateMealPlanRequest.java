@@ -9,8 +9,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Request to generate a meal plan via AI.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §6
  */
 @Data
 @Builder
@@ -26,11 +24,9 @@ public class GenerateMealPlanRequest {
 
     MealPreferences preferences;
 
-    /** Sent from FE or enriched from pantry on BE */
     @Size(max = 200, message = "Maximum 200 pantry items")
     List<String> pantryItems;
 
-    /** Existing recipe IDs the AI should prefer */
     @Size(max = 50, message = "Maximum 50 existing recipe IDs")
     List<String> existingRecipeIds;
 

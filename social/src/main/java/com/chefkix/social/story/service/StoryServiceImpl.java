@@ -44,11 +44,9 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public void deleteStory(String userId, String storyId) {
-        // Fallback: Nếu không tìm thấy hoặc đã xóa rồi thì báo lỗi 404
         Story story = storyRepository.findByIdAndUserIdAndIsDeletedFalse(storyId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
-        // Thực hiện Soft Delete: Đưa vào trạng thái 'mất hẳn' đối với người dùng
         story.setIsDeleted(true);
         storyRepository.save(story);
     }
@@ -68,21 +66,18 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public void archiveStoryEarly(String storyId, String userId) {
-        // 1. Tìm Story và kiểm tra quyền sở hữu
-        Story story = storyRepository.findById(storyId)
+        Story story = storyRepository.findByIdAndUserIdAndIsDeletedFalse(storyId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
 
         if (!story.getUserId().equals(userId)) {
             throw new RuntimeException("Bạn không có quyền lưu trữ Story này");
         }
 
-        // 2. Kiểm tra xem Story đã hết hạn chưa
         if (story.getExpiresAt().isBefore(Instant.now())) {
             log.info("Story {} đã hết hạn hoặc đã được lưu trữ trước đó.", storyId);
             return;
         }
 
-        // 3. "Ép" hết hạn bằng cách set expiresAt về hiện tại
         story.setExpiresAt(Instant.now());
 
         storyRepository.save(story);

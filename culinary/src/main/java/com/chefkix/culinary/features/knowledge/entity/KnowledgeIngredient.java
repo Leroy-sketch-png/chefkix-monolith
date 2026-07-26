@@ -13,9 +13,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Knowledge Graph — Canonical ingredient reference.
- * Migrated from hardcoded INGREDIENT_SUBSTITUTIONS + enriched.
- * Spec: CHEFKIX_MASTER_PLAN.md §Engine 2
  */
 @Data
 @Builder
@@ -36,11 +33,11 @@ public class KnowledgeIngredient {
     List<String> aliases;
 
     @Indexed
-    String category; // produce, protein, dairy, grain, spice, condiment, baking, oil, other
+String category;
 
-    List<String> commonUnits; // cup, tbsp, tsp, oz, g, ml, piece, clove, etc.
+List<String> commonUnits;
 
-    List<String> allergenFlags; // gluten, dairy, nuts, soy, eggs, shellfish, etc.
+List<String> allergenFlags;
 
     List<Substitution> substitutions;
 
@@ -59,7 +56,7 @@ public class KnowledgeIngredient {
     @AllArgsConstructor
     public static class Substitution {
         String alternative;
-        String context; // "in baking", "in sautéing", "general"
-        Double ratio; // 1.0 = same amount, 0.5 = half
+String context;
+Double ratio;
     }
 }

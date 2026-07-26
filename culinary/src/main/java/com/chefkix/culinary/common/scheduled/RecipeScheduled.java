@@ -27,17 +27,13 @@ public class RecipeScheduled {
 
     private final MongoTemplate mongoTemplate;
 
-    // Runs every 30 minutes (in ms)
     @Scheduled(fixedRate = 1800000)
     public void updateTrendingScores() {
         try {
-            // 1. Define time window (last 7 days)
             LocalDateTime sevenDaysAgo = LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
 
-            // 2. Map to store temporary scores: Key = recipeId, Value = Score
             Map<String, Double> scoreMap = new HashMap<>();
 
-            // --- STEP A: CALCULATE LIKE SCORE (Weight = 1) ---
             List<RecipeStatDto> likeStats = aggregateCount(
                     RecipeLike.class, "createdAt", sevenDaysAgo, "recipeId"
             );
@@ -46,7 +42,6 @@ public class RecipeScheduled {
                     scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 1.0, (a, b) -> a + b)
             );
 
-            // --- STEP B: CALCULATE COMPLETION SCORE (Weight = 5) ---
             List<RecipeStatDto> completionStats = aggregateCount(
                     RecipeCompletion.class, "completedAt", sevenDaysAgo, "recipeId"
             );
@@ -55,11 +50,8 @@ public class RecipeScheduled {
                     scoreMap.merge(stat.getRecipeId(), (double) stat.getCount() * 5.0, (a, b) -> a + b)
             );
 
-            // --- STEP C: UPDATE DATABASE (Bulk Update) ---
-            // Use Bulk Operations to update thousands of records efficiently
             var bulkOps = mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, Recipe.class);
 
-            // Reset ALL trending scores to 0 first so recipes that lost activity decay naturally
             mongoTemplate.updateMulti(new Query(), new Update().set("trendingScore", 0.0), Recipe.class);
 
             for (Map.Entry<String, Double> entry : scoreMap.entrySet()) {
@@ -68,7 +60,6 @@ public class RecipeScheduled {
                 bulkOps.updateOne(query, update);
             }
 
-            // Execute update
             if (!scoreMap.isEmpty()) {
                 bulkOps.execute();
             }
@@ -77,14 +68,10 @@ public class RecipeScheduled {
         }
     }
 
-    // Helper method to group and count
     private List<RecipeStatDto> aggregateCount(Class<?> collectionClass, String dateField, LocalDateTime fromDate, String groupField) {
         Aggregation aggregation = Aggregation.newAggregation(
-                // 1. Filter by date
                 Aggregation.match(Criteria.where(dateField).gte(fromDate)),
-                // 2. Group by recipeId and count
                 Aggregation.group(groupField).count().as("count"),
-                // 3. Map _id field (which is recipeId) to the "recipeId" field of DTO
                 Aggregation.project("count").and("_id").as("recipeId")
         );
 

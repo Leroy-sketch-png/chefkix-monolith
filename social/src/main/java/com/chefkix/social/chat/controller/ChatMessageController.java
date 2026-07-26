@@ -30,7 +30,6 @@ public class ChatMessageController {
     }
 
     /**
-     * Get all messages (non-paginated, for backwards compatibility).
      */
     @GetMapping
     ApiResponse<List<ChatMessageResponse>> getMessages(@RequestParam("conversationId") String conversationId) {
@@ -38,10 +37,6 @@ public class ChatMessageController {
     }
 
     /**
-     * Get paginated messages for a conversation.
-     * @param conversationId the conversation ID
-     * @param page page number (0-indexed, defaults to 0)
-     * @param size page size (defaults to 50)
      */
     @GetMapping("/paginated")
     ApiResponse<List<ChatMessageResponse>> getMessagesPaginated(
@@ -52,8 +47,6 @@ public class ChatMessageController {
     }
 
     /**
-     * Toggle a reaction on a message. If the user already reacted with this emoji,
-     * it is removed. Otherwise, it is added.
      */
     @PostMapping("/{messageId}/react")
     ApiResponse<ChatMessageResponse> reactToMessage(
@@ -63,7 +56,6 @@ public class ChatMessageController {
     }
 
     /**
-     * Soft-delete a message. Only the sender can delete their own messages.
      */
     @DeleteMapping("/{messageId}")
     ApiResponse<ChatMessageResponse> deleteMessage(@PathVariable String messageId) {

@@ -14,10 +14,9 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class AIProcessResponse {
-    // --- Core Info ---
     private String title;
     private String description;
-    private String difficulty; // Enum string
+private String difficulty;
 
     private int prepTimeMinutes;
     private int cookTimeMinutes;
@@ -27,22 +26,18 @@ public class AIProcessResponse {
     private List<String> dietaryTags;
     private Integer caloriesPerServing;
 
-    // --- Ingredients & Steps ---
     private List<AiIngredientDto> fullIngredientList;
     private List<AiStepDto> steps;
 
-    // --- Gamification (Matches camelCase alias) ---
     private int xpReward;
     private XpBreakdownDto xpBreakdown;
     private double difficultyMultiplier;
     private List<String> badges;
     private List<String> skillTags;
 
-    // --- Enrichment (Matches alias) ---
     private String recipeStory;
     private List<String> equipmentNeeded;
 
-    // Python returns Dict[str, str] (Skill: Explanation)
     private Map<String, String> techniqueGuides;
 
     private List<String> seasonalTags;
@@ -50,7 +45,6 @@ public class AIProcessResponse {
     private Map<String, List<String>> ingredientSubstitutions;
     private String chefNotes;
 
-    // ================= INNER DTOs =================
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -73,11 +67,9 @@ public class AIProcessResponse {
         private Integer timerSeconds;
         private String imageUrl;
 
-        // --- 2 Important fields that were null ---
         private String tips;
-        private List<AiIngredientDto> ingredients; // Step-scoped ingredients
+private List<AiIngredientDto> ingredients;
 
-        // --- Enriched Fields ---
         private String chefTip;
         private String techniqueExplanation;
         private String commonMistake;

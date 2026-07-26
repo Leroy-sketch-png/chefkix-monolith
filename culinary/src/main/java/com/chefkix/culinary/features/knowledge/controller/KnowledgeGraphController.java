@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Knowledge Graph API — ingredients, techniques, substitutions.
- * Spec: CHEFKIX_MASTER_PLAN.md §Engine 2
  */
 @RestController
 @RequestMapping("/knowledge")
@@ -23,7 +21,6 @@ public class KnowledgeGraphController {
 
     KnowledgeGraphService knowledgeGraphService;
 
-    // ── Ingredients ──────────────────────────────────────────────
 
     @GetMapping("/ingredients")
     public ApiResponse<List<KnowledgeIngredient>> searchIngredients(
@@ -57,7 +54,6 @@ public class KnowledgeGraphController {
                 .success(true).statusCode(200).data(subs).build();
     }
 
-    // ── Techniques ───────────────────────────────────────────────
 
     @GetMapping("/techniques")
     public ApiResponse<List<KnowledgeTechnique>> searchTechniques(

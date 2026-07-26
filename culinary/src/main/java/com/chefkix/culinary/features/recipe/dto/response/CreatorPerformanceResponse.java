@@ -10,8 +10,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Per-recipe performance metrics for the creator dashboard.
- * Spec: vision_and_spec/21-creator-analytics.txt
  */
 @Data
 @Builder

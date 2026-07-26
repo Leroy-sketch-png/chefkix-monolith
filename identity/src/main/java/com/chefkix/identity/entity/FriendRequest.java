@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Builder
 @Document(collection = "friend_requests")
-// Ensure a person can only send 1 request to another
 @CompoundIndex(name = "request_unique", def = "{'senderId': 1, 'receiverId': 1}", unique = true)
 public class FriendRequest {
   @Id String id;

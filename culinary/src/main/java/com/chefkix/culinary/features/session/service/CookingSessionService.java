@@ -63,7 +63,6 @@ public class CookingSessionService {
 
     @Transactional
     public StartSessionResponse startSession(String userId, StartSessionRequest request) {
-        // 1. Check existing session
         Optional<CookingSession> activeSessionOpt = sessionRepository
                 .findFirstByUserIdAndStatusIn(userId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED));
 
@@ -71,11 +70,9 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.SESSION_ALREADY_ACTIVE);
         }
 
-        // 2. Fetch and validate recipe
         Recipe recipe = recipeRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // Block cooking unpublished/archived/draft recipes (unless owner)
         if (recipe.getStatus() != RecipeStatus.PUBLISHED && !userId.equals(recipe.getUserId())) {
             throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
         }
@@ -103,19 +100,16 @@ public class CookingSessionService {
         CookingSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new AppException(ErrorCode.SESSION_NOT_FOUND));
 
-        // Only allow timer events on active sessions
         if (session.getStatus() != SessionStatus.IN_PROGRESS) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 1. Validate & Parse Event via Helper
         TimerEventType eventType = helper.validateAndParseTimerEvent(userId, session, request);
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
         LocalDateTime serverNow = utcNow();
 
-        // 2. Audit Log
         CookingSession.TimerEvent logEvent = CookingSession.TimerEvent.builder()
                 .stepNumber(request.getStepNumber())
                 .event(eventType)
@@ -126,7 +120,6 @@ public class CookingSessionService {
         if (session.getTimerEvents() == null) session.setTimerEvents(new ArrayList<>());
         session.getTimerEvents().add(logEvent);
 
-        // 3. Delegate Timer handling logic to Helper
         switch (eventType) {
             case START -> helper.handleTimerStart(session, recipe, request.getStepNumber(), serverNow);
             case COMPLETE, SKIP -> helper.handleTimerStop(session, request.getStepNumber());
@@ -146,22 +139,17 @@ public class CookingSessionService {
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 1. Anti-cheat check
         helper.validateAntiCheat(session, recipe);
 
-        // 1b. Require at least 1 completed step to prevent zero-effort XP farming
         if (session.getCompletedSteps() == null || session.getCompletedSteps().isEmpty()) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 2. Calculate Mastery & Base XP
         double masteryMult = helper.calculateMasteryMultiplier(userId, session.getRecipeId());
         double totalEffectiveXp = recipe.getXpReward() * masteryMult;
-        // Round to integers immediately to avoid floating point precision errors (e.g., 125.99999999999999)
         double baseXp = Math.round(totalEffectiveXp * 0.30);
         double pendingXp = Math.round(totalEffectiveXp * 0.70);
 
-        // 3. Check Challenge (Daily)
         Optional<ChallengeRewardResult> challengeResult = challengeService.checkAndCompleteChallenge(userId, recipe);
         String challengeTitle = null;
         if (challengeResult.isPresent()) {
@@ -169,7 +157,6 @@ public class CookingSessionService {
             challengeTitle = challengeResult.get().getChallengeTitle();
         }
 
-        // 3b. Check Weekly Challenge
         Optional<ChallengeRewardResult> weeklyResult = challengeService.checkAndCompleteWeeklyChallenge(userId, recipe);
         if (weeklyResult.isPresent()) {
             baseXp += weeklyResult.get().getBonusXp();
@@ -180,14 +167,12 @@ public class CookingSessionService {
             }
         }
 
-        // 3c. Check Community Challenge (global progress, fire-and-forget)
         try {
             challengeService.checkAndAdvanceCommunityChallenge(userId, recipe);
         } catch (Exception e) {
             log.warn("Community challenge check failed for user {}: {}", userId, e.getMessage());
         }
 
-        // 3d. Check Seasonal Challenge
         Optional<ChallengeRewardResult> seasonalResult = challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe);
         if (seasonalResult.isPresent()) {
             baseXp += seasonalResult.get().getBonusXp();
@@ -200,7 +185,6 @@ public class CookingSessionService {
         boolean challengeCompleted =
                 challengeResult.isPresent() || weeklyResult.isPresent() || seasonalResult.isPresent();
 
-        // 3e. Co-op XP multiplier (from co-cooking rooms)
         double coOpMultiplier = 1.0;
         String coOpReason = null;
         if (session.getRoomCode() != null) {
@@ -220,7 +204,6 @@ public class CookingSessionService {
             log.info("Co-op multiplier applied: {}× ({}) for session {}", coOpMultiplier, coOpReason, sessionId);
         }
 
-        // 4. Update Session Status
         LocalDateTime now = utcNow();
         session.setStatus(SessionStatus.COMPLETED);
         session.setCompletedAt(now);
@@ -234,10 +217,8 @@ public class CookingSessionService {
         sessionRepository.save(session);
         removeActiveCookingPresence(userId);
 
-        // 5. Update Stats
         helper.updateRecipeStats(recipe.getId(), 1, 0);
 
-        // 5b. Auto-draft RECENT_COOK post (if user has showCookingActivity enabled)
         try {
             if (profileProvider.isShowCookingActivity(userId)) {
                 BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
@@ -261,10 +242,7 @@ public class CookingSessionService {
             log.warn("Failed to auto-create RECENT_COOK post for session {}: {}", sessionId, e.getMessage());
         }
 
-        // 6. Sync call to identity service for XP + level-up detection
         String description = "Completed cooking: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");
-        // Deterministic idempotency key: same key used by both sync and Kafka paths
-        // so that if sync succeeds, the Kafka fallback event is deduped in Redis.
         String idempotencyKey = "xp:COOKING_SESSION:" + userId + ":" + sessionId;
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
@@ -272,7 +250,7 @@ public class CookingSessionService {
                 .sessionId(sessionId)
             .recipeId(recipe.getId())
             .challengeCompleted(challengeCompleted)
-                .newBadges(null) // Badges only on post, not on complete
+.newBadges(null)
                 .idempotencyKey(idempotencyKey)
                 .build();
 
@@ -285,7 +263,6 @@ public class CookingSessionService {
             }
         } catch (Exception e) {
             log.error("Failed to sync XP with identity service for user {}: {}", userId, e.getMessage());
-            // Fallback: send via Kafka for reliability
             helper.sendXpEventWithChallenge(
                     userId,
                     baseXp,
@@ -296,7 +273,6 @@ public class CookingSessionService {
                     recipe.getId());
         }
 
-        // 7. Achievement evaluation (fire-and-forget — never blocks completion)
         List<String> newAchievements = List.of();
         try {
             newAchievements = achievementService.evaluateAfterCookingCompletion(userId, session, recipe);
@@ -304,14 +280,12 @@ public class CookingSessionService {
             log.warn("Achievement evaluation failed for user {}: {}", userId, e.getMessage());
         }
 
-        // 8. Duel linkage (fire-and-forget — never blocks completion)
         try {
             duelService.onSessionCompleted(userId, session);
         } catch (Exception e) {
             log.warn("Duel linkage failed for user {}: {}", userId, e.getMessage());
         }
 
-        // 9. Build response with level-up info (round to integers for clean XP values)
         int baseXpInt = (int) Math.round(baseXp);
         int pendingXpInt = (int) Math.round(pendingXp);
         SessionCompletionResponse.SessionCompletionResponseBuilder responseBuilder = SessionCompletionResponse.builder()
@@ -340,23 +314,17 @@ public class CookingSessionService {
 
     @Transactional
     public SessionLinkingResponse linkSession(String userId, String sessionId, SessionLinkingRequest request) {
-        // 1. Validate Session & Post via Helper
         CookingSession session = helper.validateSessionForLinking(sessionId, userId);
         PostLinkInfo postData = helper.validateAndGetPost(request.getPostId(), userId);
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 2. Calculate XP for Linking
         int finalXpToAward = helper.calculateFinalXpForLinking(session, postData);
 
-        // 3. Get badges from recipe (only awarded on post/link, not on complete)
         List<String> badgesEarned = (recipe.getRewardBadges() != null) 
                 ? new ArrayList<>(recipe.getRewardBadges()) 
                 : new ArrayList<>();
 
-        // 4. Persist post XP before awarding side effects.
-        // If this write fails, the link must fail rather than silently returning a post
-        // that will display the wrong earned XP forever.
         try {
             postProvider.updatePostXp(request.getPostId(), finalXpToAward);
             log.info("Updated post {} with xpEarned={}", request.getPostId(), finalXpToAward);
@@ -367,7 +335,6 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.POST_SERVICE_ERROR);
         }
 
-        // 5. Process Side Effects (Stats, Kafka with badges, Creator Bonus)
         helper.updateRecipeStats(recipe.getId(), 0, finalXpToAward);
         helper.sendXpEventWithBadges(
             userId,
@@ -380,7 +347,6 @@ public class CookingSessionService {
 
         boolean creatorBonusAwarded = helper.processCreatorBonus(recipe, userId, sessionId);
 
-        // 6. Update Session
         session.setStatus(SessionStatus.POSTED);
         session.setPostId(request.getPostId());
         session.setPendingXp(0.0);
@@ -408,8 +374,8 @@ public class CookingSessionService {
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        helper.calculateRemainingTime(session); // Use helper
-        return helper.mapToCurrentSessionResponse(session, recipe); // Use helper
+helper.calculateRemainingTime(session);
+return helper.mapToCurrentSessionResponse(session, recipe);
     }
 
     public CurrentSessionResponse getBySessionId(String sessionId, String userId) {
@@ -473,7 +439,6 @@ public class CookingSessionService {
         int currentDbStep = session.getCurrentStep();
         int newStep = currentDbStep;
 
-        // Navigation logic kept here as it's tightly coupled with Session State
         switch (request.getAction().toLowerCase()) {
             case "next" -> newStep = (currentDbStep < totalSteps) ? currentDbStep + 1 : currentDbStep;
             case "previous" -> newStep = (currentDbStep > 1) ? currentDbStep - 1 : currentDbStep;
@@ -536,12 +501,10 @@ public class CookingSessionService {
 
         if (!session.getUserId().equals(userId)) throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
 
-        // CRITICAL: Only PAUSED sessions can be resumed
         if (session.getStatus() != SessionStatus.PAUSED) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // Null guard for resumeDeadline — if null, allow resume (no deadline set)
         if (session.getResumeDeadline() != null && utcNow().isAfter(session.getResumeDeadline())) {
             throw new AppException(ErrorCode.SESSION_EXPIRED);
         }
@@ -551,7 +514,6 @@ public class CookingSessionService {
         session.setResumeDeadline(null);
         sessionRepository.save(session);
 
-        // Re-set cooking presence after resume
         Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
         setActiveCookingPresence(userId, session, recipe);
 
@@ -563,9 +525,6 @@ public class CookingSessionService {
     }
 
     /**
-     * Mark a step as completed (add to completedSteps array).
-     * This is separate from navigation — users can complete steps in any order.
-     * Idempotent: completing an already-completed step returns success without duplicating.
      */
     @Transactional
     public CompleteStepResponse completeStep(String sessionId, CompleteStepRequest request) {
@@ -578,8 +537,6 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        // CRITICAL: Only allow step completion on IN_PROGRESS sessions
-        // Previous check only blocked COMPLETED — PAUSED and ABANDONED sessions could still complete steps
         if (session.getStatus() != SessionStatus.IN_PROGRESS) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
@@ -590,17 +547,14 @@ public class CookingSessionService {
         int totalSteps = recipe.getSteps().size();
         int stepNumber = request.getStepNumber();
 
-        // Validate step number is within range
         if (stepNumber < 1 || stepNumber > totalSteps) {
             throw new AppException(ErrorCode.INVALID_TARGET_STEP);
         }
 
-        // Initialize completedSteps if null
         if (session.getCompletedSteps() == null) {
             session.setCompletedSteps(new ArrayList<>());
         }
 
-        // Check if already completed (idempotent)
         boolean alreadyCompleted = session.getCompletedSteps().contains(stepNumber);
         
         if (!alreadyCompleted) {
@@ -622,8 +576,6 @@ public class CookingSessionService {
     }
 
     /**
-     * Abandon a cooking session.
-     * Sets status to ABANDONED. Cannot be resumed.
      */
     @Transactional
     public SessionAbandonResponse abandonActiveSession() {
@@ -644,8 +596,6 @@ public class CookingSessionService {
     }
 
     /**
-     * Abandon a cooking session.
-     * Sets status to ABANDONED. Cannot be resumed.
      */
     @Transactional
     public SessionAbandonResponse abandonSession(String sessionId) {
@@ -658,12 +608,10 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        // Can't abandon already completed, posted, or already abandoned sessions
         if (session.getStatus() == SessionStatus.COMPLETED || session.getStatus().hasClaimedPostXp()) {
             throw new AppException(ErrorCode.SESSION_COMPLETED);
         }
         if (session.getStatus() == SessionStatus.ABANDONED) {
-            // Idempotent - return success if already abandoned
             return SessionAbandonResponse.builder()
                     .sessionId(sessionId)
                     .status(SessionStatus.ABANDONED.getValue())
@@ -688,16 +636,12 @@ public class CookingSessionService {
                 .build();
     }
 
-    // This method only serves FeignClient, simple logic so kept here
     public CookingSession getSessionById(String sessionId) {
         return sessionRepository.findById(sessionId).orElse(null);
     }
 
-    // ======================== Friends Cooking Now ========================
 
     /**
-     * Returns active cooking sessions for people the current user follows.
-     * Uses Redis MGET for O(1) per-friend lookup in a single round-trip.
      */
     public FriendCookingActivityResponse getFriendsActiveCooking() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -734,11 +678,8 @@ public class CookingSessionService {
                 .build();
     }
 
-    // ======================== Presence Helpers ========================
 
     /**
-     * Set Redis presence for "Friends Cooking Now" feature.
-     * Non-critical — failures are logged but don't block the session operation.
      */
     private void setActiveCookingPresence(String userId, CookingSession session, Recipe recipe) {
         try {
@@ -763,7 +704,6 @@ public class CookingSessionService {
     }
 
     /**
-     * Remove Redis presence. Non-critical — TTL will clean up even if this fails.
      */
     private void removeActiveCookingPresence(String userId) {
         try {
@@ -773,11 +713,8 @@ public class CookingSessionService {
         }
     }
 
-    // ======================== Cook Card ========================
 
     /**
-     * Aggregates session + recipe + profile data into a single DTO
-     * for the shareable cook card feature.
      */
     public CookCardDataResponse getCookCardData(String sessionId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -793,7 +730,6 @@ public class CookingSessionService {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // Recipe info for difficulty + total steps
         String difficulty = null;
         Integer totalSteps = null;
         Recipe recipe = recipeRepository.findById(session.getRecipeId()).orElse(null);
@@ -802,7 +738,6 @@ public class CookingSessionService {
             totalSteps = recipe.getSteps() != null ? recipe.getSteps().size() : null;
         }
 
-        // Profile info
         String displayName = null;
         String avatarUrl = null;
         try {
@@ -815,13 +750,11 @@ public class CookingSessionService {
             log.warn("Could not fetch profile for cook card: userId={}", userId);
         }
 
-        // Cooking time
         Long cookingTimeMinutes = null;
         if (session.getStartedAt() != null && session.getCompletedAt() != null) {
             cookingTimeMinutes = java.time.Duration.between(session.getStartedAt(), session.getCompletedAt()).toMinutes();
         }
 
-        // Total XP (base + remaining/post bonus)
         int xpEarned = 0;
         if (session.getBaseXpAwarded() != null) {
             xpEarned += session.getBaseXpAwarded().intValue();

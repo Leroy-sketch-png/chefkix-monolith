@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a new post is created.
- * <p>
- * Producer: social module (post). Consumer: identity module (profile post count).
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

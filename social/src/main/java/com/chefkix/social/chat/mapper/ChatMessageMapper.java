@@ -24,6 +24,7 @@ public interface ChatMessageMapper {
     @Mapping(target = "replyToId", ignore = true)
     @Mapping(target = "replyToContent", ignore = true)
     @Mapping(target = "replyToSenderName", ignore = true)
+    @Mapping(target = "storyOwnerId", ignore = true)
     @Mapping(target = "reactions", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     ChatMessage toChatMessage(ChatMessageRequest request);

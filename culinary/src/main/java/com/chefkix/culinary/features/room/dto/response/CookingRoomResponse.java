@@ -21,6 +21,5 @@ public class CookingRoomResponse {
     int maxParticipants;
     List<RoomParticipant> participants;
     Instant createdAt;
-    /** The joining user's cooking session ID (only set on create/join) */
     String sessionId;
 }

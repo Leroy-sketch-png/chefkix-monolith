@@ -23,7 +23,6 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RecipeRequest {
 
-    // --- BASIC INFO ---
     @NotBlank(message = "Title is required")
     @Size(max = 200, message = "Title must not exceed 200 characters")
     String title;
@@ -36,7 +35,6 @@ public class RecipeRequest {
     @Size(max = 5, message = "Maximum 5 videos allowed")
     List<String> videoUrl;
 
-    // --- METADATA ---
     @NotNull(message = "Difficulty is required")
     Difficulty difficulty;
 
@@ -49,7 +47,6 @@ public class RecipeRequest {
     @Size(max = 30) List<String> dietaryTags;
     @Min(0) @Max(50000) Integer caloriesPerServing;
 
-    // --- STRUCTURE (Nested DTOs) ---
     @Valid
     @Size(max = 100, message = "Maximum 100 ingredients allowed")
     List<IngredientRequest> fullIngredientList;
@@ -58,22 +55,16 @@ public class RecipeRequest {
     @Size(max = 50, message = "Maximum 50 steps allowed")
     List<StepRequest> steps;
 
-    // --- GAMIFICATION (Config) ---
     @Min(0) @Max(10000) int xpReward;
     @Min(0) @Max(10) double difficultyMultiplier;
     @Size(max = 20) List<String> rewardBadges;
     @Size(max = 30) List<String> skillTags;
     Boolean isPublished;
 
-    // --- AI METADATA (Data returned from AI Service to persist) ---
     XpBreakdownDto xpBreakdown;
     ValidationMetadataDto validation;
     EnrichmentMetadataDto enrichment;
 
-
-    // ==========================================
-    // INNER DTO CLASSES
-    // ==========================================
 
     @Data
     @NoArgsConstructor

@@ -47,7 +47,6 @@ public class ConversationService {
     }
 
     public ConversationResponse create(ConversationRequest request) {
-        // Fetch user infos
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (request.getParticipantIds() == null || request.getParticipantIds().isEmpty()) {
@@ -59,7 +58,6 @@ public class ConversationService {
                 userId,
                 targetUserId);
 
-        // PRIVACY: Block check — blocked users cannot create conversations with each other
         if (profileProvider.isBlocked(userId, targetUserId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
@@ -98,7 +96,6 @@ public class ConversationService {
                                     .avatar(participantInfo.getAvatarUrl())
                                     .build());
 
-                    // Build conversation info
                     Conversation newConversation = Conversation.builder()
                             .type(request.getType())
                             .participantsHash(userIdHash)
@@ -109,7 +106,6 @@ public class ConversationService {
 
                     Conversation savedConversation = conversationRepository.save(newConversation);
 
-                    // Notify all participants about the new conversation via WebSocket
                     notifyNewConversation(savedConversation);
 
                     return savedConversation;
@@ -122,7 +118,6 @@ public class ConversationService {
         StringJoiner stringJoiner = new StringJoiner("_");
         ids.forEach(stringJoiner::add);
 
-        // SHA 256
 
         return stringJoiner.toString();
     }
@@ -151,19 +146,15 @@ public class ConversationService {
     }
 
     /**
-     * Notify all participants about a new conversation via WebSocket.
-     * Each participant gets notified on their personal topic.
      */
     private void notifyNewConversation(Conversation conversation) {
         for (ParticipantInfo participant : conversation.getParticipants()) {
-            // Build a response tailored to this participant (showing OTHER user's info)
             ConversationResponse response = conversationMapper.toConversationResponse(conversation);
 
             if ("GROUP".equals(conversation.getType())) {
                 response.setConversationName(buildGroupConversationName(conversation, participant.getUserId()));
                 response.setConversationAvatar(GROUP_CONVERSATION_AVATAR);
             } else {
-                // Find the "other" participant to set conversation name/avatar for this user
                 conversation.getParticipants().stream()
                         .filter(p -> !p.getUserId().equals(participant.getUserId()))
                         .findFirst()
@@ -173,7 +164,6 @@ public class ConversationService {
                         });
             }
 
-            // Send to user-specific topic
             String destination = "/topic/user/" + participant.getUserId() + "/conversations";
             messagingTemplate.convertAndSend(destination, response);
             log.info("Notified user {} about new conversation {}", participant.getUserId(), conversation.getId());
@@ -184,10 +174,8 @@ public class ConversationService {
         String currentUserId =
                 SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Fetch recent conversations for share suggestions
         List<Conversation> conversations = conversationRepository.findRecentConversations(currentUserId, pageable);
 
-        // Map to DTOs
         return conversations.stream()
                 .map(conv -> {
                     String displayName;
@@ -198,7 +186,6 @@ public class ConversationService {
                         displayName = buildGroupConversationName(conv, currentUserId);
                         avatar = GROUP_CONVERSATION_AVATAR;
                     } else {
-                        // 1-on-1 chat: find the other participant
                         ParticipantInfo otherUser = conv.getParticipants().stream()
                                 .filter(p -> !p.getUserId().equals(currentUserId))
                                 .findFirst()

@@ -26,7 +26,6 @@ public class KafkaConsumerConfig {
   @Value("${spring.kafka.bootstrap-servers:localhost:9094}")
   private String bootstrapServers;
 
-  /** Generic factory builder with error handling — 3 retries, 1s between each. */
   private <T> ConcurrentKafkaListenerContainerFactory<String, T> createFactory(
       Class<T> eventClass, String groupId, KafkaOperations<Object, Object> kafkaOperations) {
     Map<String, Object> props = new HashMap<>();
@@ -49,15 +48,11 @@ public class KafkaConsumerConfig {
       new DeadLetterPublishingRecoverer(
         kafkaOperations,
         (record, ex) -> new TopicPartition(record.topic() + ".dlt", record.partition()));
-    // 3 retries, 1s between each. Prevents permanent message loss on transient failures.
     factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L)));
 
     return factory;
   }
 
-  // ================================
-  // 🧱 Specific factories for each event type
-  // ================================
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.PostCreatedEvent>

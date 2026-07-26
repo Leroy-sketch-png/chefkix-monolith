@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// com/chefkix/entity/RecipeCompletion.java
 @Document(collection = "recipe_completions")
 @Data
 @Builder
@@ -25,11 +24,11 @@ public class RecipeCompletion {
     @Indexed
     String recipeId;
 
-    List<String> proofImageUrls; // Can be empty
+List<String> proofImageUrls;
 
     int actualDurationSeconds;
-    int xpAwarded;      // Actual XP received (calculated via hybrid formula)
-    boolean isPublic;   // TRUE if has photos, FALSE if private
+int xpAwarded;
+boolean isPublic;
 
     @Builder.Default
     Boolean isPosted = false;

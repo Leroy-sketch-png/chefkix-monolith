@@ -11,15 +11,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Manages grocery delivery providers and routes requests to the right one.
- * Per spec 26-grocery-delivery.txt: multi-provider support.
  *
- * Currently supports:
- * - "manual" (default) — printable shopping list, no external delivery
  *
- * Future:
- * - "instacart" — Instacart Connect API
- * - "doordash" — DoorDash Drive API
  */
 @Service
 @Slf4j
@@ -38,20 +31,18 @@ public class GroceryProviderRegistry {
     }
 
     /**
-     * Get a provider by ID, falling back to default.
      */
     public GroceryProvider getProvider(String providerId) {
         if (providerId == null) return defaultProvider;
         GroceryProvider provider = providers.get(providerId);
         if (provider == null || !provider.isAvailable()) {
-            log.warn("Provider '{}' not available, using default", providerId);
-            return defaultProvider;
+            log.warn("Provider '{}' not available", providerId);
+            return null;
         }
         return provider;
     }
 
     /**
-     * List all available providers for the FE provider picker.
      */
     public List<ProviderInfo> getAvailableProviders() {
         return providers.values().stream()

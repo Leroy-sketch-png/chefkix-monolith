@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * DTO for creating a new Reply.
  */
 @Data
 @Builder

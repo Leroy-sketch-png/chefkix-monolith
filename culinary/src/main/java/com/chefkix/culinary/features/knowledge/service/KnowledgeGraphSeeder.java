@@ -16,9 +16,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Seeds kg_ingredients and kg_techniques on startup if empty.
- * Data migrated from AI service's INGREDIENT_SUBSTITUTIONS, TECHNIQUE_GUIDES, COMMON_MISTAKES.
- * Spec: CHEFKIX_MASTER_PLAN.md §Engine 2, Phase 1
  */
 @Slf4j
 @Component
@@ -44,7 +41,6 @@ public class KnowledgeGraphSeeder {
         log.info("[KG] Seeding kg_ingredients...");
 
         var ingredients = List.of(
-                // ── From INGREDIENT_SUBSTITUTIONS (10 entries) + enriched ──
                 KnowledgeIngredient.builder()
                         .canonicalName("butter")
                         .name("Butter")
@@ -186,7 +182,6 @@ public class KnowledgeGraphSeeder {
                         ))
                         .build(),
 
-                // ── Additional common ingredients (enriched beyond Python dicts) ──
 
                 KnowledgeIngredient.builder()
                         .canonicalName("garlic")
@@ -394,7 +389,6 @@ public class KnowledgeGraphSeeder {
         log.info("[KG] Seeding kg_techniques...");
 
         var techniques = List.of(
-                // ── From TECHNIQUE_GUIDES (16 entries) + COMMON_MISTAKES merged ──
 
                 KnowledgeTechnique.builder()
                         .canonicalName("searing")
@@ -516,7 +510,6 @@ public class KnowledgeGraphSeeder {
                         .relatedCuisines(List.of("Italian", "French", "Indian"))
                         .build(),
 
-                // ── Asian techniques ──
 
                 KnowledgeTechnique.builder()
                         .canonicalName("stir-frying")

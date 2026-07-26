@@ -15,8 +15,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Kafka listener for OTP/email delivery events.
- * Consumes flat EmailEvent messages and delegates to EmailService.
  */
 @Slf4j
 @Component
@@ -44,13 +42,11 @@ public class EmailNotificationListener {
 
         log.info("Received OTP email event for: {}", message.getRecipientEmail());
 
-        // Idempotency: skip duplicate messages on Kafka redelivery
         if (!idempotencyService.tryProcess(message.getEventId())) {
             log.warn("Duplicate email event skipped: {}", message.getEventId());
             return;
         }
 
-        // Defensive: validate before sending
         if (message.getRecipientEmail() == null || message.getRecipientEmail().isBlank()) {
             log.error("Cannot send email: recipientEmail is null or blank. Event: {}", message);
             return;

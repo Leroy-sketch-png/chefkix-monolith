@@ -15,10 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Scheduled job to send streak warning notifications.
  *
- * <p>Per spec (04-statistics.txt): - Cooking streak uses 72-hour window - Users should be warned
- * before their streak expires - High priority notification: "Cook today to keep your X-day streak!"
  */
 @Slf4j
 @Component
@@ -30,29 +27,21 @@ public class StreakWarningScheduler {
 
   private static final String REMINDER_TOPIC = "reminder-delivery";
 
-  // Warning thresholds (hours before streak expires)
-  private static final int FIRST_WARNING_HOURS = 12; // 60 hours into 72-hour window
-  private static final int FINAL_WARNING_HOURS = 6; // 66 hours into 72-hour window
+private static final int FIRST_WARNING_HOURS = 12;
+private static final int FINAL_WARNING_HOURS = 6;
 
   /**
-   * Run every hour to check for users with expiring streaks. Streak expires after 72 hours from
-   * last cook.
    */
-  @Scheduled(cron = "0 0 * * * *") // Every hour at minute 0
+@Scheduled(cron = "0 0 * * * *")
   public void checkExpiringStreaks() {
     try {
       log.info("Running streak warning check...");
 
       Instant now = Instant.now();
 
-      // Find users whose lastCookAt is between (now - 72h + warningHours) and (now - 72h +
-      // warningHours + 1h)
-      // This means they have `warningHours` left before their 72h window expires
 
-      // First warning: 12 hours left (so they cooked ~60 hours ago)
       sendWarningsForTimeWindow(now, FIRST_WARNING_HOURS, "NORMAL");
 
-      // Final warning: 6 hours left (so they cooked ~66 hours ago)
       sendWarningsForTimeWindow(now, FINAL_WARNING_HOURS, "HIGH");
     } catch (Exception e) {
       log.error("Streak warning scheduler failed — will retry next cycle", e);
@@ -60,9 +49,6 @@ public class StreakWarningScheduler {
   }
 
   private void sendWarningsForTimeWindow(Instant now, int hoursRemaining, String priorityStr) {
-    // Calculate the time window:
-    // If hoursRemaining = 12, we want users who cooked between 59-60 hours ago
-    // (so they have 12-13 hours left in their 72h window)
     int hoursAgoMin = 72 - hoursRemaining;
     int hoursAgoMax = hoursAgoMin + 1;
 

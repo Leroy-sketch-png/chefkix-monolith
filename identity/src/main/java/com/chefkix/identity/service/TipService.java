@@ -48,33 +48,9 @@ public class TipService {
     @Transactional
     public Tip sendTip(String tipperId, String creatorId, String recipeId,
                        int amountCents, String message) {
-        if (tipperId.equals(creatorId)) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
-        }
-
-        CreatorTipSettings settings = tipSettingsRepository.findByUserId(creatorId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        if (!settings.isTipsEnabled()) {
-            throw new AppException(ErrorCode.INVALID_REQUEST);
-        }
-
-        if (settings.getPayoutAccountId() == null) {
-            // Phase 0: Store the tip intent but mark as pending (no payment processing)
-            log.info("Tip stored as pending — creator {} has no payout account connected", creatorId);
-        }
-
-        Tip tip = Tip.builder()
-                .tipperId(tipperId)
-                .creatorId(creatorId)
-                .recipeId(recipeId)
-                .amountCents(amountCents)
-                .currency(settings.getCurrency())
-                .message(message)
-                .status(settings.getPayoutAccountId() != null ? "processing" : "pending")
-                .build();
-
-        return tipRepository.save(tip);
+        throw new AppException(
+                ErrorCode.INVALID_REQUEST,
+                "Creator tipping is unavailable until payment processing is connected");
     }
 
     public List<Tip> getReceivedTips(String creatorId) {

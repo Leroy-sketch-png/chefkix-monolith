@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Timer event types during a cooking session.
- * Uses lowercase for JSON serialization (FE-friendly).
  */
 public enum TimerEventType {
     START("start"),

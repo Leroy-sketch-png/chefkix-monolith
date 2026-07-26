@@ -26,7 +26,7 @@ public class BattleVote {
     String id;
     String postId;
     String userId;
-    String choice; // "A" or "B" (maps to battleRecipeIdA / battleRecipeIdB)
+String choice;
     @CreatedDate
     Instant createdAt;
 }

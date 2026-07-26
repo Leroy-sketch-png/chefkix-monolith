@@ -25,7 +25,6 @@ public class TipController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    // ── DTOs ──────────────────────────────────────────────────────
 
     @Data
     public static class UpdateTipSettingsRequest {
@@ -42,7 +41,6 @@ public class TipController {
         private String message;
     }
 
-    // ── Creator Settings ──────────────────────────────────────────
 
     @GetMapping("/settings")
     public ApiResponse<CreatorTipSettings> getMySettings() {
@@ -60,7 +58,6 @@ public class TipController {
                 .build();
     }
 
-    // ── Public: View creator's tip settings ───────────────────────
 
     @GetMapping("/creator/{creatorId}")
     public ApiResponse<CreatorTipSettings> getCreatorSettings(@PathVariable String creatorId) {
@@ -73,7 +70,6 @@ public class TipController {
                 .success(true).statusCode(200).data(settings).build();
     }
 
-    // ── Send a Tip ────────────────────────────────────────────────
 
     @PostMapping("/send")
     public ApiResponse<Tip> sendTip(@Valid @RequestBody SendTipRequest body) {
@@ -83,7 +79,6 @@ public class TipController {
                 .build();
     }
 
-    // ── Tip History ───────────────────────────────────────────────
 
     @GetMapping("/received")
     public ApiResponse<List<Tip>> getReceivedTips() {

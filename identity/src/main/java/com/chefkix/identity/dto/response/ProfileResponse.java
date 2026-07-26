@@ -18,11 +18,9 @@ public class ProfileResponse {
   String profileId;
   String userId;
 
-  // Auth info
   String email;
   String username;
 
-  // Personal info
   String firstName;
   String lastName;
 
@@ -34,33 +32,28 @@ public class ProfileResponse {
   String avatarUrl;
   String coverImageUrl;
   String bio;
-  String accountType; // normal, chef, admin
+String accountType;
   String location;
 
-  // Preferences & settings
   List<String> preferences;
 
-  // Gamification statistics
   StatisticResponse statistics;
 
   List<FriendshipResponse> friends;
   RelationshipStatus relationshipStatus;
   
-  // Relationship fields - JSON names match FE expectations
   @JsonProperty("isFollowing")
-  Boolean following;    // Current user follows this profile
+Boolean following;
   
   @JsonProperty("isFollowedBy")
-  Boolean followedBy;   // This profile follows current user
+Boolean followedBy;
   
   @JsonProperty("isBlocked")
-  Boolean isBlocked;    // Current user has blocked this profile
+Boolean isBlocked;
 
-  /** Verified creator badge */
   @JsonProperty("isVerified")
   boolean verified;
 
-  // Metadata
   Instant createdAt;
   Instant updatedAt;
 }

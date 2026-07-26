@@ -43,56 +43,41 @@ public class Collection {
     @Builder.Default
     boolean isPublic = false;
 
-    // --- Social (post bookmarks) ---
     @Builder.Default
     List<String> postIds = new ArrayList<>();
 
     @Builder.Default
     int itemCount = 0;
 
-    // --- Learning Path (recipe progression) ---
-    /** Ordered recipe IDs forming the learning path curriculum. Distinct from postIds. */
     @Builder.Default
     List<String> recipeIds = new ArrayList<>();
 
-    /** Collection type: BOOKMARK (default, post-based) or LEARNING_PATH (recipe curriculum) */
     @Builder.Default
     String collectionType = "BOOKMARK";
 
-    /** Overall difficulty label for the learning path */
     String difficulty;
 
-    /** Estimated total minutes to complete all recipes */
     Integer estimatedTotalMinutes;
 
-    /** Total XP earnable by completing the full path */
     Integer totalXp;
 
-    /** How many users enrolled in this learning path */
     @Builder.Default
     int enrolledCount = 0;
 
-    /** Fraction of enrolled users who completed it (0.0 - 1.0) */
     Double completionRate;
 
-    /** Average user rating (1.0 - 5.0) */
     Double averageRating;
 
-    /** Ordered difficulty progression stages (embedded) */
     @Builder.Default
     List<DifficultyStep> difficultyProgression = new ArrayList<>();
 
-    /** Whether this collection is admin-featured (shown on Explore). */
     @Builder.Default
     boolean isFeatured = false;
 
-    /** Seasonal tag for time-based curation (e.g., "summer-2025", "holiday-baking"). */
     String seasonTag;
 
-    /** Short tagline for featured display (e.g., "Summer grilling at its finest"). */
     String tagline;
 
-    /** Emoji icon for visual flair in featured cards. */
     String emoji;
 
     @CreatedDate

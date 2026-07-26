@@ -4,8 +4,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Lightweight stats snapshot for cross-module achievement evaluation.
- * Only includes the fields needed by culinary module's AchievementService.
  */
 @Data
 @Builder

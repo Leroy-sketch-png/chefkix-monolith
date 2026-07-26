@@ -9,6 +9,5 @@ import lombok.Data;
 public class CommentLikeResponse {
     @JsonProperty("isLiked")
     private boolean isLiked;
-    /** Number of likes on the comment (field name matches CommentResponse.likes) */
     private int likes;
 }

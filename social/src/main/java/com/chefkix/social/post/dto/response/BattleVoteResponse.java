@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class BattleVoteResponse {
-    String userVote; // "A" or "B"
+String userVote;
     int votesA;
     int votesB;
 }

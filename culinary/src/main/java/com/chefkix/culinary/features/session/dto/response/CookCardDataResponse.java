@@ -16,7 +16,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CookCardDataResponse {
-    // Session data
     String sessionId;
     LocalDateTime completedAt;
     Integer xpEarned;
@@ -25,17 +24,14 @@ public class CookCardDataResponse {
     Long cookingTimeMinutes;
     Integer rating;
 
-    // Recipe data
     String recipeId;
     String recipeTitle;
     List<String> coverImageUrl;
     String difficulty;
 
-    // User data
     String userId;
     String displayName;
     String avatarUrl;
 
-    // Branding
     String shareUrl;
 }

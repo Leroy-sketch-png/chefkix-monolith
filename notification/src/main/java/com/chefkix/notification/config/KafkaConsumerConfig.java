@@ -25,12 +25,6 @@ import com.chefkix.shared.event.EmailEvent;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Kafka consumer configuration for the notification module.
- * Two consumer factories:
- * <ul>
- *   <li>{@code notificationEventListenerFactory} — polymorphic BaseEvent (bell notifications)</li>
- *   <li>{@code emailEventListenerFactory} — flat EmailEvent (OTP/transactional emails)</li>
- * </ul>
  */
 @Slf4j
 @Configuration("notificationKafkaConsumerConfig")
@@ -39,9 +33,6 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers:localhost:9094}")
     private String bootstrapServers;
 
-    // =========================================================================
-    // FACTORY FOR POLYMORPHIC EVENTS (BaseEvent with @JsonSubTypes)
-    // =========================================================================
 
     @Bean
     public ConsumerFactory<String, BaseEvent> notificationEventConsumerFactory() {
@@ -70,14 +61,10 @@ public class KafkaConsumerConfig {
                 new DeadLetterPublishingRecoverer(
                         kafkaOperations,
                         (record, ex) -> new TopicPartition(record.topic() + ".dlt", record.partition()));
-        // 3 retries, 1s between each. Prevents permanent message loss on transient failures.
         factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L)));
         return factory;
     }
 
-    // =========================================================================
-    // FACTORY FOR EMAIL EVENTS (Simple flat DTO, no polymorphism)
-    // =========================================================================
 
     @Bean
     public ConsumerFactory<String, EmailEvent> emailEventConsumerFactory() {
@@ -106,7 +93,6 @@ public class KafkaConsumerConfig {
                 new DeadLetterPublishingRecoverer(
                         kafkaOperations,
                         (record, ex) -> new TopicPartition(record.topic() + ".dlt", record.partition()));
-        // 3 retries, 1s between each. Email delivery is important — don't lose OTPs.
         factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 3L)));
         return factory;
     }

@@ -1,11 +1,16 @@
 package com.chefkix.config;
 
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +113,64 @@ public class TypesenseService {
         }
     }
 
+    public Optional<Set<String>> listDocumentIds(String collection) {
+        try {
+            Set<String> ids = new LinkedHashSet<>();
+            int page = 1;
+            int found;
+            do {
+                int currentPage = page;
+                String result = restClient
+                        .get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/collections/{collection}/documents/search")
+                                .queryParam("q", "*")
+                                .queryParam("query_by", "title")
+                                .queryParam("include_fields", "id")
+                                .queryParam("per_page", 250)
+                                .queryParam("page", currentPage)
+                                .build(collection))
+                        .retrieve()
+                        .body(String.class);
+
+                Map<String, Object> response = objectMapper.readValue(result, new TypeReference<>() {});
+                found = response.get("found") instanceof Number number ? number.intValue() : 0;
+                Object rawHits = response.get("hits");
+                if (!(rawHits instanceof List<?> hits) || hits.isEmpty()) {
+                    break;
+                }
+                for (Object rawHit : hits) {
+                    if (rawHit instanceof Map<?, ?> hit && hit.get("document") instanceof Map<?, ?> document) {
+                        Object id = document.get("id");
+                        if (id != null) ids.add(id.toString());
+                    }
+                }
+                page++;
+            } while (ids.size() < found);
+            return Optional.of(ids);
+        } catch (Exception e) {
+            log.error("Failed to enumerate document IDs in {}: {}", collection, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     public Map<String, Object> search(String collection, Map<String, String> searchParams) {
+        return executeSearch(collection, searchParams, true);
+    }
+
+    public Map<String, Object> searchOrEmpty(String collection, Map<String, String> searchParams) {
+        try {
+            return executeSearch(collection, searchParams, false);
+        } catch (AppException e) {
+            if (e.getErrorCode() != ErrorCode.SEARCH_SERVICE_UNAVAILABLE) {
+                throw e;
+            }
+            return Map.of("found", 0, "hits", List.of());
+        }
+    }
+
+    private Map<String, Object> executeSearch(
+            String collection, Map<String, String> searchParams, boolean required) {
         try {
             Map<String, Object> multiSearchBody = Map.of(
                     "searches", List.of(
@@ -130,11 +192,19 @@ public class TypesenseService {
             List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
             return results != null && !results.isEmpty() ? results.get(0) : Map.of("found", 0, "hits", List.of());
         } catch (RestClientException e) {
-            log.error("Search failed in collection {}: {}", collection, e.getMessage());
-            return Map.of("found", 0, "hits", List.of());
+            logSearchFailure(collection, required, e);
+            throw new AppException(ErrorCode.SEARCH_SERVICE_UNAVAILABLE, e);
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse search response: {}", e.getMessage());
-            return Map.of("found", 0, "hits", List.of());
+            logSearchFailure(collection, required, e);
+            throw new AppException(ErrorCode.SEARCH_SERVICE_UNAVAILABLE, e);
+        }
+    }
+
+    private void logSearchFailure(String collection, boolean required, Exception error) {
+        if (required) {
+            log.error("Required search failed in collection {}: {}", collection, error.getMessage());
+        } else {
+            log.debug("Optional search unavailable for collection {}: {}", collection, error.getMessage());
         }
     }
 
@@ -171,67 +241,51 @@ public class TypesenseService {
     }
 
     /**
-     * Vector search using pre-computed embedding vectors.
-     * Falls back to keyword search if vector field is not populated.
      */
     public Map<String, Object> vectorSearch(
             String collection, float[] queryVector, int limit, String filterBy) {
-        try {
-            StringBuilder vectorStr = new StringBuilder("[");
-            for (int i = 0; i < queryVector.length; i++) {
-                if (i > 0) vectorStr.append(",");
-                vectorStr.append(queryVector[i]);
-            }
-            vectorStr.append("]");
-
-            Map<String, String> params = new LinkedHashMap<>();
-            params.put("q", "*");
-            params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
-            params.put("per_page", String.valueOf(limit));
-            if (filterBy != null && !filterBy.isBlank()) {
-                params.put("filter_by", filterBy);
-            }
-
-            return search(collection, params);
-        } catch (Exception e) {
-            log.error("Vector search failed in {}: {}", collection, e.getMessage());
-            return Map.of("found", 0, "hits", List.of());
+        StringBuilder vectorStr = new StringBuilder("[");
+        for (int i = 0; i < queryVector.length; i++) {
+            if (i > 0) vectorStr.append(",");
+            vectorStr.append(queryVector[i]);
         }
+        vectorStr.append("]");
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("q", "*");
+        params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
+        params.put("per_page", String.valueOf(limit));
+        if (filterBy != null && !filterBy.isBlank()) {
+            params.put("filter_by", filterBy);
+        }
+
+        return search(collection, params);
     }
 
     /**
-     * Hybrid search: combines keyword + vector search results.
-     * Runs keyword search first, then vector search, merges by score.
      */
     public Map<String, Object> hybridSearch(
             String collection, String query, String queryBy,
             float[] queryVector, int limit) {
-        try {
-            Map<String, String> params = new LinkedHashMap<>();
-            params.put("q", query);
-            params.put("query_by", queryBy);
-            params.put("per_page", String.valueOf(limit));
-            params.put("highlight_full_fields", queryBy);
-            params.put("num_typos", "2");
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("q", query);
+        params.put("query_by", queryBy);
+        params.put("per_page", String.valueOf(limit));
+        params.put("highlight_full_fields", queryBy);
+        params.put("num_typos", "2");
 
-            StringBuilder vectorStr = new StringBuilder("[");
-            for (int i = 0; i < queryVector.length; i++) {
-                if (i > 0) vectorStr.append(",");
-                vectorStr.append(queryVector[i]);
-            }
-            vectorStr.append("]");
-            params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
-
-            return search(collection, params);
-        } catch (Exception e) {
-            log.error("Hybrid search failed in {}: {}", collection, e.getMessage());
-            return Map.of("found", 0, "hits", List.of());
+        StringBuilder vectorStr = new StringBuilder("[");
+        for (int i = 0; i < queryVector.length; i++) {
+            if (i > 0) vectorStr.append(",");
+            vectorStr.append(queryVector[i]);
         }
+        vectorStr.append("]");
+        params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
+
+        return search(collection, params);
     }
 
     /**
-     * Update collection schema (e.g., add new fields).
-     * Uses PATCH /collections/{name} endpoint.
      */
     public boolean updateCollectionSchema(String collection, Map<String, Object> schemaUpdate) {
         try {

@@ -47,8 +47,6 @@ public class ChatMessageService {
     PostService postService;
 
     /**
-     * Get messages for a conversation (non-paginated, for backwards compatibility).
-     * Returns messages in ascending order (oldest first) for natural chat display.
      */
     public List<ChatMessageResponse> getMessages(String conversationId) {
         validateConversationAccess(conversationId);
@@ -58,10 +56,6 @@ public class ChatMessageService {
     }
 
     /**
-     * Get paginated messages for a conversation.
-     * @param conversationId the conversation ID
-     * @param page page number (0-indexed)
-     * @param size page size (default 50)
      */
     public Page<ChatMessageResponse> getMessagesPaginated(String conversationId, int page, int size) {
         validateConversationAccess(conversationId);
@@ -71,7 +65,6 @@ public class ChatMessageService {
     }
 
     /**
-     * Validates that the current user is a participant in the conversation.
      */
     private void validateConversationAccess(String conversationId) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -97,17 +90,13 @@ public class ChatMessageService {
         }
         String userId = authentication.getName();
 
-        // 1. Determine message type
         MessageType msgType = request.getType() != null ? request.getType() : MessageType.TEXT;
         String finalMessageContent = request.getMessage();
 
-        // NEW: Variables to cache post snapshot data
         String cachedPostImage = null;
         String cachedPostTitle = null;
 
-        // 2. LOGIC VALIDATION & SNAPSHOT
         if (msgType == MessageType.POST_SHARE) {
-            // --- Share post ---
             if (request.getRelatedId() == null || request.getRelatedId().trim().isEmpty()) {
                 throw new AppException(ErrorCode.INVALID_REQUEST);
             }
@@ -115,20 +104,17 @@ public class ChatMessageService {
             try {
                 PostDetail postInfo = postService.getPostDetail(request.getRelatedId());
 
-                // Cache post thumbnail (first image from photoUrls array)
                 if (postInfo.getPhotoUrls() != null && !postInfo.getPhotoUrls().isEmpty()) {
                     cachedPostImage = postInfo.getPhotoUrls().get(0);
                     log.debug("Cached post image: {}", cachedPostImage);
                 }
 
-                // Cache recipe title (prioritized for cooking posts)
                 if (postInfo.getRecipeTitle() != null
                         && !postInfo.getRecipeTitle().trim().isEmpty()) {
                     cachedPostTitle = postInfo.getRecipeTitle();
                     log.debug("Cached recipe title: {}", cachedPostTitle);
                 }
 
-                // Auto-fill Caption: if user doesn't write message, auto-fill
                 if (finalMessageContent == null || finalMessageContent.trim().isEmpty()) {
                     if (postInfo.getRecipeTitle() != null
                             && !postInfo.getRecipeTitle().isEmpty()) {
@@ -150,14 +136,11 @@ public class ChatMessageService {
                 throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
             }
         } else {
-            // --- Text message ---
-            // If message type is TEXT, the content must not be NULL
             if (finalMessageContent == null || finalMessageContent.trim().isEmpty()) {
                 throw new AppException(ErrorCode.INVALID_MESSAGE);
             }
         }
 
-        // AI CONTENT MODERATION — applies to ALL message types with user-supplied text
         if (finalMessageContent != null && !finalMessageContent.isBlank()) {
             var moderationResult = contentModerationProvider.moderate(finalMessageContent, "chat");
             if (moderationResult.isBlocked()) {
@@ -166,7 +149,6 @@ public class ChatMessageService {
             }
         }
 
-        // 3. VALIDATE CONVERSATION & PARTICIPANTS
     var conversation = conversationLookupService
                 .findById(request.getConversationId())
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -176,13 +158,11 @@ public class ChatMessageService {
                 .findAny()
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
 
-        // 4. GET USER INFO
         BasicProfileInfo userInfo = profileProvider.getBasicProfile(userId);
         if (userInfo == null) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
 
-        // 5. BUILD CHAT MESSAGE
         ChatMessage chatMessage = chatMessageMapper.toChatMessage(request);
 
         chatMessage.setSender(ParticipantInfo.builder()
@@ -193,12 +173,10 @@ public class ChatMessageService {
                 .avatar(userInfo.getAvatarUrl())
                 .build());
 
-        // SET VALIDATED FIELDS
         chatMessage.setMessage(finalMessageContent);
         chatMessage.setType(msgType);
         chatMessage.setRelatedId(request.getRelatedId());
 
-        // Handle reply-to: cache replied message context for display
         if (request.getReplyToId() != null && !request.getReplyToId().isBlank()) {
             final ChatMessage msgRef = chatMessage;
             chatMessageRepository.findById(request.getReplyToId()).ifPresent(repliedMsg -> {
@@ -211,7 +189,6 @@ public class ChatMessageService {
             });
         }
 
-        // NEW: Set cached post snapshot for POST_SHARE
         if (msgType == MessageType.POST_SHARE) {
             chatMessage.setSharedPostImage(cachedPostImage);
             chatMessage.setSharedPostTitle(cachedPostTitle);
@@ -223,11 +200,8 @@ public class ChatMessageService {
 
         chatMessage.setCreatedDate(Instant.now());
 
-        // 6. SAVE DB
         chatMessage = chatMessageRepository.save(chatMessage);
 
-        // Legacy conversations may still use ObjectId-backed _id values. Update the
-        // timestamp via the compatibility lookup path instead of re-saving the entity.
         conversationLookupService.touchModifiedDate(request.getConversationId(), Instant.now());
 
         log.info("Message created successfully - type: {}, id: {}", msgType, chatMessage.getId());
@@ -235,18 +209,14 @@ public class ChatMessageService {
     }
 
     /**
-     * Convert ChatMessage entity to ChatMessageResponse DTO
-     * Maps 'me' field based on current authenticated user
      */
     private ChatMessageResponse toChatMessageResponse(ChatMessage message) {
         String currentUserId =
                 SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Handle soft-deleted messages: clear content but preserve structure
         String displayMessage = Boolean.TRUE.equals(message.getDeleted()) 
             ? "This message was deleted" : message.getMessage();
 
-        // Map reactions with current user context
         List<ChatMessageResponse.ReactionInfo> reactionInfos = new ArrayList<>();
         if (message.getReactions() != null) {
             for (ChatMessage.Reaction reaction : message.getReactions()) {
@@ -258,7 +228,6 @@ public class ChatMessageService {
             }
         }
 
-        // Map reply-to context
         ChatMessageResponse.ReplyInfo replyInfo = null;
         if (message.getReplyToId() != null) {
             replyInfo = ChatMessageResponse.ReplyInfo.builder()
@@ -277,6 +246,7 @@ public class ChatMessageService {
                 .createdDate(message.getCreatedDate())
                 .type(message.getType())
                 .relatedId(message.getRelatedId())
+                .storyOwnerId(message.getStoryOwnerId())
                 .sharedPostImage(message.getSharedPostImage())
                 .sharedPostTitle(message.getSharedPostTitle())
                 .replyTo(replyInfo)
@@ -294,41 +264,31 @@ public class ChatMessageService {
         return response;
     }
 
-    // ======================== STORY REPLY (KAFKA EVENT) ========================
 
-    /**
-     * Xử lý Event từ Kafka khi có người Reply Story.
-     * Lưu ý: Hàm này chạy ở Background Worker (Thread của Kafka Listener),
-     * KHÔNG có HTTP Request, do đó KHÔNG dùng SecurityContextHolder ở đây.
-     */
     public void processStoryReplyEvent(com.chefkix.shared.event.StoryReplyEvent event) {
-        // 1. Tìm hoặc tạo mới cuộc hội thoại 1-1 giữa người xem và chủ nhân Story
         Conversation conversation = getOrCreateDirectConversation(event.getReplierId(), event.getStoryOwnerId());
 
-        // 2. AI Content Moderation
         if (event.getReplyText() != null && !event.getReplyText().isBlank()) {
             var moderationResult = contentModerationProvider.moderate(event.getReplyText(), "chat");
             if (moderationResult.isBlocked()) {
                 log.warn("Story reply blocked by AI moderation for user {}: {}", event.getReplierId(), moderationResult.reason());
-                return; // Dừng lại, không tạo tin nhắn độc hại
+                return;
             }
         }
 
-        // 3. Lấy thông tin Profile người gửi
         BasicProfileInfo senderInfo = profileProvider.getBasicProfile(event.getReplierId());
         if (senderInfo == null) {
             log.error("Could not fetch profile for user {}", event.getReplierId());
             return;
         }
 
-        // 4. Khởi tạo ChatMessage (Tái sử dụng các trường của POST_SHARE)
         ChatMessage chatMessage = ChatMessage.builder()
                 .conversationId(conversation.getId())
                 .message(event.getReplyText())
-                .type(MessageType.STORY_REPLY) // Yêu cầu: Đã thêm STORY_REPLY vào enum MessageType
+                .type(MessageType.STORY_REPLY)
                 .relatedId(event.getStoryId())
-                .sharedPostImage(event.getStoryMediaUrl()) // Lấy ảnh Thumbnail của Story
-                .sharedPostTitle("Đã trả lời tin của bạn") // Text hiển thị trên Thumbnail
+                .storyOwnerId(event.getStoryOwnerId())
+                .sharedPostImage(event.getStoryMediaUrl())
                 .sender(ParticipantInfo.builder()
                         .userId(senderInfo.getUserId())
                         .username(senderInfo.getDisplayName())
@@ -341,24 +301,18 @@ public class ChatMessageService {
                 .reactions(new ArrayList<>())
                 .build();
 
-        // 5. Lưu Message vào DB
         chatMessage = chatMessageRepository.save(chatMessage);
 
-        // 6. Cập nhật thời gian hoạt động của phòng chat
         conversationLookupService.touchModifiedDate(conversation.getId(), Instant.now());
 
         log.info("Created STORY_REPLY message id {} in conversation {}", chatMessage.getId(), conversation.getId());
-
-        // Ghi chú: Nếu hệ thống của bạn có WebSocket, bạn có thể gọi messagingTemplate.convertAndSendToUser() ở đây
-        // để báo realtime cho người nhận. Bạn không gọi toChatMessageResponse() ở đây vì hàm đó đang gắn cứng
-        // SecurityContextHolder (sẽ bị lỗi NullPointerException vì đây là luồng background).
     }
 
     /**
-     * Hàm tiện ích: Tìm phòng chat 1-1, nếu chưa có thì tạo mới
+     * Find or create a direct conversation between two users.
+     * Uses a deterministic hash so A-B and B-A map to the same room.
      */
     private Conversation getOrCreateDirectConversation(String user1, String user2) {
-        // Thuật toán băm: Sắp xếp theo thứ tự từ điển để (A chat với B) hay (B chat với A) đều ra chung 1 ID phòng
         String hash = user1.compareTo(user2) < 0 ? user1 + "_" + user2 : user2 + "_" + user1;
 
         return conversationRepository.findByParticipantsHash(hash)
@@ -388,11 +342,8 @@ public class ChatMessageService {
                 });
     }
 
-    // ======================== Reactions ========================
 
     /**
-     * Toggle a reaction on a message. If the user already reacted with this emoji,
-     * remove it. Otherwise, add it. Returns the updated message.
      */
     public ChatMessageResponse reactToMessage(String messageId, ChatReactionRequest request) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -400,7 +351,6 @@ public class ChatMessageService {
         ChatMessage message = chatMessageRepository.findById(messageId)
                 .orElseThrow(() -> new AppException(ErrorCode.MESSAGE_NOT_FOUND));
 
-        // Verify user has access to this conversation
         validateConversationAccess(message.getConversationId());
 
         if (message.getReactions() == null) {
@@ -409,7 +359,6 @@ public class ChatMessageService {
 
         String emoji = request.getEmoji();
 
-        // Find existing reaction for this emoji
         ChatMessage.Reaction existingReaction = message.getReactions().stream()
                 .filter(r -> emoji.equals(r.getEmoji()))
                 .findFirst()
@@ -417,17 +366,14 @@ public class ChatMessageService {
 
         if (existingReaction != null) {
             if (existingReaction.getUserIds().contains(userId)) {
-                // User already reacted — toggle off
                 existingReaction.getUserIds().remove(userId);
                 if (existingReaction.getUserIds().isEmpty()) {
                     message.getReactions().remove(existingReaction);
                 }
             } else {
-                // Add user to existing emoji
                 existingReaction.getUserIds().add(userId);
             }
         } else {
-            // New emoji reaction
             List<String> userIds = new ArrayList<>();
             userIds.add(userId);
             message.getReactions().add(ChatMessage.Reaction.builder()
@@ -441,11 +387,8 @@ public class ChatMessageService {
         return toChatMessageResponse(message);
     }
 
-    // ======================== Delete ========================
 
     /**
-     * Soft-delete a message. Only the sender can delete their own messages.
-     * Content is cleared but metadata (timestamp, sender) is preserved for thread context.
      */
     public ChatMessageResponse deleteMessage(String messageId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -453,14 +396,13 @@ public class ChatMessageService {
         ChatMessage message = chatMessageRepository.findById(messageId)
                 .orElseThrow(() -> new AppException(ErrorCode.MESSAGE_NOT_FOUND));
 
-        // Only sender can delete their own message
         if (!message.getSender().getUserId().equals(userId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
         message.setDeleted(true);
-        message.setMessage(null); // Clear actual content
-        message.setReactions(new ArrayList<>()); // Clear reactions on deleted message
+message.setMessage(null);
+message.setReactions(new ArrayList<>());
 
         chatMessageRepository.save(message);
         log.info("User {} deleted message {}", userId, messageId);

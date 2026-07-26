@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a comment is posted.
- * <p>
- * Producer: social module (post/comment). Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

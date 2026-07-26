@@ -12,18 +12,14 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface StatisticsMapper {
 
-  /** The streak window is 72 hours for cooking streaks (ChefKix design) */
   long STREAK_WINDOW_HOURS = 72;
 
   @Mapping(source = "totalRecipesPublished", target = "recipeCount")
-  @Mapping(target = "cookedToday", ignore = true) // Computed in afterMapping
-  @Mapping(target = "hoursUntilStreakBreaks", ignore = true) // Computed in afterMapping
+@Mapping(target = "cookedToday", ignore = true)
+@Mapping(target = "hoursUntilStreakBreaks", ignore = true)
   StatisticResponse toStatisticResponse(Statistics statistics);
 
   /**
-   * Computes streak-related fields after initial mapping:
-   * - cookedToday: true if lastCookAt is within the streak window (72h)
-   * - hoursUntilStreakBreaks: hours remaining until streak breaks (0 if broken/no streak)
    */
   @AfterMapping
   default void computeStreakFields(Statistics source, @MappingTarget StatisticResponse target) {
@@ -36,15 +32,12 @@ public interface StatisticsMapper {
       return;
     }
 
-    // Calculate time since last cook
     Duration sinceLastCook = Duration.between(lastCookAt, now);
     long hoursSinceLastCook = sinceLastCook.toHours();
     
-    // "Cooked today" means within the streak window (72 hours for cooking streaks)
     boolean withinWindow = hoursSinceLastCook <= STREAK_WINDOW_HOURS;
     target.setCookedToday(withinWindow);
     
-    // Calculate hours until streak breaks
     if (withinWindow) {
       long hoursRemaining = STREAK_WINDOW_HOURS - hoursSinceLastCook;
       target.setHoursUntilStreakBreaks((int) Math.max(0, hoursRemaining));

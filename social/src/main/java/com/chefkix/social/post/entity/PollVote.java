@@ -26,7 +26,7 @@ public class PollVote {
     String id;
     String postId;
     String userId;
-    String option; // "A" or "B"
+String option;
     @CreatedDate
     Instant createdAt;
 }

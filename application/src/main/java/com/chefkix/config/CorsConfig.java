@@ -11,9 +11,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * CORS configuration for the monolith.
- * Exposes a {@link CorsConfigurationSource} bean so Spring Security's
- * {@code .cors(Customizer.withDefaults())} picks it up automatically.
  */
 @Configuration
 public class CorsConfig {
@@ -25,7 +22,6 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Explicitly constrain origins and keep them environment-configurable.
         List<String> origins = Arrays.stream(allowedOriginPatterns.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isBlank())

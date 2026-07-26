@@ -14,7 +14,6 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfig {
 
-    // This bean is used when annotating with @Async("taskExecutor")
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -23,32 +22,25 @@ public class AsyncConfig {
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("async-worker-");
 
-        // MOST IMPORTANT: Attach Decorator here
-        // It copies both SecurityContext AND RequestAttributes to the new thread
         executor.setTaskDecorator(new ContextCopyingDecorator());
 
         executor.initialize();
         return executor;
     }
 
-    // Inner class Decorator (keeps the same logic)
     static class ContextCopyingDecorator implements TaskDecorator {
         @Override
         public Runnable decorate(Runnable runnable) {
-            // 1. Capture context from PARENT thread (Main Thread)
             var securityContext = SecurityContextHolder.getContext();
             var requestAttributes = RequestContextHolder.getRequestAttributes();
 
             return () -> {
                 try {
-                    // 2. Inject context into CHILD thread (Async Thread)
                     SecurityContextHolder.setContext(securityContext);
                     RequestContextHolder.setRequestAttributes(requestAttributes);
 
-                    // 3. Run the logic
                     runnable.run();
                 } finally {
-                    // 4. Cleanup
                     SecurityContextHolder.clearContext();
                     RequestContextHolder.resetRequestAttributes();
                 }

@@ -12,9 +12,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import java.time.Instant;
 
 /**
- * Report entity for content moderation.
- * Users can report posts, comments, or recipes.
- * Per spec 13-moderation.txt: 3 unique reports triggers admin review.
  */
 @Document(collection = "report")
 @Data
@@ -28,24 +25,24 @@ public class Report {
     String id;
 
     @Indexed
-    String reporterId; // User who reported
+String reporterId;
 
     @Indexed
-    String targetType; // "post", "comment", "recipe"
+String targetType;
 
     @Indexed
-    String targetId; // ID of the reported content
+String targetId;
 
-    String reason; // "fraud", "spam", "inappropriate", "other"
+String reason;
 
-    String details; // Optional explanation
+String details;
 
     @Builder.Default
-    String status = "pending"; // "pending", "reviewed", "resolved", "dismissed"
+String status = "pending";
 
-    String reviewedBy; // Admin who reviewed
+String reviewedBy;
 
-    String reviewNotes; // Admin notes
+String reviewNotes;
 
     Instant reviewedAt;
 

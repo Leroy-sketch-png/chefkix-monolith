@@ -16,6 +16,5 @@ public class InternalCompletionRequest {
   String sessionId;
   boolean challengeCompleted;
   List<String> newBadges;
-  /** Deterministic idempotency key to prevent double XP award on sync+Kafka fallback */
   String idempotencyKey;
 }

@@ -8,7 +8,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Appeal request from a banned user.
  */
 @Data
 @NoArgsConstructor

@@ -10,12 +10,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Creator insights/stats for a user's recipe portfolio.
- * <p>
- * Unifies: identity's {@code InternalCreatorInsightsResponse} and
- * recipe-service's {@code InternalCreatorInsightsResponse} (which had a different inner class structure).
- * <p>
- * Also incorporates fields from identity's {@code CreatorStatsResponse} used for the profile page.
  */
 @Data
 @Builder

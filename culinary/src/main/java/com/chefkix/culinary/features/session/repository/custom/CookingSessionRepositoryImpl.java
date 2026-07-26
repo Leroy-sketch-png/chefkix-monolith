@@ -21,27 +21,20 @@ public class CookingSessionRepositoryImpl implements CookingSessionCustomReposit
     private final MongoTemplate mongoTemplate;
 
     /**
-     * Execute dynamic query for Session History.
      */
     public Page<CookingSession> findSessionHistory(String userId, SessionHistoryQuery dto, Pageable pageable) {
 
-        // 1. Build Criteria (WHERE clause)
         Query query = new Query(SessionSpecification.getCriteria(userId, dto));
 
-        // 2. Add Sorting (Sort by completedAt or startedAt, newest first)
         Sort sort = Sort.by(Sort.Direction.DESC, "completedAt", "startedAt");
         query.with(sort);
 
-        // 3. Calculate total count
         long total = mongoTemplate.count(query, CookingSession.class);
 
-        // 4. Apply Pagination (SKIP and LIMIT)
         query.with(pageable);
 
-        // 5. Execute query
         List<CookingSession> sessions = mongoTemplate.find(query, CookingSession.class);
 
-        // 6. Return paginated results
         return new PageImpl<>(sessions, pageable, total);
     }
 }

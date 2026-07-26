@@ -18,14 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Presence System — Redis heartbeat + WebSocket broadcast.
  *
- * Users send heartbeats via REST or STOMP. Redis stores presence with 90s TTL.
- * If no heartbeat within 90s, user is considered offline.
  *
- * Redis keys:
- *   presence:{userId}       → activity string ("browsing", "cooking:recipeTitle")
- *   presence:lastseen:{userId} → epoch millis
  */
 @Slf4j
 @Service
@@ -42,10 +36,7 @@ public class PresenceService {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
-     * Record a heartbeat for the user.
      *
-     * @param userId   authenticated user
-     * @param activity "browsing", "cooking", "creating", or "cooking:Recipe Title"
      */
     public void heartbeat(String userId, String activity) {
         String safeActivity = sanitizeActivity(activity);
@@ -54,13 +45,11 @@ public class PresenceService {
         redis.opsForValue().set(LASTSEEN_PREFIX + userId,
                 String.valueOf(Instant.now().toEpochMilli()));
 
-        // Broadcast to followers subscribed to /topic/presence
         messagingTemplate.convertAndSend("/topic/presence/" + userId,
                 new PresenceEvent(userId, safeActivity, true));
     }
 
     /**
-     * Mark user as offline (called on disconnect/logout).
      */
     public void goOffline(String userId) {
         redis.delete(PREFIX + userId);
@@ -72,33 +61,28 @@ public class PresenceService {
     }
 
     /**
-     * Check if a specific user is online.
      */
     public boolean isOnline(String userId) {
         return Boolean.TRUE.equals(redis.hasKey(PREFIX + userId));
     }
 
     /**
-     * Get presence of all followed users ("Friends Cooking Now").
      */
     public List<PresenceResponse> getFriendsPresence(String userId) {
-        // Get who this user follows
         Set<String> followingIds = followRepository.findAllByFollowerId(userId).stream()
                 .map(f -> f.getFollowingId())
                 .collect(Collectors.toSet());
 
         if (followingIds.isEmpty()) return List.of();
 
-        // Check Redis for online friends
         return followingIds.stream()
                 .map(friendId -> {
                     String activity = redis.opsForValue().get(PREFIX + friendId);
-                    if (activity == null) return null; // offline
+if (activity == null) return null;
 
                     String lastSeenStr = redis.opsForValue().get(LASTSEEN_PREFIX + friendId);
                     long lastSeen = lastSeenStr != null ? Long.parseLong(lastSeenStr) : 0;
 
-                    // Parse activity
                     String activityType = activity;
                     String recipeTitle = null;
                     if (activity.startsWith("cooking:")) {
@@ -106,7 +90,6 @@ public class PresenceService {
                         recipeTitle = activity.substring("cooking:".length());
                     }
 
-                    // Get profile info
                     UserProfile profile = profileRepository.findByUserId(friendId).orElse(null);
                     if (profile == null) return null;
 
@@ -127,7 +110,6 @@ public class PresenceService {
     }
 
     /**
-     * Get online friends who are currently cooking.
      */
     public List<PresenceResponse> getFriendsCookingNow(String userId) {
         return getFriendsPresence(userId).stream()
@@ -135,18 +117,14 @@ public class PresenceService {
                 .toList();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
 
     private String sanitizeActivity(String activity) {
         if (activity == null || activity.isBlank()) return "browsing";
-        // Allow: browsing, cooking, cooking:RecipeTitle, creating, idle
         String trimmed = activity.trim();
         if (trimmed.length() > 200) trimmed = trimmed.substring(0, 200);
-        // Strip any control characters
         return trimmed.replaceAll("[\\p{Cntrl}]", "");
     }
 
-    // ── WebSocket event DTO ─────────────────────────────────────────
 
     public record PresenceEvent(String userId, String activity, boolean online) {}
 }

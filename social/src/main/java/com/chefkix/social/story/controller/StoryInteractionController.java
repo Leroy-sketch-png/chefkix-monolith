@@ -16,7 +16,6 @@ public class StoryInteractionController {
 
     private final StoryInteractionService interactionService;
 
-    // --- VIEW & INTERACTION ---
 
     @PostMapping("/{storyId}/views")
     public ApiResponse<String> recordView(@PathVariable String storyId) {
@@ -32,7 +31,7 @@ public class StoryInteractionController {
     @PostMapping("/{storyId}/reactions")
     public ApiResponse<String> reactToStory(
             @PathVariable String storyId,
-            @RequestParam String type) { // type = "FIRE", "HEART"...
+@RequestParam String type) {
         interactionService.recordReaction(storyId, getCurrentUserId(), type);
         return ApiResponse.success("successfully reacted");
     }
@@ -46,18 +45,8 @@ public class StoryInteractionController {
         return ApiResponse.success("successfully reacted");
     }
 
-    // --- HIGHLIGHTS ---
 
-//    @PostMapping("/highlights")
-//    public ResponseEntity<Void> createHighlight(@RequestBody HighlightCreateRequest request) {
-//        highlightService.createHighlight(getCurrentUserId(), request);
-//        return ResponseEntity.status(HttpStatus.CREATED).build();
-//    }
 //
-//    @GetMapping("/highlights/{highlightId}/stories")
-//    public ResponseEntity<List<StoryResponse>> getHighlightStories(@PathVariable String highlightId) {
-//        return ResponseEntity.ok(highlightService.getStoriesInHighlight(highlightId));
-//    }
 
     private String getCurrentUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();

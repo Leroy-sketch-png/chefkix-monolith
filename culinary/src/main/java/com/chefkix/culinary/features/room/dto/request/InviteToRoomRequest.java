@@ -6,8 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Invite a user to an active cooking room.
- * Spec: vision_and_spec/24-advanced-multiplayer.txt §2
  */
 @Data
 @Builder

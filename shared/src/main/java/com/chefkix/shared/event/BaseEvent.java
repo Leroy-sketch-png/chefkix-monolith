@@ -9,13 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Abstract base for all Kafka events in ChefKix.
- * <p>
- * Consolidated from 4 separate {@code BaseEvent} hierarchies (identity, recipe,
- * post, notification) into a single polymorphic type. Jackson uses the
- * {@code eventType} discriminator for deserialization.
- * <p>
- * All concrete event classes must be registered in {@link JsonSubTypes} below.
  */
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -49,8 +42,6 @@ import lombok.Setter;
 public abstract class BaseEvent {
 
     /**
-     * Unique identifier for idempotency checks.
-     * Generated on event creation to prevent duplicate processing on Kafka redelivery.
      */
     protected String eventId;
     protected String eventType;

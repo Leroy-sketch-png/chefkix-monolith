@@ -6,8 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Request DTO for changing password. NOTE: Email is NOT included - it's extracted from JWT token
- * for security.
  */
 @Data
 @Builder

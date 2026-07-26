@@ -65,9 +65,6 @@ public class BellNotificationController {
     }
 
     /**
-     * Get aggregated activity summary since a given timestamp.
-     * Powers the "Welcome Back" card on the dashboard.
-     * FE stores lastVisitTimestamp in localStorage and passes it here.
      */
     @GetMapping("/summary-since")
     public ApiResponse<NotificationSummaryResponse> getActivitySummary(

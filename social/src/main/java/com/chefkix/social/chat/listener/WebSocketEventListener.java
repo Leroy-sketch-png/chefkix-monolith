@@ -19,7 +19,6 @@ public class WebSocketEventListener {
 
     private final ProfileProvider profileProvider;
 
-    // 1. ONLINE
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -35,7 +34,6 @@ public class WebSocketEventListener {
         }
     }
 
-    // 2. OFFLINE
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());

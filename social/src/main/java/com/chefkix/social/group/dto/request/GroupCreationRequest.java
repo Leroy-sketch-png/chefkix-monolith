@@ -20,7 +20,6 @@ public class GroupCreationRequest {
     @Size(max = 20, message = "Privacy type cannot exceed 20 characters")
     private String privacyType;
 
-    // Optional: Tags for Chefkix gamification/search (e.g., "Vegan", "Baking")
     @Size(max = 10, message = "Maximum 10 tags")
     private java.util.List<String> tags;
 }

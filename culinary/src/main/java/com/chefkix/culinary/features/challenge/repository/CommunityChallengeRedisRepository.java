@@ -9,11 +9,6 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Redis-backed tracking for community challenge progress.
- * Uses atomic INCR for progress count and SADD for unique participant tracking.
- * Key patterns:
- *   community:challenge:{id}:progress    — integer counter
- *   community:challenge:{id}:participants — set of userId strings
  */
 @Repository
 @RequiredArgsConstructor
@@ -27,8 +22,6 @@ public class CommunityChallengeRedisRepository {
     private static final String PARTICIPANTS_SUFFIX = ":participants";
 
     /**
-     * Atomically increment the community progress counter by 1.
-     * @return the new progress value after increment
      */
     public long incrementProgress(String challengeId) {
         String key = PROGRESS_PREFIX + challengeId + PROGRESS_SUFFIX;
@@ -42,7 +35,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Get current progress for a community challenge.
      */
     public long getProgress(String challengeId) {
         String key = PROGRESS_PREFIX + challengeId + PROGRESS_SUFFIX;
@@ -56,7 +48,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Add a user to the participants set. Returns true if the user was newly added.
      */
     public boolean addParticipant(String challengeId, String userId) {
         String key = PROGRESS_PREFIX + challengeId + PARTICIPANTS_SUFFIX;
@@ -70,7 +61,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Check if user is already a participant.
      */
     public boolean isParticipant(String challengeId, String userId) {
         String key = PROGRESS_PREFIX + challengeId + PARTICIPANTS_SUFFIX;
@@ -84,7 +74,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Get total unique participant count.
      */
     public long getParticipantCount(String challengeId) {
         String key = PROGRESS_PREFIX + challengeId + PARTICIPANTS_SUFFIX;
@@ -98,7 +87,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Get all participant user IDs for a community challenge.
      */
     public Set<String> getParticipants(String challengeId) {
         String key = PROGRESS_PREFIX + challengeId + PARTICIPANTS_SUFFIX;
@@ -112,7 +100,6 @@ public class CommunityChallengeRedisRepository {
     }
 
     /**
-     * Set progress to a specific value (for seeding or corrections).
      */
     public void setProgress(String challengeId, long value) {
         String key = PROGRESS_PREFIX + challengeId + PROGRESS_SUFFIX;

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 public interface ConversationRepository extends MongoRepository<Conversation, String> {
     Optional<Conversation> findByParticipantsHash(String hash);
 
-    // Sort by modifiedDate descending (most recent conversations first)
     @Query("{'participants.userId' : ?0}")
     List<Conversation> findAllByParticipantIdsContains(String userId, org.springframework.data.domain.Sort sort);
 

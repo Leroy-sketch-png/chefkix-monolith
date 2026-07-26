@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Full skill tree response — grouped paths with per-achievement progress.
  */
 @Data
 @Builder
@@ -27,7 +26,7 @@ public class SkillTreeResponse {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class SkillPath {
         String pathId;
-        String pathName; // derived from first achievement name's cuisine/technique
+String pathName;
         AchievementCategory category;
         List<AchievementNode> nodes;
         int unlockedCount;
@@ -49,14 +48,12 @@ public class SkillTreeResponse {
         boolean hidden;
         boolean premium;
 
-        // Progress
         int currentProgress;
         int requiredProgress;
         boolean unlocked;
         Instant unlockedAt;
 
-        // Tree structure
         String prerequisiteCode;
-        boolean prerequisiteMet; // whether the prerequisite is unlocked
+boolean prerequisiteMet;
     }
 }

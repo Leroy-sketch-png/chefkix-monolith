@@ -7,8 +7,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Represents a participant in a cooking room.
- * Stored as part of CookingRoom in Redis.
  */
 @Data
 @Builder
@@ -25,7 +23,6 @@ public class RoomParticipant {
     Instant joinedAt;
     boolean isHost;
 
-    /** COOK (default) or SPECTATOR — spec 24-advanced-multiplayer.txt §3 */
     @Builder.Default
     String role = "COOK";
 }

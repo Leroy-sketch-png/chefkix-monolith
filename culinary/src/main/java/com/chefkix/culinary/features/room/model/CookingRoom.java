@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ephemeral cooking room stored in Redis (NOT MongoDB).
- * TTL: 4 hours. Auto-deleted when expired or all participants leave.
  */
 @Data
 @Builder
@@ -21,7 +19,7 @@ public class CookingRoom {
     String recipeId;
     String recipeTitle;
     String hostUserId;
-    String status; // WAITING, COOKING, DISSOLVED
+String status;
     @Builder.Default int maxParticipants = 6;
     Instant createdAt;
     @Builder.Default List<RoomParticipant> participants = new ArrayList<>();

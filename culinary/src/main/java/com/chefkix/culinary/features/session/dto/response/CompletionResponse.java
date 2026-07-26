@@ -16,22 +16,10 @@ public class CompletionResponse {
     String completionId;
     String recipeId;
 
-    int xpEarned;          // Actual XP received (calculated as 50% or 100%)
-    List<String> newBadges; // List of newly earned badges (if any)
-    CompletionResult userProfile; // Updated profile info for UI update
+int xpEarned;
+List<String> newBadges;
+CompletionResult userProfile;
 
-//    @Data
-//    @Builder
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    @FieldDefaults(level = AccessLevel.PRIVATE)
-//    public static class UserProfileSummary {
-//        String userId;
 //
-//        Integer currentLevel;
-//        Integer currentXP;
-//        Integer currentXPGoal;
 //
-//        int completionCount;
-//    }
 }

@@ -41,7 +41,6 @@ public class ReferralService {
     ProfileProvider profileProvider;
 
     /**
-     * Get the current user's referral code, creating one if it doesn't exist.
      */
     public ReferralCodeResponse getOrCreateMyCode(String userId) {
         ReferralCode code = referralCodeRepository.findByUserId(userId)
@@ -56,24 +55,20 @@ public class ReferralService {
     }
 
     /**
-     * Redeem a referral code. Awards XP to both referrer and referred user.
      */
     @Transactional
     public ReferralCodeResponse redeemCode(String userId, String code) {
         ReferralCode referralCode = referralCodeRepository.findByCode(code.toUpperCase().trim())
                 .orElseThrow(() -> new AppException(ErrorCode.REFERRAL_CODE_NOT_FOUND));
 
-        // Cannot redeem own code
         if (referralCode.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.REFERRAL_SELF_REDEEM);
         }
 
-        // Check max uses
         if (!referralCode.getActive() || referralCode.getUsageCount() >= referralCode.getMaxUses()) {
             throw new AppException(ErrorCode.REFERRAL_CODE_EXHAUSTED);
         }
 
-        // Save redemption first — unique index on referredUserId prevents double redemption atomically
         ReferralRedemption redemption = ReferralRedemption.builder()
                 .referrerUserId(referralCode.getUserId())
                 .referredUserId(userId)
@@ -86,11 +81,9 @@ public class ReferralService {
             throw new AppException(ErrorCode.REFERRAL_ALREADY_REDEEMED);
         }
 
-        // Increment usage count
         referralCode.setUsageCount(referralCode.getUsageCount() + 1);
         referralCodeRepository.save(referralCode);
 
-        // Get referred user's name for the referrer's notification
         String referredUsername;
         try {
             BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
@@ -100,11 +93,9 @@ public class ReferralService {
             referredUsername = "someone";
         }
 
-        // Award XP to referrer
         sendXpReward(referralCode.getUserId(), "REFERRAL_BONUS",
                 "Referral bonus: " + referredUsername + " joined via your invite");
 
-        // Award XP to referred user
         sendXpReward(userId, "REFERRAL_WELCOME",
                 "Welcome bonus from referral");
 
@@ -115,7 +106,6 @@ public class ReferralService {
     }
 
     /**
-     * Get referral statistics for the current user.
      */
     public ReferralStatsResponse getMyStats(String userId) {
         ReferralCode code = referralCodeRepository.findByUserId(userId)

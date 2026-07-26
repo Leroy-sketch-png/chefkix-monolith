@@ -19,11 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Admin controller for moderation, reports, bans, and appeals.
- * All endpoints require ROLE_ADMIN.
- * Per spec 16-moderation.txt.
  *
- * Monolith path: /api/v1/admin/*
  */
 @RestController
 @RequestMapping("/admin")
@@ -34,10 +30,8 @@ public class AdminController {
 
     ModerationService moderationService;
 
-    // ─── REPORTS ────────────────────────────────────────────────────
 
     /**
-     * GET /api/v1/admin/reports — Admin report review queue.
      */
     @GetMapping("/reports")
     public ResponseEntity<ApiResponse<List<Report>>> getPendingReports() {
@@ -46,7 +40,6 @@ public class AdminController {
     }
 
     /**
-     * GET /api/v1/admin/reports/all — All reports (any status).
      */
     @GetMapping("/reports/all")
     public ResponseEntity<ApiResponse<List<Report>>> getAllReports() {
@@ -55,8 +48,6 @@ public class AdminController {
     }
 
     /**
-     * POST /api/v1/admin/reports/{reportId}/review — Review a report.
-     * Decision: "resolved", "dismissed", "ban_user"
      */
     @PostMapping("/reports/{reportId}/review")
     public ResponseEntity<ApiResponse<Report>> reviewReport(
@@ -68,10 +59,8 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(reviewed));
     }
 
-    // ─── BANS ───────────────────────────────────────────────────────
 
     /**
-     * POST /api/v1/admin/users/{userId}/ban — Manually ban a user.
      */
     @PostMapping("/users/{userId}/ban")
     public ResponseEntity<ApiResponse<BanResponse>> banUser(
@@ -88,7 +77,6 @@ public class AdminController {
     }
 
     /**
-     * GET /api/v1/admin/users/{userId}/bans — Get ban history for a user.
      */
     @GetMapping("/users/{userId}/bans")
     public ResponseEntity<ApiResponse<List<BanResponse>>> getBanHistory(
@@ -98,7 +86,6 @@ public class AdminController {
     }
 
     /**
-     * DELETE /api/v1/admin/bans/{banId} — Revoke a ban.
      */
     @DeleteMapping("/bans/{banId}")
     public ResponseEntity<ApiResponse<String>> revokeBan(
@@ -109,10 +96,8 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Ban revoked successfully"));
     }
 
-    // ─── APPEALS ────────────────────────────────────────────────────
 
     /**
-     * GET /api/v1/admin/appeals — Pending appeals queue.
      */
     @GetMapping("/appeals")
     public ResponseEntity<ApiResponse<List<Appeal>>> getPendingAppeals() {
@@ -121,8 +106,6 @@ public class AdminController {
     }
 
     /**
-     * POST /api/v1/admin/appeals/{appealId}/review — Review an appeal.
-     * Decision: "approved" (revokes ban) or "rejected"
      */
     @PostMapping("/appeals/{appealId}/review")
     public ResponseEntity<ApiResponse<Appeal>> reviewAppeal(
@@ -134,7 +117,6 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(reviewed));
     }
 
-    // ─── HELPERS ───────────────────────────────────────────────────
 
     private BanResponse toBanResponse(Ban ban) {
         return BanResponse.builder()

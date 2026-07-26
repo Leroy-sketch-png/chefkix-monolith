@@ -25,9 +25,7 @@ public class VerificationService {
   VerificationRequestRepository verificationRepo;
   UserProfileRepository profileRepo;
 
-  /** User applies for a verified badge */
   public VerificationResponse applyForVerification(String userId, VerificationApplyRequest request) {
-    // Check if already verified
     UserProfile profile =
         profileRepo.findByUserId(userId).orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
 
@@ -35,7 +33,6 @@ public class VerificationService {
       throw new AppException(ErrorCode.VERIFICATION_ALREADY_VERIFIED);
     }
 
-    // Check for existing pending request
     if (verificationRepo.existsByUserIdAndStatus(userId, "PENDING")) {
       throw new AppException(ErrorCode.VERIFICATION_ALREADY_PENDING);
     }
@@ -52,7 +49,6 @@ public class VerificationService {
     return toResponse(entity);
   }
 
-  /** Get user's latest verification status */
   public VerificationResponse getVerificationStatus(String userId) {
     VerificationRequest req =
         verificationRepo
@@ -61,7 +57,6 @@ public class VerificationService {
     return toResponse(req);
   }
 
-  /** Admin approves a verification request */
   @Transactional
   public VerificationResponse approveVerification(String requestId, String adminUserId, String notes) {
     VerificationRequest req =
@@ -77,7 +72,6 @@ public class VerificationService {
     req.setReviewedAt(Instant.now());
     verificationRepo.save(req);
 
-    // Set verified on profile — must exist, otherwise data is inconsistent
     UserProfile profile = profileRepo
         .findByUserId(req.getUserId())
         .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
@@ -88,7 +82,6 @@ public class VerificationService {
     return toResponse(req);
   }
 
-  /** Admin rejects a verification request */
   public VerificationResponse rejectVerification(String requestId, String adminUserId, String notes) {
     VerificationRequest req =
         verificationRepo.findById(requestId).orElseThrow(() -> new AppException(ErrorCode.VERIFICATION_REQUEST_NOT_FOUND));

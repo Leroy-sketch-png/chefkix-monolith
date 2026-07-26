@@ -21,15 +21,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Scheduled job to:
- * 1. Send post deadline reminder notifications (days 5, 12, 13)
- * 2. Forfeit pending XP for sessions that missed the 14-day deadline
  * 
- * Per spec (04-statistics.txt):
- * - Post deadline is 14 days from session completion
- * - Day 5 reminder (9 days left): Normal priority
- * - Day 12 reminder (2 days left): High priority
- * - After 14 days: 70% pending XP forfeited, status → EXPIRED
  */
 @Slf4j
 @Component
@@ -43,22 +35,18 @@ public class PostDeadlineScheduler {
     private static final String REMINDER_TOPIC = "reminder-delivery";
 
     /**
-     * Run every day at 9 AM to check for sessions with approaching deadlines.
      */
-    @Scheduled(cron = "0 0 9 * * *")  // Every day at 9:00 AM
+@Scheduled(cron = "0 0 9 * * *")
     public void checkPostDeadlines() {
         try {
             log.info("Running post deadline reminder check...");
 
             LocalDateTime now = utcNow();
 
-            // Day 5 reminder (9 days left until 14-day deadline)
             sendRemindersForDaysRemaining(now, 9, "NORMAL");
 
-            // Day 12 reminder (2 days left until 14-day deadline)
             sendRemindersForDaysRemaining(now, 2, "HIGH");
 
-            // Final reminder (1 day left - last chance)
             sendRemindersForDaysRemaining(now, 1, "CRITICAL");
         } catch (Exception e) {
             log.error("Post deadline reminder scheduler failed — will retry next cycle", e);
@@ -66,8 +54,6 @@ public class PostDeadlineScheduler {
     }
 
     /**
-     * Run daily at 9:30 AM to forfeit pending XP for expired sessions.
-     * Sessions that passed postDeadline without a post lose their 70% pending XP.
      */
     @Scheduled(cron = "0 30 9 * * *")
     public void forfeitExpiredSessions() {
@@ -97,10 +83,6 @@ public class PostDeadlineScheduler {
     }
 
     private void sendRemindersForDaysRemaining(LocalDateTime now, int daysRemaining, String priorityStr) {
-        // Find sessions where:
-        // 1. Status = COMPLETED
-        // 2. postId = null (not yet posted)
-        // 3. postDeadline is daysRemaining days from now (±12 hours window)
         
         LocalDateTime deadlineWindowStart = now.plusDays(daysRemaining).minusHours(12);
         LocalDateTime deadlineWindowEnd = now.plusDays(daysRemaining).plusHours(12);
@@ -122,7 +104,6 @@ public class PostDeadlineScheduler {
     private void sendDeadlineReminder(CookingSession session, int daysRemaining, String priorityStr) {
         String displayName = "Chef";
         
-        // Try to get user's display name
         try {
             BasicProfileInfo profile = profileProvider.getBasicProfile(session.getUserId());
             if (profile != null && profile.getDisplayName() != null) {

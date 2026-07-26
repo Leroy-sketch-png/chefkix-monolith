@@ -8,9 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a gamification milestone is reached (level-up, badge earned, XP summary).
- * <p>
- * Producer: identity module. Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

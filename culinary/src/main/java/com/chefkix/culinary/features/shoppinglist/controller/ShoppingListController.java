@@ -12,6 +12,8 @@ import com.chefkix.culinary.features.shoppinglist.grocery.GroceryProviderRegistr
 import com.chefkix.culinary.features.shoppinglist.repository.CheckoutRecordRepository;
 import com.chefkix.culinary.features.shoppinglist.service.ShoppingListService;
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +32,6 @@ public class ShoppingListController {
     private final GroceryProviderRegistry groceryProviderRegistry;
     private final CheckoutRecordRepository checkoutRecordRepository;
 
-    // ── Create ──────────────────────────────────────────────────────
 
     @PostMapping("/from-meal-plan")
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,7 +63,6 @@ public class ShoppingListController {
                 .build();
     }
 
-    // ── Read ────────────────────────────────────────────────────────
 
     @GetMapping
     public ApiResponse<List<ShoppingListSummaryResponse>> getUserLists() {
@@ -88,7 +88,6 @@ public class ShoppingListController {
                 .build();
     }
 
-    // ── Item Operations ─────────────────────────────────────────────
 
     @PutMapping("/{id}/items/{itemId}/toggle")
     public ApiResponse<ShoppingListResponse> toggleItem(
@@ -117,7 +116,6 @@ public class ShoppingListController {
                 .build();
     }
 
-    // ── Delete ──────────────────────────────────────────────────────
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable String id) {
@@ -127,7 +125,6 @@ public class ShoppingListController {
                 .build();
     }
 
-    // ── Share ───────────────────────────────────────────────────────
 
     @PostMapping("/{id}/share")
     public ApiResponse<ShoppingListResponse> regenerateShareToken(@PathVariable String id) {
@@ -137,16 +134,14 @@ public class ShoppingListController {
                 .build();
     }
 
-    // ── Grocery Delivery ────────────────────────────────────────────
 
     /**
-     * POST /api/v1/shopping-lists/{id}/checkout — Convert shopping list to grocery cart.
-     * Uses the specified provider (defaults to "manual").
      */
     @PostMapping("/{id}/checkout")
     public ApiResponse<GroceryProvider.CheckoutResult> checkout(
             @PathVariable String id,
             @RequestParam(defaultValue = "manual") String provider) {
+        GroceryProvider groceryProvider = requireAvailableProvider(provider);
         ShoppingListResponse list = shoppingListService.getById(userId(), id);
         List<GroceryProvider.GroceryItemRequest> items = list.getItems().stream()
                 .filter(item -> !item.isChecked())
@@ -155,7 +150,6 @@ public class ShoppingListController {
                         item.getQuantity(), item.getUnit(), item.getCategory()))
                 .toList();
 
-        GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
         GroceryProvider.CheckoutResult result = groceryProvider.createCheckout(items, userId());
 
         checkoutRecordRepository.save(CheckoutRecord.builder()
@@ -174,13 +168,12 @@ public class ShoppingListController {
     }
 
     /**
-     * GET /api/v1/shopping-lists/checkout-status/{orderId} — Check delivery status.
      */
     @GetMapping("/checkout-status/{orderId}")
     public ApiResponse<GroceryProvider.OrderStatus> checkoutStatus(
             @PathVariable String orderId,
             @RequestParam(defaultValue = "manual") String provider) {
-        GroceryProvider groceryProvider = groceryProviderRegistry.getProvider(provider);
+        GroceryProvider groceryProvider = requireAvailableProvider(provider);
         GroceryProvider.OrderStatus status = groceryProvider.getOrderStatus(orderId);
 
         checkoutRecordRepository.findByOrderId(orderId).ifPresent(record -> {
@@ -195,7 +188,6 @@ public class ShoppingListController {
     }
 
     /**
-     * GET /api/v1/shopping-lists/grocery-providers — List available providers.
      */
     @GetMapping("/grocery-providers")
     public ApiResponse<List<GroceryProviderRegistry.ProviderInfo>> getProviders() {
@@ -205,8 +197,6 @@ public class ShoppingListController {
     }
 
     /**
-     * POST /api/v1/shopping-lists/ingredient-links — Get per-ingredient affiliate links.
-     * Used on recipe detail pages to show contextual "Buy" buttons for each ingredient.
      */
     @PostMapping("/ingredient-links")
     public ApiResponse<Map<String, String>> getIngredientLinks(
@@ -222,9 +212,18 @@ public class ShoppingListController {
                 .success(true).statusCode(200).data(links).build();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
 
     private String userId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    private GroceryProvider requireAvailableProvider(String providerId) {
+        GroceryProvider provider = groceryProviderRegistry.getProvider(providerId);
+        if (provider == null) {
+            throw new AppException(
+                    ErrorCode.INVALID_REQUEST,
+                    "Grocery checkout is unavailable for the requested provider");
+        }
+        return provider;
     }
 }

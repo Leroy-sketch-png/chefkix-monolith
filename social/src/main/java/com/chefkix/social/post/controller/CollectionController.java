@@ -87,9 +87,6 @@ public class CollectionController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    // ===============================================
-    // FEATURED / SEASONAL COLLECTIONS
-    // ===============================================
 
     @GetMapping("/featured")
     public ResponseEntity<ApiResponse<List<CollectionResponse>>> getFeaturedCollections(
@@ -100,9 +97,6 @@ public class CollectionController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    // ===============================================
-    // LEARNING PATH — Enrollment & Progress
-    // ===============================================
 
     @PostMapping("/{collectionId}/enroll")
     public ResponseEntity<ApiResponse<CollectionProgressResponse>> enroll(

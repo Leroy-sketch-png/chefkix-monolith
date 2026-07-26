@@ -28,14 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 /**
- * Moderation service for admin report review, ban management, and appeals.
- * Per spec 16-moderation.txt: Escalating penalties.
  *
- * Penalty escalation:
- * - 1st offense: 3 days
- * - 2nd offense: 7 days
- * - 3rd offense: 14 days
- * - 4th+ offense: permanent
  */
 @Service
 @Slf4j
@@ -50,26 +43,22 @@ public class ModerationService {
     CommentRepository commentRepository;
     RecipeProvider recipeProvider;
 
-    private static final int[] PENALTY_DAYS = {3, 7, 14, -1}; // -1 = permanent
+private static final int[] PENALTY_DAYS = {3, 7, 14, -1};
 
-    // ─── REPORTS ────────────────────────────────────────────────────
 
     /**
-     * Get all pending reports for admin review queue.
      */
     public List<Report> getPendingReports() {
         return reportRepository.findByStatus("pending");
     }
 
     /**
-     * Get all reports (any status) for admin dashboard. Capped at 200 most recent.
      */
     public List<Report> getAllReports() {
         return reportRepository.findAll(PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt"))).getContent();
     }
 
     /**
-     * Admin reviews a report. Can resolve, dismiss, or ban the user.
      */
     public Report reviewReport(String reportId, String adminId, ReviewReportRequest request) {
         Report report = reportRepository.findById(reportId)
@@ -85,7 +74,6 @@ public class ModerationService {
         report.setReviewedAt(Instant.now());
         reportRepository.save(report);
 
-        // If decision is ban_user, issue a ban
         if ("ban_user".equals(request.getDecision())) {
             String targetUserId = resolveReportedUserId(report);
             if (targetUserId != null) {
@@ -95,7 +83,6 @@ public class ModerationService {
             }
         }
 
-        // If decision is resolved, unhide content if it was auto-hidden
         if ("resolved".equals(request.getDecision())) {
             unhideContent(report.getTargetType(), report.getTargetId());
         }
@@ -104,22 +91,19 @@ public class ModerationService {
         return report;
     }
 
-    // ─── BANS ───────────────────────────────────────────────────────
 
     /**
-     * Issue a ban with escalating penalties.
      */
     public Ban banUser(String userId, String reason, String adminId, String scope, String relatedReportId) {
-        // Count previous offenses
         long previousOffenses = banRepository.countByUserId(userId);
         int offenseNumber = (int) previousOffenses + 1;
         int durationDays = offenseNumber <= PENALTY_DAYS.length
                 ? PENALTY_DAYS[offenseNumber - 1]
-                : PENALTY_DAYS[PENALTY_DAYS.length - 1]; // Default to permanent for 4th+
+: PENALTY_DAYS[PENALTY_DAYS.length - 1];
 
         Instant expiresAt = durationDays > 0
                 ? Instant.now().plus(durationDays, ChronoUnit.DAYS)
-                : null; // null = permanent
+: null;
 
         Ban ban = Ban.builder()
                 .userId(userId)
@@ -141,7 +125,6 @@ public class ModerationService {
     }
 
     /**
-     * Check if a user is currently banned (for a given scope).
      */
     public boolean isUserBanned(String userId, String scope) {
         List<Ban> activeBans = banRepository.findByUserIdAndActiveTrue(userId);
@@ -150,7 +133,6 @@ public class ModerationService {
     }
 
     /**
-     * Get active ban for a user (for displaying ban info).
      */
     public BanResponse getActiveBan(String userId) {
         return banRepository.findFirstByUserIdAndActiveTrueOrderByIssuedAtDesc(userId)
@@ -159,7 +141,6 @@ public class ModerationService {
     }
 
     /**
-     * Get ban history for a user.
      */
     public List<BanResponse> getBanHistory(String userId) {
         return banRepository.findByUserIdOrderByIssuedAtDesc(userId).stream()
@@ -168,7 +149,6 @@ public class ModerationService {
     }
 
     /**
-     * Revoke a ban (admin action or appeal approved).
      */
     public void revokeBan(String banId, String adminId) {
         Ban ban = banRepository.findById(banId)
@@ -178,20 +158,16 @@ public class ModerationService {
         log.info("Ban {} revoked by admin {}", banId, adminId);
     }
 
-    // ─── APPEALS ────────────────────────────────────────────────────
 
     /**
-     * User submits an appeal against their ban.
      */
     public Appeal createAppeal(String userId, AppealRequest request) {
-        // Verify ban exists and belongs to the requesting user
         Ban ban = banRepository.findById(request.getBanId())
                 .orElseThrow(() -> new AppException(ErrorCode.BAN_NOT_FOUND));
         if (!ban.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         }
 
-        // Check for existing pending appeal
         appealRepository.findByBanIdAndStatus(request.getBanId(), "pending")
                 .ifPresent(a -> { throw new AppException(ErrorCode.APPEAL_ALREADY_EXISTS); });
 
@@ -209,7 +185,6 @@ public class ModerationService {
     }
 
     /**
-     * Admin reviews an appeal.
      */
     public Appeal reviewAppeal(String appealId, String adminId, ReviewAppealRequest request) {
         Appeal appeal = appealRepository.findById(appealId)
@@ -225,7 +200,6 @@ public class ModerationService {
         appeal.setReviewedAt(Instant.now());
         appealRepository.save(appeal);
 
-        // If approved, revoke the ban
         if ("approved".equals(request.getDecision())) {
             revokeBan(appeal.getBanId(), adminId);
         }
@@ -235,18 +209,15 @@ public class ModerationService {
     }
 
     /**
-     * Get all pending appeals for admin review.
      */
     public List<Appeal> getPendingAppeals() {
         return appealRepository.findByStatus("pending");
     }
 
-    // ─── SCHEDULED: EXPIRE BANS ─────────────────────────────────────
 
     /**
-     * Runs hourly to expire bans that have passed their expiration date.
      */
-    @Scheduled(cron = "0 0 * * * *") // Every hour
+@Scheduled(cron = "0 0 * * * *")
     public void expireBans() {
         try {
             List<Ban> expiredBans = banRepository.findByActiveTrueAndExpiresAtBefore(Instant.now());
@@ -261,10 +232,8 @@ public class ModerationService {
         }
     }
 
-    // ─── HELPERS ────────────────────────────────────────────────────
 
     /**
-     * Resolve the userId of the content author from a report.
      */
     private String resolveReportedUserId(Report report) {
         String targetType = report.getTargetType();

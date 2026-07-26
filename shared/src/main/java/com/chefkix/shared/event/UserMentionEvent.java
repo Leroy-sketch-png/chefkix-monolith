@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user is @mentioned in a post or comment.
- * <p>
- * Producer: social module (post/comment). Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -18,7 +15,6 @@ import lombok.NoArgsConstructor;
 public class UserMentionEvent extends BaseEvent {
 
     private String sourceId;
-    /** "COMMENT" or "POST" */
     private String sourceType;
     private String postId;
     private String actorId;

@@ -4,7 +4,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Single item in the auto-generated shopping list.
  */
 @Data
 @Builder

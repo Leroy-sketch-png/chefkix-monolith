@@ -18,5 +18,5 @@ public class CommentRequest {
   String content;
 
   @Size(max = 10, message = "Maximum 10 users can be tagged")
-  List<String> taggedUserIds;  // Users @mentioned in the comment
+List<String> taggedUserIds;
 }

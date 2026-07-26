@@ -9,10 +9,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 
 /**
- * Pagination metadata returned alongside paginated responses.
- * <p>
- * Extracted from {@link ApiResponse} inner class to a standalone DTO
- * for direct reuse and clearer serialization.
  */
 @Data
 @Builder
@@ -28,7 +24,6 @@ public class PaginationMeta {
     boolean first;
     boolean last;
 
-    /** Build from a Spring Data {@link Page}. */
     public static PaginationMeta from(Page<?> page) {
         return PaginationMeta.builder()
                 .page(page.getNumber())

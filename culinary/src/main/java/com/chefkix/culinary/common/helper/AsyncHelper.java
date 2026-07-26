@@ -24,7 +24,6 @@ public class AsyncHelper {
     UploadImageFile uploadImageFile;
 
     /**
-     * Fetch profile asynchronously and map to culinary-internal AuthorResponse.
      */
     @Async("taskExecutor")
     public CompletableFuture<AuthorResponse> getProfileAsync(String userId) {
@@ -49,7 +48,6 @@ public class AsyncHelper {
 
 
     /**
-     * Upload file async
      */
     @Async("taskExecutor")
     public CompletableFuture<String> uploadFileAsync(MultipartFile photo) {

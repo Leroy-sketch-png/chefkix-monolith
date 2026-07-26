@@ -16,11 +16,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Daily scheduler that alerts users about pantry items expiring within 3 days.
- * Sends "PANTRY_EXPIRING" reminders via Kafka → notification module.
  *
- * Runs daily at 08:00 UTC. Only alerts once per item per day (no spam).
- * Produces "use it or lose it" recipe suggestions in the notification content.
  */
 @Slf4j
 @Component
@@ -34,7 +30,6 @@ public class PantryExpiryScheduler {
     private static final String PANTRY_COLLECTION = "pantry_items";
 
     /**
-     * Every day at 08:00 UTC — check for pantry items expiring within 3 days.
      */
     @Scheduled(cron = "0 0 8 * * *", zone = "UTC")
     public void checkExpiringItems() {
@@ -42,12 +37,10 @@ public class PantryExpiryScheduler {
             LocalDate today = LocalDate.now(ZoneOffset.UTC);
             LocalDate threeDaysOut = today.plusDays(3);
 
-            // Find distinct users with expiring items
             Query query = new Query(Criteria.where("expiryDate")
                     .gte(today).lte(threeDaysOut));
             List<Document> expiringItems = mongoTemplate.find(query, Document.class, PANTRY_COLLECTION);
 
-            // Group by userId
             var byUser = new java.util.HashMap<String, List<String>>();
             for (Document item : expiringItems) {
                 String userId = item.getString("userId");

@@ -14,7 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeCompletionRequest {
-    // Only accept proof from Client
     @Size(max = 10)
     List<@Size(max = 500) String> proofImageUrls;
 
@@ -22,7 +21,6 @@ public class RecipeCompletionRequest {
     @NotEmpty
     List<TimerLog> timerLogs;
 
-    // Rating & Notes (Optional - for Mastery)
     @Min(1) @Max(5)
     Integer rating;
     @Size(max = 2000)

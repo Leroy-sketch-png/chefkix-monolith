@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Response DTO from AI service POST /api/v1/score_recipe_quality.
- * Contains quality score, tier, and dimensional breakdown.
  */
 @Data
 @NoArgsConstructor

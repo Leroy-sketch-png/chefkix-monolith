@@ -11,10 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Scheduled job to reset weekly and monthly XP counters for leaderboard.
  *
- * <p>Per spec (04-statistics.txt): - xpWeekly: Reset weekly by scheduled job (Monday 00:00) -
- * xpMonthly: Reset monthly by scheduled job (1st of month 00:00)
  */
 @Slf4j
 @Component
@@ -24,10 +21,8 @@ public class XpResetScheduler {
   private final MongoTemplate mongoTemplate;
 
   /**
-   * Reset weekly XP for all users every Monday at midnight. This is used for weekly leaderboard
-   * rankings.
    */
-  @Scheduled(cron = "0 0 0 * * MON") // Every Monday at 00:00
+@Scheduled(cron = "0 0 0 * * MON")
   public void resetWeeklyXp() {
     log.info("Resetting weekly XP for all users...");
 
@@ -48,10 +43,8 @@ public class XpResetScheduler {
   }
 
   /**
-   * Reset monthly XP for all users on the 1st of each month at midnight. This is used for monthly
-   * leaderboard rankings.
    */
-  @Scheduled(cron = "0 0 0 1 * *") // 1st of every month at 00:00
+@Scheduled(cron = "0 0 0 1 * *")
   public void resetMonthlyXp() {
     log.info("Resetting monthly XP for all users...");
 

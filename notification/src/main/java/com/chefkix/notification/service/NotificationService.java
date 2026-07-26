@@ -47,28 +47,20 @@ public class NotificationService {
     private static final int POST_PREVIEW_LENGTH = 50;
     private static final Pattern XP_AMOUNT_PATTERN = Pattern.compile("(\\d+)\\s*XP", Pattern.CASE_INSENSITIVE);
 
-    // ===============================================
-    // HELPER METHODS
-    // ===============================================
 
     private String safeDisplayName(String name) {
         return (name != null && !name.isBlank()) ? name : "Someone";
     }
 
-    // ===============================================
-    // EVENT HANDLERS
-    // ===============================================
 
     public void handlePostLikeEvent(PostLikeEvent event) {
         String recipientId = event.getPostOwnerId();
         String targetId = event.getPostId();
 
-        // Skip self-like notifications
         if (event.getLikerId().equals(recipientId)) {
             return;
         }
 
-        // PREFERENCE CHECK: respect user's social notification toggle
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
             log.debug("Skipping POST_LIKE notification for user {} — social notifications disabled", recipientId);
             return;
@@ -96,7 +88,6 @@ public class NotificationService {
         String recipientId = event.getFollowedUserId();
         String displayName = safeDisplayName(event.getFollowerDisplayName());
 
-        // PREFERENCE CHECK: respect user's follower notification toggle
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "followers")) {
             log.debug("Skipping NEW_FOLLOWER notification for user {} — follower notifications disabled", recipientId);
             return;
@@ -132,12 +123,10 @@ public class NotificationService {
         String recipientId = event.getPostOwnerId();
         String displayName = safeDisplayName(event.getCommenterDisplayName());
 
-        // Skip self-comment notifications
         if (event.getCommenterId().equals(recipientId)) {
             return;
         }
 
-        // PREFERENCE CHECK: respect user's social notification toggle
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
             log.debug("Skipping POST_COMMENT notification for user {} — social notifications disabled", recipientId);
             return;
@@ -243,7 +232,6 @@ public class NotificationService {
         }
 
         if (event.isLeveledUp()) {
-            // PREFERENCE CHECK: respect user's xpAndLevelUps toggle
             if (!xpAndLevelUpsEnabled) {
                 log.debug("Skipping LEVEL_UP notification for user {} — xpAndLevelUps disabled", recipientId);
             } else {
@@ -281,7 +269,6 @@ public class NotificationService {
         }
 
         if (event.getNewBadges() != null && !event.getNewBadges().isEmpty()) {
-            // PREFERENCE CHECK: respect user's badges toggle
             if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "badges")) {
                 log.debug("Skipping BADGE_EARNED notification for user {} — badge notifications disabled", recipientId);
             } else {
@@ -324,7 +311,6 @@ public class NotificationService {
         String recipientId = event.getUserId();
         String displayName = safeDisplayName(event.getDisplayName());
 
-        // Shared ReminderEvent uses String reminderType — map to NotificationType enum
         NotificationType reminderType;
         try {
             reminderType = NotificationType.valueOf(event.getReminderType());
@@ -333,7 +319,6 @@ public class NotificationService {
             reminderType = NotificationType.STREAK_WARNING;
         }
 
-        // PREFERENCE CHECK: map reminder type to preference category
         String prefCategory = switch (reminderType) {
             case STREAK_WARNING -> "streakWarning";
             case POST_DEADLINE -> "postDeadline";
@@ -347,7 +332,6 @@ public class NotificationService {
             return;
         }
 
-        // Build structured data map for client-side rendering
         Map<String, String> reminderData = new HashMap<>();
         if (event.getStreakCount() != null) reminderData.put("streakCount", String.valueOf(event.getStreakCount()));
         if (event.getHoursRemaining() != null) reminderData.put("hoursRemaining", String.valueOf(event.getHoursRemaining()));
@@ -408,7 +392,6 @@ public class NotificationService {
         String recipientId = event.getUserId();
         String displayName = safeDisplayName(event.getActorDisplayName());
 
-        // PREFERENCE CHECK: mentions fall under social notifications
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
             log.debug("Skipping USER_MENTION notification for user {} — social notifications disabled", recipientId);
             return;
@@ -447,9 +430,6 @@ public class NotificationService {
         log.info("Created mention notification for user: {} in source: {}", recipientId, event.getSourceType());
     }
 
-    // ===============================================
-    // DUEL EVENT HANDLER
-    // ===============================================
 
     public void handleDuelEvent(DuelEvent event) {
         String recipientId = event.getUserId();
@@ -496,9 +476,6 @@ public class NotificationService {
         );
     }
 
-    // ===============================================
-    // GROUP EVENT HANDLERS (REFACTORED)
-    // ===============================================
 
     public void handleGroupJoinRequestedEvent(GroupJoinRequestedEvent event) {
         String displayName = safeDisplayName(event.getRequesterDisplayName());
@@ -506,7 +483,7 @@ public class NotificationService {
                 displayName, event.getGroupName());
 
         createAndBroadcastNotification(
-                event.getUserId(), // adminId
+                event.getUserId(),
                 event.getRequesterId(),
                 displayName,
                 event.getRequesterAvatarUrl(),
@@ -523,7 +500,7 @@ public class NotificationService {
                 displayName, event.getGroupName());
 
         createAndBroadcastNotification(
-                event.getUserId(), // adminId
+                event.getUserId(),
                 event.getMemberId(),
                 displayName,
                 event.getMemberAvatarUrl(),
@@ -540,60 +517,52 @@ public class NotificationService {
                 event.getGroupName());
 
         createAndBroadcastNotification(
-                event.getRequesterId(),        // recipient: The user
-                event.getGroupId(),            // actorId: Make the GROUP the actor!
-                event.getGroupName(),          // actorName: The Group's name
-                event.getGroupCoverImageUrl(), // actorAvatar: The Group's cover photo!
-                event.getGroupId(),            // targetEntityId: The Group
+                event.getRequesterId(),
+                event.getGroupId(),
+                event.getGroupName(),
+event.getGroupCoverImageUrl(),
+event.getGroupId(),
                 content,
                 NotificationType.JOIN_REQUEST_APPROVED,
                 "Created join request approved notification"
         );
     }
 
-    // ===============================================
-    // STORY EVENT HANDLER
-    // ===============================================
 
     public void handleStoryInteractedEvent(StoryInteractionEvent event) {
         String recipientId = event.getStoryOwnerId();
         String actorId = event.getUserId();
         String displayName = safeDisplayName(event.getUserDisplayName());
 
-        // 1. Chống tự thông báo
         if (actorId.equals(recipientId)) {
             return;
         }
 
-        // 2. CHỐT CHẶN TỐI ƯU: Bỏ qua hoàn toàn nếu chỉ là lượt Xem (VIEW)
         if (event.getInteractionType() == null || event.getInteractionType().equalsIgnoreCase("VIEW")) {
             return;
         }
 
-        // 3. Chỉ xử lý REACTION: Kiểm tra user có tắt thông báo Social không
         if (!notificationPreferencesProvider.isNotificationEnabled(recipientId, "social")) {
             log.debug("Skipping STORY_REACTION notification for user {} — social disabled", recipientId);
             return;
         }
 
-        // 4. Mapping Icon cảm xúc
         String reactionEmoji = switch (event.getInteractionType().toUpperCase()) {
             case "FIRE" -> "🔥";
             case "HEART" -> "❤️";
             case "WOW" -> "😲";
             case "LAUGH" -> "😂";
             case "SAD" -> "😢";
-            default -> "thả cảm xúc vào";
+            default -> "reacted";
         };
 
         String content;
         if (reactionEmoji.length() <= 2) {
-            content = String.format("%s đã thả %s vào tin của bạn.", displayName, reactionEmoji);
+            content = String.format("%s reacted with %s to your story.", displayName, reactionEmoji);
         } else {
-            content = String.format("%s đã %s tin của bạn.", displayName, reactionEmoji);
+            content = String.format("%s reacted to your story.", displayName, reactionEmoji);
         }
 
-        // 5. Lưu vào Database & Broadcast
         createAndBroadcastNotification(
                 recipientId,
                 actorId,
@@ -632,9 +601,6 @@ public class NotificationService {
         log.info("{} for recipient: {} regarding target: {}", logMessagePrefix, recipientId, targetEntityId);
     }
 
-    // ===============================================
-    // INTERNAL HELPERS
-    // ===============================================
 
     private Notification createNewPostLikeNotification(PostLikeEvent event) {
         String displayName = safeDisplayName(event.getDisplayName());
@@ -673,9 +639,6 @@ public class NotificationService {
         }
     }
 
-    // ===============================================
-    // READ / UPDATE OPERATIONS
-    // ===============================================
 
     public long getUnreadNotificationCount(String userId) {
         return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
@@ -750,12 +713,8 @@ public class NotificationService {
         return updated;
     }
 
-    // ===============================================
-    // WEBSOCKET + PUSH BROADCAST
-    // ===============================================
 
     public void broadcastNotification(String recipientId, NotificationResponse response, String action) {
-        // WebSocket broadcast for real-time delivery
         Map<String, Object> payload = new HashMap<>();
         payload.put("action", action);
         payload.put("notification", response);
@@ -763,14 +722,12 @@ public class NotificationService {
         messagingTemplate.convertAndSend(USER_TOPIC_PREFIX + recipientId, payload);
         log.info("Broadcasted {} notification to user: {}", action, recipientId);
 
-        // Push notification for background/offline delivery
         if ("CREATE".equals(action)) {
             sendPushNotification(recipientId, response);
         }
     }
 
     /**
-     * Send push notification to user's devices.
      */
     private void sendPushNotification(String recipientId, NotificationResponse response) {
         String title = "ChefKix";
@@ -787,7 +744,6 @@ public class NotificationService {
                 case CREATOR_BONUS -> title = "🍳 Creator Bonus";
                 case STREAK_WARNING -> title = "🔥 Streak Alert";
                 case USER_MENTION -> title = "📝 You were mentioned";
-                // Added new push notification titles for Groups!
                 case JOIN_REQUESTED -> title = "🚪 Group Request";
                 case MEMBER_JOINED -> title = "👋 New Group Member";
                 case JOIN_REQUEST_APPROVED -> title = "✅ Request Approved";
@@ -837,13 +793,8 @@ public class NotificationService {
         return event.getRecipeId();
     }
 
-    // ===============================================
-    // WELCOME BACK — ACTIVITY SUMMARY
-    // ===============================================
 
     /**
-     * Aggregate notifications since a given timestamp, grouped by type.
-     * Powers the "Welcome Back" dashboard card.
      */
     public NotificationSummaryResponse getActivitySummary(String userId, Instant since) {
         Instant maxLookback = Instant.now().minus(90, java.time.temporal.ChronoUnit.DAYS);
@@ -871,7 +822,6 @@ public class NotificationService {
     }
 
     /**
-     * Sum counts for one or more notification types.
      */
     private int countTypes(Map<NotificationType, Long> counts, NotificationType... types) {
         int total = 0;

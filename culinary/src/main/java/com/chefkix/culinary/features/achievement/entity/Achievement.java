@@ -10,9 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Achievement blueprint — static definition seeded on startup.
- * Defines what a user must do to unlock an achievement.
- * {@code pathId} groups achievements into progression paths (e.g., "japanese", "saute").
  */
 @Data
 @Builder
@@ -33,17 +30,17 @@ public class Achievement {
     @Indexed
     AchievementCategory category;
 
-    int tier; // 1-4
+int tier;
 
-    String icon; // emoji
+String icon;
 
     @Indexed
-    String pathId; // groups into paths: "cuisine_japanese", "technique_saute"
+String pathId;
 
-    String prerequisiteCode; // previous achievement in path (null for first)
+String prerequisiteCode;
 
     CriteriaType criteriaType;
-    String criteriaTarget; // "Japanese", "sauté", etc. null for generic criteria
+String criteriaTarget;
     int criteriaThreshold;
 
     @Builder.Default

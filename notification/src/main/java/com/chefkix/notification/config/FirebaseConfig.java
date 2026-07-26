@@ -16,10 +16,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Firebase configuration for FCM push notifications.
  * 
- * <p>Requires FIREBASE_SERVICE_ACCOUNT_JSON environment variable containing
- * the service account JSON credentials.</p>
  */
 @Slf4j
 @Configuration

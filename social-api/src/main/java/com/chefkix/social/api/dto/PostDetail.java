@@ -10,10 +10,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Post detail for sharing context in chat messages.
- * <p>
- * Replaces: chat-service's {@code InternalPostResponse}.
- * Contains just enough data to render a shared post preview in chat.
  */
 @Data
 @Builder
@@ -24,16 +20,12 @@ public class PostDetail {
 
     String id;
 
-    /** Display name of the post author */
     String displayName;
 
-    /** Post caption/content */
     String content;
 
-    /** Photo URLs (first element used as thumbnail in chat) */
     List<String> photoUrls;
 
-    // --- Recipe context ---
 
     String recipeTitle;
 

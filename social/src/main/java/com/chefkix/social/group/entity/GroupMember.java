@@ -19,13 +19,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Document(collection = "group_members")
 @CompoundIndexes({
-        // 1. Prevents duplicate join requests. A user has exactly ONE state per group.
         @CompoundIndex(name = "unique_group_user_idx", def = "{'groupId': 1, 'userId': 1}", unique = true),
 
-        // 2. Used by the "Home Feed Aggregator" to instantly find all groups a user is active in.
         @CompoundIndex(name = "user_status_idx", def = "{'userId': 1, 'status': 1}"),
 
-        // 3. Used by Group Admins to quickly load all "PENDING" requests or "ACTIVE" members.
         @CompoundIndex(name = "group_status_idx", def = "{'groupId': 1, 'status': 1}")
 })
 public class GroupMember {
@@ -41,8 +38,6 @@ public class GroupMember {
 
     private LocalDateTime requestedAt;
     private LocalDateTime joinedAt;
-
-
 
 
 }

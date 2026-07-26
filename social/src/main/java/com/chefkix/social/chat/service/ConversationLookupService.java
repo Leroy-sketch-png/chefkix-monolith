@@ -54,8 +54,6 @@ public class ConversationLookupService {
 
     private org.bson.conversions.Bson buildIdFilter(String conversationId) {
         if (ObjectId.isValid(conversationId)) {
-            // Seeded conversations may still have ObjectId-backed _id values while
-            // newer records are stored as strings.
             return Filters.or(
                     Filters.eq("_id", conversationId),
                     Filters.eq("_id", new ObjectId(conversationId)));

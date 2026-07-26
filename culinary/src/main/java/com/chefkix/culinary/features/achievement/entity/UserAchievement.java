@@ -13,8 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Per-user progress towards a specific achievement.
- * One document per (userId, achievementCode) pair.
  */
 @Data
 @Builder
@@ -36,7 +34,7 @@ public class UserAchievement {
     String achievementCode;
 
     int currentProgress;
-    int requiredProgress; // denormalized from Achievement.criteriaThreshold
+int requiredProgress;
 
     @Builder.Default
     boolean unlocked = false;

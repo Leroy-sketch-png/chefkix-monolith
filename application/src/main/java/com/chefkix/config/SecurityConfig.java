@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Unified security configuration for the ChefKix monolith.
- * Merges public endpoints from all former microservices.
  */
 @Configuration
 @EnableWebSecurity
@@ -42,38 +40,29 @@ public class SecurityConfig {
     private boolean swaggerEnabled;
 
     /**
-     * Public endpoints that do NOT require authentication.
-     * CRITICAL: Must match ACTUAL controller @XxxMapping paths exactly.
-     * Audited 2025-03 against all controllers in identity/notification modules.
      */
     private static final String[] PUBLIC_ENDPOINTS = {
-            // --- Auth (identity) -- pre-login flows only ---
-            "/auth/login",                  // AuthenticationController POST /login
-            "/auth/google",                 // AuthenticationController POST /google
-            "/auth/register",               // AuthenticationController POST /register
-            "/auth/check-username",         // AuthenticationController GET /check-username
-            "/auth/refresh-token",          // AuthenticationController POST /refresh-token
-            "/auth/verify-otp",             // OtpController POST /verify-otp (signup OTP)
-            "/auth/resend-otp",             // OtpController POST /resend-otp
-            "/auth/forgot-password",        // AuthenticationController POST /forgot-password
-            "/auth/verify-otp-password",    // AuthenticationController PUT /verify-otp-password (reset)
-            "/auth/verify-otp-user",        // ProfileController POST /verify-otp-user (signup finalize)
+"/auth/login",
+"/auth/google",
+"/auth/register",
+"/auth/check-username",
+"/auth/refresh-token",
+"/auth/verify-otp",
+"/auth/resend-otp",
+"/auth/forgot-password",
+"/auth/verify-otp-password",
+"/auth/verify-otp-user",
             "/error",
-            // --- WebSocket ---
             "/ws/**",
 
-            // --- Actuator (health only -- restrict env/beans/heap in prod) ---
             "/actuator/health",
 
-            // --- Shopping list share links (public) ---
             "/shopping-lists/shared/**",
 
-            // --- Typesense search + autocomplete (public -- typo-tolerant, no user data) ---
             "/search",
             "/search/autocomplete",
             "/search/trending",
 
-            // --- Knowledge graph (public -- ingredient/technique lookups, no PII) ---
             "/knowledge/**",
     };
 
@@ -84,57 +73,46 @@ public class SecurityConfig {
     };
 
     /**
-     * Guest-browsable GET endpoints. Gate ACTIONS (like, save, comment, follow), not VIEWING.
-     * Controllers already handle null/anonymous auth gracefully for these paths.
      */
     private static final String[] GUEST_GET_ENDPOINTS = {
-            // --- Recipes (culinary module) ---
-            "/recipes",                     // RecipeController GET / (search & filter)
-            "/recipes/search",              // RecipeController GET /search (alias)
-            "/recipes/trending",            // RecipeController GET /trending
-            "/recipes/*",                   // RecipeController GET /{id} (recipe detail)
-            "/recipes/*/social-proof",      // RecipeController GET /{id}/social-proof
-            "/recipes/*/similar",           // RecipeController GET /{id}/similar
-            "/recipes/user/*",              // RecipeController GET /user/{userId}
+"/recipes",
+"/recipes/search",
+"/recipes/trending",
+"/recipes/*",
+"/recipes/*/social-proof",
+"/recipes/*/similar",
+"/recipes/user/*",
 
-            // --- Posts/Feed (social module) ---
-            "/posts/all",                   // PostController GET /all (global feed)
-            "/posts/search",                // PostController GET /search
-            "/posts/*",                     // PostController GET /{postId} (single post)
-            "/posts/feed",                  // PostController GET /feed?userId= (user posts)
-            "/posts/*/comments",            // CommentController GET /{postId}/comments (view comments)
-            "/posts/comments/*/replies",    // CommentController GET /comments/{commentId}/replies
+"/posts/all",
+"/posts/search",
+"/posts/*",
+"/posts/feed",
+"/posts/*/comments",
+"/posts/comments/*/replies",
 
-            // --- Public profiles (identity module) ---
-            "/auth/profile-only/*",         // ProfileController GET /profile-only/{userId}
-            "/auth/profiles/paginated",     // ProfileController GET /profiles/paginated (user discovery)
-            "/auth/leaderboard",            // LeaderboardController GET /leaderboard
+"/auth/profile-only/*",
+"/auth/profiles/paginated",
+"/auth/leaderboard",
 
-            // --- Featured collections (social module) ---
-            "/collections/featured",        // CollectionController GET /featured (Season's Best)
+"/collections/featured",
 
-            // --- Achievements (culinary module) ---
-            "/achievements/user/*",         // AchievementController GET /user/{userId} (public skill tree)
-            "/achievements",                // AchievementController GET / (full achievement catalog)
+"/achievements/user/*",
+"/achievements",
 
-            // --- Challenges (culinary module) - browsable by guests ---
-            "/challenges/today",            // ChallengeController GET /today (daily challenge)
-            "/challenges/weekly",           // ChallengeController GET /weekly (weekly challenge)
-            "/challenges/community",        // ChallengeController GET /community (community challenges)
-            "/challenges/seasonal",         // ChallengeController GET /seasonal (seasonal events)
+"/challenges/today",
+"/challenges/weekly",
+"/challenges/community",
+"/challenges/seasonal",
 
-            // --- Reviews & Battles (social module) ---
-            "/posts/reviews/recipe/*",      // PostController GET /reviews/recipe/{recipeId}
-            "/posts/reviews/recipe/*/stats",// PostController GET /reviews/recipe/{recipeId}/stats
-            "/posts/battles/active",        // PostController GET /battles/active
+"/posts/reviews/recipe/*",
+"/posts/reviews/recipe/*/stats",
+"/posts/battles/active",
 
-            // --- User collections (social module) ---
-            "/collections/*",               // CollectionController GET /{collectionId} (public collections only)
-            "/collections/*/posts",         // CollectionController GET /{collectionId}/posts (public collections only)
-            "/collections/user/*",          // CollectionController GET /user/{userId} (public collections)
+"/collections/*",
+"/collections/*/posts",
+"/collections/user/*",
 
-            // --- Knowledge graph (culinary module) ---
-            "/knowledge-graph/**",          // KnowledgeGraphController GET (ingredients, techniques)
+"/knowledge-graph/**",
     };
 
     private String[] getPublicEndpoints() {

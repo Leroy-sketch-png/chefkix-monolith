@@ -69,21 +69,16 @@ import org.springframework.transaction.annotation.Transactional;
     @Lazy SessionProvider sessionProvider;
 
   /**
-   * Main method handling logic after completing a Recipe (Called from Recipe Service). Performs: Add
-   * XP + Check Level + Add Badges + Increment Counter -> Save once.
    */
   @Transactional
   @Retryable(
       retryFor = {OptimisticLockingFailureException.class},
       maxAttempts = 5)
   public RecipeCompletionResponse updateAfterCompletion(InternalCompletionRequest request) {
-    // Internal method called by culinary module via ProfileProvider.
-    // Prefer request.userId over SecurityContext since auth may be null for internal calls.
     String userId = request.getUserId();
         String idempotencyKey = request.getIdempotencyKey();
         boolean reservedSyncIdempotency = false;
     if (userId == null || userId.isEmpty()) {
-      // Fallback to SecurityContext only if userId not provided in request
       var auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth != null) {
         userId = auth.getName();
@@ -114,7 +109,6 @@ import org.springframework.transaction.annotation.Transactional;
         }
       }
 
-            // 1. Get Profile
             UserProfile profile =
                     userProfileRepository
                             .findByUserId(userId)
@@ -123,13 +117,10 @@ import org.springframework.transaction.annotation.Transactional;
             Statistics stats =
                     (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-            // 2. PROCESS XP & LEVEL (Using private helper) - capture result for level-up detection
             XpLevelResult levelResult = applyXpAndLevelLogic(stats, request.getXpAmount());
 
-            // 3. PROCESS BADGES (Add new ones, avoid duplicates)
             List<String> actuallyAddedBadges = new ArrayList<>();
             if (request.getNewBadges() != null && !request.getNewBadges().isEmpty()) {
-                // Initialize badge list if not yet created
                 if (stats.getBadges() == null) {
                     stats.setBadges(new ArrayList<>());
                 }
@@ -138,7 +129,6 @@ import org.springframework.transaction.annotation.Transactional;
                 }
 
                 for (String badge : request.getNewBadges()) {
-                    // Only add if user doesn't already have this badge
                     if (!stats.getBadges().contains(badge)) {
                         stats.getBadges().add(badge);
                         stats.getBadgeTimestamps().putIfAbsent(badge, java.time.Instant.now());
@@ -147,9 +137,6 @@ import org.springframework.transaction.annotation.Transactional;
                 }
             }
 
-                // 4. APPLY COOKING COMPLETION PROGRESSION
-                // Keep sync completion behavior aligned with the Kafka fallback path:
-                // streaks, recipe mastery, completion count, and challenge streaks.
                 applyCookingCompletionProgress(
                     stats,
                     userId,
@@ -157,7 +144,6 @@ import org.springframework.transaction.annotation.Transactional;
                     request.isChallengeCompleted(),
                     Instant.now());
 
-            // 5. UPDATE AND SAVE (once)
             profile.setStatistics(stats);
             userProfileRepository.save(profile);
 
@@ -188,22 +174,18 @@ import org.springframework.transaction.annotation.Transactional;
         }
   }
 
-  /** Manually add XP (Admin or other events) */
   @Transactional
   @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
   public ProfileResponse addXp(String userId, double xpAmount) {
       processXpAndStatsUpdate(userId, xpAmount, null, false);
 
-      // Fetch profile again to map to response
       UserProfile profile = userProfileRepository.findByUserId(userId)
               .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
       return profileMapper.toProfileResponse(profile);
   }
 
-  // --- PRIVATE HELPER METHODS (Optimized for reuse) ---
 
   /**
-   * Result of XP and level calculation, used for notification triggering.
    */
   private record XpLevelResult(boolean leveledUp, int previousLevel, int newLevel, String newTitle) {}
 
@@ -229,10 +211,7 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     /**
-   * Core logic for calculating excess XP and leveling up. This method only modifies the Statistics
-   * object, does not call DB.
    * 
-   * @return XpLevelResult with level change info for notifications
    */
   private XpLevelResult applyXpAndLevelLogic(Statistics stats, double xpAmount) {
     if (xpAmount < 0) {
@@ -244,18 +223,15 @@ import org.springframework.transaction.annotation.Transactional;
     int previousLevel = stats.getCurrentLevel();
     stats.setCurrentXP(stats.getCurrentXP() + xpAmount);
 
-    // Track weekly, monthly, and all-time XP for leaderboard
     double currentWeeklyXp = stats.getXpWeekly() != null ? stats.getXpWeekly() : 0.0;
     double currentMonthlyXp = stats.getXpMonthly() != null ? stats.getXpMonthly() : 0.0;
     double currentAllTimeXp = stats.getTotalXpAllTime() != null ? stats.getTotalXpAllTime() : 0.0;
     stats.setXpWeekly(currentWeeklyXp + xpAmount);
     stats.setXpMonthly(currentMonthlyXp + xpAmount);
-    // totalXpAllTime is cumulative — never resets on level-up. This is the honest all-time ranking field.
     stats.setTotalXpAllTime(currentAllTimeXp + xpAmount);
 
     boolean leveledUp = false;
 
-    // Loop to check level up (can level up multiple times at once)
     while (stats.getCurrentXP() >= stats.getCurrentXPGoal()) {
       leveledUp = true;
       double excessXp = stats.getCurrentXP() - stats.getCurrentXPGoal();
@@ -403,7 +379,6 @@ import org.springframework.transaction.annotation.Transactional;
     Update update = new Update().inc(field, amount);
     mongoTemplate.updateFirst(query, update, "user_profiles");
 
-    // Floor at 0 to prevent negative counters from data inconsistencies
     if (amount < 0) {
       Query floorQuery = Query.query(Criteria.where("userId").is(userId).and(field).lt(0));
       Update floorUpdate = new Update().set(field, 0);
@@ -414,7 +389,6 @@ import org.springframework.transaction.annotation.Transactional;
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void rewardXp(String userId, double amount) {
-        // Legacy method - delegates to full method with no badges
         rewardXpFull(userId, amount, null, false);
     }
 
@@ -451,15 +425,12 @@ import org.springframework.transaction.annotation.Transactional;
 
         String normalizedSource = (source != null && !source.isBlank()) ? source : "COOKING_SESSION";
 
-        // Get profile and stats
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Statistics stats = (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-        // Apply XP and level logic - capture result for notifications
         XpLevelResult levelResult = applyXpAndLevelLogic(stats, amount);
 
-        // Apply badges (deduplicate) and track new badges for notification
         List<String> actuallyNewBadges = new ArrayList<>();
         if (badges != null && !badges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
@@ -486,11 +457,9 @@ import org.springframework.transaction.annotation.Transactional;
             applyCookingCompletionProgress(stats, userId, recipeId, challengeCompleted, now);
         }
 
-        // Save
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
-        // Send gamification notification (XP, level-up, badges)
         sendGamificationNotification(
                 userId, profile.getDisplayName(),
                 amount, stats.getCurrentXP(),
@@ -499,16 +468,13 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     private Statistics processXpAndStatsUpdate(String userId, double xpAmount, List<String> newBadges, boolean incrementRecipeCount) {
-        // A. Get Profile (Fail-safe)
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Statistics stats = (profile.getStatistics() != null) ? profile.getStatistics() : Statistics.builder().build();
 
-        // B. PROCESS XP & LEVEL (Core logic - fixed below)
         applyXpAndLevelLogic(stats, xpAmount);
 
-        // C. PROCESS BADGES (Using Set for concise code and deduplication)
         if (newBadges != null && !newBadges.isEmpty()) {
             Set<String> currentBadges = new HashSet<>(stats.getBadges() != null ? stats.getBadges() : new ArrayList<>());
             if (stats.getBadgeTimestamps() == null) {
@@ -523,13 +489,11 @@ import org.springframework.transaction.annotation.Transactional;
             stats.setBadges(new ArrayList<>(currentBadges));
         }
 
-        // D. PROCESS COUNTER (Recipes cooked count)
         if (incrementRecipeCount) {
             long currentCount = stats.getCompletionCount() == null ? 0L : stats.getCompletionCount();
             stats.setCompletionCount(currentCount + 1);
         }
 
-        // E. SAVE TO DATABASE (MongoDB)
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
@@ -537,17 +501,12 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     /**
-     * Handle creator rewards (called when someone else cooks their recipe).
-     * Logic:
-     * 1. Tracking: Increment xpEarnedAsCreator & totalCooks (for stats display).
-     * 2. Gamification: Increment currentXP & Calculate Level (for user leveling).
      */
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
     public void applyCreatorReward(String creatorId, double xpAmount) {
         log.info("Applying Creator Reward for User {}: +{} XP", creatorId, xpAmount);
 
-        // 1. Get Profile (Fail-safe: create new if not exists)
         UserProfile profile = userProfileRepository.findByUserId(creatorId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -555,32 +514,23 @@ import org.springframework.transaction.annotation.Transactional;
                 ? profile.getStatistics()
                 : Statistics.builder().build();
 
-        // --- PART 1: TRACKING (Stats only, does not affect level) ---
-        // Accumulate XP earned as a Creator
         long creatorXpToAdd = (long) xpAmount;
         long currentCreatorXp = stats.getXpEarnedAsCreator() == null ? 0L : stats.getXpEarnedAsCreator();
         stats.setXpEarnedAsCreator(currentCreatorXp + creatorXpToAdd);
 
-        // Increment count of others who cooked your recipes
         long currentTotalCooks = stats.getTotalCooksOfYourRecipes() == null ? 0L : stats.getTotalCooksOfYourRecipes();
         stats.setTotalCooksOfYourRecipes(currentTotalCooks + 1);
 
-        // Weekly tracking (if applicable)
         stats.setWeeklyCreatorCooks(stats.getWeeklyCreatorCooks() + 1);
         stats.setWeeklyCreatorXp(stats.getWeeklyCreatorXp() + creatorXpToAdd);
 
 
-        // --- PART 2: GAMIFICATION (Directly affects user level) ---
-        // Reuse the private helper to add currentXP and calculate Level Up
-        // This will auto: currentXP += xpAmount and check while (currentXP >= goal)
         XpLevelResult levelResult = applyXpAndLevelLogic(stats, xpAmount);
 
 
-        // --- SAVE TO DATABASE ---
         profile.setStatistics(stats);
         userProfileRepository.save(profile);
 
-        // --- SEND NOTIFICATION: Level-up via gamification topic ---
         if (levelResult.leveledUp()) {
             sendGamificationNotification(
                     creatorId, profile.getDisplayName(),
@@ -589,7 +539,6 @@ import org.springframework.transaction.annotation.Transactional;
                     "CREATOR_BONUS", null, null);
         }
 
-        // --- ALWAYS NOTIFY CREATOR: Someone cooked your recipe! ---
         try {
             ReminderEvent creatorNotif = ReminderEvent.builder()
                     .userId(creatorId)
@@ -608,8 +557,6 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     /**
-     * Awards XP for social engagement (likes, comments, saves).
-     * Applies XP + level logic only — does NOT touch cooking streaks, completionCount, or challenge streak.
      */
     @Transactional
     @Retryable(retryFor = {OptimisticLockingFailureException.class}, maxAttempts = 5)
@@ -636,14 +583,12 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     public CreatorStatsResponse getMyCreatorStats(String userId) {
-        // 1. GET AGGREGATE STATS (From Local DB - Very fast)
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         log.info("Getting My Creator Stats for user {}", userId);
         Statistics stats = profile.getStatistics();
 
-        // 2. Get detailed insights from culinary module (direct call in monolith)
         CreatorStatsResponse.TopRecipeDto topRecipe = null;
         List<CreatorStatsResponse.TopRecipeDto> highPerformingRecipes = new ArrayList<>();
         Double avgRating = null;
@@ -663,13 +608,10 @@ import org.springframework.transaction.annotation.Transactional;
             }
         } catch (Exception e) {
             log.error("Failed to fetch creator insights from culinary module", e);
-            // Fallback: Still return aggregate stats, just missing top recipes
         }
 
-        // 3. CALCULATE BADGES
         List<CreatorStatsResponse.CreatorBadgeDto> badges = calculateBadges(stats.getTotalRecipesPublished(), highPerformingRecipes);
 
-        // 4. BUILD RESPONSE (per vision_and_spec/03-social.txt)
         return CreatorStatsResponse.builder()
                         .totalRecipesPublished(stats.getTotalRecipesPublished())
                         .totalCooksOfYourRecipes(stats.getTotalCooksOfYourRecipes())
@@ -687,16 +629,14 @@ import org.springframework.transaction.annotation.Transactional;
     private List<CreatorStatsResponse.CreatorBadgeDto> calculateBadges(long totalRecipes, List<CreatorStatsResponse.TopRecipeDto> recipes) {
         List<CreatorStatsResponse.CreatorBadgeDto> badges = new ArrayList<>();
 
-        // Badge: Prolific Creator (Based on total posts - Local Data)
         if (totalRecipes >= 10) {
             badges.add(CreatorStatsResponse.CreatorBadgeDto.builder()
                     .name("Prolific Creator")
                     .icon("✍️")
-                    .recipeTitle(null) // Badge is for the person, not the recipe
+.recipeTitle(null)
                     .build());
         }
 
-        // Badge: Based on individual recipes (Remote Data)
         if (recipes != null) {
             for (CreatorStatsResponse.TopRecipeDto recipe : recipes) {
                 long count = recipe.getCookCount();
@@ -712,7 +652,6 @@ import org.springframework.transaction.annotation.Transactional;
         return badges;
     }
 
-    /** Map culinary-api TopRecipeInfo to identity's CreatorStatsResponse.TopRecipeDto */
     private CreatorStatsResponse.TopRecipeDto mapTopRecipe(CreatorInsightsInfo.TopRecipeInfo info) {
         return CreatorStatsResponse.TopRecipeDto.builder()
                 .id(info.getId())
@@ -726,19 +665,9 @@ import org.springframework.transaction.annotation.Transactional;
                 .build();
     }
 
-    // ==========================================
-    // LEADERBOARD METHODS
-    // ==========================================
 
     /**
-     * Get leaderboard data.
      *
-     * @param type Leaderboard type: "global", "friends", or "league"
-     * @param timeframe Time period: "weekly", "monthly", or "all_time"
-     * @param limit Max entries to return (default 50)
-     * @param currentUserId Current user's ID for calculating their rank
-     * @param friendIds List of friend IDs (for friends leaderboard)
-     * @return LeaderboardResponse with entries and user's rank
      */
     public LeaderboardResponse getLeaderboard(String type, String timeframe, int limit, String currentUserId, List<String> friendIds) {
         limit = Math.min(limit, 100);
@@ -752,14 +681,12 @@ import org.springframework.transaction.annotation.Transactional;
 
         boolean isFriendsLeaderboard = "friends".equals(type);
 
-        // 1. Get user profiles sorted by XP, with a ceiling to prevent DoS
         List<UserProfile> profiles;
         if (isFriendsLeaderboard && friendIds != null && !friendIds.isEmpty()) {
             profiles = userProfileRepository.findAllByUserIdIn(friendIds)
                     .stream()
                     .filter(p -> p.getStatistics() != null)
                     .collect(Collectors.toList());
-            // Add current user to friends list for comparison
             userProfileRepository.findByUserId(currentUserId).ifPresent(profiles::add);
         } else {
             profiles = fetchProjectedGlobalLeaderboardProfiles(sortField, limit * 3);
@@ -772,29 +699,25 @@ import org.springframework.transaction.annotation.Transactional;
                                 .filter(userId -> userId != null && !userId.isBlank())
                                 .collect(Collectors.toSet()));
 
-        // PRIVACY: Filter out users who opted out of leaderboard
         profiles.removeIf(p -> {
-            if (currentUserId != null && currentUserId.equals(p.getUserId())) return false; // Never hide current user from themselves
+if (currentUserId != null && currentUserId.equals(p.getUserId())) return false;
             var privacy = privacyByUserId.get(p.getUserId());
             return privacy != null && Boolean.FALSE.equals(privacy.getShowOnLeaderboard());
         });
 
-        // PRIVACY: Filter out blocked users (bidirectional)
         Set<String> invisibleIds = new HashSet<>(blockService.getInvisibleUserIds(currentUserId));
         if (!invisibleIds.isEmpty()) {
             profiles.removeIf(p -> invisibleIds.contains(p.getUserId()));
         }
 
-        // 2. Sort by XP based on timeframe when the source query did not already provide ordering.
         if (isFriendsLeaderboard) {
             profiles.sort((a, b) -> {
                 double xpA = getXpForTimeframe(a.getStatistics(), timeframe);
                 double xpB = getXpForTimeframe(b.getStatistics(), timeframe);
-                return Double.compare(xpB, xpA); // Descending order
+return Double.compare(xpB, xpA);
             });
         }
 
-        // 3. Find current user's rank
         int userRank = 0;
         double userXp = 0.0;
         Double xpToNextRank = null;
@@ -808,29 +731,25 @@ import org.springframework.transaction.annotation.Transactional;
                 userXp = getXpForTimeframe(userStats, timeframe);
                 userRecipesCooked = userStats.getCompletionCount() != null ? userStats.getCompletionCount() : 0L;
 
-                // Calculate XP needed to reach next rank
                 if (i > 0) {
                     double nextRankXp = getXpForTimeframe(profiles.get(i - 1).getStatistics(), timeframe);
-                    xpToNextRank = nextRankXp - userXp + 1; // +1 to surpass, not tie
-                    nextRankPosition = i; // Position they would reach
+xpToNextRank = nextRankXp - userXp + 1;
+nextRankPosition = i;
                 }
                 break;
             }
         }
 
-        // 4. Build leaderboard entries (top N)
         AtomicInteger rankCounter = new AtomicInteger(1);
         List<LeaderboardResponse.LeaderboardEntry> entries = profiles.stream()
                 .limit(limit)
                 .map(profile -> {
                     Statistics stats = profile.getStatistics();
-                    // Extract top 3 badges (most recently earned first)
                     List<String> topBadges = new ArrayList<>();
                     if (stats.getBadges() != null && !stats.getBadges().isEmpty()) {
                         var badges = stats.getBadges();
                         var timestamps = stats.getBadgeTimestamps();
                         if (timestamps != null && !timestamps.isEmpty()) {
-                            // Sort by earn time descending, take top 3
                             topBadges = badges.stream()
                                     .sorted((a, b) -> {
                                         var ta = timestamps.getOrDefault(a, java.time.Instant.EPOCH);
@@ -858,7 +777,6 @@ import org.springframework.transaction.annotation.Transactional;
                 })
                 .collect(Collectors.toList());
 
-        // 5. Build response
         LeaderboardResponse.MyRank myRank = LeaderboardResponse.MyRank.builder()
                 .rank(userRank)
                 .xpThisWeek(userXp)
@@ -876,7 +794,6 @@ import org.springframework.transaction.annotation.Transactional;
     }
 
     /**
-     * Get XP value based on timeframe.
      */
     private double getXpForTimeframe(Statistics stats, String timeframe) {
         if (stats == null) return 0.0;
@@ -915,8 +832,6 @@ import org.springframework.transaction.annotation.Transactional;
             }
 
     /**
-     * Sends gamification notification via Kafka to notification-service.
-     * Fires for XP earned, level-ups, and badge achievements.
      */
     private void sendGamificationNotification(
             String userId, String displayName,

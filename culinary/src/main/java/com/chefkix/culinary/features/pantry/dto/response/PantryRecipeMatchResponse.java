@@ -6,8 +6,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Response for pantry/recipes matching endpoint.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §3
  */
 @Data
 @Builder

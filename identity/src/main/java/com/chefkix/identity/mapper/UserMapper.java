@@ -1,7 +1,6 @@
 package com.chefkix.identity.mapper;
 
 import com.chefkix.identity.dto.request.UserCreationRequest;
-// import com.chefkix.identity.dto.request.UserUpdateRequest;
 import com.chefkix.identity.dto.response.RoleResponse;
 import com.chefkix.identity.dto.response.UserResponse;
 import com.chefkix.identity.entity.Role;
@@ -14,10 +13,8 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-  // keep MapStruct generated mappings you still want
   User toUser(UserCreationRequest request);
 
-  // MANUAL mapping: avoids MapStruct compile issues
   default UserResponse toUserResponse(User user) {
     if (user == null) return null;
 
@@ -37,8 +34,6 @@ public interface UserMapper {
                   r -> {
                     RoleResponse rr = new RoleResponse();
                     rr.setId(r.getId());
-                    // Adjust this if your Role has different fields (e.g., getRoleName(),
-                    // getName(), or enum)
                     rr.setName(r.getName());
                     return rr;
                   })
@@ -49,5 +44,4 @@ public interface UserMapper {
     return resp;
   }
 
-  // void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

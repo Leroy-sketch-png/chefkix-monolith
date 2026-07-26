@@ -19,7 +19,6 @@ public class AchievementController {
     private final AchievementService achievementService;
 
     /**
-     * GET /achievements/my-skill-tree — Full skill tree with user progress.
      */
     @GetMapping("/my-skill-tree")
     public ApiResponse<SkillTreeResponse> getMySkillTree() {
@@ -28,7 +27,6 @@ public class AchievementController {
     }
 
     /**
-     * GET /achievements/user/{userId} — Public skill tree for a specific user.
      */
     @GetMapping("/user/{userId}")
     public ApiResponse<SkillTreeResponse> getUserSkillTree(@PathVariable String userId) {
@@ -36,7 +34,6 @@ public class AchievementController {
     }
 
     /**
-     * GET /achievements — All achievement blueprints (for discovery).
      */
     @GetMapping
     public ApiResponse<List<Achievement>> getAllAchievements() {
@@ -44,7 +41,6 @@ public class AchievementController {
     }
 
     /**
-     * GET /achievements/my-unlocked — Only my unlocked achievements.
      */
     @GetMapping("/my-unlocked")
     public ApiResponse<List<UserAchievement>> getMyUnlocked() {

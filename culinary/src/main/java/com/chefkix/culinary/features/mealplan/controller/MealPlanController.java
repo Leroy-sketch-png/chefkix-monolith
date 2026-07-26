@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Meal plan CRUD + generation.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §7
  */
 @RestController
 @RequestMapping("/meal-plans")

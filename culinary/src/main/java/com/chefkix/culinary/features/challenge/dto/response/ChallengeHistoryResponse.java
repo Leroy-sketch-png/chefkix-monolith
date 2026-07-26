@@ -7,17 +7,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// ChallengeHistoryResponse.java
-
 
 @Data
 @Builder
 public class ChallengeHistoryResponse {
 
-    // Use List so JSON serializes as array: [ {...}, {...} ]
     private List<ChallengeItemDto> challenges;
 
-    // Regular stats object
     private StatsDto stats;
 
     @Data
@@ -25,9 +21,9 @@ public class ChallengeHistoryResponse {
     public static class ChallengeItemDto {
         private String id;
         private String title;
-        private LocalDate date;         // Or LocalDate
+private LocalDate date;
         private boolean completed;
-        private LocalDateTime completedAt;  // Or LocalDateTime
+private LocalDateTime completedAt;
         private int bonusXpEarned;
         private RecipeShortInfo recipeCooked;
     }

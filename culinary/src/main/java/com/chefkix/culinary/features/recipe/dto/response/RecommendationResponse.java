@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Wraps a recipe recommendation with transparency metadata.
- * Used by Tonight's Pick and future recommendation surfaces.
  */
 @Data
 @Builder

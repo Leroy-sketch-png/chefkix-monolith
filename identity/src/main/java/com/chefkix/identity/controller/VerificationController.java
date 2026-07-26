@@ -18,7 +18,6 @@ public class VerificationController {
 
   private final VerificationService verificationService;
 
-  /** POST /api/v1/verification/apply — User applies for a verified creator badge */
   @PostMapping("/apply")
   public ApiResponse<VerificationResponse> apply(
       @AuthenticationPrincipal Jwt jwt,
@@ -32,7 +31,6 @@ public class VerificationController {
         .build();
   }
 
-  /** GET /api/v1/verification/status — Get current user's verification status */
   @GetMapping("/status")
   public ApiResponse<VerificationResponse> getStatus(@AuthenticationPrincipal Jwt jwt) {
     String userId = jwt.getSubject();
@@ -44,7 +42,6 @@ public class VerificationController {
         .build();
   }
 
-  /** POST /api/v1/verification/{requestId}/approve — Admin approves verification */
   @PostMapping("/{requestId}/approve")
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public ApiResponse<VerificationResponse> approve(
@@ -61,7 +58,6 @@ public class VerificationController {
         .build();
   }
 
-  /** POST /api/v1/verification/{requestId}/reject — Admin rejects verification */
   @PostMapping("/{requestId}/reject")
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public ApiResponse<VerificationResponse> reject(

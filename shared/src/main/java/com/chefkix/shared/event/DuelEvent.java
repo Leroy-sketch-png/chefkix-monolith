@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired for cooking duel lifecycle events (invite, accept, complete, etc.).
- * <p>
- * Producer: culinary module. Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -18,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class DuelEvent extends BaseEvent {
 
     private String duelId;
-    private String duelAction;  // "INVITE", "ACCEPTED", "DECLINED", "COMPLETED", "EXPIRED"
+private String duelAction;
     private String challengerName;
     private String opponentName;
     private String recipeTitle;

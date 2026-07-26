@@ -11,8 +11,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Appeal entity for users to contest bans.
- * Per spec 16-moderation.txt: Users can appeal with evidence.
  */
 @Document(collection = "appeals")
 @Data
@@ -35,7 +33,6 @@ public class Appeal {
     List<String> evidenceUrls;
 
     /**
-     * Status: "pending", "approved", "rejected"
      */
     @Builder.Default
     String status = "pending";

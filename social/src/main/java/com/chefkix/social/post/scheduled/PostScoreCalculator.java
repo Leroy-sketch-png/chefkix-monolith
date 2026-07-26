@@ -1,6 +1,7 @@
 package com.chefkix.social.post.scheduled;
 
 import com.chefkix.social.post.entity.Post;
+import com.chefkix.social.post.policy.TrendingPolicy;
 import com.chefkix.social.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,12 +11,11 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
-import org.springframework.scheduling.annotation.Scheduled; // Required
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -28,26 +28,20 @@ public class PostScoreCalculator {
     private static final double GRAVITY = 2.0;
 
     /**
-     * This task runs automatically every 10 minutes.
-     * (fixedDelay = 600000 milliseconds)
      */
     @Scheduled(fixedDelay = 600000)
     public void updateTrendingScores() {
         try {
             log.info("Starting hot score update task...");
 
-            // 1. Only calculate for posts in the last 7 days
-            Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
-            List<Post> recentPosts = postRepository.findByCreatedAtAfter(sevenDaysAgo);
+            Instant now = Instant.now();
+            List<Post> recentPosts = postRepository.findByCreatedAtAfter(TrendingPolicy.cutoff(now));
 
             if (recentPosts.isEmpty()) {
                 log.info("No recent posts to update.");
                 return;
             }
 
-            Instant now = Instant.now();
-
-            // 2. Build bulk update operations (single DB round trip instead of N)
             BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Post.class);
             for (Post post : recentPosts) {
                 double newHotScore = calculateHotScore(post, now);
@@ -64,7 +58,6 @@ public class PostScoreCalculator {
     }
 
     /**
-     * Score calculation function
      */
     private double calculateHotScore(Post post, Instant now) {
         int likes = (post.getLikes() != null) ? post.getLikes() : 0;

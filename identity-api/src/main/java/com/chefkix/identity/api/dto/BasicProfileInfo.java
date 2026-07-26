@@ -8,16 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Lightweight profile DTO for cross-module calls.
- * <p>
- * Unifies the following duplicated DTOs:
- * <ul>
- *   <li>{@code chefkix-be} → InternalBasicProfileResponse (6 fields)</li>
- *   <li>identity module chat → UserProfileResponse (6 fields, @JsonAlias "avatarUrl" → "avatar")</li>
- *   <li>culinary module → AuthorResponse (4 fields)</li>
- * </ul>
- * <p>
- * Canonical field name is {@code avatarUrl} (not "avatar"). Chat module maps internally if needed.
  */
 @Data
 @Builder

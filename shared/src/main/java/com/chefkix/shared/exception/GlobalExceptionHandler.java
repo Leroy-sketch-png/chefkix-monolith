@@ -16,17 +16,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
- * Global exception handler for the entire monolith.
- * <p>
- * Unified from 5 service-specific copies. Handles:
- * <ul>
- *   <li>{@link AppException} — domain errors with {@link ErrorCode}</li>
- *   <li>{@link MethodArgumentNotValidException} — bean validation failures</li>
- *   <li>{@link AccessDeniedException} — Spring Security access denial</li>
- *   <li>{@link MaxUploadSizeExceededException} — file upload too large</li>
- *   <li>{@link RuntimeException} — catch-all for unhandled errors</li>
- * </ul>
- * Every error response sets {@code success=false} consistently.
  */
 @ControllerAdvice
 @Slf4j
@@ -34,7 +23,6 @@ public class GlobalExceptionHandler {
 
     private static final String MIN_ATTRIBUTE = "min";
 
-    // ─── AppException (domain errors) ───────────────────────────────
 
     @ExceptionHandler(AppException.class)
     ResponseEntity<ApiResponse<?>> handleAppException(AppException ex) {
@@ -50,7 +38,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 
-    // ─── Bean validation ────────────────────────────────────────────
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex) {
@@ -68,7 +55,6 @@ public class GlobalExceptionHandler {
                 Map<String, Object> attrs = constraintViolation.getConstraintDescriptor().getAttributes();
                 attributes = attrs;
             } catch (IllegalArgumentException ignored) {
-                // enumKey doesn't match an ErrorCode — fall through to INVALID_KEY
             }
         }
 
@@ -85,7 +71,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    // ─── Access denied ──────────────────────────────────────────────
 
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ApiResponse<?>> handleAccessDenied(AccessDeniedException ex) {
@@ -94,7 +79,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage()));
     }
 
-    // ─── Upload size exceeded ───────────────────────────────────────
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<ApiResponse<?>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
@@ -107,7 +91,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }
 
-    // ─── Catch-all ──────────────────────────────────────────────────
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiResponse<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
@@ -154,7 +137,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 
-    // ─── Helpers ────────────────────────────────────────────────────
 
     private String mapAttributes(String message, Map<String, Object> attributes) {
         String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));

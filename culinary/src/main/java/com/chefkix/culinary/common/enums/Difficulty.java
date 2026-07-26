@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Recipe difficulty levels.
- * JSON: "Beginner", "Intermediate", "Advanced", "Expert" (Title Case)
  */
 public enum Difficulty {
     BEGINNER("Beginner"),

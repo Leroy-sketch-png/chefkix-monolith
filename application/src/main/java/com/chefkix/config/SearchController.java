@@ -1,5 +1,6 @@
 package com.chefkix.config;
 
+import com.chefkix.shared.exception.AppException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.chefkix.shared.dto.ApiResponse;
@@ -98,13 +99,13 @@ public class SearchController {
         Map<String, Object> results = new LinkedHashMap<>();
 
         if ("all".equals(type) || "recipes".equals(type)) {
-            results.put("recipes", searchCollection("recipes", q, "title,ingredients", limit, 1));
+            results.put("recipes", searchCollectionOrEmpty("recipes", q, "title,ingredients", limit, 1));
         }
         if ("all".equals(type) || "ingredients".equals(type)) {
-            results.put("ingredients", searchCollection("ingredients", q, "name,aliases", limit, 1));
+            results.put("ingredients", searchCollectionOrEmpty("ingredients", q, "name,aliases", limit, 1));
         }
         if ("all".equals(type) || "users".equals(type)) {
-            results.put("users", searchCollection("users", q, "username,displayName,firstName,lastName", limit, 1));
+            results.put("users", searchCollectionOrEmpty("users", q, "username,displayName,firstName,lastName", limit, 1));
         }
 
         return ResponseEntity.ok(ApiResponse.success(results));
@@ -138,6 +139,16 @@ public class SearchController {
 
     private Map<String, Object> searchCollection(
             String collection, String query, String queryBy, int perPage, int page) {
+        return typesenseService.search(collection, searchParams(query, queryBy, perPage, page));
+    }
+
+    private Map<String, Object> searchCollectionOrEmpty(
+            String collection, String query, String queryBy, int perPage, int page) {
+        return typesenseService.searchOrEmpty(collection, searchParams(query, queryBy, perPage, page));
+    }
+
+    private Map<String, String> searchParams(
+            String query, String queryBy, int perPage, int page) {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("q", query);
         params.put("query_by", queryBy);
@@ -147,35 +158,31 @@ public class SearchController {
         params.put("num_typos", "2");
         params.put("typo_tokens_threshold", "1");
 
-        return typesenseService.search(collection, params);
+        return params;
     }
 
     /**
-     * Smart recipe search: uses hybrid (keyword + vector) when query looks
-     * like natural language (>3 words). Falls back to keyword-only if
-     * embedding generation fails or query is short/specific.
      */
     private Map<String, Object> searchRecipesWithVector(String query, int limit, int page) {
         String queryBy = "title,description,ingredients,cuisine,tags";
 
-        // Short/specific queries -> keyword search (fast, precise)
         long wordCount = query.trim().split("\\s+").length;
         if (wordCount < NATURAL_LANGUAGE_WORD_THRESHOLD) {
             return searchCollection("recipes", query, queryBy, limit, page);
         }
 
-        // Natural language query -> try hybrid search
         try {
             float[] embedding = generateEmbedding(query);
             if (embedding != null) {
                 log.debug("Using hybrid search for query: '{}'", query);
                 return typesenseService.hybridSearch("recipes", query, queryBy, embedding, limit);
             }
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Vector search failed, falling back to keyword: {}", e.getMessage());
         }
 
-        // Fallback to keyword-only
         return searchCollection("recipes", query, queryBy, limit, page);
     }
 

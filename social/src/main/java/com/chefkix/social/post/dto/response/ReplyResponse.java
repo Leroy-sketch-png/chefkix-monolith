@@ -24,7 +24,6 @@ public class ReplyResponse {
     @Builder.Default
     private Integer likes = 0;
     
-    /** Whether the current user has liked this reply */
     @JsonProperty("isLiked")
     @Builder.Default
     private Boolean isLiked = false;

@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Admin review decision for an appeal.
  */
 @Data
 @NoArgsConstructor
@@ -16,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewAppealRequest {
     /**
-     * Decision: "approved" or "rejected"
      */
     @NotBlank(message = "decision is required")
     @Pattern(regexp = "approved|rejected", message = "decision must be one of: approved, rejected")

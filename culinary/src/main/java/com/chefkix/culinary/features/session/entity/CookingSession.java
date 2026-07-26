@@ -33,80 +33,69 @@ import java.util.List;
 public class CookingSession {
 
     @Id
-    String id;              // id: string
+String id;
 
     @Version
-    Long version;           // Optimistic locking — prevents double-completion race
+Long version;
 
-    String userId;          // userId: string
-    String recipeId;        // recipeId: string
+String userId;
+String recipeId;
     String recipeTitle;
     List<String> coverImageUrl;
-    SessionStatus status;   // status: enum
+SessionStatus status;
 
-    String roomCode;        // Co-cooking room code (null for solo sessions)
+String roomCode;
 
-    Integer currentStep;            // currentStep: number
+Integer currentStep;
 
     @Builder.Default
-    List<Integer> completedSteps = new ArrayList<>(); // completedSteps: number[]
+List<Integer> completedSteps = new ArrayList<>();
 
-    // --- Timing ---
-    LocalDateTime startedAt;    // startedAt: string (ISO8601)
-    LocalDateTime pausedAt;     // pausedAt?: string
+LocalDateTime startedAt;
+LocalDateTime pausedAt;
     @Indexed
     LocalDateTime resumeDeadline;
-    LocalDateTime completedAt;  // completedAt?: string
-    LocalDateTime abandonedAt;  // abandonedAt?: string
-
-    // --- Timer tracking ---
-    @Builder.Default
-    List<TimerEvent> timerEvents = new ArrayList<>(); // timerEvents: TimerEvent[]
+LocalDateTime completedAt;
+LocalDateTime abandonedAt;
 
     @Builder.Default
-    List<ActiveTimer> activeTimers = new ArrayList<>(); // activeTimers: ActiveTimer[]
+List<TimerEvent> timerEvents = new ArrayList<>();
 
-    // --- Completion data ---
-    Integer rating;     // rating?: number
-    String notes;       // notes?: string
+    @Builder.Default
+List<ActiveTimer> activeTimers = new ArrayList<>();
 
-    // --- XP tracking ---
-    Double baseXpAwarded;       // baseXpAwarded?: number
-    Double pendingXp;           // pendingXp?: number
-    Double remainingXpAwarded;  // remainingXpAwarded?: number
+Integer rating;
+String notes;
 
-    // --- Co-op multiplier (from co-cooking rooms) ---
-    Double xpMultiplier;            // 1.0, 1.1, 1.2 — null for solo
-    String xpMultiplierReason;      // "CO_OP_DUO", "CO_OP_GROUP", null
+Double baseXpAwarded;
+Double pendingXp;
+Double remainingXpAwarded;
 
-    // --- Link to post ---
-    String postId;              // postId?: string
+Double xpMultiplier;
+String xpMultiplierReason;
+
+String postId;
     @Indexed
-    LocalDateTime postDeadline; // postDeadline?: string
+LocalDateTime postDeadline;
     LocalDateTime linkedAt;
     LocalDateTime postDeletedAt;
 
-    // --- Validation ---
-    boolean flagged;        // flagged: boolean
-    String flagReason;      // flagReason?: string
+boolean flagged;
+String flagReason;
 
-    // --- Account deletion cleanup ---
     boolean userDeleted;
     LocalDateTime userDeletedAt;
 
-    // ==========================================
-    // INNER CLASSES (POJOs)
-    // ==========================================
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class TimerEvent {
-        Integer stepNumber;     // stepNumber: number
-        TimerEventType event;   // event: "start" | "complete" | "skip"
-        LocalDateTime clientTimestamp; // clientTimestamp: string
-        LocalDateTime serverTimestamp; // serverTimestamp: string
+Integer stepNumber;
+TimerEventType event;
+LocalDateTime clientTimestamp;
+LocalDateTime serverTimestamp;
     }
 
     @Data
@@ -114,9 +103,9 @@ public class CookingSession {
     @AllArgsConstructor
     @Builder
     public static class ActiveTimer {
-        Integer stepNumber;     // stepNumber: number
-        Integer totalSeconds;   // totalSeconds: number
-        LocalDateTime startedAt;// startedAt: string
-        Integer remainingSeconds; // remainingSeconds: number (Calculated snapshot)
+Integer stepNumber;
+Integer totalSeconds;
+LocalDateTime startedAt;
+Integer remainingSeconds;
     }
 }

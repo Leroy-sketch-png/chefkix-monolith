@@ -31,9 +31,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Unified WebSocket/STOMP configuration with mandatory JWT auth.
- * Unauthenticated CONNECT attempts are rejected.
- * User-scoped subscriptions are validated to prevent cross-user eavesdropping.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSocketMessageBroker
@@ -63,9 +60,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
-        registry.setMessageSizeLimit(64 * 1024);     // 64 KB max per message
-        registry.setSendBufferSizeLimit(512 * 1024);  // 512 KB send buffer
-        registry.setSendTimeLimit(20_000);             // 20s send timeout
+registry.setMessageSizeLimit(64 * 1024);
+registry.setSendBufferSizeLimit(512 * 1024);
+registry.setSendTimeLimit(20_000);
     }
 
     @Override
@@ -73,7 +70,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(new ChannelInterceptor() {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                // Prevent authentication leakage between pooled broker threads.
                 SecurityContextHolder.clearContext();
 
                 StompHeaderAccessor accessor =
@@ -83,7 +79,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 StompCommand command = accessor.getCommand();
 
-                // --- CONNECT: Mandatory JWT authentication ---
                 if (StompCommand.CONNECT.equals(command)) {
                     String authHeader = accessor.getFirstNativeHeader("Authorization");
 
@@ -104,7 +99,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     }
                 }
 
-                // --- SUBSCRIBE: Validate user-scoped destinations ---
                 if (StompCommand.SUBSCRIBE.equals(command)) {
                     Authentication auth = (Authentication) accessor.getUser();
                     if (auth == null) {
@@ -114,7 +108,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     String destination = accessor.getDestination();
                     if (destination != null) {
                         String userId = auth.getName();
-                        // Guard user-specific queues: /queue/notifications-{userId}
                         if (destination.startsWith("/queue/notifications-")) {
                             String targetUserId = destination.substring("/queue/notifications-".length());
                             if (!userId.equals(targetUserId)) {
@@ -122,7 +115,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 throw new MessageDeliveryException("Cannot subscribe to another user's notifications");
                             }
                         }
-                        // Guard user-specific queues: /queue/messages-{userId}
                         if (destination.startsWith("/queue/messages-")) {
                             String targetUserId = destination.substring("/queue/messages-".length());
                             if (!userId.equals(targetUserId)) {
@@ -131,7 +123,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             }
                         }
 
-                        // Guard conversation topics: /topic/conversation/{conversationId}
                         if (destination.startsWith("/topic/conversation/")) {
                             String conversationId = destination.substring("/topic/conversation/".length());
                             boolean isParticipant = conversationLookupService.isParticipant(conversationId, userId);
@@ -142,7 +133,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             }
                         }
 
-                        // Guard room topics: /topic/room/{roomCode}
                         if (destination.startsWith("/topic/room/")) {
                             String roomCode = destination.substring("/topic/room/".length());
                             boolean isRoomParticipant = false;
@@ -170,7 +160,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             }
                         }
 
-                        // Guard user-specific topics: /topic/user/{userId} and /topic/user/{userId}/*
                         if (destination.startsWith("/topic/user/")) {
                             String[] parts = destination.substring("/topic/user/".length()).split("/", 2);
                             String targetUserId = parts[0];
@@ -180,20 +169,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             }
                         }
 
-                        // Allow presence topics — /topic/presence/{targetUserId}
-                        // Any authenticated user can subscribe to presence updates
-                        // (no additional authorization needed — public social feature)
                     }
                 }
 
-                // --- SEND: Require authentication for all messages ---
                 if (StompCommand.SEND.equals(command)) {
                     if (accessor.getUser() == null) {
                         throw new MessageDeliveryException("Authentication required to send messages");
                     }
                 }
 
-                // Propagate Authentication to SecurityContext for @MessageMapping handlers
                 Authentication auth = (Authentication) accessor.getUser();
                 if (auth != null) {
                     SecurityContextHolder.getContext().setAuthentication(auth);
@@ -205,9 +189,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     /**
-     * Expose the injected Validator as a bean-style accessor.
-     * Not an interface override — WebSocketMessageBrokerConfigurer
-     * does not define getValidator() in newer Spring versions.
      */
     public Validator getValidator() {
         return validator;

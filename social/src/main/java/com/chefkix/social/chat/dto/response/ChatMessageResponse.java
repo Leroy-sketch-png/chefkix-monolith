@@ -24,16 +24,14 @@ public class ChatMessageResponse {
 
     MessageType type;
     String relatedId;
+    String storyOwnerId;
     String sharedPostImage;
     String sharedPostTitle;
 
-    // Reply context
     ReplyInfo replyTo;
 
-    // Reactions
     List<ReactionInfo> reactions;
 
-    // Soft delete
     Boolean deleted;
 
     @Data

@@ -8,10 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request to mark a step as completed.
- * Navigation and completion are separate actions:
- * - Navigate = move cursor (currentStep)
- * - CompleteStep = mark step done (add to completedSteps[])
  */
 @Data
 @Builder

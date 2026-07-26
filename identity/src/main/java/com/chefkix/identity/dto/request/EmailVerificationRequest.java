@@ -19,4 +19,8 @@ public class EmailVerificationRequest {
   @NotBlank(message = "OTP is required")
   @Size(min = 6, max = 6, message = "OTP must be exactly 6 characters")
   String otp;
+
+  @NotBlank(message = "Password is required")
+  @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
+  String password;
 }

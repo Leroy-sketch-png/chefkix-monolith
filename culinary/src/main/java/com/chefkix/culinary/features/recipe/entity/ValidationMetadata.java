@@ -13,11 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ValidationMetadata {
-    boolean xpValidated;           // Has it been validated by AI?
-    double validationConfidence;   // Confidence score (0.0 - 1.0)
+boolean xpValidated;
+double validationConfidence;
 
     @Builder.Default
-    List<String> validationIssues = new ArrayList<>(); // List of issues (e.g.: "Time too short")
+List<String> validationIssues = new ArrayList<>();
 
-    boolean xpAdjusted;            // Was XP deducted due to violations?
+boolean xpAdjusted;
 }

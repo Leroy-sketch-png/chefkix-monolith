@@ -27,23 +27,19 @@ public class UserSubscription {
     @Builder.Default
     boolean active = false;
 
-    // Payment provider reference (Stripe subscription ID, etc.)
     String externalSubscriptionId;
 
-    // Payment provider (STRIPE, GOOGLE_PLAY, APPLE_IAP, MANUAL)
     String paymentProvider;
 
     Instant startDate;
     Instant endDate;
 
-    // Trial tracking
     @Builder.Default
     boolean trialUsed = false;
 
     Instant trialStartDate;
     Instant trialEndDate;
 
-    // Cancellation tracking
     boolean cancelledAtPeriodEnd;
     Instant cancelledAt;
 

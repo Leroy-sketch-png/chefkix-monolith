@@ -28,6 +28,7 @@ public class SubscriptionService {
         String userId = getCurrentUserId();
         UserSubscription sub = subscriptionRepository.findByUserId(userId)
                 .orElseGet(() -> createFreeSubscription(userId));
+        deactivateIfExpired(sub);
         return toResponse(sub);
     }
 
@@ -38,9 +39,7 @@ public class SubscriptionService {
 
     public boolean isPremium(String userId) {
         return subscriptionRepository.findByUserId(userId)
-                .map(sub -> sub.isActive()
-                        && sub.getTier() == SubscriptionTier.PREMIUM
-                        && (sub.getEndDate() == null || Instant.now().isBefore(sub.getEndDate())))
+                .map(this::isPremiumActive)
                 .orElse(false);
     }
 
@@ -57,7 +56,7 @@ public class SubscriptionService {
     }
 
     public boolean hasFeature(PremiumFeature feature) {
-        return isPremium(); // All premium features unlocked with subscription
+        return isPremium();
     }
 
     public boolean hasFeature(String userId, PremiumFeature feature) {
@@ -65,9 +64,6 @@ public class SubscriptionService {
     }
 
     /**
-     * Activate a premium subscription.
-     * Payment integration not yet implemented — blocks activation until a real
-     * payment provider (Stripe, etc.) is wired. Only the 7-day trial path works.
      */
     public SubscriptionResponse activateSubscription(String paymentProvider, String paymentToken) {
         String userId = getCurrentUserId();
@@ -75,7 +71,6 @@ public class SubscriptionService {
         UserSubscription sub = subscriptionRepository.findByUserId(userId)
                 .orElseGet(() -> createFreeSubscription(userId));
 
-        // Auto-expire stale subscriptions so users can re-activate
         deactivateIfExpired(sub);
 
         if (sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM) {
@@ -86,14 +81,11 @@ public class SubscriptionService {
             throw new AppException(ErrorCode.INVALID_REQUEST, "Payment token is required");
         }
 
-        // Payment validation — no provider integration yet.
-        // Block until we wire Stripe/RevenueCat so nobody self-activates premium.
         throw new AppException(ErrorCode.INVALID_REQUEST,
                 "Payment processing is not yet available. Start a free trial instead.");
     }
 
     /**
-     * Start a free trial (7 days).
      */
     public SubscriptionResponse startTrial() {
         String userId = getCurrentUserId();
@@ -105,7 +97,6 @@ public class SubscriptionService {
             throw new AppException(ErrorCode.SUBSCRIPTION_ALREADY_ACTIVE);
         }
 
-        // Auto-expire stale subscriptions so users can start trial
         deactivateIfExpired(sub);
 
         if (sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM) {
@@ -128,13 +119,14 @@ public class SubscriptionService {
     }
 
     /**
-     * Cancel subscription at end of period.
      */
     public SubscriptionResponse cancelSubscription() {
         String userId = getCurrentUserId();
 
         UserSubscription sub = subscriptionRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+        deactivateIfExpired(sub);
 
         if (!sub.isActive() || sub.getTier() != SubscriptionTier.PREMIUM) {
             throw new AppException(ErrorCode.SUBSCRIPTION_NOT_FOUND);
@@ -149,14 +141,24 @@ public class SubscriptionService {
     }
 
     private void deactivateIfExpired(UserSubscription sub) {
-        if (sub.isActive()
-                && sub.getEndDate() != null
-                && Instant.now().isAfter(sub.getEndDate())) {
+        if (isExpired(sub)) {
             sub.setActive(false);
             sub.setTier(SubscriptionTier.FREE);
             subscriptionRepository.save(sub);
             log.info("Auto-deactivated expired subscription for user={}", sub.getUserId());
         }
+    }
+
+    private boolean isPremiumActive(UserSubscription sub) {
+        return sub.isActive()
+                && sub.getTier() == SubscriptionTier.PREMIUM
+                && !isExpired(sub);
+    }
+
+    private boolean isExpired(UserSubscription sub) {
+        return sub.isActive()
+                && sub.getEndDate() != null
+                && !Instant.now().isBefore(sub.getEndDate());
     }
 
     private UserSubscription createFreeSubscription(String userId) {
@@ -169,20 +171,20 @@ public class SubscriptionService {
     }
 
     private SubscriptionResponse toResponse(UserSubscription sub) {
-        boolean isPremiumActive = sub.isActive() && sub.getTier() == SubscriptionTier.PREMIUM;
-        boolean isTrialActive = isPremiumActive
+        boolean premiumActive = isPremiumActive(sub);
+        boolean isTrialActive = premiumActive
                 && "TRIAL".equals(sub.getPaymentProvider())
                 && sub.getTrialEndDate() != null
                 && Instant.now().isBefore(sub.getTrialEndDate());
 
-        List<PremiumFeature> features = isPremiumActive
+        List<PremiumFeature> features = premiumActive
                 ? Arrays.asList(PremiumFeature.values())
                 : List.of();
 
         return SubscriptionResponse.builder()
                 .tier(sub.getTier())
                 .active(sub.isActive())
-                .premium(isPremiumActive)
+                .premium(premiumActive)
                 .startDate(sub.getStartDate())
                 .endDate(sub.getEndDate())
                 .trialUsed(sub.isTrialUsed())

@@ -38,7 +38,6 @@ public class ResetPasswordService {
       throw new AppException(ErrorCode.INVALID_INPUT);
     }
 
-    // Silently return if email not registered — prevents email enumeration
     if (userProfileRepository.findByEmail(email).isEmpty()) {
       log.debug("Forgot-password request for unregistered email, silently ignoring");
       return;
@@ -66,7 +65,6 @@ public class ResetPasswordService {
             .body("Your password reset code is: " + otp)
             .build();
 
-    // Publish message to kafka synchronously so transaction fails if OTP cannot be delivered.
     log.info("Sending password reset OTP to Kafka for email={}", request.getEmail());
     try {
       var result = kafkaTemplate.send("otp-delivery", notificationEmailEvent).get(5, TimeUnit.SECONDS);

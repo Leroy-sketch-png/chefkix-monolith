@@ -12,14 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Affiliate grocery provider — generates partner checkout URLs with affiliate tracking.
- * Revenue model: shopping list → affiliate checkout URL → grocery delivery partner → commission.
  *
- * Phase 0: Builds parameterized affiliate links. Actual partner API integration in Phase 1.
- * Configurable via application.yml:
- *   chefkix.grocery.affiliate.enabled=true
- *   chefkix.grocery.affiliate.partner-tag=chefkix-app
- *   chefkix.grocery.affiliate.base-url=https://www.instacart.com
  */
 @Slf4j
 @Service
@@ -51,7 +44,6 @@ public class AffiliateGroceryProvider implements GroceryProvider {
 
   @Override
   public List<GroceryProductMatch> matchProducts(List<GroceryItemRequest> items) {
-    // Phase 0: identity match with affiliate links — no real product lookup yet
     return items.stream()
         .map(
             item ->
@@ -70,7 +62,6 @@ public class AffiliateGroceryProvider implements GroceryProvider {
   public CheckoutResult createCheckout(List<GroceryItemRequest> items, String userId) {
     String orderId = "aff-" + UUID.randomUUID().toString().substring(0, 8);
 
-    // Build affiliate checkout URL with ingredients as search params
     String ingredientList =
         items.stream()
             .map(GroceryItemRequest::name)
@@ -97,7 +88,6 @@ public class AffiliateGroceryProvider implements GroceryProvider {
 
   @Override
   public OrderStatus getOrderStatus(String orderId) {
-    // Affiliate orders are tracked externally — we only have the redirect
     return new OrderStatus(orderId, "redirected", null, null);
   }
 

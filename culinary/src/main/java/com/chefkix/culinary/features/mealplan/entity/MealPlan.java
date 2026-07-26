@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Weekly meal plan document.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §7
  */
 @Data
 @Builder

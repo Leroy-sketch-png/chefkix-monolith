@@ -40,7 +40,6 @@ public class ShoppingListService {
     private final RecipeRepository recipeRepo;
     private final PantryItemRepository pantryRepo;
 
-    // ── Create from Meal Plan ───────────────────────────────────────
 
     public ShoppingListResponse createFromMealPlan(String userId, CreateFromMealPlanRequest req) {
         MealPlan plan = mealPlanRepo.findByIdAndUserId(req.getMealPlanId(), userId)
@@ -79,7 +78,6 @@ public class ShoppingListService {
         return toResponse(shoppingListRepo.save(list));
     }
 
-    // ── Create from Recipe ──────────────────────────────────────────
 
     public ShoppingListResponse createFromRecipe(String userId, CreateFromRecipeRequest req) {
         Recipe recipe = recipeRepo.findById(req.getRecipeId())
@@ -104,7 +102,6 @@ public class ShoppingListService {
         return toResponse(shoppingListRepo.save(list));
     }
 
-    // ── Create Custom ───────────────────────────────────────────────
 
     public ShoppingListResponse createCustom(String userId, CreateCustomListRequest req) {
         ShoppingList list = ShoppingList.builder()
@@ -118,7 +115,6 @@ public class ShoppingListService {
         return toResponse(shoppingListRepo.save(list));
     }
 
-    // ── Read ────────────────────────────────────────────────────────
 
     public List<ShoppingListSummaryResponse> getUserLists(String userId) {
         return shoppingListRepo.findByUserIdOrderByCreatedAtDesc(userId).stream()
@@ -138,7 +134,6 @@ public class ShoppingListService {
         return toResponse(list);
     }
 
-    // ── Item Operations ─────────────────────────────────────────────
 
     public ShoppingListResponse toggleItem(String userId, String listId, String itemId) {
         ShoppingList list = shoppingListRepo.findByIdAndUserId(listId, userId)
@@ -183,14 +178,12 @@ public class ShoppingListService {
         return toResponse(shoppingListRepo.save(list));
     }
 
-    // ── Delete ──────────────────────────────────────────────────────
 
     @Transactional
     public void delete(String userId, String id) {
         shoppingListRepo.deleteByIdAndUserId(id, userId);
     }
 
-    // ── Regenerate Share Token ───────────────────────────────────────
 
     public ShoppingListResponse regenerateShareToken(String userId, String id) {
         ShoppingList list = shoppingListRepo.findByIdAndUserId(id, userId)
@@ -199,9 +192,6 @@ public class ShoppingListService {
         return toResponse(shoppingListRepo.save(list));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // HELPERS
-    // ═══════════════════════════════════════════════════════════════
 
     private Set<String> getPantryNormals(String userId) {
         return pantryRepo.findByUserId(userId, Sort.unsorted()).stream()
@@ -260,24 +250,20 @@ public class ShoppingListService {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 
-    // ── Ingredient Categorization ───────────────────────────────────
 
     private static final Map<String, String> CATEGORY_KEYWORDS = new LinkedHashMap<>();
 
     static {
-        // Protein (check before produce — "chicken breast" should be Protein)
         for (String kw : List.of("chicken", "beef", "pork", "fish", "salmon", "shrimp", "prawn",
                 "tofu", "turkey", "lamb", "sausage", "bacon", "steak", "tuna", "cod", "tilapia",
                 "duck", "veal", "venison", "crab", "lobster", "scallop", "anchovy", "tempeh", "seitan")) {
             CATEGORY_KEYWORDS.put(kw, "Protein");
         }
-        // Dairy
         for (String kw : List.of("milk", "cheese", "cream", "butter", "yogurt", "yoghurt",
                 "egg", "mozzarella", "parmesan", "cheddar", "ricotta", "feta", "sour cream",
                 "whipping cream", "ghee", "mascarpone")) {
             CATEGORY_KEYWORDS.put(kw, "Dairy");
         }
-        // Produce
         for (String kw : List.of("tomato", "onion", "garlic", "lettuce", "spinach", "carrot",
                 "pepper", "cucumber", "potato", "mushroom", "broccoli", "celery", "avocado",
                 "lemon", "lime", "apple", "banana", "berry", "basil", "cilantro", "parsley",
@@ -287,13 +273,11 @@ public class ShoppingListService {
                 "mint", "dill", "thyme", "rosemary", "sage", "oregano", "tarragon")) {
             CATEGORY_KEYWORDS.put(kw, "Produce");
         }
-        // Grains & Bakery
         for (String kw : List.of("flour", "rice", "pasta", "bread", "noodle", "oat", "cereal",
                 "tortilla", "couscous", "quinoa", "barley", "bulgur", "cornmeal", "semolina",
                 "panko", "breadcrumb", "pita", "wrap", "baguette", "crouton")) {
             CATEGORY_KEYWORDS.put(kw, "Grains");
         }
-        // Spices & Seasonings
         for (String kw : List.of("salt", "cumin", "paprika", "cinnamon", "turmeric", "nutmeg",
                 "cayenne", "chili powder", "black pepper", "white pepper", "clove", "cardamom",
                 "coriander", "saffron", "curry powder", "garam masala", "bay leaf",
@@ -301,20 +285,17 @@ public class ShoppingListService {
                 "smoked paprika", "red pepper flake")) {
             CATEGORY_KEYWORDS.put(kw, "Spices");
         }
-        // Condiments & Oils
         for (String kw : List.of("oil", "vinegar", "soy sauce", "ketchup", "mustard", "mayonnaise",
                 "honey", "syrup", "hot sauce", "worcestershire", "fish sauce", "oyster sauce",
                 "teriyaki", "sriracha", "tahini", "miso", "hoisin", "bbq sauce",
                 "sesame oil", "olive oil", "coconut oil", "balsamic")) {
             CATEGORY_KEYWORDS.put(kw, "Condiments");
         }
-        // Canned & Preserved
         for (String kw : List.of("canned", "broth", "stock", "tomato paste", "tomato sauce",
                 "coconut milk", "chickpea", "lentil", "kidney bean", "black bean",
                 "diced tomato", "crushed tomato", "pinto bean", "marinara")) {
             CATEGORY_KEYWORDS.put(kw, "Canned");
         }
-        // Baking
         for (String kw : List.of("sugar", "baking powder", "baking soda", "yeast",
                 "cocoa", "chocolate", "cornstarch", "gelatin", "food coloring",
                 "cream of tartar", "powdered sugar", "brown sugar", "confectioner")) {
@@ -325,7 +306,6 @@ public class ShoppingListService {
     static String categorize(String ingredientName) {
         if (ingredientName == null) return "Other";
         String lower = ingredientName.toLowerCase().trim();
-        // Longest keyword first to avoid "tomato" matching before "tomato paste"
         return CATEGORY_KEYWORDS.entrySet().stream()
                 .filter(entry -> lower.contains(entry.getKey()))
                 .max(Comparator.comparingInt(e -> e.getKey().length()))
@@ -333,7 +313,6 @@ public class ShoppingListService {
                 .orElse("Other");
     }
 
-    // ── Response Mappers ────────────────────────────────────────────
 
     private ShoppingListResponse toResponse(ShoppingList list) {
         return ShoppingListResponse.builder()
@@ -362,7 +341,6 @@ public class ShoppingListService {
                 .build();
     }
 
-    // ── Aggregation Helper Class ────────────────────────────────────
 
     private record AggregatedIngredient(String name, List<String> quantities, Set<String> recipes) {}
 }

@@ -8,7 +8,7 @@ import lombok.Data;
 public class SessionNavigateRequest {
     @NotBlank(message = "action is required")
     @Pattern(regexp = "next|previous|goto", message = "action must be one of: next, previous, goto")
-    private String action; // "next" | "previous" | "goto"
+private String action;
 
     @Min(value = 1, message = "targetStep must be at least 1")
     private Integer targetStep;

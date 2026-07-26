@@ -13,7 +13,6 @@ public interface PostLikeRepository extends MongoRepository<PostLike, String> {
   boolean existsByPostIdAndUserId(String postId, String userId);
 
   /**
-   * Batch: find all likes by a user for a set of posts (eliminates N+1).
    */
   List<PostLike> findByUserIdAndPostIdIn(String userId, List<String> postIds);
 

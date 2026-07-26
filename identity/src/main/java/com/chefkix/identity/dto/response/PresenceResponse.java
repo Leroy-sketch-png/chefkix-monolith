@@ -14,7 +14,7 @@ public class PresenceResponse {
     String displayName;
     String avatarUrl;
     boolean online;
-    String activity; // "idle", "browsing", "cooking", "creating"
-    String recipeTitle; // if cooking, what recipe
-    long lastSeenEpoch; // epoch millis
+String activity;
+String recipeTitle;
+long lastSeenEpoch;
 }

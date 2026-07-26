@@ -40,15 +40,25 @@ public class ProfileController {
   public ApiResponse<AuthenticationResponse> register(
       @RequestBody @Valid EmailVerificationRequest request,
       HttpServletResponse response) {
-    String plainPassword =
-        profileService.verifyOtpAndCreateUser(request.getEmail(), request.getOtp());
+    profileService.verifyOtpAndCreateUser(
+        request.getEmail(), request.getOtp(), request.getPassword());
 
-    AuthenticationResponse authResponse =
-        authenticationService.authenticate(
-            AuthenticationRequest.builder()
-                .emailOrUsername(request.getEmail())
-                .password(plainPassword)
-                .build());
+    AuthenticationResponse authResponse;
+    try {
+      authResponse =
+          authenticationService.authenticate(
+              AuthenticationRequest.builder()
+                  .emailOrUsername(request.getEmail())
+                  .password(request.getPassword())
+                  .build());
+    } catch (RuntimeException exception) {
+      log.warn(
+          "Account created for {} but automatic sign-in failed; user can sign in manually",
+          request.getEmail(),
+          exception);
+      return ApiResponse.success(
+          null, "Email verified and account created. Please sign in to continue.");
+    }
 
     HttpOnlyCookieUtils.addHttpOnlyCookie(
         response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN);
@@ -58,8 +68,6 @@ public class ProfileController {
   }
 
   /**
-   * Get all profiles (legacy - limited to 100, use /profiles/paginated instead).
-   * @deprecated Use /profiles/paginated for proper pagination.
    */
   @Deprecated
   @GetMapping("/profiles")
@@ -68,8 +76,6 @@ public class ProfileController {
   }
 
   /**
-   * Get profiles with pagination support.
-   * GET /api/v1/auth/profiles/paginated?page=0&size=20
    */
   @GetMapping("/profiles/paginated")
   public ApiResponse<List<ProfileResponse>> getProfilesPaginated(
@@ -80,8 +86,6 @@ public class ProfileController {
 
   @GetMapping("/me")
   public ApiResponse<ProfileResponse> getCurrentProfile(Authentication authentication) {
-    // Returns ONLY profile data - no dependency on post-service
-    // This prevents cascading failures: if post-service is down, login still works
     return ApiResponse.success(profileService.getCurrentProfile(authentication));
   }
 
@@ -106,7 +110,6 @@ public class ProfileController {
   public ApiResponse<ProfileResponse> updateProfile(
       Authentication authentication, @Valid @RequestBody ProfileUpdateRequest req) {
 
-    // You can add a custom message here easily
     return ApiResponse.success(
         profileService.updateProfile(authentication, req), "Profile updated successfully");
   }

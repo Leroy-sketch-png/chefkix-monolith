@@ -7,8 +7,6 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * WebSocket event broadcast to room participants.
- * Serialized as JSON and sent to /topic/room/{roomCode}.
  */
 @Data
 @Builder

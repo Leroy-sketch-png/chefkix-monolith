@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Admin review request for a report.
  */
 @Data
 @NoArgsConstructor
@@ -16,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewReportRequest {
     /**
-     * Decision: "resolved", "dismissed", "ban_user"
      */
     @NotBlank(message = "decision is required")
     @Pattern(
@@ -28,7 +26,6 @@ public class ReviewReportRequest {
     String notes;
 
     /**
-     * If decision is "ban_user", specify scope: "post", "comment", "all"
      */
     @Pattern(regexp = "post|comment|all", message = "banScope must be one of: post, comment, all")
     String banScope;

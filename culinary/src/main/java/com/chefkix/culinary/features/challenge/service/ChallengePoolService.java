@@ -21,8 +21,6 @@ public class ChallengePoolService {
     @PostConstruct
     public void initPool() {
 
-        // 1. Italian Day 🍝
-        // criteria: {"cuisineType": ["Italian"]}
         pool.add(ChallengeDefinition.builder()
                 .id("italian-day")
                 .title("Italian Day 🍝")
@@ -32,8 +30,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkCuisine(r, "Italian"))
                 .build());
 
-        // 2. Quick Meal ⚡
-        // criteria: {"maxTimeMinutes": 30}
         pool.add(ChallengeDefinition.builder()
                 .id("quick-meal")
                 .title("Quick Meal ⚡")
@@ -43,8 +39,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> r.getTotalTimeMinutes() <= 30)
                 .build());
 
-        // 3. Spice It Up 🌶️
-        // criteria: {"ingredientContains": ["chili", "pepper", "spicy"]}
         pool.add(ChallengeDefinition.builder()
                 .id("spice-it-up")
                 .title("Spice It Up 🌶️")
@@ -54,8 +48,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkIngredients(r, "chili", "pepper", "spicy"))
                 .build());
 
-        // 4. Asian Fusion 🥢
-        // criteria: {"cuisineType": ["Japanese", "Chinese", "Thai", "Korean", "Vietnamese"]}
         pool.add(ChallengeDefinition.builder()
                 .id("asian-fusion")
                 .title("Asian Fusion 🥢")
@@ -65,8 +57,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkCuisine(r, "Japanese", "Chinese", "Thai", "Korean", "Vietnamese"))
                 .build());
 
-        // 5. Comfort Food 🍲 (Combines 2 conditions)
-        // criteria: {"cuisineType": ["American", "British"], "difficulty": ["BEGINNER", "INTERMEDIATE"]}
         pool.add(ChallengeDefinition.builder()
                 .id("comfort-food")
                 .title("Comfort Food 🍲")
@@ -80,8 +70,6 @@ public class ChallengePoolService {
                         && checkDifficulty(r, "BEGINNER", "INTERMEDIATE"))
                 .build());
 
-        // 6. Expert Challenge 👨‍🍳
-        // criteria: {"difficulty": ["EXPERT"]}
         pool.add(ChallengeDefinition.builder()
                 .id("expert-challenge")
                 .title("Expert Challenge 👨‍🍳")
@@ -91,8 +79,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkDifficulty(r, "EXPERT"))
                 .build());
 
-        // 7. Baking Day 🍰
-        // criteria: {"skillTags": ["baking"]}
         pool.add(ChallengeDefinition.builder()
                 .id("baking-day")
                 .title("Baking Day 🍰")
@@ -102,9 +88,6 @@ public class ChallengePoolService {
                 .validationLogic(r -> checkTags(r, "baking", "cake", "oven"))
                 .build());
 
-        // =============================================
-        // WEEKLY CHALLENGES — 4 rotating, multi-target
-        // =============================================
 
         weeklyPool.add(ChallengeDefinition.builder()
                 .id("weekly-italian-week")
@@ -148,7 +131,6 @@ public class ChallengePoolService {
     }
 
     /**
-     * Daily challenge rotation by day of year (UTC).
      */
     public ChallengeDefinition getTodayChallenge() {
         if (pool.isEmpty()) return null;
@@ -158,8 +140,6 @@ public class ChallengePoolService {
     }
 
     /**
-     * Weekly challenge rotation by ISO week number (UTC).
-     * Resets every Monday 00:00 UTC.
      */
     public ChallengeDefinition getThisWeekChallenge() {
         if (weeklyPool.isEmpty()) return null;
@@ -169,11 +149,7 @@ public class ChallengePoolService {
         return weeklyPool.get(index);
     }
 
-    // =========================================================================
-    // HELPER METHODS (Keep code clean and prevent NullPointerException)
-    // =========================================================================
 
-    // 1. Check Cuisine (Case-insensitive string comparison)
     private boolean checkCuisine(Recipe r, String... allowedCuisines) {
         if (r.getCuisineType() == null) return false;
         String recipeCuisine = r.getCuisineType().toLowerCase();
@@ -184,10 +160,9 @@ public class ChallengePoolService {
         return false;
     }
 
-    // 2. Check Difficulty
     private boolean checkDifficulty(Recipe r, String... allowedLevels) {
         if (r.getDifficulty() == null) return false;
-        String recipeDiff = r.getDifficulty().toString().toUpperCase(); // Assuming Difficulty is Enum or String
+String recipeDiff = r.getDifficulty().toString().toUpperCase();
 
         for (String allowed : allowedLevels) {
             if (recipeDiff.equals(allowed.toUpperCase())) return true;
@@ -195,17 +170,12 @@ public class ChallengePoolService {
         return false;
     }
 
-    // 3. Check Ingredients (Search within ingredient list)
     private boolean checkIngredients(Recipe r, String... keywords) {
-        // Depending on how your Recipe stores ingredients (String or List<Object>)
-        // Common approach: convert everything to string for search
         String ingredientsStr = "";
 
         if (r.getFullIngredientList() != null) {
-            // Assuming r.getIngredients() returns List<Ingredient>
             ingredientsStr = r.getFullIngredientList().toString().toLowerCase();
         } else if (r.getDescription() != null) {
-            // Fallback if no ingredients, search in description
             ingredientsStr = r.getDescription().toLowerCase();
         }
 
@@ -215,9 +185,7 @@ public class ChallengePoolService {
         return false;
     }
 
-    // 4. Check Tags/Skills
     private boolean checkTags(Recipe r, String... keywords) {
-        // Assuming Recipe has field List<String> tags or categories
         if (r.getDietaryTags() == null) return false;
 
         for (String tag : r.getDietaryTags()) {

@@ -11,7 +11,6 @@ import com.chefkix.identity.service.*;
 import com.chefkix.identity.utils.ClientIpUtils;
 import com.chefkix.identity.utils.HttpOnlyCookieUtils;
 import com.nimbusds.jose.JOSEException;
-// Feign removed in monolith
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -31,8 +30,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
-  private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60; // 7 days
-  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 7 * 24 * 60 * 60; // 7 days
+  private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60;
+  private static final int REFRESH_TOKEN_MAX_AGE_REFRESH = 7 * 24 * 60 * 60;
 
   AuthenticationService authenticationService;
   SignupRequestService signupRequestService;
@@ -42,13 +41,10 @@ public class AuthenticationController {
   UserProfileRepository userProfileRepository;
 
   /**
-   * Check if a username is available for registration.
-   * Returns { available: true/false } to support live validation on sign-up form.
    */
   @GetMapping("/check-username")
   ApiResponse<Map<String, Boolean>> checkUsernameAvailability(
       @RequestParam(value = "username") String username) {
-    // Validate username format (same rules as registration)
     if (username == null || username.length() < 2 || username.length() > 30) {
       return ApiResponse.<Map<String, Boolean>>builder()
           .data(Map.of("available", false))
@@ -56,7 +52,6 @@ public class AuthenticationController {
           .build();
     }
     
-    // Check if username exists
     boolean exists = userProfileRepository.findByUsername(username).isPresent();
     return ApiResponse.<Map<String, Boolean>>builder()
         .data(Map.of("available", !exists))
@@ -87,7 +82,7 @@ public class AuthenticationController {
       HttpOnlyCookieUtils.addHttpOnlyCookie(
           response,
           "refresh_token",
-          authResponse.getRefreshToken(), // Get new RT from response
+          authResponse.getRefreshToken(),
           REFRESH_TOKEN_MAX_AGE_REFRESH
           );
 
@@ -112,22 +107,19 @@ public class AuthenticationController {
   ApiResponse<AuthenticationResponse> authenticate(
       @RequestBody @Valid AuthenticationRequest request,
       HttpServletResponse response,
-      HttpServletRequest httpServletRequest) { // add response
+      HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
     authRateLimitService.assertLoginAllowed(clientIp);
 
-    // 1. authenticate user and get token from Keycloak
     AuthenticationResponse authResponse = authenticationService.authenticate(request);
 
     authRateLimitService.clearLoginAttempts(clientIp);
 
-    // 2. Store refresh token in HttpOnly cookie
     HttpOnlyCookieUtils.addHttpOnlyCookie(
         response, "refresh_token", authResponse.getRefreshToken(), REFRESH_TOKEN_MAX_AGE_LOGIN
-        );
+          );
 
-    // 3. Return JSON body (refreshToken no longer needed here)
-    authResponse.setRefreshToken(null); // optional, prevent leaking to JS
+    authResponse.setRefreshToken(null);
     return ApiResponse.success(authResponse, "Successfully signed in");
   }
 
@@ -162,7 +154,6 @@ public class AuthenticationController {
   @PutMapping("/change-password")
   ApiResponse<String> changePassword(
       Authentication authentication, @Valid @RequestBody ChangePasswordRequest req) {
-    // Security: Use email from JWT, not from request body
     String email = authentication.getName();
     authenticationService.changePassword(email, req.getOldPassword(), req.getNewPassword());
     return ApiResponse.<String>builder().data("Successfully changed password!").build();
@@ -170,20 +161,16 @@ public class AuthenticationController {
 
   @PostMapping("/logout")
   ApiResponse<String> logout(
-      // 1. Read refresh token from cookie instead of RequestBody
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
-      // 2. Add HttpServletResponse to delete cookie
       HttpServletResponse response)
       throws ParseException, JOSEException {
 
     String logoutMessage = "Logged out successfully";
 
-    // 3. Call service (if token exists) to revoke token at Keycloak
     if (refreshToken != null && !refreshToken.isBlank()) {
       logoutMessage = authenticationService.logout(refreshToken);
     }
 
-    // 4. ALWAYS delete HttpOnly cookie on the browser side
     HttpOnlyCookieUtils.deleteHttpOnlyCookie(response, "refresh_token");
 
     return ApiResponse.<String>builder().data(logoutMessage).build();

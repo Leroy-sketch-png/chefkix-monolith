@@ -7,8 +7,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Request DTO for creating a report.
- * Per spec 13-moderation.txt.
  */
 @Data
 @NoArgsConstructor
@@ -30,5 +28,5 @@ public class ReportRequest {
     String reason;
 
     @Size(max = 2000, message = "Details must be at most 2000 characters")
-    String details; // Optional explanation
+String details;
 }

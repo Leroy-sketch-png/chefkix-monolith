@@ -3,13 +3,16 @@ package com.chefkix.identity.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.identity.client.KeycloakAdminClient;
 import com.chefkix.identity.dto.identity.TokenExchangeParam;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
+import com.chefkix.identity.dto.identity.UserCreationParam;
 import com.chefkix.identity.entity.Block;
 import com.chefkix.identity.entity.Follow;
 import com.chefkix.identity.entity.FriendRequest;
@@ -44,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,7 +56,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileServiceTest {
@@ -123,7 +131,7 @@ class ProfileServiceTest {
     Block outgoingBlock = Block.builder().blockerId(userId).blockedId("blocked-user").build();
     Block incomingBlock = Block.builder().blockerId("blocker-user").blockedId(userId).build();
     ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder().email(email).build();
-    SignupRequest signupRequest = SignupRequest.builder().email(email).username(username).password("password123").firstName("Chef").lastName("Kix").build();
+    SignupRequest signupRequest = SignupRequest.builder().email(email).username(username).firstName("Chef").lastName("Kix").build();
 
     when(securityUtils.getCurrentUserId(authentication)).thenReturn(userId);
     when(profileRepository.findByUserId(userId)).thenReturn(Optional.of(deletedProfile));
@@ -196,5 +204,137 @@ class ProfileServiceTest {
                 assertThat(savedProfile.getFriends()).extracting(Friendship::getFriendId).containsExactly("friend-2");
               }
             });
+  }
+
+  @Test
+  void verifiedSignupSendsPasswordOnlyToDisabledKeycloakIdentityThenActivatesIt() {
+    String email = "new-chef@example.com";
+    String password = "correct-horse-battery";
+    SignupRequest request =
+        SignupRequest.builder()
+            .email(email)
+            .username("new-chef")
+            .firstName("New")
+            .lastName("Chef")
+            .otpHash("otp-hash")
+            .attempts(0)
+            .expiresAt(java.time.Instant.now().plusSeconds(300))
+            .build();
+    UserProfile profile = new UserProfile();
+
+    ReflectionTestUtils.setField(profileService, "clientId", "client-id");
+    ReflectionTestUtils.setField(profileService, "clientSecret", "client-secret");
+    ReflectionTestUtils.setField(profileService, "maxOtpAttempts", 5);
+    when(signupRequestRepository.findByEmail(email)).thenReturn(Optional.of(request));
+    when(emailService.hmacOtp("123456")).thenReturn("otp-hash");
+    when(keycloakAdminClient.exchangeToken(any(TokenExchangeParam.class)))
+        .thenReturn(TokenExchangeResponse.builder().accessToken("admin-token").build());
+    when(keycloakAdminClient.createUser(any(), any(UserCreationParam.class)))
+        .thenReturn(
+            ResponseEntity.created(
+                    URI.create("http://keycloak/admin/realms/nottisn/users/user-123"))
+                .build());
+    when(profileMapper.toProfile(request)).thenReturn(profile);
+    when(profileRepository.save(profile)).thenReturn(profile);
+
+    profileService.verifyOtpAndCreateUser(email, "123456", password);
+
+    ArgumentCaptor<UserCreationParam> creation = ArgumentCaptor.forClass(UserCreationParam.class);
+    verify(keycloakAdminClient).createUser(org.mockito.ArgumentMatchers.eq("Bearer admin-token"), creation.capture());
+    assertThat(creation.getValue().isEnabled()).isFalse();
+    assertThat(creation.getValue().getCredentials()).singleElement().satisfies(
+        credential -> assertThat(credential.getValue()).isEqualTo(password));
+    verify(keycloakAdminClient).enableUser("Bearer admin-token", "user-123");
+    verify(signupRequestRepository).delete(request);
+    verify(eventPublisher).publishEvent(any(com.chefkix.identity.events.UserIndexEvent.class));
+    verify(keycloakAdminClient, never()).deleteUser(any(), any());
+  }
+
+  @Test
+  void verifiedSignupDeletesDisabledKeycloakIdentityWhenProfileCreationFails() {
+    String email = "failed-chef@example.com";
+    SignupRequest request =
+        SignupRequest.builder()
+            .email(email)
+            .username("failed-chef")
+            .firstName("Failed")
+            .lastName("Chef")
+            .otpHash("otp-hash")
+            .attempts(0)
+            .expiresAt(java.time.Instant.now().plusSeconds(300))
+            .build();
+    UserProfile profile = new UserProfile();
+
+    ReflectionTestUtils.setField(profileService, "clientId", "client-id");
+    ReflectionTestUtils.setField(profileService, "clientSecret", "client-secret");
+    ReflectionTestUtils.setField(profileService, "maxOtpAttempts", 5);
+    when(signupRequestRepository.findByEmail(email)).thenReturn(Optional.of(request));
+    when(emailService.hmacOtp("123456")).thenReturn("otp-hash");
+    when(keycloakAdminClient.exchangeToken(any(TokenExchangeParam.class)))
+        .thenReturn(TokenExchangeResponse.builder().accessToken("admin-token").build());
+    when(keycloakAdminClient.createUser(any(), any(UserCreationParam.class)))
+        .thenReturn(
+            ResponseEntity.created(
+                    URI.create("http://keycloak/admin/realms/nottisn/users/user-456"))
+                .build());
+    when(profileMapper.toProfile(request)).thenReturn(profile);
+    when(profileRepository.save(profile)).thenThrow(new IllegalStateException("mongo unavailable"));
+
+    assertThrows(
+        IllegalStateException.class,
+        () -> profileService.verifyOtpAndCreateUser(email, "123456", "secure-password"));
+
+    verify(keycloakAdminClient).deleteUser("Bearer admin-token", "user-456");
+    verify(keycloakAdminClient, never()).enableUser(any(), any());
+    verify(signupRequestRepository, never()).delete(request);
+    verify(eventPublisher, never()).publishEvent(any(com.chefkix.identity.events.UserIndexEvent.class));
+  }
+
+  @Test
+  void verifiedSignupDeletesKeycloakIdentityWhenMongoTransactionRollsBackAtCommit() {
+    String email = "rollback-chef@example.com";
+    SignupRequest request =
+        SignupRequest.builder()
+            .email(email)
+            .username("rollback-chef")
+            .firstName("Rollback")
+            .lastName("Chef")
+            .otpHash("otp-hash")
+            .attempts(0)
+            .expiresAt(java.time.Instant.now().plusSeconds(300))
+            .build();
+    UserProfile profile = new UserProfile();
+
+    ReflectionTestUtils.setField(profileService, "clientId", "client-id");
+    ReflectionTestUtils.setField(profileService, "clientSecret", "client-secret");
+    ReflectionTestUtils.setField(profileService, "maxOtpAttempts", 5);
+    when(signupRequestRepository.findByEmail(email)).thenReturn(Optional.of(request));
+    when(emailService.hmacOtp("123456")).thenReturn("otp-hash");
+    when(keycloakAdminClient.exchangeToken(any(TokenExchangeParam.class)))
+        .thenReturn(TokenExchangeResponse.builder().accessToken("admin-token").build());
+    when(keycloakAdminClient.createUser(any(), any(UserCreationParam.class)))
+        .thenReturn(
+            ResponseEntity.created(
+                    URI.create("http://keycloak/admin/realms/nottisn/users/user-rollback"))
+                .build());
+    when(profileMapper.toProfile(request)).thenReturn(profile);
+    when(profileRepository.save(profile)).thenReturn(profile);
+
+    TransactionSynchronizationManager.initSynchronization();
+    try {
+      profileService.verifyOtpAndCreateUser(email, "123456", "secure-password");
+      List<TransactionSynchronization> synchronizations =
+          TransactionSynchronizationManager.getSynchronizations();
+
+      synchronizations.forEach(
+          synchronization ->
+              synchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+    } finally {
+      TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    verify(keycloakAdminClient).enableUser("Bearer admin-token", "user-rollback");
+    verify(keycloakAdminClient).deleteUser("Bearer admin-token", "user-rollback");
+    verify(eventPublisher, never()).publishEvent(any(com.chefkix.identity.events.UserIndexEvent.class));
   }
 }

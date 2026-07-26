@@ -34,9 +34,6 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     Slice<Notification> findAllByRecipientId(String userId, Pageable pageable);
 
     /**
-     * Find all notifications for a user created after a given timestamp.
-     * Used by "Welcome Back" summary to aggregate activity since last visit.
-     * Leverages compound index on {recipientId, isRead, createdAt}.
      */
     List<Notification> findAllByRecipientIdAndCreatedAtAfter(String recipientId, Instant since);
 }

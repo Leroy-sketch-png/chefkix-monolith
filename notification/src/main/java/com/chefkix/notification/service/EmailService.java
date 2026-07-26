@@ -34,9 +34,6 @@ public class EmailService {
     public EmailResponse sendEmail(SendEmailRequest request) {
         log.info("Preparing to send email to: {}", request.getTo().getEmail());
 
-        // DEV BYPASS: When Brevo is not configured, print the OTP to the console.
-        // This prevents infinite Kafka retries and lets developers test locally
-        // without a real Brevo API key.
         if (!brevoEmailClient.isConfigured()) {
             log.warn("=========================================================");
             log.warn("[DEV EMAIL BYPASS] Brevo not configured — email NOT sent.");
@@ -70,7 +67,6 @@ public class EmailService {
         }
     }
 
-    /** Extracts numeric OTP/verification code from HTML content. */
     private String extractCode(String html) {
         if (html == null) return null;
         Matcher m = OTP_PATTERN.matcher(html);

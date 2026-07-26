@@ -20,10 +20,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
- * Service for handling content reports.
- * Per spec 13-moderation.txt:
- * - Max 3 reports per day per user
- * - 3 unique reports on same content triggers admin review
  */
 @Service
 @Slf4j
@@ -42,32 +38,26 @@ public class ReportService {
     private static final int MIN_USER_LEVEL = 2;
 
     /**
-     * Create a report for content (post, comment, or recipe).
      */
     public ReportResponse createReport(Authentication authentication, ReportRequest request) {
         String reporterId = authentication.getName();
 
-        // Rate limiting: Check if user has exceeded daily report limit
         Instant dayStart = Instant.now().truncatedTo(ChronoUnit.DAYS);
         long todayReportCount = reportRepository.countByReporterIdAndCreatedAtAfter(reporterId, dayStart);
         if (todayReportCount >= MAX_REPORTS_PER_DAY) {
             throw new AppException(ErrorCode.REPORT_LIMIT_EXCEEDED);
         }
 
-        // "Skin in the game" validation: prevent abuse from new/inactive accounts
         validateReporterMaturity(reporterId);
 
-        // Check if user already reported this target
         var existingReport = reportRepository.findByReporterIdAndTargetTypeAndTargetId(
                 reporterId, request.getTargetType(), request.getTargetId());
         if (existingReport.isPresent()) {
             throw new AppException(ErrorCode.DUPLICATE_REPORT);
         }
 
-        // Validate target exists
         validateTargetExists(request.getTargetType(), request.getTargetId());
 
-        // Create the report
         Report report = Report.builder()
                 .reporterId(reporterId)
                 .targetType(request.getTargetType())
@@ -79,17 +69,14 @@ public class ReportService {
 
         Report saved = reportRepository.save(report);
 
-        // Count total reports for this target
         long totalReports = reportRepository.countByTargetTypeAndTargetId(
                 request.getTargetType(), request.getTargetId());
 
-        // Check if review should be triggered
         boolean reviewTriggered = totalReports >= REVIEW_THRESHOLD;
 
         if (reviewTriggered) {
             log.warn("Review triggered for {} {} - {} reports received",
                     request.getTargetType(), request.getTargetId(), totalReports);
-            // Auto-hide the content to protect the community immediately
             autoHideContent(request.getTargetType(), request.getTargetId());
         }
 
@@ -108,8 +95,6 @@ public class ReportService {
     }
 
     /**
-     * Auto-hide content that has reached the report threshold.
-     * Posts are hidden from feeds immediately. An admin can reverse this later.
      */
     private void autoHideContent(String targetType, String targetId) {
         if ("post".equals(targetType)) {
@@ -121,15 +106,12 @@ public class ReportService {
                 }
             });
         }
-        // Comments and recipes: logged for manual admin review (no hidden field on Comment yet)
         if ("comment".equals(targetType) || "recipe".equals(targetType)) {
             log.warn("{} {} reached report threshold — needs admin review", targetType, targetId);
         }
     }
 
     /**
-     * Validate reporter has "skin in the game" — account age and engagement.
-     * Prevents new/inactive accounts from weaponizing the report system.
      */
     private void validateReporterMaturity(String reporterId) {
         Instant accountCreated = profileProvider.getAccountCreatedAt(reporterId);
@@ -143,7 +125,6 @@ public class ReportService {
     }
 
     /**
-     * Validate that the target content exists.
      */
     private void validateTargetExists(String targetType, String targetId) {
         switch (targetType) {
@@ -156,8 +137,6 @@ public class ReportService {
                         .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
                 break;
             case "recipe":
-                // Recipe validation would require calling recipe-service
-                // For MVP, we skip this validation
                 log.info("Recipe validation skipped for {}", targetId);
                 break;
             default:

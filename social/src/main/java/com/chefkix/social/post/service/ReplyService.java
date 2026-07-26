@@ -66,7 +66,6 @@ public class ReplyService {
         Comment comment = commentRepository.findById(replyRequest.getParentCommentId())
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
-        // AI CONTENT MODERATION — fail-open for replies
         var moderationResult = contentModerationProvider.moderate(replyRequest.getContent(), "comment");
         if (moderationResult.isBlocked()) {
             log.warn("Reply content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
@@ -99,12 +98,10 @@ public class ReplyService {
 
         incrementCounter(savedReply.getParentCommentId(), "replyCount", 1);
 
-        // Send notification to tagged users
         if (savedReply.getTaggedUserIds() != null && !savedReply.getTaggedUserIds().isEmpty()) {
             sendTagNotifications(savedReply, comment.getPostId(), userInfo.getDisplayName(), userInfo.getAvatarUrl());
         }
 
-        // For newly created replies, current user is the author, so isLiked = false
         return mapToReplyResponse(savedReply, userId);
     }
 
@@ -120,7 +117,6 @@ public class ReplyService {
     private ReplyResponse mapToReplyResponse(Reply reply, String currentUserId) {
         ReplyResponse response = replyMapper.toResponse(reply);
         
-        // Check if current user has liked this reply
         if (currentUserId != null) {
             boolean isLiked = replyLikeRepository.existsByReplyIdAndUserId(reply.getId(), currentUserId);
             response.setIsLiked(isLiked);
@@ -158,11 +154,9 @@ public class ReplyService {
     }
 
     /**
-     * Sends Kafka event to notify tagged users in a reply.
      */
     private void sendTagNotifications(Reply reply, String postId, String actorDisplayName, String actorAvatarUrl) {
         for (String taggedUserId : reply.getTaggedUserIds()) {
-            // Skip self-tagging
             if (taggedUserId.equals(reply.getUserId())) continue;
 
             try {
@@ -199,7 +193,6 @@ public class ReplyService {
     }
 
     /**
-     * Delete a reply. Only the reply owner can delete.
      */
     @Transactional
     public void deleteReply(Authentication authentication, String replyId) {
@@ -208,25 +201,20 @@ public class ReplyService {
         Reply reply = replyRepository.findById(replyId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPLY_NOT_FOUND));
 
-        // Only owner can delete
         if (!reply.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Decrement reply count on parent comment
         incrementCounter(reply.getParentCommentId(), "replyCount", -1);
 
-        // Delete all likes for this reply
         replyLikeRepository.deleteAllByReplyId(replyId);
 
-        // Delete the reply
         replyRepository.delete(reply);
 
         log.info("User {} deleted reply {}", userId, replyId);
     }
 
     /**
-     * Toggle like on a reply.
      */
     @Transactional
     public ReplyLikeResponse toggleLike(Authentication authentication, String replyId) {
@@ -238,11 +226,9 @@ public class ReplyService {
         boolean alreadyLiked = replyLikeRepository.existsByReplyIdAndUserId(replyId, userId);
 
         if (alreadyLiked) {
-            // Unlike
             replyLikeRepository.deleteByReplyIdAndUserId(replyId, userId);
             incrementReplyLikes(replyId, -1);
         } else {
-            // Like
             ReplyLike like = ReplyLike.builder()
                     .replyId(replyId)
                     .userId(userId)

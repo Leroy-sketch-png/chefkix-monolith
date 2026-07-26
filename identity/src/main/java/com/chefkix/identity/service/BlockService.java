@@ -21,9 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing user blocks. When a user blocks another: - Any follow relationships are
- * removed (both directions) - The blocked user cannot see the blocker's content - The blocker
- * cannot see the blocked user's content (mutual invisibility)
  */
 @Service
 @Slf4j
@@ -49,28 +46,23 @@ public class BlockService {
     this.securityUtils = securityUtils;
   }
 
-  /** Block a user. Also removes any follow relationships between the two users. */
   @Transactional
   public BlockResponse blockUser(String blockedUserId, Authentication authentication) {
     String blockerId = securityUtils.getCurrentUserId(authentication);
 
-    // Validate: can't block yourself
     if (blockerId.equals(blockedUserId)) {
       throw new AppException(ErrorCode.INVALID_OPERATION);
     }
 
-    // Check if target user exists
     UserProfile blockedProfile =
         userProfileRepository
             .findByUserId(blockedUserId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // Check if already blocked
     if (blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedUserId)) {
       throw new AppException(ErrorCode.ALREADY_BLOCKED);
     }
 
-    // Remove any follow relationships (both directions)
     followRepository
         .findByFollowerIdAndFollowingId(blockerId, blockedUserId)
         .ifPresent(
@@ -90,7 +82,6 @@ public class BlockService {
               log.info("Removed follow: {} -> {} due to block", blockedUserId, blockerId);
             });
 
-    // Create the block
     Block block =
         Block.builder()
             .blockerId(blockerId)
@@ -104,7 +95,6 @@ public class BlockService {
     return buildBlockResponse(block, blockedProfile);
   }
 
-  /** Unblock a user. */
   @Transactional
   public void unblockUser(String blockedUserId, Authentication authentication) {
     String blockerId = securityUtils.getCurrentUserId(authentication);
@@ -118,7 +108,6 @@ public class BlockService {
     log.info("User {} unblocked user {}", blockerId, blockedUserId);
   }
 
-  /** Get list of users the current user has blocked. */
   public List<BlockResponse> getBlockedUsers(Authentication authentication) {
     String userId = securityUtils.getCurrentUserId(authentication);
 
@@ -135,21 +124,16 @@ public class BlockService {
   }
 
   /**
-   * Check if there's a block between two users (either direction). Used by other services to filter
-   * content.
    */
   public boolean isBlocked(String userId1, String userId2) {
     return blockRepository.existsBlockBetween(userId1, userId2);
   }
 
-  /** Check if currentUser has blocked targetUser. */
   public boolean hasBlocked(String blockerId, String blockedId) {
     return blockRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId);
   }
 
   /**
-   * Get all user IDs that should be invisible to the given user. This includes users they've
-   * blocked AND users who blocked them.
    */
   public List<String> getInvisibleUserIds(String userId) {
     List<Block> blockedByMe = blockRepository.findAllByBlockerId(userId);

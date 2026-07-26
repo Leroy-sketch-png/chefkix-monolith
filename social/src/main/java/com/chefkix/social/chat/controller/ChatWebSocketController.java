@@ -25,21 +25,17 @@ public class ChatWebSocketController {
     SimpMessagingTemplate messagingTemplate;
 
     /**
-     * When frontend sends a message via endpoint /app/chat.sendMessage
      */
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Valid ChatMessageRequest request) {
         ChatMessageResponse response = chatMessageService.create(request);
 
-        // Send message back to conversation topic for FE real-time listening
         messagingTemplate.convertAndSend("/topic/conversation/" + request.getConversationId(), response);
 
         log.info("Sent message to /topic/conversation/{}", request.getConversationId());
     }
 
     /**
-     * Real-time reaction toggle via WebSocket.
-     * FE sends to /app/chat.react.{messageId}
      */
     @MessageMapping("/chat.react.{messageId}")
     public void reactToMessage(@DestinationVariable String messageId, @Valid ChatReactionRequest request) {
@@ -51,8 +47,6 @@ public class ChatWebSocketController {
     }
 
     /**
-     * Real-time message delete via WebSocket.
-     * FE sends to /app/chat.delete.{messageId}
      */
     @MessageMapping("/chat.delete.{messageId}")
     public void deleteMessage(@DestinationVariable String messageId) {

@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Provider implementation exposing culinary recipe data to other modules.
- * Delegates to internal RecipeService.
  */
 @Slf4j
 @Component

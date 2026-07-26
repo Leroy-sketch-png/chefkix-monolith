@@ -60,20 +60,14 @@ public class SocialService {
 
   private static final String NEW_FOLLOWER_TOPIC = "new-follower-delivery";
 
-  // ===================================================================================
-  // --- Follow Logic ---
-  // ===================================================================================
 
   /**
-   * Perform follow or unfollow action (toggle).
    *
-   * @return ProfileResponse of the FOLLOWED user (with updated isFollowing status).
    */
   @Transactional
   public ProfileResponse toggleFollow(String followingId, Authentication authentication) {
     String followerId = securityUtils.getCurrentUserId(authentication);
 
-    // --- VALIDATION ---
     if (followerId.equals(followingId)) {
       throw new AppException(ErrorCode.INVALID_REQUEST);
     }
@@ -85,21 +79,16 @@ public class SocialService {
         .orElseThrow(
             () -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // Get follower profile for notification
     UserProfile followerProfile = userProfileRepository.findByUserId(followerId).orElse(null);
 
-    // --- TOGGLE LOGIC ---
     Optional<Follow> existingFollow =
         followRepository.findByFollowerIdAndFollowingId(followerId, followingId);
 
     if (existingFollow.isPresent()) {
-      // A. ALREADY FOLLOWING -> UNFOLLOW
       followRepository.delete(existingFollow.get());
       updateFollowCounts(followerId, followingId, -1);
       log.info("User {} successfully UNFOLLOWED {}", followerId, followingId);
     } else {
-      // B. NOT FOLLOWING -> FOLLOW
-      // PRIVACY: Check if target user allows followers
       var targetPrivacy = settingsService.getPrivacySettingsByUserId(followingId);
       if (targetPrivacy != null && Boolean.FALSE.equals(targetPrivacy.getAllowFollowers())) {
         throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
@@ -110,39 +99,30 @@ public class SocialService {
         updateFollowCounts(followerId, followingId, 1);
         log.info("User {} successfully FOLLOWED {}", followerId, followingId);
 
-        // Send notification for new follower
         sendNewFollowerNotification(followerId, followerProfile, followingId);
       } catch (DuplicateKeyException e) {
-        // Race condition: concurrent double-tap — already following, skip
         log.debug("Duplicate follow ignored for {} -> {}", followerId, followingId);
       }
     }
 
-    // --- MAP & RETURN ---
-    // Fetch latest profile to get accurate counts
     UserProfile updatedTargetProfile = userProfileRepository.findByUserId(followingId)
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     ProfileResponse response = profileMapper.toProfileResponse(updatedTargetProfile);
 
-    // Set the isFollowing status - CRITICAL: FE depends on this!
     boolean nowFollowing = followRepository.findByFollowerIdAndFollowingId(followerId, followingId).isPresent();
     response.setFollowing(nowFollowing);
     
-    // Also set followedBy for mutual detection
     boolean theyFollowMe = followRepository.findByFollowerIdAndFollowingId(followingId, followerId).isPresent();
     response.setFollowedBy(theyFollowMe);
     
-    // Set relationship status
     response.setRelationshipStatus(socialUtils.determineRelationshipStatus(followerId, updatedTargetProfile));
     
     return response;
   }
 
-  /** Send Kafka notification when someone gets a new follower. */
   private void sendNewFollowerNotification(
       String followerId, UserProfile followerProfile, String followedUserId) {
     try {
-      // Check if this creates a mutual follow
       boolean isMutual =
           followRepository.findByFollowerIdAndFollowingId(followedUserId, followerId).isPresent();
 
@@ -158,28 +138,22 @@ public class SocialService {
       kafkaTemplate.send(NEW_FOLLOWER_TOPIC, event);
       log.info("Sent new follower notification: {} → {}", followerId, followedUserId);
     } catch (Exception e) {
-      // Fire and forget - don't fail the follow operation
       log.warn("Failed to send new follower notification", e);
     }
   }
 
   /**
-   * Get a robust display name for a user profile.
-   * Fallback chain: displayName → firstName + lastName → username → "A user"
-   * CRITICAL: displayName is OPTIONAL (users sign up with firstName/lastName/username, NOT displayName)
    */
   private String getProfileDisplayName(UserProfile profile) {
     if (profile == null) {
       return "A user";
     }
 
-    // Try displayName first
     String displayName = profile.getDisplayName();
     if (displayName != null && !displayName.isBlank()) {
       return displayName;
     }
 
-    // Fallback to firstName + lastName
     String firstName = profile.getFirstName();
     String lastName = profile.getLastName();
     if (firstName != null && !firstName.isBlank()) {
@@ -191,7 +165,6 @@ public class SocialService {
       return lastName;
     }
 
-    // Fallback to username
     String username = profile.getUsername();
     if (username != null && !username.isBlank()) {
       return username;
@@ -200,20 +173,14 @@ public class SocialService {
     return "A user";
   }
 
-  // ===================================================================================
-  // --- Friend Request Logic ---
-  // ===================================================================================
 
   /**
-   * Send or CANCEL a friend request (toggle).
    *
-   * @return ProfileResponse of the RECEIVER (with updated relationshipStatus).
    */
   @Transactional
   public ProfileResponse toggleSendFriendRequest(String receiverId, Authentication authentication) {
     String senderId = securityUtils.getCurrentUserId(authentication);
 
-    // --- VALIDATION ---
     if (senderId.equals(receiverId)) {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
@@ -230,22 +197,19 @@ public class SocialService {
 
     boolean isAlreadyFriends =
         friends.stream()
-            .anyMatch(f -> f.getFriendId().equals(senderId)); // FIX: friendId -> userId
+.anyMatch(f -> f.getFriendId().equals(senderId));
     if (isAlreadyFriends) {
       throw new AppException(ErrorCode.ALREADY_FRIEND);
     }
 
-    // --- TOGGLE LOGIC ---
     Optional<FriendRequest> existingRequest =
         friendRequestRepository.findBySenderIdAndReceiverId(senderId, receiverId);
 
     if (existingRequest.isPresent()) {
-      // A. ALREADY SENT -> CANCEL REQUEST
       friendRequestRepository.delete(existingRequest.get());
       updateFriendRequestCounts(receiverId, -1);
       log.info("User {} CANCELLED friend request to {}", senderId, receiverId);
     } else {
-      // B. NOT SENT -> SEND REQUEST
       FriendRequest request =
           FriendRequest.builder().senderId(senderId).receiverId(receiverId).build();
       friendRequestRepository.save(request);
@@ -260,50 +224,39 @@ public class SocialService {
     return response;
   }
 
-  // This method assumes it lives in SocialService, where
-  // MongoTemplate, UserProfileRepository, FriendRequestRepository,
-  // StatisticsService, ProfileMapper, and SecurityUtils are injected
 
   @Transactional
   public ProfileResponse acceptFriendRequest(String senderId, Authentication authentication) {
-    String currentUserId = securityUtils.getCurrentUserId(authentication); // This is YOU (Receiver)
+String currentUserId = securityUtils.getCurrentUserId(authentication);
 
-    // Block check: cannot accept friendship if either user has blocked the other
     if (blockRepository.existsBlockBetween(senderId, currentUserId)) {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
 
-    // 1. Find the friend request (existing code is correct)
     FriendRequest friendRequest =
         friendRequestRepository
             .findBySenderIdAndReceiverId(senderId, currentUserId)
             .orElseThrow(() -> new AppException(ErrorCode.REQUEST_NOT_FOUND));
 
-    // 2. Create Friendship object (using a shared timestamp)
     Instant friendedAt = Instant.now();
 
-    // "New friend" object for YOU (Receiver)
     Friendship friendshipForReceiver =
         Friendship.builder()
-            .friendId(senderId) // ID of the sender
+.friendId(senderId)
             .friendedAt(friendedAt)
             .build();
 
-    // "New friend" object for THEM (Sender)
     Friendship friendshipForSender =
         Friendship.builder()
-            .friendId(currentUserId) // ID of you (the receiver)
+.friendId(currentUserId)
             .friendedAt(friendedAt)
             .build();
 
-    // 3. Update friends (using $push for atomicity)
-    // Add Sender (A) to Receiver's (B - You) friend list
     mongoTemplate.updateFirst(
         Query.query(Criteria.where("userId").is(currentUserId)),
         new Update().addToSet("friends", friendshipForReceiver),
         UserProfile.class);
 
-    // Add Receiver (B) to Sender's (A) friend list
     mongoTemplate.updateFirst(
         Query.query(Criteria.where("userId").is(senderId)),
         new Update().addToSet("friends", friendshipForSender),
@@ -338,8 +291,6 @@ public class SocialService {
 
     friendRequestRepository.delete(friendRequest);
 
-    // Only decrement the pending request count — do NOT increment friendCount
-    // (this was a copy-paste bug from acceptFriendRequest)
     statisticsService.incrementCounter(currentUserId, "friendRequestCount", -1);
 
     UserProfile updatedSenderProfile =
@@ -349,7 +300,6 @@ public class SocialService {
 
     ProfileResponse response = profileMapper.toProfileResponse(updatedSenderProfile);
 
-    // After rejection, relationship goes back to NONE (not FRIENDS)
     response.setRelationshipStatus(
         socialUtils.determineRelationshipStatus(currentUserId, updatedSenderProfile));
 
@@ -364,7 +314,6 @@ public class SocialService {
       throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
     }
 
-    // --- UNFRIEND LOGIC ---
     Query pullQueryForFriend = Query.query(Criteria.where("friendId").is(friendId));
 
     UpdateResult result =
@@ -381,8 +330,8 @@ public class SocialService {
     Query pullQueryForCurrent = Query.query(Criteria.where("friendId").is(currentUserId));
 
     mongoTemplate.updateFirst(
-        Query.query(Criteria.where("userId").is(friendId)), // Find UserProfile (correct)
-        new Update().pull("friends", pullQueryForCurrent), // Pull nested object (fixed)
+Query.query(Criteria.where("userId").is(friendId)),
+new Update().pull("friends", pullQueryForCurrent),
         UserProfile.class);
 
     statisticsService.incrementCounter(currentUserId, "friendCount", -1);
@@ -405,18 +354,14 @@ public class SocialService {
   }
 
   public InternalFriendListResponse getAllFriends(String userId) {
-    // 1. Call Repository to get LIST of STRING IDs
-    // Note: Must filter status as ACCEPTED (already friends)
     List<String> friendIds =
         friendshipRepository.findAllFriendIdsByUserId(
             userId, RelationshipStatus.FRIENDS.toString());
 
-    // 2. Null-safe handling (avoid error if repo returns null)
     if (friendIds == null) {
       friendIds = new ArrayList<>();
     }
 
-    // 3. Wrap in Internal DTO
     return InternalFriendListResponse.builder()
         .userId(userId)
         .friendIds(friendIds)
@@ -424,11 +369,7 @@ public class SocialService {
         .build();
   }
 
-  // ===================================================================================
-  // --- Private Helper Methods ---
-  // ===================================================================================
 
-  /** Update follower/following counts via StatisticsService. */
   private void updateFollowCounts(String followerId, String followingId, int amount) {
     statisticsService.incrementCounter(followerId, "followingCount", amount);
     statisticsService.incrementCounter(followingId, "followerCount", amount);
@@ -439,57 +380,41 @@ public class SocialService {
   }
 
   public List<String> getFriendIds(String userId) {
-    // NEW APPROACH: Friends = Mutual Followers
-    // Get people I follow
     List<String> followingIds =
         followRepository.findAllByFollowerId(userId).stream().map(Follow::getFollowingId).toList();
 
-    // Get people who follow me
     List<String> followerIds =
         followRepository.findAllByFollowingId(userId).stream().map(Follow::getFollowerId).toList();
 
-    // Mutual = intersection
     return followingIds.stream().filter(followerIds::contains).toList();
   }
 
-  /** Get list of friend when being mentioned in comments */
   public List<UserMentionResponse> searchFriendsForMention(
       String currentUserId, String keyword, Pageable pageable) {
-    // 1. Get profile of the user typing the comment
     UserProfile currentUser =
         userProfileRepository
             .findByUserId(currentUserId)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-    // 2. Get friend ID list (only those ACCEPTED)
     if (currentUser.getFriends() == null || currentUser.getFriends().isEmpty()) {
       return new ArrayList<>();
     }
 
     List<String> friendIds =
         currentUser.getFriends().stream()
-            // .filter(f -> "ACCEPTED".equals(f.getStatus())) // If status check is needed
             .map(Friendship::getFriendId)
             .collect(Collectors.toList());
 
-    // 3. Search the database for IDs matching the keyword
-    // Limit to 10 results for fast autocomplete
-    // Escape regex special chars to prevent ReDoS from user-controlled input
     String safeKeyword = Pattern.quote(keyword);
     List<UserProfile> matchedFriends =
         friendshipRepository.findFriendsForMention(friendIds, safeKeyword, pageable);
 
-    // 4. Map to lightweight DTO for Frontend
     return matchedFriends.stream()
         .map(u -> new UserMentionResponse(u.getUserId(), u.getDisplayName(), u.getAvatarUrl()))
         .collect(Collectors.toList());
   }
 
-  // ===================================================================================
-  // --- NEW: Mutual Follow = Friends System ---
-  // ===================================================================================
 
-  /** Check if two users mutually follow each other (i.e., are "friends"). */
   public boolean isMutualFollow(String userA, String userB) {
     boolean aFollowsB = followRepository.existsByFollowerIdAndFollowingId(userA, userB);
     boolean bFollowsA = followRepository.existsByFollowerIdAndFollowingId(userB, userA);
@@ -497,47 +422,35 @@ public class SocialService {
   }
 
   /**
-   * Get list of mutual followers (friends) for a user. Friends = people who both follow each other.
    */
   public List<String> getMutualFollowerIds(String userId) {
-    // Get people I follow
     List<String> followingIds =
         followRepository.findAllByFollowerId(userId).stream().map(Follow::getFollowingId).toList();
 
-    // Get people who follow me
     List<String> followerIds =
         followRepository.findAllByFollowingId(userId).stream().map(Follow::getFollowerId).toList();
 
-    // Mutual = intersection
     return followingIds.stream().filter(followerIds::contains).toList();
   }
 
-  /** Get list of users that userId is following. */
   public List<String> getFollowingIds(String userId) {
     return followRepository.findAllByFollowerId(userId).stream()
         .map(Follow::getFollowingId)
         .toList();
   }
 
-  /** Get list of users that follow userId. */
   public List<String> getFollowerIds(String userId) {
     return followRepository.findAllByFollowingId(userId).stream()
         .map(Follow::getFollowerId)
         .toList();
   }
 
-  // ===================================================================================
-  // --- Profile-returning variants (for FE API) ---
-  // ===================================================================================
 
   /**
-   * Get profiles of users that the current user is following. Returns full ProfileResponse objects
-   * for FE consumption.
    */
   public List<ProfileResponse> getFollowingProfiles(String userId) {
     List<String> followingIds = getFollowingIds(userId);
     if (followingIds.isEmpty()) return List.of();
-    // Batch: which of the users I follow also follow me back? (1 query instead of N)
     Set<String> theyFollowMeBack = followRepository
         .findAllByFollowingIdAndFollowerIdIn(userId, followingIds).stream()
         .map(Follow::getFollowerId)
@@ -557,13 +470,10 @@ public class SocialService {
   }
 
   /**
-   * Get profiles of users that follow the current user. Returns full ProfileResponse objects for FE
-   * consumption.
    */
   public List<ProfileResponse> getFollowerProfiles(String userId) {
     List<String> followerIds = getFollowerIds(userId);
     if (followerIds.isEmpty()) return List.of();
-    // Batch: which of my followers do I follow back? (1 query instead of N)
     Set<String> iFollowBack = followRepository
         .findAllByFollowerIdAndFollowingIdIn(userId, followerIds).stream()
         .map(Follow::getFollowingId)
@@ -576,15 +486,13 @@ public class SocialService {
               response.setRelationshipStatus(
                   isFollowingThem ? RelationshipStatus.FRIENDS : RelationshipStatus.NOT_FRIENDS);
               response.setFollowing(isFollowingThem);
-              response.setFollowedBy(true); // They follow current user
+response.setFollowedBy(true);
               return response;
             })
         .toList();
   }
 
   /**
-   * Get profiles of mutual followers (friends). Friends = users who mutually follow each other.
-   * Returns full ProfileResponse objects for FE consumption.
    */
   public List<ProfileResponse> getFriendProfiles(String userId) {
     List<String> friendIds = getMutualFollowerIds(userId);
@@ -600,32 +508,23 @@ public class SocialService {
         .toList();
   }
 
-  /** Check if userId is following targetId. */
   public boolean isFollowing(String userId, String targetId) {
     return followRepository.findByFollowerIdAndFollowingId(userId, targetId).isPresent();
   }
 
   /**
-   * Get suggested follow profiles for a user based on preference overlap and popularity.
-   * Excludes: self, already following, blocked users.
-   * Scoring: preference overlap (0.4) + follower count (0.2) + post count (0.2) + level (0.2).
    */
   public List<ProfileResponse> getSuggestedFollows(String userId, int limit) {
-    // Gather exclusion sets
     Set<String> followingIds = new HashSet<>(getFollowingIds(userId));
-    followingIds.add(userId); // Exclude self
+followingIds.add(userId);
 
-    // Exclude blocked users (both directions)
     blockRepository.findAllByBlockerId(userId).forEach(b -> followingIds.add(b.getBlockedId()));
     blockRepository.findAllByBlockedId(userId).forEach(b -> followingIds.add(b.getBlockerId()));
 
-    // Get current user's preferences for matching
     UserProfile currentProfile = userProfileRepository.findByUserId(userId).orElse(null);
     Set<String> myPrefs = (currentProfile != null && currentProfile.getPreferences() != null)
             ? new HashSet<>(currentProfile.getPreferences()) : Collections.emptySet();
 
-    // Fetch candidate pool: recent active users not in exclusion set
-    // Use Pageable to limit the candidate pool size
     Query query = new Query()
             .addCriteria(Criteria.where("userId").nin(followingIds))
             .with(org.springframework.data.domain.PageRequest.of(0, 200,
@@ -636,28 +535,23 @@ public class SocialService {
       return Collections.emptyList();
     }
 
-    // Score and rank
     List<ScoredProfile> scored = candidates.stream()
             .map(profile -> {
               double score = 0.0;
               var stats = profile.getStatistics();
 
-              // Preference overlap (0.4) — shared interests
               if (!myPrefs.isEmpty() && profile.getPreferences() != null) {
                 long overlap = profile.getPreferences().stream().filter(myPrefs::contains).count();
                 score += 0.4 * ((double) overlap / myPrefs.size());
               }
 
               if (stats != null) {
-                // Follower count (0.2) — popularity, normalized log scale
                 long followers = stats.getFollowerCount() != null ? stats.getFollowerCount() : 0;
                 score += 0.2 * Math.min(1.0, Math.log1p(followers) / Math.log1p(1000));
 
-                // Post count (0.2) — content creator signal
                 long posts = stats.getPostCount() != null ? stats.getPostCount() : 0;
                 score += 0.2 * Math.min(1.0, Math.log1p(posts) / Math.log1p(50));
 
-                // Level (0.2) — engagement signal
                 int level = stats.getCurrentLevel() != null ? stats.getCurrentLevel() : 1;
                 score += 0.2 * Math.min(1.0, (double) level / 20);
               }

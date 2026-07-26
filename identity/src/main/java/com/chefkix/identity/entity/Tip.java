@@ -11,8 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Individual tip record. Immutable after creation.
- * Links tipper → creator for a specific recipe/post.
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -26,17 +24,17 @@ public class Tip {
 
     @Indexed String creatorId;
 
-    String recipeId; // optional — null for profile-level tips
+String recipeId;
 
-    int amountCents; // tip amount in cents (e.g., 500 = $5.00)
+int amountCents;
 
-    String currency; // "USD"
+String currency;
 
-    String message; // optional message from tipper
+String message;
 
-    @Builder.Default String status = "pending"; // pending, completed, refunded
+@Builder.Default String status = "pending";
 
-    String paymentIntentId; // Stripe payment intent (null in Phase 0)
+String paymentIntentId;
 
     @CreatedDate Instant createdAt;
 }

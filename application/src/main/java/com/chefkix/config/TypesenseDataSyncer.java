@@ -45,7 +45,7 @@ public class TypesenseDataSyncer {
         log.info("Typesense data sync complete");
     }
 
-    private void syncRecipes() {
+    void syncRecipes() {
         Query query = new Query(Criteria.where("status").is(RecipeStatus.PUBLISHED));
         List<Document> recipes = mongoTemplate.find(query, Document.class, "recipes");
 
@@ -60,6 +60,27 @@ public class TypesenseDataSyncer {
 
         int synced = typesenseService.importDocuments("recipes", docs);
         log.info("Synced {}/{} recipes to Typesense", synced, recipes.size());
+        if (synced != docs.size()) {
+            log.warn("Skipping stale recipe pruning because the authoritative import was incomplete");
+            return;
+        }
+
+        Set<String> authoritativeIds = docs.stream()
+                .map(doc -> Objects.toString(doc.get("id"), ""))
+                .filter(id -> !id.isBlank())
+                .collect(Collectors.toSet());
+        typesenseService.listDocumentIds("recipes").ifPresent(indexedIds -> {
+            Set<String> staleIds = new HashSet<>(indexedIds);
+            staleIds.removeAll(authoritativeIds);
+            long deleted = staleIds.stream()
+                    .filter(id -> typesenseService.deleteDocument("recipes", id))
+                    .count();
+            if (deleted == staleIds.size()) {
+                log.info("Pruned {} stale recipe documents from Typesense", deleted);
+            } else {
+                log.warn("Pruned {}/{} stale recipe documents from Typesense", deleted, staleIds.size());
+            }
+        });
     }
 
     private void syncUsers() {
@@ -113,6 +134,10 @@ public class TypesenseDataSyncer {
     }
 
     private Map<String, Object> recipeToDocument(Object recipe) {
+        if (recipe instanceof Document document) {
+            return mongoRecipeToDocument(document);
+        }
+
         Map<String, Object> doc = new LinkedHashMap<>();
         doc.put("id", getStringValue(recipe, "getId"));
         doc.put("title", getStringValue(recipe, "getTitle"));
@@ -165,6 +190,48 @@ public class TypesenseDataSyncer {
         return doc;
     }
 
+    private Map<String, Object> mongoRecipeToDocument(Document recipe) {
+        Map<String, Object> doc = new LinkedHashMap<>();
+        Object rawId = recipe.get("_id");
+        doc.put("id", rawId != null ? rawId.toString() : "");
+        doc.put("title", Objects.toString(recipe.get("title"), ""));
+        doc.put("description", Objects.toString(recipe.get("description"), ""));
+        doc.put("cuisine", Objects.toString(recipe.get("cuisineType"), ""));
+        doc.put("difficulty", Objects.toString(recipe.get("difficulty"), ""));
+        doc.put("totalTime", numberValue(recipe.get("totalTimeMinutes")).intValue());
+        doc.put("cookCount", numberValue(recipe.get("cookCount")).intValue());
+        doc.put("avgRating", numberValue(recipe.get("averageRating")).doubleValue());
+
+        List<String> ingredientNames = new ArrayList<>();
+        Object rawIngredients = recipe.get("fullIngredientList");
+        if (rawIngredients instanceof Collection<?> ingredients) {
+            for (Object ingredient : ingredients) {
+                Object name = ingredient instanceof Map<?, ?> map ? map.get("name") : null;
+                if (name != null && !name.toString().isBlank()) ingredientNames.add(name.toString());
+            }
+        }
+        doc.put("ingredients", ingredientNames);
+
+        Object tags = recipe.get("dietaryTags");
+        doc.put("tags", tags instanceof Collection<?> ? tags : List.of());
+        doc.put("authorId", Objects.toString(recipe.get("userId"), ""));
+
+        Object coverImages = recipe.get("coverImageUrl");
+        if (coverImages instanceof List<?> list && !list.isEmpty() && list.get(0) != null) {
+            doc.put("coverImageUrl", list.get(0).toString());
+        } else {
+            doc.put("coverImageUrl", "");
+        }
+
+        Object createdAt = recipe.get("createdAt");
+        doc.put("createdAt", createdAt instanceof Date date ? date.toInstant().getEpochSecond() : 0L);
+        return doc;
+    }
+
+    private Number numberValue(Object value) {
+        return value instanceof Number number ? number : 0;
+    }
+
     public void indexRecipe(Object recipe) {
         Object status = invokeNoArg(recipe, "getStatus");
         if (status == null || !RecipeStatus.PUBLISHED.name().equals(status.toString())) {
@@ -178,10 +245,6 @@ public class TypesenseDataSyncer {
     }
 
     /**
-     * Real-time indexing handler. Fired synchronously by the Spring event bus
-     * when DraftService publishes a recipe or RecipeService archives one.
-     * Best-effort: if Typesense is down the recipe is still published,
-     * and the startup sync will re-index on next boot.
      */
     @EventListener
     public void onRecipeIndexEvent(Object event) {
@@ -210,9 +273,6 @@ public class TypesenseDataSyncer {
         }
     }
 
-    // ========================================================================
-    // POST INDEXING
-    // ========================================================================
 
     private void syncPosts() {
         Query query = new Query(Criteria.where("hidden").ne(true));
@@ -279,9 +339,6 @@ public class TypesenseDataSyncer {
         }
     }
 
-    // ========================================================================
-    // USER INDEXING (real-time)
-    // ========================================================================
 
     private Map<String, Object> userProfileToDocument(Object profile) {
         Map<String, Object> doc = new LinkedHashMap<>();

@@ -21,16 +21,13 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RecipeDetailResponse {
 
-    // --- IDENTITY ---
     String id;
     Instant createdAt;
     Instant updatedAt;
     RecipeStatus recipeStatus;
 
-    // --- AUTHOR INFO ---
     AuthorResponse author;
 
-    // --- CONTENT ---
     String title;
     String description;
     List<String> coverImageUrl;
@@ -49,22 +46,18 @@ public class RecipeDetailResponse {
     List<IngredientResponse> fullIngredientList;
     List<StepResponse> steps;
 
-    // --- GAMIFICATION ---
     int xpReward;
     double difficultyMultiplier;
     List<String> rewardBadges;
     List<String> skillTags;
 
-    // --- AI METADATA ---
     XpBreakdownResponse xpBreakdown;
     ValidationMetadataResponse validation;
     EnrichmentMetadataResponse enrichment;
 
-    // --- RECIPE QUALITY SCORE ---
     Integer qualityScore;
     String qualityTier;
 
-    // --- GLOBAL STATS ---
     long likeCount;
     long saveCount;
     long viewCount;
@@ -74,16 +67,12 @@ public class RecipeDetailResponse {
     Double averageRating;
     Integer creatorXpEarned;
 
-    // --- [DYNAMIC] USER CONTEXT ---
     @JsonProperty("isLiked")
     Boolean isLiked;
     @JsonProperty("isSaved")
     Boolean isSaved;
     UserInteractionResponse currentUserInteraction;
 
-    // ==========================================
-    // INNER CLASSES (Response DTOs)
-    // ==========================================
 
     @Data
     @Builder

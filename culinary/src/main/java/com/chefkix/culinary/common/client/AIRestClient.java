@@ -20,14 +20,6 @@ import reactor.netty.http.client.HttpClient;
 import java.time.Duration;
 
 /**
- * WebClient-based client for the external Python FastAPI AI service.
- * <p>
- * All AI service endpoints wrap responses in:
- * {@code { "success": true, "data": { ... }, "message": null, "statusCode": 200 }}
- * <p>
- * The validate and moderate methods properly unwrap this envelope.
- * Legacy methods (processRecipe, calculateMetas) use direct deserialization
- * which relies on Jackson ignoring unknown properties.
  */
 @Component
 @Slf4j
@@ -52,7 +44,6 @@ public class AIRestClient {
         this.webClient = builder.build();
     }
 
-    // ─── EXISTING METHODS (legacy direct deserialization) ────────────
 
     public AIProcessResponse processRecipe(AIProcessRequest request) {
         log.debug("Calling AI service: POST /api/v1/process_recipe");
@@ -110,13 +101,9 @@ public class AIRestClient {
         }
     }
 
-    // ─── NEW METHODS (proper envelope unwrapping, fail-closed) ──────
 
     /**
-     * Validate recipe content for safety before publishing.
-     * Calls POST /api/v1/validate_recipe on the AI service.
      *
-     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down or returns error
      */
     public AIValidationResponse validateRecipe(AIValidationRequest request) {
         log.debug("Calling AI service: POST /api/v1/validate_recipe");
@@ -139,7 +126,7 @@ public class AIRestClient {
             log.error("AI validate_recipe HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
-            throw e; // re-throw our own exceptions
+throw e;
         } catch (Exception e) {
             log.error("AI validate_recipe failed", e);
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
@@ -147,10 +134,7 @@ public class AIRestClient {
     }
 
     /**
-     * Moderate recipe content before publishing.
-     * Calls POST /api/v1/moderate on the AI service.
      *
-     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down or returns error
      */
     public AIModerationResponse moderateContent(AIModerationRequest request) {
         log.debug("Calling AI service: POST /api/v1/moderate");
@@ -181,10 +165,7 @@ public class AIRestClient {
     }
 
     /**
-     * Generate an AI-powered meal plan from pantry items and preferences.
-     * Calls POST /api/v1/generate_meal_plan on the AI service.
      *
-     * @throws AppException with AI_SERVICE_UNAVAILABLE if AI service is down or returns error
      */
     public AIMealPlanResponse generateMealPlan(AIMealPlanRequest request) {
         log.debug("Calling AI service: POST /api/v1/generate_meal_plan");
@@ -215,9 +196,6 @@ public class AIRestClient {
     }
 
     /**
-     * Score recipe quality (RQS) for quality tier assignment.
-     * Calls POST /api/v1/score_recipe_quality on the AI service.
-     * Non-blocking: returns null if AI service is unavailable (does not block publish).
      */
     public AIQualityScoreResponse scoreRecipeQuality(AIQualityScoreRequest request) {
         log.debug("Calling AI service: POST /api/v1/score_recipe_quality");
@@ -242,11 +220,8 @@ public class AIRestClient {
         }
     }
 
-    // ─── EMBEDDING (fail-open: returns null if unavailable) ─────────
 
     /**
-     * Generate embedding vector for text via AI service.
-     * FAIL-OPEN: returns null if AI service is unavailable (search falls back to keyword).
      */
     @SuppressWarnings("unchecked")
     public float[] generateEmbedding(String text) {

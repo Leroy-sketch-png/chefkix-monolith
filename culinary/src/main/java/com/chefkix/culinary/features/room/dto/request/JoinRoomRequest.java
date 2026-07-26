@@ -14,7 +14,6 @@ public class JoinRoomRequest {
     @NotBlank(message = "roomCode must not be blank")
     String roomCode;
 
-    /** "COOK" (default) or "SPECTATOR". Spectators can watch but not interact with cooking steps. */
     @Builder.Default
     @Size(max = 20)
     String role = "COOK";

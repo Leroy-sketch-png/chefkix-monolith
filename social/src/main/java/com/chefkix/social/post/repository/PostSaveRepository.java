@@ -19,7 +19,6 @@ public interface PostSaveRepository extends MongoRepository<PostSave, String> {
     List<PostSave> findByUserIdOrderByCreatedDateDesc(String userId);
     
     /**
-     * Get saved posts for a user with pagination.
      */
     Page<PostSave> findByUserIdOrderByCreatedDateDesc(String userId, Pageable pageable);
     
@@ -28,7 +27,6 @@ public interface PostSaveRepository extends MongoRepository<PostSave, String> {
     void deleteAllByPostId(String postId);
 
     /**
-     * Batch: find all saves by a user for a set of posts (eliminates N+1).
      */
     List<PostSave> findByUserIdAndPostIdIn(String userId, List<String> postIds);
 

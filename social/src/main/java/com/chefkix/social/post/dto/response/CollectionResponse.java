@@ -30,7 +30,6 @@ public class CollectionResponse {
     int itemCount;
     List<String> postIds;
 
-    // --- Learning Path fields ---
     String collectionType;
     List<String> recipeIds;
     String difficulty;
@@ -41,7 +40,6 @@ public class CollectionResponse {
     Double averageRating;
     List<DifficultyStep> difficultyProgression;
 
-    // --- Featured / Seasonal fields ---
     @JsonProperty("isFeatured")
     boolean isFeatured;
 

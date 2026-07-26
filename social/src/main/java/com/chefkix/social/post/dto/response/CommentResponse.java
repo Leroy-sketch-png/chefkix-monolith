@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CommentResponse {
-  String id; // Comment ID - required for FE operations (like, reply, delete)
+String id;
   String userId;
   String postId;
   String displayName;
@@ -29,7 +29,6 @@ public class CommentResponse {
   @Builder.Default
   Integer replyCount = 0;
   
-  /** Whether the current user has liked this comment */
   @JsonProperty("isLiked")
   @Builder.Default
   Boolean isLiked = false;

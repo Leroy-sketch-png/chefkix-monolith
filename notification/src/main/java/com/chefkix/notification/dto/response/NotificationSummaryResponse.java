@@ -6,8 +6,6 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 /**
- * Response for GET /notification/summary-since.
- * Powers the "Welcome Back" card on dashboard — aggregated activity since last visit.
  */
 @Data
 @Builder

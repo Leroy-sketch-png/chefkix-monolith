@@ -13,12 +13,11 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AIMetaResponse {
 
-    // ===== 1. CORE GAMIFICATION =====
     @JsonAlias("xp_reward")
-    private int xpReward; // Auto mapped from JSON "xpReward"
+private int xpReward;
 
     @JsonAlias("xp_breakdown")
-    private XpBreakdownDto xpBreakdown; // Nested Object
+private XpBreakdownDto xpBreakdown;
 
     @JsonAlias("difficulty_multiplier")
     private double difficultyMultiplier;
@@ -27,7 +26,6 @@ public class AIMetaResponse {
     private List<String> skillTags;
     private List<String> achievements;
 
-    // ===== 2. ENRICHMENT =====
     @JsonAlias("equipment_needed")
     private List<String> equipmentNeeded;
     @JsonAlias("technique_guides")
@@ -35,15 +33,12 @@ public class AIMetaResponse {
     @JsonAlias("seasonal_tags")
     private List<String> seasonalTags;
 
-    // Map: "Ingredient" -> ["Sub1", "Sub2"]
     @JsonAlias("ingredient_substitutions")
     private Map<String, List<String>> ingredientSubstitutions;
 
-    // Map: Cultural context
     @JsonAlias("cultural_context")
     private CulturalContextDto culturalContext;
 
-    // ===== 3. AI CREATIVE (Story/Tips) =====
     @JsonAlias("recipe_story")
     private String recipeStory;
     @JsonAlias("chef_notes")
@@ -51,7 +46,6 @@ public class AIMetaResponse {
     @JsonAlias("ai_enriched")
     private boolean aiEnriched;
 
-    // ===== 4. ANTI-CHEAT VALIDATION =====
     @JsonAlias("xp_validated")
     private boolean xpValidated;
     @JsonAlias("validation_confidence")
@@ -63,7 +57,6 @@ public class AIMetaResponse {
     @JsonAlias("ai_used")
     private boolean aiUsed;
 
-    // ================= INNER DTOs =================
 
     @Data
     @NoArgsConstructor

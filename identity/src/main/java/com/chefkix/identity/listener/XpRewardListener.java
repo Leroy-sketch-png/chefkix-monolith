@@ -32,13 +32,11 @@ public class XpRewardListener {
       log.error("Received XP event with missing eventId, skipping. userId={}", event.getUserId());
       return;
     }
-    // Validate required fields before processing
     if (event.getUserId() == null || event.getUserId().isBlank()) {
       log.error("Received XP event with null/blank userId, skipping. eventId={}", event.getEventId());
       return;
     }
     if (event.getAmount() < 0) {
-      // Negative XP is a data integrity violation — throw so it hits DLQ for investigation
       throw new IllegalArgumentException(
           "XP event has negative amount=" + event.getAmount() + " for userId=" + event.getUserId());
     }
@@ -47,7 +45,6 @@ public class XpRewardListener {
       return;
     }
 
-    // Idempotency check: prevent duplicate XP awards on Kafka redelivery
     if (!idempotencyService.tryProcess(event.getEventId(), XP_IDEMPOTENCY_SCOPE)) {
       return;
     }
@@ -63,13 +60,10 @@ public class XpRewardListener {
     try {
       String source = event.getSource();
       if ("CREATOR_BONUS".equals(source)) {
-        // CASE 1: Creator bonus (no badges, no streak update)
         statisticsService.applyCreatorReward(event.getUserId(), event.getAmount());
       } else if (source != null && source.startsWith("SOCIAL_")) {
-        // CASE 2: Social engagement XP (likes, comments, saves) — no streaks, no completion count
         statisticsService.rewardSocialXp(event.getUserId(), event.getAmount(), source);
       } else {
-        // CASE 3: Cook XP (with badges, streak update, and possibly challenge streak)
         statisticsService.rewardXpFull(
         event.getUserId(),
         event.getAmount(),
@@ -81,7 +75,6 @@ public class XpRewardListener {
       }
     } catch (AppException e) {
       if (e.getErrorCode() == ErrorCode.USER_NOT_FOUND || e.getErrorCode() == ErrorCode.PROFILE_NOT_FOUND) {
-        // Permanent data error: retrying this message will not heal missing users/profiles.
         log.error(
             "Skipping unrecoverable XP event due to missing user profile: userId={}, eventId={}, source={}",
             event.getUserId(),
@@ -96,7 +89,7 @@ public class XpRewardListener {
       idempotencyService.removeProcessed(event.getEventId(), XP_IDEMPOTENCY_SCOPE);
       log.error("Failed to process XP event: userId={}, amount={}, source={}, eventId={}",
           event.getUserId(), event.getAmount(), event.getSource(), event.getEventId(), e);
-      throw e; // Re-throw so Kafka error handler can retry
+throw e;
     }
   }
 }

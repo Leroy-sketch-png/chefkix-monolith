@@ -12,7 +12,6 @@ public interface StoryInteractionRepository extends MongoRepository<StoryInterac
     Optional<StoryInteraction> findByStoryIdAndUserId(String storyId, String userId);
     List<StoryInteraction> findAllByUserId(String userId);
     List<StoryInteraction> findByUserIdAndStoryIdInAndIsViewedTrue(String userId, List<String> storyIds);
-    // Dùng để lấy danh sách những người đã xem
     List<StoryInteraction> findByStoryIdAndIsViewedTrueOrderByLastViewedAtDesc(String storyId);
 
     void deleteAllByUserId(String userId);

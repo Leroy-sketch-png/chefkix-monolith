@@ -11,9 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Recent cooking sessions on the creator's recipes.
- * Shows who cooked your recipes and when.
- * Spec: vision_and_spec/21-creator-analytics.txt
  */
 @Data
 @Builder
@@ -41,6 +38,6 @@ public class RecentCookResponse {
         String cookUsername;
         LocalDateTime completedAt;
         Integer rating;
-        Double xpEarned; // XP the cook earned from this session (shown as creator insight)
+Double xpEarned;
     }
 }

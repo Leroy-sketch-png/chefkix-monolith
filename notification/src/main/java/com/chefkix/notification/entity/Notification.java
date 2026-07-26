@@ -44,6 +44,5 @@ public class Notification {
     private String latestActorAvatarUrl;
     private Set<String> actorIds;
 
-    /** Structured payload for gamified notification types (XP_AWARDED, LEVEL_UP, BADGE_EARNED). */
     private Map<String, String> data;
 }

@@ -5,6 +5,5 @@ import lombok.Data;
 
 @Data
 public class RecipePublishRequest {
-    // PUBLIC, FRIENDS_ONLY, PRIVATE
     RecipeVisibility visibility = RecipeVisibility.PUBLIC;
 }

@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user likes a post.
- * <p>
- * Producer: social module (post). Consumer: notification module.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

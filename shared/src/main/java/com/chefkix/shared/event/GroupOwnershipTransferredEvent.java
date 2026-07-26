@@ -22,7 +22,6 @@ public class GroupOwnershipTransferredEvent extends BaseEvent {
     public GroupOwnershipTransferredEvent(String groupId, String groupName,
                                           String groupCoverImageUrl, String newOwnerId,
                                           String oldOwnerId) {
-        // The old owner triggered this event
         super("GROUP_OWNERSHIP_TRANSFERRED", oldOwnerId);
 
         this.groupId = groupId;

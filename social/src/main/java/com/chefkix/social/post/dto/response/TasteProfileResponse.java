@@ -12,16 +12,12 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TasteProfileResponse {
 
-    /** Top tags with normalized weights (0..1). Ordered by weight descending. */
     Map<String, Double> tasteVector;
 
-    /** Cuisine distribution: cuisine name → percentage (0-100). Top 10. */
     List<CuisineBreakdown> cuisineDistribution;
 
-    /** Total interactions that built this profile (likes + saves + views + dwells) */
     int totalInteractions;
 
-    /** Top 3 cuisine names for quick display */
     List<String> topCuisines;
 
     @Data

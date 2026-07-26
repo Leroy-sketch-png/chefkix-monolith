@@ -10,10 +10,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Friend (following) list for a user.
- * <p>
- * Replaces: identity's {@code InternalFriendListResponse}.
- * Used by culinary module for "friends only" recipe visibility filtering.
  */
 @Data
 @Builder

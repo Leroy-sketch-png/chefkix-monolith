@@ -19,12 +19,12 @@ public class Group {
     private String description;
     private String coverImageUrl;
 
-    private PrivacyType privacyType; // Enum: PUBLIC, PRIVATE
+private PrivacyType privacyType;
     private String creatorId;
     @Indexed
     private String ownerId;
 
-    private long memberCount; // Denormalized count
+private long memberCount;
     private LocalDateTime createdAt;
 
 }

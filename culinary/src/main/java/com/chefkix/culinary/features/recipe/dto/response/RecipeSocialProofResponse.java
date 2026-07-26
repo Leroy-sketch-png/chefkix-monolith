@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Response for GET /recipes/{id}/social-proof.
- * Community validation: "12 people made this — see their posts."
  */
 @Data
 @Builder

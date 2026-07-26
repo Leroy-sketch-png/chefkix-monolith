@@ -16,7 +16,7 @@ public class XpBreakDown {
     String stepsReason;
     int time;
     String timeReason;
-    Integer techniques;      // Optional
-    String techniquesReason; // Optional
+Integer techniques;
+String techniquesReason;
     int total;
 }

@@ -22,8 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Pantry service — CRUD + recipe matching.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §1-§3
  */
 @Slf4j
 @Service
@@ -33,12 +31,10 @@ public class PantryService {
     private final PantryItemRepository pantryRepo;
     private final RecipeRepository recipeRepo;
 
-    // ── CRUD ────────────────────────────────────────────────────────
 
     public PantryItemResponse addItem(String userId, PantryItemRequest req) {
         String normalized = normalize(req.getIngredientName());
 
-        // Upsert: if same ingredient exists, increase quantity
         Optional<PantryItem> existing = pantryRepo.findByUserIdAndNormalizedName(userId, normalized);
         if (existing.isPresent()) {
             PantryItem item = existing.get();
@@ -107,7 +103,6 @@ public class PantryService {
         return expired.size();
     }
 
-    // ── Recipe Matching (§3) ────────────────────────────────────────
 
     public List<PantryRecipeMatchResponse> findMatchingRecipes(String userId, double minMatch, boolean prioritizeExpiring) {
         List<PantryItem> pantryItems = pantryRepo.findByUserId(userId, Sort.unsorted());
@@ -117,15 +112,12 @@ public class PantryService {
                 .map(PantryItem::getNormalizedName)
                 .collect(Collectors.toSet());
 
-        // Items expiring within 3 days
         LocalDate now = utcToday();
         Set<String> expiringNormals = pantryItems.stream()
                 .filter(p -> p.getExpiryDate() != null && !p.getExpiryDate().isBefore(now) && p.getExpiryDate().isBefore(now.plusDays(4)))
                 .map(PantryItem::getNormalizedName)
                 .collect(Collectors.toSet());
 
-        // Use projected query — loads only matching-relevant fields (id, title, coverImage,
-        // totalTime, difficulty, fullIngredientList), avoiding heavy step/enrichment data.
         List<Recipe> publishedRecipes = recipeRepo.findPublishedForIngredientMatching();
 
         List<PantryRecipeMatchResponse> matches = new ArrayList<>();
@@ -167,7 +159,6 @@ public class PantryService {
             }
         }
 
-        // Sort
         if (prioritizeExpiring) {
             matches.sort(Comparator
                     .<PantryRecipeMatchResponse, Integer>comparing(m -> m.getExpiringIngredientsUsed().size(), Comparator.reverseOrder())
@@ -179,17 +170,14 @@ public class PantryService {
         return matches;
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
 
     /**
-     * Normalize ingredient name: lowercase, trim, replace spaces with underscore, basic singularization.
      */
     static String normalize(String name) {
         if (name == null) return "";
         String lower = name.toLowerCase().trim()
                 .replaceAll("[^a-z0-9\\s]", "")
                 .replaceAll("\\s+", "_");
-        // Basic singularization
         if (lower.endsWith("ies")) {
             lower = lower.substring(0, lower.length() - 3) + "y";
         } else if (lower.endsWith("es") && !lower.endsWith("ches") && !lower.endsWith("shes")) {

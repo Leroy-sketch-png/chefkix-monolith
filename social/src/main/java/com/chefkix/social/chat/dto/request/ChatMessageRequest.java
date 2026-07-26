@@ -29,7 +29,6 @@ public class ChatMessageRequest {
     @Size(max = 100)
     String relatedId;
 
-    /** ID of the message being replied to (null if not a reply) */
     @Size(max = 100)
     String replyToId;
 }

@@ -11,6 +11,5 @@ import lombok.experimental.FieldDefaults;
 public class LeaveRoomResponse {
     boolean left;
     boolean roomDissolved;
-    /** New host user ID if host was transferred, null otherwise */
     String newHostUserId;
 }

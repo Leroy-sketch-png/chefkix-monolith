@@ -17,12 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Redis-backed repository for tracking active cooking sessions.
- * Enables the "Friends Cooking Now" feature with O(1) lookups per friend
- * via Redis MGET instead of MongoDB queries.
  *
- * Key pattern: cooking:active:{userId} → JSON(ActiveCookingPresence)
- * TTL: 4 hours (safety net — keys are explicitly deleted on session end)
  */
 @Repository
 @Slf4j
@@ -34,14 +29,13 @@ public class ActiveCookingRedisRepository {
     ObjectMapper objectMapper;
 
     private static final String KEY_PREFIX = "cooking:active:";
-    private static final long TTL_SECONDS = 4 * 60 * 60; // 4 hours
+private static final long TTL_SECONDS = 4 * 60 * 60;
 
     private String key(String userId) {
         return KEY_PREFIX + userId;
     }
 
     /**
-     * Mark a user as actively cooking. Called on session start and resume.
      */
     public void setActive(ActiveCookingPresence presence) {
         try {
@@ -53,14 +47,12 @@ public class ActiveCookingRedisRepository {
     }
 
     /**
-     * Remove a user's active cooking status. Called on session complete, abandon, or pause.
      */
     public void removeActive(String userId) {
         redisTemplate.delete(key(userId));
     }
 
     /**
-     * Get a single user's active cooking presence.
      */
     public Optional<ActiveCookingPresence> getActive(String userId) {
         String json = redisTemplate.opsForValue().get(key(userId));
@@ -74,8 +66,6 @@ public class ActiveCookingRedisRepository {
     }
 
     /**
-     * Batch-fetch active cooking presences for multiple user IDs.
-     * Uses Redis MGET for efficiency — single round-trip regardless of friend count.
      */
     public List<ActiveCookingPresence> getActiveForUsers(List<String> userIds) {
         if (userIds == null || userIds.isEmpty()) return List.of();

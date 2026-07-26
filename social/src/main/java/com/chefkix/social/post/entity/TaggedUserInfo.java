@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Simple DTO containing information about a @tagged user.
  */
 @Data
 @Builder

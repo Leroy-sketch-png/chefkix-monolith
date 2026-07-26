@@ -10,10 +10,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Internal DTO for creator insights within the culinary module.
- * <p>
- * Used by {@code RecipeService.getRecipeWithAboveTenCooks()} and mapped
- * to the cross-module {@code CreatorInsightsInfo} SPI DTO by {@code RecipeProviderImpl}.
  */
 @Data
 @Builder

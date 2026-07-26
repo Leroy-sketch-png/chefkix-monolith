@@ -34,11 +34,10 @@ public class CloudinaryController {
 
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
             "image/jpeg", "image/png", "image/gif", "image/webp");
-    private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024; // 10MB
+private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024;
     private static final int MAX_IMAGE_COUNT = 10;
 
     /**
-     * Upload multiple image files to Cloudinary.
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -68,18 +67,13 @@ public class CloudinaryController {
     }
 
     /**
-     * Upload a single video file to Cloudinary.
-     * Returns URL, auto-generated thumbnail, and duration.
-     * Spec: vision_and_spec/20-media-lifecycle.txt §2
      *
-     * Constraints: mp4/webm only, max 50MB, max 60 seconds.
      */
     @PostMapping(value = "/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<VideoUploadResult> uploadVideo(
             @RequestParam("file") MultipartFile file) {
 
-        // Validate content type
         String contentType = file.getContentType();
         if (contentType == null
                 || (!contentType.equals("video/mp4") && !contentType.equals("video/webm"))) {
@@ -87,7 +81,6 @@ public class CloudinaryController {
                     "Only mp4 and webm video formats are allowed");
         }
 
-        // Validate file size (50MB max)
         long maxSize = 50L * 1024 * 1024;
         if (file.getSize() > maxSize) {
             throw new AppException(ErrorCode.VALIDATION_ERROR,
@@ -108,7 +101,6 @@ public class CloudinaryController {
 
             String url = uploadResult.get("secure_url").toString();
 
-            // Extract thumbnail from eager transformation
             String thumbnailUrl = null;
             Object eagerObj = uploadResult.get("eager");
             if (eagerObj instanceof List<?> eagerList && !eagerList.isEmpty()) {
@@ -118,22 +110,18 @@ public class CloudinaryController {
                     if (thumbUrl != null) thumbnailUrl = thumbUrl.toString();
                 }
             }
-            // Fallback: generate thumbnail URL from video URL
             if (thumbnailUrl == null) {
                 thumbnailUrl = url.replace("/video/upload/", "/video/upload/c_thumb,w_400,h_300/")
                         .replace(".mp4", ".jpg");
             }
 
-            // Extract duration
             Integer durationSec = null;
             Object duration = uploadResult.get("duration");
             if (duration != null) {
                 durationSec = (int) Math.round(Double.parseDouble(duration.toString()));
             }
 
-            // Validate max duration (60 seconds)
             if (durationSec != null && durationSec > 60) {
-                // Delete the uploaded video
                 cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", "video"));
                 throw new AppException(ErrorCode.VALIDATION_ERROR,
                         "Video must be 60 seconds or shorter");
@@ -149,7 +137,7 @@ public class CloudinaryController {
             return ApiResponse.created(result);
 
         } catch (AppException e) {
-            throw e; // Re-throw validation errors
+throw e;
         } catch (IOException e) {
             log.error("[VIDEO_UPLOAD] Failed to upload video", e);
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "Failed to upload video");

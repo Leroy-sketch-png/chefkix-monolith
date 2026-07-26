@@ -21,16 +21,13 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class VideoSignalingHandler extends TextWebSocketHandler {
 
     private static final String SESSION_USER_ID = "userId";
-    /** 64 KB — sufficient for any WebRTC SDP/ICE payload; blocks oversized abuse messages */
     private static final int MAX_PAYLOAD_BYTES = 64 * 1024;
 
     private final ObjectMapper objectMapper;
     private final ConversationLookupService conversationLookupService;
 
-    // conversationId -> list of active user sessions
     private final ConcurrentHashMap<String, List<WebSocketSession>> conversations = new ConcurrentHashMap<>();
 
-    // Keep track of which session belongs to which conversation for easy cleanup
     private final ConcurrentHashMap<WebSocketSession, String> sessionConversationMap = new ConcurrentHashMap<>();
 
     @Override
@@ -115,7 +112,6 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
         conversations.putIfAbsent(conversationId, new CopyOnWriteArrayList<>());
         List<WebSocketSession> roomSessions = conversations.get(conversationId);
 
-        // Limit to 2 people per conversation for 1-on-1 calls
         if (roomSessions.size() >= 2 && !roomSessions.contains(session)) {
             log.warn("Conversation {} is full. Rejecting session {}", conversationId, session.getId());
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Conversation full"));
@@ -127,8 +123,6 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
             sessionConversationMap.put(session, conversationId);
             log.info("Session {} joined conversation {}. Total participants: {}", session.getId(), conversationId, roomSessions.size());
             
-            // Optional: Notify others that someone joined
-            // If there's exactly 1 other person, we could notify them
             if (roomSessions.size() == 2) {
                 log.info("Conversation {} now has 2 participants", conversationId);
             }
@@ -148,7 +142,6 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
 
         log.debug("Routing {} message in conversation {}", signal.getType(), conversationId);
 
-        // Forward to the OTHER participant
         for (WebSocketSession s : roomSessions) {
             if (s.isOpen() && !s.getId().equals(senderSession.getId())) {
                 s.sendMessage(new TextMessage(objectMapper.writeValueAsString(signal)));
@@ -175,7 +168,6 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
         if (roomSessions != null) {
             roomSessions.remove(session);
             
-            // Notify the remaining participant that the other left
             SignalMessage leaveSignal = SignalMessage.builder()
                 .type("leave")
                 .conversationId(conversationId)

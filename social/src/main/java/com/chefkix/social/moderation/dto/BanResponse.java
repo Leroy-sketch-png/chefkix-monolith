@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 /**
- * Response for ban information shown to banned users and admins.
  */
 @Data
 @NoArgsConstructor

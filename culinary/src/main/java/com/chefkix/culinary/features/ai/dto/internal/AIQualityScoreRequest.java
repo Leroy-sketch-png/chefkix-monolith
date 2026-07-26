@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Request DTO for AI service POST /api/v1/score_recipe_quality.
- * Sent by Java monolith during publish flow.
  */
 @Data
 @Builder

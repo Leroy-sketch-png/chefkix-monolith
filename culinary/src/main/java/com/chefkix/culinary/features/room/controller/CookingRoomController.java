@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for cooking room lifecycle (create/join/leave/get/invite).
- * WebSocket events are handled by {@link CookingRoomWsController}.
  */
 @RestController
 @RequestMapping("/cooking-rooms")
@@ -58,8 +56,6 @@ public class CookingRoomController {
     }
 
     /**
-     * Send a room invite notification to a friend.
-     * The target user receives a ROOM_INVITE notification with a deep-link to join.
      */
     @PostMapping("/{roomCode}/invite")
     public ApiResponse<Void> inviteToRoom(@PathVariable String roomCode,
@@ -70,8 +66,6 @@ public class CookingRoomController {
     }
 
     /**
-     * Get active rooms where users the caller follows are currently cooking.
-     * Used for "Friends Cooking Now" dashboard widget — poll every 30s.
      */
     @GetMapping("/friends-active")
     public ApiResponse<List<FriendsActiveRoomResponse>> getFriendsActiveRooms() {

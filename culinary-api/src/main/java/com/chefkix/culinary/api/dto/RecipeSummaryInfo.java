@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Lightweight recipe info for cross-module display (battle cards, review headers).
- * Only contains what's needed for rendering — not the full recipe.
  */
 @Data
 @Builder

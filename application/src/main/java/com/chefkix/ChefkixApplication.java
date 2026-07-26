@@ -6,10 +6,7 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * ChefKix Modular Monolith — Single entry point.
  *
- * <p>Scans all {@code com.chefkix.*} packages across every module
- * (identity, culinary, social, notification, shared).</p>
  */
 @SpringBootApplication(scanBasePackages = "com.chefkix")
 @EnableScheduling

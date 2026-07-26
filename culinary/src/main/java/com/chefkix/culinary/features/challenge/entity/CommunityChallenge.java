@@ -13,10 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A community-wide challenge where ALL users contribute to a shared goal.
- * Example: "Community cooks 1000 recipes this week."
- * Progress tracked in Redis for real-time atomic increments; this document stores config + final state.
- * Spec: vision_and_spec/13-challenges.txt
  */
 @Document(collection = "community_challenges")
 @Data
@@ -31,34 +27,26 @@ public class CommunityChallenge {
 
     String title;
     String description;
-    String emoji; // e.g., "🌍"
+String emoji;
 
-    // Goal
-    int targetCount; // e.g., 1000 recipes cooked community-wide
-    String targetUnit; // e.g., "recipes cooked", "posts shared"
+int targetCount;
+String targetUnit;
 
-    // Reward for each participant when the community goal is met
     int rewardXpPerUser;
-    String rewardBadgeId; // optional badge on completion
+String rewardBadgeId;
 
-    // Scheduling
     Instant startsAt;
     Instant endsAt;
 
-    // Status: ACTIVE, COMPLETED, EXPIRED
     @Indexed
     @Builder.Default
     String status = "ACTIVE";
 
-    // Criteria to count (what qualifies as a contribution)
-    // e.g., { "type": "COOK_ANY" } or { "cuisineType": ["Italian"] }
     Map<String, Object> criteria;
 
-    // Snapshot of final progress (set when completed or expired)
     int finalProgress;
     int finalParticipantCount;
 
-    // Tags for filtering/display
     List<String> tags;
 
     @CreatedDate

@@ -20,6 +20,6 @@ public class PlateRating {
     @Id String id;
     String postId;
     String userId;
-    String rating; // "FIRE" or "CRINGE"
+String rating;
     @CreatedDate Instant createdAt;
 }

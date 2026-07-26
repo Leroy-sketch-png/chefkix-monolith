@@ -13,7 +13,6 @@ public class ActivateSubscriptionRequest {
     @NotBlank(message = "Payment provider is required")
     String paymentProvider;
 
-    // Token from payment provider (Stripe token, Google Play receipt, Apple receipt)
     @NotBlank(message = "Payment token is required")
     String paymentToken;
 }

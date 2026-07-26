@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL) // Hides null fields from the JSON!
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GroupResponse {
     private String id;
     private String name;
@@ -23,7 +23,6 @@ public class GroupResponse {
     private List<String> tags;
     private LocalDateTime createdAt;
 
-    // --- Add these for contextual frontend rendering ---
-    private String myRole;   // e.g., "ADMIN", "MEMBER"
-    private String myStatus; // e.g., "ACTIVE", "PENDING", "BANNED"
+private String myRole;
+private String myStatus;
 }

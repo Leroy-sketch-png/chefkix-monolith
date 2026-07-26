@@ -7,7 +7,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Request DTO for the Python AI service /api/v1/generate_meal_plan endpoint.
  */
 @Data
 @Builder

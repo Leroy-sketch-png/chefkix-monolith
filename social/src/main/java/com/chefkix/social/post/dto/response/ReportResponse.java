@@ -6,8 +6,6 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 /**
- * Response DTO for report operations.
- * Per spec 13-moderation.txt.
  */
 @Data
 @NoArgsConstructor
@@ -19,7 +17,7 @@ public class ReportResponse {
     String targetType;
     String targetId;
     String reason;
-    int reportCount; // Total reports on this target
-    boolean reviewTriggered; // True if threshold reached (3+ reports)
+int reportCount;
+boolean reviewTriggered;
     Instant createdAt;
 }

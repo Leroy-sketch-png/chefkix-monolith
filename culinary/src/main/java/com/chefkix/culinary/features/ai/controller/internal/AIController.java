@@ -22,7 +22,6 @@ public class AIController {
 
     @PostMapping("/generate")
     public ApiResponse<RecipeDetailResponse> generateRecipe(@Valid @RequestBody AIProcessRequest request) {
-        // SECURITY: Use JWT userId, never trust request body userId
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (request.getRawText() == null) {
@@ -33,9 +32,6 @@ public class AIController {
     }
 
     /**
-     * Endpoint: Recalculate metas for a recipe (Manual / Edited)
-     * URL: POST /ai/analyze/{recipeId}
-     * SECURITY: Only recipe owner can trigger analysis.
      */
     @PostMapping("/analyze/{recipeId}")
     public ApiResponse<RecipeDetailResponse> analyzeRecipe(@PathVariable String recipeId) {

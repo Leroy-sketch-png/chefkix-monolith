@@ -11,9 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Kafka listener for bell notification events.
- * Consumes polymorphic BaseEvent messages and delegates to NotificationService.
- * All methods are idempotent via Redis-based event deduplication.
  */
 @Slf4j
 @Component
@@ -252,18 +249,15 @@ public class BellNotificationListener {
     }
 
     @KafkaListener(
-            topics = "story-delivery", // Ensure your social module produces to this topic!
+topics = "story-delivery",
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenStoryDelivery(BaseEvent event) {
-        // 1. Check Idempotency
         if (!shouldProcess(event, "story-delivery")) {
-            return; // Already processed — skip
+return;
         }
 
-        // 2. Pattern Matching for StoryEvent
         if (event instanceof StoryInteractionEvent storyEvent) {
-            // Validate required fields
             if (!hasText(storyEvent.getStoryId()) || !hasText(storyEvent.getUserId()) || !hasText(storyEvent.getInteractionType())) {
                 log.error("Skipping invalid StoryInteractionEvent: storyId={}, userId={}, interactionType={}",
                         storyEvent.getStoryId(), storyEvent.getUserId(), storyEvent.getInteractionType());
@@ -277,11 +271,9 @@ public class BellNotificationListener {
                         storyEvent.getUserId(),
                         storyEvent.getInteractionType());
 
-                // Call Service to save Notification and send Push (FCM/WebSocket)
                 notificationService.handleStoryInteractedEvent(storyEvent);
 
             } catch (Exception e) {
-                // Rollback idempotency so Kafka can retry later if error
                 idempotencyService.removeProcessed(event.getEventId(), "story-delivery");
                 throw e;
             }
@@ -291,17 +283,15 @@ public class BellNotificationListener {
     }
 
     @KafkaListener(
-            topics = "group-delivery", // Ensure your social module produces to this topic!
+topics = "group-delivery",
             groupId = "notification-group",
             containerFactory = "notificationEventListenerFactory")
     public void listenGroupDelivery(BaseEvent event) {
 
-        // 1. Null-safe idempotency check (consistent with all other listeners)
         if (!shouldProcess(event, "group-delivery")) {
             return;
         }
 
-        // 2. Java 21 Pattern Matching Switch to handle the specific group events
         switch (event) {
             case GroupJoinRequestedEvent requestEvent -> {
                 if (!hasText(requestEvent.getGroupId()) || !hasText(requestEvent.getRequesterId())) {

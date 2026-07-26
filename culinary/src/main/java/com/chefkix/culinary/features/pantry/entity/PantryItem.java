@@ -13,8 +13,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Pantry item — one ingredient in a user's kitchen.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §1
  */
 @Data
 @Builder
@@ -34,7 +32,7 @@ public class PantryItem {
     String normalizedName;
     Double quantity;
     String unit;
-    String category; // dairy, produce, protein, grain, spice, condiment, other
+String category;
 
     LocalDate expiryDate;
     LocalDate addedDate;

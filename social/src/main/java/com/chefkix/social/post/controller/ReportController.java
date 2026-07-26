@@ -14,10 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controller for content reports.
- * Per spec 13-moderation.txt.
  * 
- * Monolith path: /api/v1/posts/report
  */
 @RestController
 @RequestMapping("/posts/report")
@@ -28,12 +25,8 @@ public class ReportController {
     ReportService reportService;
 
     /**
-     * Create a report for content (post, comment, or recipe).
      * 
-     * POST /api/v1/post/report
      * 
-     * Rate limited: Max 3 reports per day per user.
-     * 3 unique reports on same content triggers admin review.
      */
     @PostMapping
     public ResponseEntity<ApiResponse<ReportResponse>> createReport(

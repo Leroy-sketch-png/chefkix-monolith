@@ -10,8 +10,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CommentMapper {
   /**
-   * Maps CommentRequest to Comment entity.
-   * Fields like id, userId, postId, etc. are set by the service layer.
    */
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "userId", ignore = true)
@@ -25,8 +23,6 @@ public interface CommentMapper {
   Comment toComment(CommentRequest commentRequest);
 
   /**
-   * Maps Comment entity to CommentResponse.
-   * taggedUsers is enriched manually in the service layer (mapToCommentResponse).
    */
   @Mapping(target = "taggedUsers", ignore = true)
   CommentResponse toCommentResponse(Comment comment);

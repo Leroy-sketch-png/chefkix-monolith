@@ -1,5 +1,5 @@
 package com.chefkix.culinary.features.session.dto.request;
-import com.chefkix.culinary.common.enums.TimerEventType; // START, COMPLETE, SKIP
+import com.chefkix.culinary.common.enums.TimerEventType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

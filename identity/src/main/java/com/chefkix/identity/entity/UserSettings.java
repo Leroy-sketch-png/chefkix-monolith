@@ -9,8 +9,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * User settings document. Stores privacy, notification, cooking, and app preferences. One document
- * per user, indexed by userId.
  */
 @Data
 @NoArgsConstructor
@@ -25,36 +23,20 @@ public class UserSettings {
   @Indexed(unique = true)
   String userId;
 
-  // ================================
-  // PRIVACY SETTINGS
-  // ================================
   @Builder.Default PrivacySettings privacy = new PrivacySettings();
 
-  // ================================
-  // NOTIFICATION SETTINGS
-  // ================================
   @Builder.Default NotificationSettings notifications = new NotificationSettings();
 
-  // ================================
-  // COOKING PREFERENCES
-  // ================================
   @Builder.Default CookingPreferences cooking = new CookingPreferences();
 
-  // ================================
-  // APP PREFERENCES
-  // ================================
   @Builder.Default AppPreferences app = new AppPreferences();
 
-  // ================================
-  // NESTED CLASSES
-  // ================================
 
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
   public static class PrivacySettings {
-    /** public | friends_only | private */
     @Builder.Default String profileVisibility = "public";
 
     @Builder.Default Boolean showCookingActivity = true;
@@ -63,7 +45,6 @@ public class UserSettings {
 
     @Builder.Default Boolean allowFollowers = true;
 
-    /** everyone | friends | nobody */
     @Builder.Default String allowMessagesFrom = "friends";
   }
 
@@ -126,7 +107,6 @@ public class UserSettings {
   @AllArgsConstructor
   @Builder
   public static class CookingPreferences {
-    /** beginner | intermediate | advanced | expert */
     @Builder.Default String skillLevel = "beginner";
 
     @Builder.Default List<String> dietaryRestrictions = new ArrayList<>();
@@ -137,12 +117,10 @@ public class UserSettings {
 
     @Builder.Default List<String> preferredCuisines = new ArrayList<>();
 
-    /** Max cooking time in minutes, null = no limit */
     Integer maxCookingTimeMinutes;
 
     @Builder.Default Integer defaultServings = 2;
 
-    /** metric | imperial */
     @Builder.Default String measurementUnits = "metric";
   }
 
@@ -151,7 +129,6 @@ public class UserSettings {
   @AllArgsConstructor
   @Builder
   public static class AppPreferences {
-    /** light | dark | system */
     @Builder.Default String theme = "system";
 
     @Builder.Default String language = "en";

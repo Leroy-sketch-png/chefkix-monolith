@@ -9,9 +9,6 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Block entity - represents a user blocking another user. When user A blocks user B: - B cannot see
- * A's posts, recipes, comments - B cannot follow A - B cannot message A - A cannot see B's posts,
- * recipes, comments (mutual invisibility)
  */
 @Document(collection = "blocks")
 @Data
@@ -23,10 +20,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Block {
   @Id String id;
 
-  /** The user who initiated the block */
   String blockerId;
 
-  /** The user who is blocked */
   String blockedId;
 
   @CreatedDate Instant createdAt;

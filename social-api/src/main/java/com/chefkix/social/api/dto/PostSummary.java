@@ -12,13 +12,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Post summary for cross-module usage (profile page, feed display).
- * <p>
- * Mirrors post-service's {@code PostResponse} — all fields needed for rendering
- * a post card in the identity module's profile page or any other module.
- * <p>
- * Kept as a cross-module contract DTO. The social module's internal PostResponse
- * may have additional fields or differ in naming for its own controllers.
  */
 @Data
 @Builder
@@ -47,7 +40,6 @@ public class PostSummary {
 
     List<String> tags;
 
-    // --- Gamification & session context ---
 
     String sessionId;
 
@@ -60,13 +52,11 @@ public class PostSummary {
 
     Double xpEarned;
 
-    // --- Engagement metrics ---
 
     Integer likes;
 
     Integer commentCount;
 
-    // --- Current-user-specific flags (populated per request) ---
 
     @JsonProperty("isLiked")
     Boolean liked;
@@ -74,7 +64,6 @@ public class PostSummary {
     @JsonProperty("isSaved")
     Boolean saved;
 
-    // --- Timestamps ---
 
     Instant createdAt;
 

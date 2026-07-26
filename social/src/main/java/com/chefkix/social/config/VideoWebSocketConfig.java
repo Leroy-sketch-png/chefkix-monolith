@@ -87,7 +87,6 @@ public class VideoWebSocketConfig implements WebSocketConfigurer {
                     WebSocketHandler wsHandler,
                     Exception exception
             ) {
-                // No-op
             }
         };
     }

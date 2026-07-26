@@ -29,9 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Meal plan service — supports both rule-based and AI-powered generation.
- * Pass useAI=true to route through the Python AI service (Gemini 2.5 Flash).
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt SS6-SS7
  */
 @Slf4j
 @Service
@@ -45,7 +42,6 @@ public class MealPlanService {
 
     private static final String[] DAY_NAMES = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
 
-    // ── Generate ────────────────────────────────────────────────────
 
     public MealPlanResponse generate(String userId, GenerateMealPlanRequest req, boolean useAI) {
         if (useAI) {
@@ -54,10 +50,8 @@ public class MealPlanService {
         return generateRuleBased(userId, req);
     }
 
-    // ── AI-Powered Generation ───────────────────────────────────────
 
     private MealPlanResponse generateWithAI(String userId, GenerateMealPlanRequest req) {
-        // Enrich with pantry items if not provided
         List<String> pantryNames = req.getPantryItems();
         if (pantryNames == null || pantryNames.isEmpty()) {
             pantryNames = pantryRepo.findByUserId(userId, Sort.unsorted()).stream()
@@ -69,7 +63,6 @@ public class MealPlanService {
             throw new AppException(ErrorCode.EMPTY);
         }
 
-        // Build AI request
         var prefs = req.getPreferences();
         var aiPrefs = AIMealPlanRequest.Preferences.builder()
                 .daysToGenerate(Math.min(req.getDays(), 7))
@@ -91,7 +84,6 @@ public class MealPlanService {
 
         AIMealPlanResponse aiResponse = aiRestClient.generateMealPlan(aiRequest);
 
-        // Map AI response to our entities — carry user's requested servings through
         int requestedServings = aiPrefs.getServings();
         List<PlannedDay> plannedDays = new ArrayList<>();
         if (aiResponse.getMealPlan() != null) {
@@ -138,10 +130,8 @@ public class MealPlanService {
                 .build();
     }
 
-    // ── Rule-Based Generation ───────────────────────────────────────
 
     private MealPlanResponse generateRuleBased(String userId, GenerateMealPlanRequest req) {
-        // Enrich with pantry items if not provided
         List<String> pantryNames = req.getPantryItems();
         if (pantryNames == null || pantryNames.isEmpty()) {
             pantryNames = pantryRepo.findByUserId(userId, Sort.unsorted()).stream()
@@ -149,13 +139,11 @@ public class MealPlanService {
                     .toList();
         }
 
-        // Use projected query — loads only matching-relevant fields, avoiding heavy step/enrichment data.
         List<Recipe> recipes = recipeRepo.findPublishedForIngredientMatching();
         if (recipes.isEmpty()) {
             throw new AppException(ErrorCode.EMPTY);
         }
 
-        // Shuffle for variety
         List<Recipe> shuffled = new ArrayList<>(recipes);
         Collections.shuffle(shuffled);
 
@@ -176,7 +164,6 @@ public class MealPlanService {
                     .build());
         }
 
-        // Build shopping list from selected recipe ingredients vs pantry
         List<ShoppingItem> shoppingList = buildShoppingList(plannedDays, recipes, new HashSet<>(pantryNames));
 
         LocalDate weekStart = currentWeekStartDate();
@@ -192,7 +179,6 @@ public class MealPlanService {
         return toResponse(plan);
     }
 
-    // ── CRUD ────────────────────────────────────────────────────────
 
     public MealPlanResponse getCurrent(String userId) {
         LocalDate weekStart = currentWeekStartDate();
@@ -212,7 +198,6 @@ public class MealPlanService {
         mealPlanRepo.deleteByIdAndUserId(planId, userId);
     }
 
-    // ── Swap Meal ───────────────────────────────────────────────────
 
     public MealPlanResponse swapMeal(String userId, String planId, String day, String mealType, SwapMealRequest req) {
         MealPlan plan = mealPlanRepo.findByIdAndUserId(planId, userId)
@@ -247,7 +232,6 @@ public class MealPlanService {
         return toResponse(mealPlanRepo.save(plan));
     }
 
-    // ── Shopping List ───────────────────────────────────────────────
 
     public List<ShoppingItem> getShoppingList(String userId, String planId) {
         MealPlan plan = mealPlanRepo.findByIdAndUserId(planId, userId)
@@ -255,10 +239,8 @@ public class MealPlanService {
         return plan.getShoppingList();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
 
     private PlannedMeal pickMeal(List<Recipe> pool, Set<String> used, int maxTime) {
-        // Try to find unique recipe under max time
         for (Recipe r : pool) {
             if (!used.contains(r.getId()) && r.getTotalTimeMinutes() <= maxTime) {
                 used.add(r.getId());
@@ -271,7 +253,6 @@ public class MealPlanService {
                         .build();
             }
         }
-        // Fallback: any recipe under max time (allow duplicates)
         for (Recipe r : pool) {
             if (r.getTotalTimeMinutes() <= maxTime) {
                 return PlannedMeal.builder()
@@ -283,7 +264,6 @@ public class MealPlanService {
                         .build();
             }
         }
-        // Last resort: first recipe regardless of time
         Recipe fallback = pool.get(0);
         return PlannedMeal.builder()
                 .recipeId(fallback.getId())
@@ -298,7 +278,6 @@ public class MealPlanService {
         Map<String, Recipe> recipeMap = allRecipes.stream()
                 .collect(Collectors.toMap(Recipe::getId, r -> r, (a, b) -> a));
 
-        // Ingredient -> list of recipe titles
         Map<String, Set<String>> ingredientRecipes = new LinkedHashMap<>();
 
         for (PlannedDay day : days) {

@@ -18,12 +18,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Leaderboard Controller
  *
- * <p>Route: /api/v1/auth/leaderboard/**
  *
- * <p>This controller handles leaderboard queries for the gamification system. Supports global,
- * friends, and league leaderboards with weekly/monthly/all-time timeframes.
  */
 @RestController
 @RequestMapping("/auth/leaderboard")
@@ -37,12 +33,8 @@ public class LeaderboardController {
   SocialService socialService;
 
   /**
-   * Get leaderboard data.
    *
-   * <p>GET /api/v1/auth/leaderboard
    *
-   * <p>Query params: - type: "global" (default) | "friends" | "league" - timeframe: "weekly"
-   * (default) | "monthly" | "all_time" - limit: max entries, default 50
    */
   @GetMapping
   public ApiResponse<LeaderboardResponse> getLeaderboard(
@@ -53,7 +45,6 @@ public class LeaderboardController {
     String currentUserId = (auth != null && !(auth instanceof AnonymousAuthenticationToken))
         ? auth.getName() : null;
 
-    // Friends leaderboard requires authentication
     List<String> friendIds = null;
     if ("friends".equals(type)) {
       if (currentUserId == null) {
@@ -69,9 +60,7 @@ public class LeaderboardController {
   }
 
   /**
-   * Get my rank only (lightweight endpoint for header display).
    *
-   * <p>GET /api/v1/auth/leaderboard/my-rank
    */
   @GetMapping("/my-rank")
   public ApiResponse<LeaderboardResponse.MyRank> getMyRank(
@@ -82,7 +71,6 @@ public class LeaderboardController {
     }
     String currentUserId = authentication.getName();
 
-    // Get full leaderboard but only return myRank
     LeaderboardResponse response =
         statisticsService.getLeaderboard("global", timeframe, 1, currentUserId, null);
 

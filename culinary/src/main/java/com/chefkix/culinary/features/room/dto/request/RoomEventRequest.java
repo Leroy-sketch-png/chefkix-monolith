@@ -9,8 +9,6 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 
 /**
- * Generic room event request from WebSocket clients.
- * The "type" field is determined by the @MessageMapping destination.
  */
 @Data
 @Builder

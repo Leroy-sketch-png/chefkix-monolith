@@ -15,35 +15,28 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeSummaryResponse {
-    // --- Identity ---
     private String id;
     private Instant createdAt;
 
-    // --- Content ---
     private String title;
     private String description;
     private List<String> coverImageUrl;
 
-    // --- Metadata ---
     private Difficulty difficulty;
     private int totalTimeMinutes;
     private int servings;
     private String cuisineType;
 
-    // --- Gamification ---
     private int xpReward;
     private List<String> badges;
 
-    // --- Quality ---
     private Integer qualityScore;
     private String qualityTier;
 
-    // --- Social ---
     private long likeCount;
     private long saveCount;
     private long viewCount;
 
-    // --- DYNAMIC FIELDS (Added at query time) ---
     private AuthorResponse author;
     private Boolean isLiked;
     private Boolean isSaved;

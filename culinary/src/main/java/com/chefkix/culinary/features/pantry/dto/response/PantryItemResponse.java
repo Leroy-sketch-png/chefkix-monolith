@@ -19,6 +19,5 @@ public class PantryItemResponse {
     String category;
     LocalDate expiryDate;
     LocalDate addedDate;
-    /** expire state: "fresh" | "expiring_soon" | "expired" */
     String freshness;
 }

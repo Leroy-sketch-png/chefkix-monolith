@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Full meal plan response.
  */
 @Data
 @Builder

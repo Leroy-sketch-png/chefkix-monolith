@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 public interface CookingSessionCustomRepository {
 
     /**
-     * Execute dynamic query for Session History.
      */
     Page<CookingSession> findSessionHistory(String userId, SessionHistoryQuery dto, Pageable pageable);
 

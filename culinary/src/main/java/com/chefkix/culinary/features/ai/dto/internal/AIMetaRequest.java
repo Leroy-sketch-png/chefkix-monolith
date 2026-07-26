@@ -9,11 +9,9 @@ import java.util.List;
 @Data
 @Builder
 public class AIMetaRequest {
-    // --- Basic Info ---
     private String title;
     private String description;
 
-    // Enum String: "Beginner", "Intermediate", "Advanced", "Expert"
     private String difficulty;
 
     @JsonProperty("cuisine_type")
@@ -33,17 +31,14 @@ public class AIMetaRequest {
     @JsonProperty("calories_per_serving")
     private Integer caloriesPerServing;
 
-    // --- Ingredients & Steps ---
-    // Python expects List<Dict>, Java uses List<Object> or nested DTOs
     @JsonProperty("full_ingredient_list")
     private List<MetaIngredientDto> fullIngredientList;
 
     private List<MetaStepDto> steps;
 
-    // --- Options (Flags) ---
     @JsonProperty("include_enrichment")
     @Builder.Default
-    private boolean includeEnrichment = true; // Enabled by default to fetch Story/Tips
+private boolean includeEnrichment = true;
 
     @JsonProperty("include_substitutions")
     @Builder.Default
@@ -57,7 +52,6 @@ public class AIMetaRequest {
     @Builder.Default
     private boolean includeTechniqueGuides = true;
 
-    // --- Inner DTOs for compactness ---
     @Data
     @Builder
     public static class MetaIngredientDto {

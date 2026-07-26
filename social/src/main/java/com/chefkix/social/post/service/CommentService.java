@@ -57,7 +57,6 @@ public class CommentService {
   ReplyRepository replyRepository;
   ReplyLikeRepository replyLikeRepository;
   KafkaTemplate<String, Object> kafkaTemplate;
-    // Regex to capture format: @[userId|displayName
     static Pattern TAG_PATTERN = Pattern.compile("@\\[([^|]+)\\|([^]]+)\\]");
   CommentMapper commentMapper;
     private final ProfileProvider profileProvider;
@@ -71,7 +70,6 @@ public class CommentService {
         }
     String userId = authentication.getName();
 
-    // Check to see if post is there
     Post post =
         postRepository
             .findById(postId)
@@ -82,17 +80,12 @@ public class CommentService {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // Extract tagged user IDs from:
-        // 1. Explicit taggedUserIds from request (new clean approach)
-        // 2. Legacy @[userId|displayName] format in content (backward compat)
         List<String> extractedTagIds = new ArrayList<>();
         
-        // Add explicit taggedUserIds from request
         if (req.getTaggedUserIds() != null && !req.getTaggedUserIds().isEmpty()) {
             extractedTagIds.addAll(req.getTaggedUserIds());
         }
         
-        // Also parse legacy format for backward compatibility
         Matcher matcher = TAG_PATTERN.matcher(req.getContent());
         while (matcher.find()) {
             String legacyTagId = matcher.group(1);
@@ -101,7 +94,6 @@ public class CommentService {
             }
         }
 
-        // AI CONTENT MODERATION — fail-open for comments
         var moderationResult = contentModerationProvider.moderate(req.getContent(), "comment");
         if (moderationResult.isBlocked()) {
             log.warn("Comment content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
@@ -124,21 +116,17 @@ public class CommentService {
 
     commentRepository.save(comment);
 
-    // Atomic increment to prevent race conditions
     mongoTemplate.updateFirst(
             Query.query(Criteria.where("id").is(postId)),
             new Update().inc("commentCount", 1),
             Post.class);
 
-    // Send notification to post owner (only if commenter is not the post owner)
     if (!userId.equals(post.getUserId())) {
         sendCommentNotification(comment, post, userInfo.getDisplayName(), userInfo.getAvatarUrl());
     }
 
-    // Award social XP to the commenter (3 XP per comment, deduped per user+post)
     sendSocialXpEvent(userId, 3.0, "SOCIAL_COMMENT", postId, "Commented on a post");
 
-    // Send notification to the tagged users
     if (!extractedTagIds.isEmpty()) {
         sendTagNotification(comment, post, extractedTagIds);
     }
@@ -147,7 +135,6 @@ public class CommentService {
   }
 
   /**
-   * Sends Kafka event to notify post owner of new comment.
    */
   private void sendCommentNotification(Comment comment, Post post, String displayName, String avatarUrl) {
       try {
@@ -189,24 +176,21 @@ public class CommentService {
     }
 
     /**
-     * Sends Kafka event to notify tagged user.
      */
     private void sendTagNotification(Comment comment, Post post, List<String> taggedUserIds) {
         String actorDisplayName = comment.getDisplayName();
         String actorAvatarUrl = comment.getAvatarUrl();
 
-        // Loop through each tagged user to send individual events
         for (String taggedUserId : taggedUserIds) {
-            // Skip if tagging self (prevent spam)
             if (taggedUserId.equals(comment.getUserId())) continue;
 
             try {
                 UserMentionEvent event = UserMentionEvent.builder()
-                        .recipientId(taggedUserId)      // Send to tagged user
+.recipientId(taggedUserId)
                         .sourceId(comment.getId())
                         .sourceType("COMMENT")
                         .postId(post.getId())
-                        .actorId(comment.getUserId())   // The tagger
+.actorId(comment.getUserId())
                         .actorDisplayName(actorDisplayName)
                         .actorAvatarUrl(actorAvatarUrl)
                         .contentPreview(getPreview(comment.getContent()))
@@ -238,7 +222,6 @@ public class CommentService {
                 PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")));
         Map<String, BasicProfileInfo> taggedProfileCache = new HashMap<>();
 
-        // 2. Transform and enrich each comment
         return comments.stream()
             .map(comment -> mapToCommentResponse(comment, currentUserId, taggedProfileCache))
                 .collect(Collectors.toList());
@@ -248,10 +231,8 @@ public class CommentService {
             Comment comment,
             String currentUserId,
             Map<String, BasicProfileInfo> taggedProfileCache) {
-        // 1. Use mapper for basic field mapping
         CommentResponse response = commentMapper.toCommentResponse(comment);
         
-        // 2. Check if current user has liked this comment
         if (currentUserId != null) {
             boolean isLiked = commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), currentUserId);
             response.setIsLiked(isLiked);
@@ -259,14 +240,12 @@ public class CommentService {
             response.setIsLiked(false);
         }
 
-        // 3. Initialize list
         if (response.getTaggedUsers() == null) {
             response.setTaggedUsers(new ArrayList<>());
         }
 
         List<String> taggedIds = comment.getTaggedUserIds();
 
-        // 4. Enrichment logic: Iterate through IDs and call ProfileClient
         if (taggedIds != null && !taggedIds.isEmpty()) {
             for (String taggedUserId : taggedIds) {
                 try {
@@ -296,7 +275,6 @@ public class CommentService {
     }
 
     /**
-     * Delete a comment. Only the comment owner can delete their comment.
      */
     @Transactional
     public void deleteComment(Authentication authentication, String postId, String commentId) {
@@ -305,33 +283,26 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
-        // Verify ownership
         if (!comment.getUserId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Verify comment belongs to the post
         if (!comment.getPostId().equals(postId)) {
             throw new AppException(ErrorCode.COMMENT_NOT_FOUND);
         }
 
-        // Delete all reply likes for replies on this comment (batch)
         List<Reply> replies = replyRepository.findByParentCommentId(commentId);
         if (!replies.isEmpty()) {
             List<String> replyIds = replies.stream().map(Reply::getId).toList();
             replyLikeRepository.deleteAllByReplyIdIn(replyIds);
         }
 
-        // Delete all replies to this comment
         replyRepository.deleteAllByParentCommentId(commentId);
 
-        // Delete all likes on this comment
         commentLikeRepository.deleteAllByCommentId(commentId);
 
-        // Delete the comment
         commentRepository.delete(comment);
 
-        // Atomically decrement comment count on post
         Query postQuery = Query.query(Criteria.where("id").is(postId));
         Update postUpdate = new Update().inc("commentCount", -1);
         mongoTemplate.updateFirst(postQuery, postUpdate, Post.class);
@@ -340,7 +311,6 @@ public class CommentService {
     }
 
     /**
-     * Toggle like on a comment. Returns new like state and count.
      */
     @Transactional
     public CommentLikeResponse toggleLike(Authentication authentication, String commentId) {
@@ -352,11 +322,9 @@ public class CommentService {
         boolean alreadyLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
 
         if (alreadyLiked) {
-            // Unlike
             commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
             incrementCommentLikes(commentId, -1);
         } else {
-            // Like
             CommentLike like = CommentLike.builder()
                     .commentId(commentId)
                     .userId(userId)

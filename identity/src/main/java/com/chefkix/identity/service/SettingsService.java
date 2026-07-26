@@ -17,8 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
- * Service for managing user settings. Creates default settings on first access (lazy
- * initialization).
  */
 @Service
 @Slf4j
@@ -28,7 +26,6 @@ public class SettingsService {
 
   UserSettingsRepository settingsRepository;
 
-  // Validation constants for enum-like String fields
   private static final Set<String> VALID_PROFILE_VISIBILITY = Set.of("public", "friends_only", "private");
   private static final Set<String> VALID_MESSAGES_FROM = Set.of("everyone", "friends", "nobody");
   private static final Set<String> VALID_SKILL_LEVELS = Set.of("beginner", "intermediate", "advanced", "expert");
@@ -41,34 +38,25 @@ public class SettingsService {
     }
   }
 
-  // ================================
-  // GET OPERATIONS
-  // ================================
 
-  /** Get all settings for current user. Creates default settings if none exist. */
   public UserSettings getSettings() {
     String userId = getCurrentUserId();
     return getOrCreateSettings(userId);
   }
 
-  /** Get settings for a specific user by ID (for cross-service lookups). */
   public UserSettings getSettingsByUserId(String userId) {
     return getOrCreateSettings(userId);
   }
 
-  /** Get privacy settings only. */
   public UserSettings.PrivacySettings getPrivacySettings() {
     return getSettings().getPrivacy();
   }
 
-  /** Get privacy settings for a specific user (for enforcement checks). */
   public UserSettings.PrivacySettings getPrivacySettingsByUserId(String userId) {
     return getOrCreateSettings(userId).getPrivacy();
   }
 
   /**
-   * Batch-read privacy settings without creating missing documents.
-   * Missing settings should fall back to defaults at the call site.
    */
   public Map<String, UserSettings.PrivacySettings> getPrivacySettingsByUserIds(
       Collection<String> userIds) {
@@ -88,40 +76,30 @@ public class SettingsService {
                 (left, right) -> left));
   }
 
-  /** Get notification settings for a specific user (for notification enforcement). */
   public UserSettings.NotificationSettings getNotificationSettingsByUserId(String userId) {
     return getOrCreateSettings(userId).getNotifications();
   }
 
-  /** Get notification settings only. */
   public UserSettings.NotificationSettings getNotificationSettings() {
     return getSettings().getNotifications();
   }
 
-  /** Get cooking preferences only. */
   public UserSettings.CookingPreferences getCookingPreferences() {
     return getSettings().getCooking();
   }
 
-  /** Get app preferences only. */
   public UserSettings.AppPreferences getAppPreferences() {
     return getSettings().getApp();
   }
 
-  // ================================
-  // UPDATE OPERATIONS
-  // ================================
 
-  /** Update privacy settings. */
   public UserSettings.PrivacySettings updatePrivacySettings(UserSettings.PrivacySettings privacy) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
 
-    // Validate enum-like fields
     validateEnum(privacy.getProfileVisibility(), VALID_PROFILE_VISIBILITY, "profileVisibility");
     validateEnum(privacy.getAllowMessagesFrom(), VALID_MESSAGES_FROM, "allowMessagesFrom");
 
-    // Update only non-null fields
     if (privacy.getProfileVisibility() != null) {
       settings.getPrivacy().setProfileVisibility(privacy.getProfileVisibility());
     }
@@ -143,13 +121,11 @@ public class SettingsService {
     return settings.getPrivacy();
   }
 
-  /** Update notification settings. */
   public UserSettings.NotificationSettings updateNotificationSettings(
       UserSettings.NotificationSettings notifications) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
 
-    // Update email settings
     if (notifications.getEmail() != null) {
       UserSettings.EmailNotificationSettings email = notifications.getEmail();
       UserSettings.EmailNotificationSettings current = settings.getNotifications().getEmail();
@@ -160,7 +136,6 @@ public class SettingsService {
         current.setRecipeMilestone(email.getRecipeMilestone());
     }
 
-    // Update in-app settings
     if (notifications.getInApp() != null) {
       UserSettings.InAppNotificationSettings inApp = notifications.getInApp();
       UserSettings.InAppNotificationSettings current = settings.getNotifications().getInApp();
@@ -174,7 +149,6 @@ public class SettingsService {
       if (inApp.getDailyChallenge() != null) current.setDailyChallenge(inApp.getDailyChallenge());
     }
 
-    // Update push settings
     if (notifications.getPush() != null) {
       UserSettings.PushNotificationSettings push = notifications.getPush();
       UserSettings.PushNotificationSettings current = settings.getNotifications().getPush();
@@ -188,13 +162,11 @@ public class SettingsService {
     return settings.getNotifications();
   }
 
-  /** Update cooking preferences. */
   public UserSettings.CookingPreferences updateCookingPreferences(
       UserSettings.CookingPreferences cooking) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
 
-    // Validate enum-like fields
     validateEnum(cooking.getSkillLevel(), VALID_SKILL_LEVELS, "skillLevel");
     validateEnum(cooking.getMeasurementUnits(), VALID_MEASUREMENT_UNITS, "measurementUnits");
 
@@ -228,12 +200,10 @@ public class SettingsService {
     return settings.getCooking();
   }
 
-  /** Update app preferences. */
   public UserSettings.AppPreferences updateAppPreferences(UserSettings.AppPreferences app) {
     String userId = getCurrentUserId();
     UserSettings settings = getOrCreateSettings(userId);
 
-    // Validate enum-like fields
     validateEnum(app.getTheme(), VALID_THEMES, "theme");
 
     if (app.getTheme() != null) {
@@ -280,11 +250,7 @@ public class SettingsService {
     return settings.getApp();
   }
 
-  // ================================
-  // HELPER METHODS
-  // ================================
 
-  /** Get or create default settings for a user. */
   private UserSettings getOrCreateSettings(String userId) {
     UserSettings settings =
         settingsRepository

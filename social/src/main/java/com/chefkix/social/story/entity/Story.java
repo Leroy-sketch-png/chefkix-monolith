@@ -20,17 +20,14 @@ public class Story {
     @Id
     String id;
     String userId;
-    String mediaUrl; // Ảnh hoặc Video nền
-    String mediaType; // IMAGE hoặc VIDEO
-    Double imageScale;    // Tỷ lệ phóng to của ảnh nền
+String mediaUrl;
+String mediaType;
+Double imageScale;
     Double imageRotation;
 
-    // Danh sách các "lớp phủ" trên Story (Text, Hashtag, Location, Link, Sticker)
     List<StoryItem> items;
-    //Boolean isCloseFriendsOnly;
 
-    // Các liên kết đặc thù cho MXH nấu ăn
-    String recipeId; // Link nhanh tới công thức nấu ăn
+String recipeId;
 
     Instant createdAt;
     @Indexed(expireAfter = "0s")

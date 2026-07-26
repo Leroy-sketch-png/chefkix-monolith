@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class SessionAbandonResponse {
     private String sessionId;
-    private String status; // "abandoned"
+private String status;
     private LocalDateTime abandonedAt;
-    private boolean abandoned; // For FE compatibility
+private boolean abandoned;
 }

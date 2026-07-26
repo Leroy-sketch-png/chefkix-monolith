@@ -12,12 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Tracks checkout attempts for affiliate conversion tracking.
- * Revenue Pillar 4 (Intent): shopping list → checkout → grocery partner → commission.
  *
- * Lifecycle: REDIRECTED → CONFIRMED → DELIVERED (or CANCELLED)
- * Status transitions happen via webhook from grocery partner (Phase 1)
- * or manual polling (Phase 0).
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -33,7 +28,7 @@ public class CheckoutRecord {
 
     String shoppingListId;
 
-    String provider; // "affiliate", "instacart", etc.
+String provider;
 
     int itemCount;
 
@@ -41,7 +36,7 @@ public class CheckoutRecord {
 
     String checkoutUrl;
 
-    @Builder.Default String status = "redirected"; // redirected, confirmed, in_progress, delivered, cancelled
+@Builder.Default String status = "redirected";
 
     @CreatedDate Instant createdAt;
 

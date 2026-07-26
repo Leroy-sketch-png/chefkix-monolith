@@ -12,16 +12,13 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GroupExploreQuery {
 
-    // --- Search & Filter from Frontend ---
     String keyword;
     String privacy;
     Boolean isJoined;
 
-    // --- Custom Sorting ---
     @Builder.Default
     String sortBy = "newest";
 
-    // --- Backend Injected Context (Not from Frontend) ---
     String currentUserId;
     Set<String> joinedGroupIds;
 }

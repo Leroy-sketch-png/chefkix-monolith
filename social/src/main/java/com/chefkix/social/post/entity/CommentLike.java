@@ -10,8 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Tracks which users have liked which comments.
- * Compound index ensures one like per user per comment.
  */
 @Document(collection = "comment_likes")
 @Data

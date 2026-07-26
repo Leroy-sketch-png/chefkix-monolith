@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Embedded document for poll data on a Post.
- * Only present when postType == POLL.
  */
 @Data
 @Builder

@@ -12,12 +12,10 @@ public class SessionResponse {
     String userId;
     LocalDateTime completedAt;
 
-    // --- GAMIFICATION DATA ---
-    Double pendingXp;    // XP the user receives when finishing session (typically 30% of total)
+Double pendingXp;
 
-    // --- RECIPE INFO ---
     String recipeId;
     String recipeTitle;
-    String recipeAuthorId; // ID of the recipe creator
-    Double recipeBaseXp;   // Total base XP of the recipe (for calculating 4% bonus)
+String recipeAuthorId;
+Double recipeBaseXp;
 }

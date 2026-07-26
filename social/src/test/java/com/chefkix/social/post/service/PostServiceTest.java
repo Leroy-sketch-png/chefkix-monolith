@@ -37,7 +37,9 @@ import com.chefkix.social.post.repository.ReplyRepository;
 import com.chefkix.social.post.repository.ReportRepository;
 import com.chefkix.social.post.repository.TasteProfileRedisRepository;
 import com.chefkix.social.post.mapper.PostMapper;
+import com.chefkix.social.post.policy.TrendingPolicy;
 import com.chefkix.shared.util.UploadImageFile;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -271,5 +273,76 @@ class PostServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(queryCaptor.getValue().getQueryObject().containsKey("status")).isTrue();
         assertThat(queryCaptor.getValue().getQueryObject().containsKey("postStatus")).isFalse();
+    }
+
+    @Test
+    void getAllPostsTrendingUsesTheMaintainedScoreWindowForResultsAndCount() {
+        var pageable = PageRequest.of(0, 10);
+        Instant before = Instant.now();
+
+        when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of());
+        when(mongoTemplate.count(any(Query.class), eq(Post.class))).thenReturn(0L);
+
+        postService.getAllPosts(1, pageable, null);
+        Instant after = Instant.now();
+
+        ArgumentCaptor<Query> findQuery = ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<Query> countQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate).find(findQuery.capture(), eq(Post.class));
+        verify(mongoTemplate).count(countQuery.capture(), eq(Post.class));
+
+        assertTrendingCutoff(findQuery.getValue(), before, after);
+        assertTrendingCutoff(countQuery.getValue(), before, after);
+    }
+
+    @Test
+    void getAllPostsLatestKeepsTheAllTimeContentTail() {
+        var pageable = PageRequest.of(0, 10);
+
+        when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of());
+        when(mongoTemplate.count(any(Query.class), eq(Post.class))).thenReturn(0L);
+
+        postService.getAllPosts(0, pageable, null);
+
+        ArgumentCaptor<Query> findQuery = ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<Query> countQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate).find(findQuery.capture(), eq(Post.class));
+        verify(mongoTemplate).count(countQuery.capture(), eq(Post.class));
+
+        assertThat(findQuery.getValue().getQueryObject()).doesNotContainKey("createdAt");
+        assertThat(countQuery.getValue().getQueryObject()).doesNotContainKey("createdAt");
+    }
+
+    @Test
+    void getFollowingFeedTrendingUsesTheMaintainedScoreWindowForResultsAndCount() {
+        var pageable = PageRequest.of(0, 10);
+        Instant before = Instant.now();
+
+        when(profileProvider.getFollowingIds("user-1")).thenReturn(List.of("chef-2"));
+        when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of());
+        when(mongoTemplate.count(any(Query.class), eq(Post.class))).thenReturn(0L);
+
+        postService.getFollowingFeed(1, pageable, "user-1");
+        Instant after = Instant.now();
+
+        ArgumentCaptor<Query> findQuery = ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<Query> countQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate).find(findQuery.capture(), eq(Post.class));
+        verify(mongoTemplate).count(countQuery.capture(), eq(Post.class));
+
+        assertTrendingCutoff(findQuery.getValue(), before, after);
+        assertTrendingCutoff(countQuery.getValue(), before, after);
+    }
+
+    private void assertTrendingCutoff(Query query, Instant before, Instant after) {
+        Object createdAtCriteria = query.getQueryObject().get("createdAt");
+        assertThat(createdAtCriteria).isInstanceOf(org.bson.Document.class);
+
+        Object cutoff = ((org.bson.Document) createdAtCriteria).get("$gte");
+        assertThat(cutoff).isInstanceOf(Instant.class);
+        assertThat((Instant) cutoff)
+                .isBetween(
+                        TrendingPolicy.cutoff(before),
+                        TrendingPolicy.cutoff(after));
     }
 }

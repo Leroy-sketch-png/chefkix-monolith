@@ -12,8 +12,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * External HTTP client for the Brevo transactional email API.
- * Replaces the old Feign-based EmailClient with Spring's RestClient.
  */
 @Component
 @Slf4j
@@ -46,7 +44,6 @@ public class BrevoEmailClient {
         }
     }
 
-    /** Returns true if the Brevo API key is configured and email sending is enabled. */
     public boolean isConfigured() {
         return configured;
     }

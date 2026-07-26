@@ -37,7 +37,6 @@ public class KeycloakService {
 
     this.objectMapper = objectMapper;
 
-    // Configure dynamic Base URL based on environment variable
     this.webClient =
         webClientBuilder
             .baseUrl(keycloakAuthServerUrl + "/realms/nottisn/protocol/openid-connect")
@@ -67,7 +66,6 @@ public class KeycloakService {
                     .bodyToMono(String.class)
                     .flatMap(
                         respBody -> {
-                          // Log response status for debugging
                           log.debug(">>> [KEYCLOAK] Response status: {}", response.statusCode());
 
                           if (response.statusCode().isError()) {
@@ -182,7 +180,6 @@ public class KeycloakService {
   }
 
     /**
-     * Attempts to log in to Keycloak to verify the password using WebClient.
      */
     public boolean verifyPassword(String username, String rawPassword) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -195,7 +192,6 @@ public class KeycloakService {
         formData.add("password", rawPassword);
 
         try {
-            // FIXED: Just use "/token" because baseUrl already has the rest of the path!
             webClient.post()
                     .uri("/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -204,7 +200,7 @@ public class KeycloakService {
                     .toBodilessEntity()
                     .block();
 
-            return true; // Password is correct
+return true;
 
         } catch (WebClientResponseException.Unauthorized | WebClientResponseException.BadRequest e) {
             log.warn("Password verification failed for user: {}", username);

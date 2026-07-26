@@ -27,14 +27,14 @@ public class SecurityUtils {
     Object principal = authentication.getPrincipal();
 
     if (principal instanceof Jwt jwt) {
-      return jwt.getSubject(); // always returns userId as String
+return jwt.getSubject();
     }
 
     if (principal instanceof UserDetails ud) {
       return lookupUserIdByUsernameOrEmail(ud.getUsername());
     }
 
-    return authentication.getName(); // final fallback
+return authentication.getName();
   }
 
   private String lookupUserIdByUsernameOrEmail(String usernameOrEmail) {

@@ -12,8 +12,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 /**
- * Custom authentication entry point that returns standardized JSON error
- * responses when unauthenticated requests hit protected endpoints.
  */
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

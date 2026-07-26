@@ -21,7 +21,7 @@ public class Conversation {
     @MongoId
     String id;
 
-    String type; // GROUP, DIRECT
+String type;
 
     @Indexed(unique = true)
     String participantsHash;

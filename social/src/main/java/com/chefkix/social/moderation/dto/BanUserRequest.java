@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Admin request to manually ban a user.
  */
 @Data
 @NoArgsConstructor
@@ -20,7 +19,6 @@ public class BanUserRequest {
     String reason;
 
     /**
-     * Scope: "post", "comment", "all"
      */
     @NotBlank(message = "scope is required")
     @Pattern(regexp = "post|comment|all", message = "scope must be one of: post, comment, all")

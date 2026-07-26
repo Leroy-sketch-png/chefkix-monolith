@@ -36,7 +36,7 @@ public class InteractionService {
 
     RecipeLikeRepository recipeLikeRepository;
     RecipeSaveRepository recipeSaveRepository;
-    RecipeRepository recipeRepository; // Needed to update count and fetch recipe detail
+RecipeRepository recipeRepository;
     RecipeMapper recipeMapper;
 
     @Transactional
@@ -155,7 +155,6 @@ public class InteractionService {
         return new org.springframework.data.domain.PageImpl<>(responses, pageable, likesPage.getTotalElements());
     }
 
-    // --- HELPER METHODS FOR RECIPE SERVICE ---
 
     public boolean isLiked(String recipeId, String userId) {
         return recipeLikeRepository.existsByRecipeIdAndUserId(recipeId, userId);

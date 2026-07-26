@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Replace one meal slot in a plan.
  */
 @Data
 @Builder
@@ -15,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SwapMealRequest {
     @Size(max = 100)
-    String recipeId;     // null to clear slot
+String recipeId;
     @NotBlank
     @Size(max = 200)
     String title;

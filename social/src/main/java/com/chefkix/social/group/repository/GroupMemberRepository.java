@@ -17,39 +17,28 @@ import java.util.Optional;
 @Repository
 public interface GroupMemberRepository extends MongoRepository<GroupMember, String> {
 
-    // --- 1. SINGLE RECORD LOOKUPS ---
 
-    // Find a specific user's membership in a specific group (used for validating permissions)
     Optional<GroupMember> findByGroupIdAndUserId(String groupId, String userId);
 
-    // Check if a user is already in the group before saving a new request
     boolean existsByGroupIdAndUserId(String groupId, String userId);
     List<GroupMember> findByUserIdAndGroupIdIn(String userId, List<String> groupIds);
 
 
-    // --- 2. GROUP ADMIN QUERIES (Using group_status_idx) ---
-
-    // Get all members of a group with a specific status (e.g., all ACTIVE members, or all PENDING requests)
     Page<GroupMember> findAllByGroupIdAndStatus(String groupId, MemberStatus status, Pageable pageable);
 
     List<GroupMember> findAllByGroupIdAndStatus(String groupId, MemberStatus status);
 
     List<GroupMember> findAllByGroupId(String groupId);
 
-    // Get all admins or moderators of a group
     List<GroupMember> findAllByGroupIdAndRoleInAndStatus(
             String groupId,
             List<MemberRole> roles,
             MemberStatus status
     );
 
-    // Count how many pending requests a group has (for the admin notification badge)
     long countByGroupIdAndStatus(String groupId, MemberStatus status);
 
 
-    // --- 3. FEED & PROFILE QUERIES (Using user_status_idx) ---
-
-    // Get all groups a user is actively a part of (CRITICAL for the Home Feed Aggregator)
     List<GroupMember> findAllByUserIdAndStatus(String userId, MemberStatus status);
 
     List<GroupMember> findByUserId(String currentUserId);
@@ -57,7 +46,6 @@ public interface GroupMemberRepository extends MongoRepository<GroupMember, Stri
     Slice<GroupMember> findByUserIdAndStatus(String userId, MemberStatus status, Pageable pageable);
     Slice<GroupMember> findByUserIdAndStatusNot(String userId, MemberStatus status, Pageable pageable);
 
-    // BULK UPDATE: Instantly updates thousands of documents in 1 millisecond!
     @Query("{ 'groupId': ?0, 'status': 'PENDING' }")
     @Update("{ '$set': { 'status': 'ACTIVE' } }")
     void approveAllPendingMembers(String groupId);

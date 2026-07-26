@@ -50,73 +50,51 @@ public class DraftService {
     public RecipeDetailResponse createDraft() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Async Author fetch (utilize DB wait time to get user info)
-        // Frontend needs this to display the author avatar immediately when opening the screen
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(userId);
 
-        // 2. Create EMPTY entity (Bare-bones)
         Recipe draft = Recipe.builder()
                 .userId(userId)
-                .status(RecipeStatus.DRAFT) // <--- MOST IMPORTANT
+.status(RecipeStatus.DRAFT)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
 
-                // Init empty lists so FE doesn't get null pointer
                 .coverImageUrl(new ArrayList<>())
                 .fullIngredientList(new ArrayList<>())
                 .steps(new ArrayList<>())
 
-                // Init counters to 0
                 .likeCount(0)
                 .cookCount(0)
                 .build();
 
-        // 3. Save to generate ID (Mongo will create _id field)
         draft = recipeRepository.save(draft);
 
-        // 4. Map to Response
         RecipeDetailResponse response = mapper.toRecipeDetailResponse(draft);
         response.setRecipeStatus(RecipeStatus.DRAFT);
 
-        // 5. Join Author (Get Async result)
-        // DB save takes ~10-20ms, Identity call takes ~15-30ms
-        // -> Running in parallel saves time
         response.setAuthor(authorFuture.join());
 
-        // Draft has no likes/saves yet
         response.setIsLiked(false);
         response.setIsSaved(false);
 
         return response;
     }
 
-    // =========================================================================
-    // 2. AUTO-SAVE (Flexible update logic)
-    // =========================================================================
     @Transactional
     public RecipeDetailResponse autoSaveDraft(String id, RecipeRequest request) {
-        // 1. Find the recipe
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        // 2. Check ownership (Security)
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!recipe.getUserId().equals(currentUserId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 2b. CRITICAL: Only allow auto-save on DRAFT recipes
-        // Without this guard, published/archived recipes could be silently modified
         if (recipe.getStatus() != RecipeStatus.DRAFT) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // 3. Map data (IMPORTANT: Only map non-null fields)
-        // If FE only sends title, description, steps etc. must remain unchanged
         mapper.updateRecipeFromRequest(recipe, request);
 
-        // 4. EXPLICIT COLLECTION HANDLING (MapStruct doesn't handle list replacement well)
-        // Steps: REPLACE the entire list if provided
         if (request.getSteps() != null) {
             var newSteps = request.getSteps().stream()
                     .map(stepMapper::toStep)
@@ -126,7 +104,6 @@ public class DraftService {
             log.debug("Updated {} steps for draft {}", newSteps.size(), id);
         }
 
-        // Ingredients: REPLACE the entire list if provided  
         if (request.getFullIngredientList() != null) {
             var newIngredients = request.getFullIngredientList().stream()
                     .map(ingredientMapper::toIngredient)
@@ -136,26 +113,18 @@ public class DraftService {
             log.debug("Updated {} ingredients for draft {}", newIngredients.size(), id);
         }
 
-        // 5. Update Metadata
         recipe.setUpdatedAt(Instant.now());
 
-        // 6. Save (No status change, no business rule validation)
         recipe = recipeRepository.save(recipe);
 
         return mapper.toRecipeDetailResponse(recipe);
     }
 
-    // =========================================================================
-    // 3. GET DRAFTS & DELETE
-    // =========================================================================
     public List<RecipeSummaryResponse> getMyDrafts() {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Fire Async Profile request IMMEDIATELY
-        // (Run in parallel while DB query is executing in step 2)
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(currentUserId);
 
-        // 2. Query Database (IO Blocking)
         List<Recipe> drafts = recipeRepository
                 .findByUserIdAndStatusOrderByUpdatedAtDesc(currentUserId, RecipeStatus.DRAFT);
 
@@ -163,17 +132,12 @@ public class DraftService {
             return Collections.emptyList();
         }
 
-        // 3. Resolve Author result (JOIN)
-        // By now DB query is done, and authorFuture likely has result too -> No long wait
         AuthorResponse authorProfile = authorFuture.join();
 
-        // 4. Map & Enrich
         return drafts.stream()
                 .map(draft -> {
-                    // Basic mapping
                     RecipeSummaryResponse response = mapper.toRecipeSummaryResponse(draft);
 
-                    // Set Author (Reuse same authorProfile object for all items -> Saves memory)
                     if (authorProfile != null) {
                         response.setAuthor(AuthorResponse.builder()
                                 .userId(authorProfile.getUserId())
@@ -182,7 +146,6 @@ public class DraftService {
                                 .username(authorProfile.getUsername())
                                 .build());
                     } else {
-                        // Fallback (In case Identity service errors)
                         response.setAuthor(AuthorResponse.builder()
                                 .userId(currentUserId)
                                 .displayName("Me")
@@ -204,13 +167,10 @@ public class DraftService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // CRITICAL: Only allow discarding DRAFT recipes
-        // Without this guard, published recipes could be hard-deleted via this endpoint
         if (recipe.getStatus() != RecipeStatus.DRAFT) {
             throw new AppException(ErrorCode.INVALID_ACTION);
         }
 
-        // Hard Delete (Remove entirely from DB)
         recipeRepository.delete(recipe);
     }
 
@@ -218,7 +178,6 @@ public class DraftService {
     public RecipePublishResponse publishRecipe(String id, RecipePublishRequest request) {
         String currentUserId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 1. Fetch & authorize
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
@@ -226,32 +185,23 @@ public class DraftService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // 2. MANDATORY FIELD VALIDATION (local — no AI needed)
         validateMandatoryFields(recipe);
 
-        // 3. AI RECIPE VALIDATION (fail-closed: if AI is down, block publish)
-        // Checks: content safety, legitimacy, is-real-food, dangerous combinations
         aiIntegrationService.validateRecipeForPublish(recipe);
 
-        // 4. AI CONTENT MODERATION (fail-closed: if AI is down, block publish)
-        // Checks: toxic content, spam, off-topic (hybrid rules + AI)
         aiIntegrationService.moderateRecipeContent(recipe);
 
-        // 5. RQS SCORING (fail-open: if AI is down, publish continues without score)
         aiIntegrationService.scoreRecipeQuality(recipe);
 
-        // 6. All gates passed — publish
         recipe.setStatus(RecipeStatus.PUBLISHED);
         recipe.setPublishedAt(Instant.now());
         recipe.setRecipeVisibility(request.getVisibility());
         recipe.setUpdatedAt(Instant.now());
 
-        // Init stats if needed
         if (recipe.getLikeCount() == 0) recipe.setLikeCount(0);
 
         var savedRecipe = recipeRepository.save(recipe);
 
-        // Real-time Typesense indexing — fires synchronously after MongoDB save
         eventPublisher.publishEvent(RecipeIndexEvent.index(savedRecipe));
 
         log.info("Recipe {} published successfully by user {}", id, currentUserId);
@@ -265,8 +215,6 @@ public class DraftService {
     }
 
     /**
-     * Duplicate any owned recipe (draft or published) as a new DRAFT.
-     * Deep-copies all content fields; resets identity, status, and social counters.
      */
     @Transactional
     public RecipeDetailResponse duplicateDraft(String sourceId) {
@@ -279,7 +227,6 @@ public class DraftService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Deep copy content via builder — new lists to avoid shared references
         Recipe duplicate = Recipe.builder()
                 .userId(userId)
                 .status(RecipeStatus.DRAFT)
@@ -287,7 +234,6 @@ public class DraftService {
                 .updatedAt(Instant.now())
                 .publishedAt(null)
                 .recipeVisibility(null)
-                // Content
                 .title(source.getTitle() != null ? source.getTitle() + " (Copy)" : "Untitled (Copy)")
                 .description(source.getDescription())
                 .difficulty(source.getDifficulty())
@@ -297,23 +243,18 @@ public class DraftService {
                 .servings(source.getServings())
                 .cuisineType(source.getCuisineType())
                 .caloriesPerServing(source.getCaloriesPerServing())
-                // Media — new lists with same URLs (Cloudinary URLs are shareable)
                 .coverImageUrl(source.getCoverImageUrl() != null ? new ArrayList<>(source.getCoverImageUrl()) : new ArrayList<>())
                 .videoUrl(source.getVideoUrl() != null ? new ArrayList<>(source.getVideoUrl()) : new ArrayList<>())
-                // Tags
                 .dietaryTags(source.getDietaryTags() != null ? new ArrayList<>(source.getDietaryTags()) : new ArrayList<>())
                 .skillTags(source.getSkillTags() != null ? new ArrayList<>(source.getSkillTags()) : new ArrayList<>())
                 .rewardBadges(source.getRewardBadges() != null ? new ArrayList<>(source.getRewardBadges()) : new ArrayList<>())
-                // Structure — deep copy via streams
                 .fullIngredientList(deepCopyIngredients(source.getFullIngredientList()))
                 .steps(deepCopySteps(source.getSteps()))
-                // Gamification (preserve AI data so user doesn't have to re-process)
                 .xpReward(source.getXpReward())
                 .difficultyMultiplier(source.getDifficultyMultiplier())
                 .xpBreakdown(source.getXpBreakdown())
                 .validation(source.getValidation())
                 .enrichment(source.getEnrichment())
-                // Social counters — reset to 0
                 .likeCount(0)
                 .saveCount(0)
                 .viewCount(0)
@@ -326,7 +267,6 @@ public class DraftService {
 
         duplicate = recipeRepository.save(duplicate);
 
-        // Build response with author info
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(userId);
         RecipeDetailResponse response = mapper.toRecipeDetailResponse(duplicate);
         response.setAuthor(authorFuture.join());
@@ -372,8 +312,6 @@ public class DraftService {
     }
 
     /**
-     * Validate all mandatory fields required for publishing.
-     * Uses English error messages per spec §3.
      */
     private void validateMandatoryFields(Recipe recipe) {
         List<String> errors = new ArrayList<>();

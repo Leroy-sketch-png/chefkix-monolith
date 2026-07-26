@@ -15,12 +15,10 @@ import java.util.Optional;
 @Repository
 public interface CookingSessionRepository extends MongoRepository<CookingSession, String>, CookingSessionCustomRepository {
 
-    // Find user's active session (to prevent starting 2 sessions simultaneously)
     Optional<CookingSession> findByUserIdAndStatus(String userId, SessionStatus status);
 
     List<CookingSession> findAllByUserId(String userId);
 
-    // Count how many times user has completed this recipe (for Mastery calculation)
     long countByUserIdAndRecipeIdAndStatus(String userId, String recipeId, SessionStatus status);
 
     Optional<CookingSession> findFirstByUserIdAndStatus(String userId, SessionStatus sessionStatus);
@@ -35,39 +33,28 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
     Page<CookingSession> findAllByUserIdAndStatusIn(String userId, List<SessionStatus> statuses, Pageable pageable);
 
     /**
-     * Find completed sessions for a set of recipe IDs, sorted by completedAt DESC.
-     * Used by creator analytics to show who recently cooked the creator's recipes.
      */
     Page<CookingSession> findByRecipeIdInAndStatus(List<String> recipeIds, SessionStatus status, Pageable pageable);
 
     /**
-     * Count completed sessions for a user within a date range for specific recipe IDs.
-     * Used by weekly challenge progress computation.
      */
     long countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
             String userId, List<String> recipeIds, SessionStatus status,
             LocalDateTime start, LocalDateTime end);
 
     /**
-     * Find recent cooking sessions for a single recipe by status.
-     * Used by social proof to show "recent cookers" of a recipe.
      */
     Page<CookingSession> findByRecipeIdAndStatusIn(String recipeId, List<SessionStatus> statuses, Pageable pageable);
 
     /**
-     * Count sessions for a recipe with a specific status.
-     * Used to count posts linked to a recipe (status = POSTED).
      */
     long countByRecipeIdAndStatus(String recipeId, SessionStatus status);
 
     /**
-     * Recent cooking history for a user (for taste profile / recommendations).
      */
     List<CookingSession> findTop20ByUserIdOrderByStartedAtDesc(String userId);
 
     /**
-     * All terminal sessions for a recipe (completed, posted, abandoned).
-     * Used by step heatmap analytics to aggregate per-step metrics.
      */
     List<CookingSession> findByRecipeIdAndStatusIn(String recipeId, List<SessionStatus> statuses);
 }

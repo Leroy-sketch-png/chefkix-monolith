@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Lightweight DTO for MongoDB aggregation results in trending score calculations.
- * Used by {@link com.chefkix.culinary.common.scheduled.RecipeScheduled}.
  */
 @Data
 @NoArgsConstructor

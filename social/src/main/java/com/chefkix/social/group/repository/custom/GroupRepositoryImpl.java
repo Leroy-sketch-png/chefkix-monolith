@@ -24,19 +24,14 @@ public class GroupRepositoryImpl implements GroupCustomRepository {
     @Override
     public Page<Group> searchGroups(GroupExploreQuery queryDto, Pageable pageable) {
 
-        // 1. Use Specification to build filters
         Criteria criteria = GroupSpecification.getCriteria(queryDto);
 
-        // 2. Create Query
         Query query = new Query(criteria).with(pageable);
 
-        // 3. Apply Custom Sort
         applyCustomSorting(query, queryDto.getSortBy());
 
-        // 4. Execute Query to fetch data
         List<Group> groups = mongoTemplate.find(query, Group.class);
 
-        // 5. Calculate total
         return PageableExecutionUtils.getPage(
                 groups,
                 pageable,
@@ -46,9 +41,7 @@ public class GroupRepositoryImpl implements GroupCustomRepository {
 
     private void applyCustomSorting(Query query, String sortBy) {
         if ("popular".equalsIgnoreCase(sortBy)) {
-            // Sort by largest groups first
             query.with(Sort.by(Sort.Direction.DESC, "memberCount"));
         }
-        // Default Spring Pageable sorting handles the rest
     }
 }

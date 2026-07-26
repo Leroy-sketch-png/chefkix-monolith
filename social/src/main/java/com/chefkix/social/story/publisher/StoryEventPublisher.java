@@ -43,7 +43,6 @@ public class StoryEventPublisher {
                     .interactionType(interactionType)
                     .build();
 
-            // Fire-and-forget via Kafka
             kafkaTemplate.send("story-delivery", event);
 
             log.info("Published STORY_INTERACTED ({}) for story {}", interactionType, storyId);
@@ -53,7 +52,6 @@ public class StoryEventPublisher {
         }
     }
 
-    // Story reply via chat message
     @Async
     public void publishStoryReplyEvent(String storyId, String storyOwnerId, String replierId, String text, String mediaUrl) {
         try {

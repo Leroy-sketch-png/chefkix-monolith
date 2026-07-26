@@ -25,20 +25,13 @@ public class SignupRequest {
 
   @Indexed @NotBlank @Email @Size(max = 254) String email;
   @NotBlank @Size(min = 3, max = 30) String username;
-  // Plain password - stored temporarily until OTP verification
-  // Keycloak will hash it properly when user is created
-  // This document is deleted after successful verification
-  @NotBlank @Size(min = 8, max = 128) String password;
-
-  // OTP fields
   String otpHash;
   Instant createdAt;
-  @Indexed(expireAfterSeconds = 900) // TTL: auto-delete 15 min after expiry as defense-in-depth
+@Indexed(expireAfterSeconds = 900)
   Instant expiresAt;
   Instant lastOtpSentAt;
   Integer attempts;
 
-  // Extra profile fields
   @NotBlank @Size(max = 50) String firstName;
   @NotBlank @Size(max = 50) String lastName;
   @Size(max = 100) String fullName;

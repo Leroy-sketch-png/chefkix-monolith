@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Pantry CRUD + recipe matching.
- * Spec: vision_and_spec/23-pantry-and-meal-planning.txt §1-§3
  */
 @RestController
 @RequestMapping("/pantry")
@@ -25,7 +23,6 @@ public class PantryController {
 
     private final PantryService pantryService;
 
-    // ── CRUD ────────────────────────────────────────────────────────
 
     @PostMapping
     public ApiResponse<PantryItemResponse> addItem(@Valid @RequestBody PantryItemRequest request) {
@@ -80,7 +77,6 @@ public class PantryController {
                 .build();
     }
 
-    // ── Recipe Matching ─────────────────────────────────────────────
 
     @GetMapping("/recipes")
     public ApiResponse<List<PantryRecipeMatchResponse>> matchRecipes(
@@ -92,7 +88,6 @@ public class PantryController {
                 .build();
     }
 
-    // ── Auth ────────────────────────────────────────────────────────
 
     private String userId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();

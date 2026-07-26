@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Response for GET /challenges/weekly.
- * Weekly challenges require multiple completions within a week.
- * Spec: vision_and_spec/13-challenges.txt
  */
 @Data
 @Builder
@@ -30,8 +27,8 @@ public class WeeklyChallengeResponse {
     int progress;
     boolean completed;
     String completedAt;
-    String startsAt;  // Monday 00:00 UTC (ISO)
-    String endsAt;    // Next Monday 00:00 UTC (ISO)
+String startsAt;
+String endsAt;
     Map<String, Object> criteria;
     List<ChallengeResponse.RecipePreviewDto> matchingRecipes;
 }

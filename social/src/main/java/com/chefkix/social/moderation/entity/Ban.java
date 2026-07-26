@@ -10,9 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Ban entity for user suspensions.
- * Per spec 16-moderation.txt: Escalating penalties.
- * 1st offense = 3 days, 2nd = 7 days, 3rd = 14 days, 4th = permanent.
  */
 @Document(collection = "bans")
 @Data
@@ -30,17 +27,15 @@ public class Ban {
     String reason;
 
     /**
-     * Scope of the ban: "post", "comment", "all"
      */
     @Builder.Default
     String scope = "all";
 
     /**
-     * Duration in days. -1 = permanent.
      */
     int durationDays;
 
-    String issuedBy; // Admin userId
+String issuedBy;
 
     @CreatedDate
     Instant issuedAt;
@@ -51,7 +46,6 @@ public class Ban {
     boolean active = true;
 
     /**
-     * Which offense number this is (1st, 2nd, 3rd, 4th+)
      */
     int offenseNumber;
 

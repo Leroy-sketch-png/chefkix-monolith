@@ -10,10 +10,8 @@ import java.time.Instant;
 
 @Document(collection = "recipe_saves")
 @CompoundIndexes({
-        // Ensure a user can save a recipe only once
         @CompoundIndex(name = "recipe_user_idx", def = "{'recipeId': 1, 'userId': 1}", unique = true),
         @CompoundIndex(name = "user_recipe_idx", def = "{'userId': 1, 'recipeId': 1}"),
-        // Speed up user saved-recipes paging sorted by newest interaction
         @CompoundIndex(name = "user_createdAt_idx", def = "{'userId': 1, 'createdAt': -1}")
 })
 @Data
@@ -21,7 +19,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecipeSave {
-    String id; // Auto-generated Mongo string ID
+String id;
     String recipeId;
     String userId;
 

@@ -22,12 +22,9 @@ public class UserProfile {
   @Id String id;
 
   /**
-   * Optimistic locking version — enables @Retryable(OptimisticLockingFailureException)
-   * in StatisticsService to detect concurrent writes (XP rewards, follower counts, etc.).
    */
   @Version Long version;
 
-  /** Reference to Keycloak User ID (or User table in a separate DB if self-managed). */
   @Indexed(unique = true) String userId;
 
   @TextIndexed(weight = 10)
@@ -45,24 +42,19 @@ public class UserProfile {
   String coverImageUrl;
   @TextIndexed(weight = 3)
   String bio;
-  String accountType; // normal, chef, admin...
+String accountType;
   String location;
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   LocalDate dob;
 
-  /** List of preferences: e.g. ["vegan", "spicy", "asian-food"] */
   List<String> preferences;
 
-  /** Or store additional custom settings as a map */
-  // Map<String, Object> settings;
 
-  /** Count fields should be updated by service or calculated via aggregation */
   Statistics statistics;
 
   List<Friendship> friends;
 
-  /** Verified creator badge — paid feature, approved by admin */
   @Builder.Default
   boolean verified = false;
 

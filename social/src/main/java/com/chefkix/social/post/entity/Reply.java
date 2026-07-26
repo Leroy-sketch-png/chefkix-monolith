@@ -20,11 +20,9 @@ import java.util.List;
 public class Reply {
     @Id String id;
 
-    // --- Reply author information ---
     String userId;
     String displayName;
     String avatarUrl;
-    // ---------------------------------
 
     String content;
     @Builder.Default Integer likes = 0;

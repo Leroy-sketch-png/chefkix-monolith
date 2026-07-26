@@ -31,7 +31,6 @@ public class ErrorNormalizer {
     try {
       log.warn("Cannot complete request", exception);
 
-      // Extract response body: WebClientResponseException (monolith) replaces FeignException
       String body = "";
       if (exception instanceof WebClientResponseException wcre) {
         body = wcre.getResponseBodyAsString();

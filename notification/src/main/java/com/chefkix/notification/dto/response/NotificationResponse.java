@@ -49,6 +49,5 @@ public class NotificationResponse {
 
     private ActorInfo actorInfo;
 
-    /** Structured payload for gamified notification types. Keys: xpAmount, newLevel, badgeNames, recipeName, streakCount. */
     private Map<String, String> data;
 }

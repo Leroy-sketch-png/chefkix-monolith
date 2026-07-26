@@ -17,10 +17,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Document(collection = "users") // Collection name in MongoDB
+@Document(collection = "users")
 public class User {
 
-  @Id String id; // Mongo ID is String (ObjectId as string)
+@Id String id;
 
   @Indexed(unique = true) String username;
 
@@ -42,13 +42,11 @@ public class User {
 
   @LastModifiedDate LocalDateTime updatedAt;
 
-  // Instead of @OneToOne, use @DBRef to reference another document
   @DBRef UserProfile userProfile;
 
   @Indexed(sparse = true) String googleId;
 
   String authProvider;
 
-  // Instead of ManyToMany, use @DBRef to reference another collection
   @DBRef Set<Role> roles;
 }

@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Generic wrapper matching the Python AI service's wrap_response() format.
- * All AI service endpoints return: { success, data, message, statusCode }.
  */
 @Data
 @NoArgsConstructor

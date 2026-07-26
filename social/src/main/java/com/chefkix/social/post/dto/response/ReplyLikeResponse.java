@@ -13,6 +13,5 @@ public class ReplyLikeResponse {
     @JsonProperty("isLiked")
     boolean isLiked;
     
-    /** Number of likes on the reply (renamed from likeCount for consistency with CommentLikeResponse) */
     long likes;
 }

@@ -58,8 +58,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Implements {@link PostProvider} for cross-module consumption.
- * Delegates to PostService and maps internal DTOs to API contract types.
  */
 @Component
 @RequiredArgsConstructor

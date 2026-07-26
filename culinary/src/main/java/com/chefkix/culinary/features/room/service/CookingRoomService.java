@@ -37,8 +37,6 @@ import java.util.*;
 import java.util.Comparator;
 
 /**
- * Manages ephemeral co-cooking rooms backed by Redis.
- * Rooms are an awareness overlay on top of individual CookingSessions.
  */
 @Service
 @Slf4j
@@ -55,21 +53,15 @@ public class CookingRoomService {
 
     private static final String REMINDER_TOPIC = "reminder-delivery";
     private static final int ROOM_CODE_LENGTH = 6;
-    private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I/O/0/1 to avoid confusion
+private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    // ────────────────────────────────────────────────────────
-    // CREATE ROOM
-    // ────────────────────────────────────────────────────────
 
     public CookingRoomResponse createRoom(String userId, CreateRoomRequest request) {
-        // Generate unique room code
         String roomCode = generateUniqueRoomCode();
 
-        // Get or create a cooking session for this recipe (linked to room for co-op XP)
         String sessionId = getOrCreateSession(userId, request.getRecipeId(), roomCode);
 
-        // Get user profile for participant info
         BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
         String displayName = resolveDisplayName(profile);
 
@@ -84,7 +76,6 @@ public class CookingRoomService {
                 .isHost(true)
                 .build();
 
-        // Fetch recipe title from session (the session already validated the recipe)
         CookingSession session = sessionRepository.findById(sessionId).orElse(null);
         String recipeTitle = session != null ? session.getRecipeTitle() : "";
 
@@ -105,9 +96,6 @@ public class CookingRoomService {
         return toResponse(room, sessionId);
     }
 
-    // ────────────────────────────────────────────────────────
-    // JOIN ROOM
-    // ────────────────────────────────────────────────────────
 
     @Transactional
     public CookingRoomResponse joinRoom(String userId, JoinRoomRequest request) {
@@ -122,25 +110,21 @@ public class CookingRoomService {
             throw new AppException(ErrorCode.ROOM_NOT_FOUND);
         }
 
-        // Check if already in room
         boolean alreadyIn = room.getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(userId));
         if (alreadyIn) {
             throw new AppException(ErrorCode.ALREADY_IN_ROOM);
         }
 
-        // Check capacity
         if (room.getParticipants().size() >= room.getMaxParticipants()) {
             throw new AppException(ErrorCode.ROOM_FULL);
         }
 
-        // Spectators don't get a cooking session — they're just watching
         String sessionId = null;
         if (!isSpectator) {
             sessionId = getOrCreateSession(userId, room.getRecipeId(), roomCode);
         }
 
-        // Build participant
         BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
         String displayName = resolveDisplayName(profile);
 
@@ -158,7 +142,6 @@ public class CookingRoomService {
 
         room.getParticipants().add(participant);
 
-        // Transition to COOKING when 2+ COOK participants
         long cookCount = room.getParticipants().stream()
                 .filter(p -> !"SPECTATOR".equals(p.getRole()))
                 .count();
@@ -169,7 +152,6 @@ public class CookingRoomService {
         roomRepository.save(room);
         log.info("User {} joined room {} as {}", userId, roomCode, role);
 
-        // Broadcast join event
         broadcastEvent(roomCode, RoomEventType.PARTICIPANT_JOINED, userId, displayName,
                 Map.of("userId", userId, "displayName", displayName,
                         "avatarUrl", profile.getAvatarUrl() != null ? profile.getAvatarUrl() : "",
@@ -178,9 +160,6 @@ public class CookingRoomService {
         return toResponse(room, sessionId);
     }
 
-    // ────────────────────────────────────────────────────────
-    // LEAVE ROOM
-    // ────────────────────────────────────────────────────────
 
     @Transactional
     public LeaveActiveRoomsResponse leaveActiveRooms(String userId) {
@@ -225,7 +204,6 @@ public class CookingRoomService {
         CookingRoom room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
-        // Remove participant
         boolean removed = room.getParticipants().removeIf(p -> p.getUserId().equals(userId));
         if (!removed) {
             throw new AppException(ErrorCode.NOT_IN_ROOM);
@@ -235,7 +213,6 @@ public class CookingRoomService {
         boolean dissolved = false;
 
         if (room.getParticipants().isEmpty()) {
-            // Last person left — dissolve room
             room.setStatus(CookingRoom.STATUS_DISSOLVED);
             roomRepository.delete(roomCode);
             dissolved = true;
@@ -243,7 +220,6 @@ public class CookingRoomService {
 
             broadcastEvent(roomCode, RoomEventType.ROOM_DISSOLVED, userId, null, Map.of());
         } else {
-            // If host left, transfer to longest-active participant
             if (userId.equals(room.getHostUserId())) {
                 RoomParticipant newHost = room.getParticipants().stream()
                         .min(Comparator.comparing(RoomParticipant::getJoinedAt))
@@ -261,7 +237,6 @@ public class CookingRoomService {
 
             roomRepository.save(room);
 
-            // Broadcast leave
             broadcastEvent(roomCode, RoomEventType.PARTICIPANT_LEFT, userId, null,
                     Map.of("userId", userId,
                             "newHostUserId", newHostUserId != null ? newHostUserId : ""));
@@ -274,9 +249,6 @@ public class CookingRoomService {
                 .build();
     }
 
-    // ────────────────────────────────────────────────────────
-    // GET ROOM
-    // ────────────────────────────────────────────────────────
 
     public CookingRoomResponse getRoom(String userId, String roomCode) {
         roomCode = roomCode.toUpperCase();
@@ -284,7 +256,6 @@ public class CookingRoomService {
         CookingRoom room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
-        // Find this user's session ID
         String sessionId = room.getParticipants().stream()
                 .filter(p -> p.getUserId().equals(userId))
                 .findFirst()
@@ -295,9 +266,6 @@ public class CookingRoomService {
         return toResponse(room, sessionId);
     }
 
-    // ────────────────────────────────────────────────────────
-    // UPDATE PARTICIPANT STATE (called from WebSocket handlers)
-    // ────────────────────────────────────────────────────────
 
     public void updateParticipantStep(String roomCode, String userId, int stepNumber) {
         roomRepository.findByRoomCode(roomCode).ifPresent(room -> {
@@ -320,7 +288,6 @@ public class CookingRoomService {
                         if (completedSteps != null) {
                             p.setCompletedSteps(completedSteps);
                         } else {
-                            // Add single step if completedSteps list not provided
                             if (!p.getCompletedSteps().contains(stepNumber)) {
                                 p.getCompletedSteps().add(stepNumber);
                             }
@@ -331,14 +298,8 @@ public class CookingRoomService {
         });
     }
 
-    // ────────────────────────────────────────────────────────
-    // INVITE TO ROOM
-    // ────────────────────────────────────────────────────────
 
     /**
-     * Sends a room invite notification to a target user.
-     * Validates sender is in room, target is not already in room.
-     * Notification deep-links to /cook-together?roomCode=XXX.
      */
     public void inviteToRoom(String senderId, String roomCode, InviteToRoomRequest request) {
         roomCode = roomCode.toUpperCase();
@@ -346,21 +307,18 @@ public class CookingRoomService {
         CookingRoom room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new AppException(ErrorCode.ROOM_NOT_FOUND));
 
-        // Sender must be in the room
         boolean senderInRoom = room.getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(senderId));
         if (!senderInRoom) {
             throw new AppException(ErrorCode.NOT_IN_ROOM);
         }
 
-        // Target must not already be in room
         boolean targetInRoom = room.getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(request.getUserId()));
         if (targetInRoom) {
             throw new AppException(ErrorCode.ALREADY_IN_ROOM);
         }
 
-        // Room must not be full
         if (room.getParticipants().size() >= room.getMaxParticipants()) {
             throw new AppException(ErrorCode.ROOM_FULL);
         }
@@ -382,13 +340,8 @@ public class CookingRoomService {
         log.info("Room invite sent: {} → {} for room {}", senderId, request.getUserId(), roomCode);
     }
 
-    // ────────────────────────────────────────────────────────
-    // FRIENDS ACTIVE ROOMS
-    // ────────────────────────────────────────────────────────
 
     /**
-     * Returns active rooms where users the caller follows are currently cooking.
-     * Used for "Friends Cooking Now" widget — poll every 30s.
      */
     public List<FriendsActiveRoomResponse> getFriendsActiveRooms(String userId) {
         List<String> followingIds = profileProvider.getFollowingIds(userId);
@@ -416,13 +369,8 @@ public class CookingRoomService {
                 .toList();
     }
 
-    // ────────────────────────────────────────────────────────
-    // CO-OP XP MULTIPLIER
-    // ────────────────────────────────────────────────────────
 
     /**
-     * Calculates the co-op XP multiplier for a room-linked session.
-     * 2 cooks = 1.2×, 3+ cooks = 1.1×, solo/spectator-only = 1.0×.
      */
     public double getCoOpMultiplier(String roomCode) {
         if (roomCode == null) return 1.0;
@@ -439,9 +387,6 @@ public class CookingRoomService {
                 .orElse(1.0);
     }
 
-    // ────────────────────────────────────────────────────────
-    // BROADCAST HELPER
-    // ────────────────────────────────────────────────────────
 
     public void broadcastEvent(String roomCode, RoomEventType type,
                                 String userId, String displayName,
@@ -457,13 +402,8 @@ public class CookingRoomService {
         messagingTemplate.convertAndSend("/topic/room/" + roomCode.toUpperCase(), event);
     }
 
-    // ────────────────────────────────────────────────────────
-    // PRIVATE HELPERS
-    // ────────────────────────────────────────────────────────
 
     /**
-     * Returns true if the given user is a spectator in the given room.
-     * Used by WsController to guard cooking-specific events.
      */
     public boolean isSpectator(String roomCode, String userId) {
         return roomRepository.findByRoomCode(roomCode.toUpperCase())
@@ -476,7 +416,6 @@ public class CookingRoomService {
     }
 
     /**
-     * Returns true if the given user is an active participant in the given room.
      */
     public boolean isParticipant(String roomCode, String userId) {
         return roomRepository.findByRoomCode(roomCode.toUpperCase())
@@ -486,33 +425,26 @@ public class CookingRoomService {
     }
 
     /**
-     * Gets existing IN_PROGRESS session for recipe, or starts a new one.
-     * Links the session to the room so co-op XP multiplier applies on completion.
      */
     private String getOrCreateSession(String userId, String recipeId, String roomCode) {
-        // Check if user already has an active session
         Optional<CookingSession> existing = sessionRepository
                 .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
 
         if (existing.isPresent()) {
             CookingSession session = existing.get();
             if (session.getRecipeId().equals(recipeId)) {
-                // Link existing session to room if not already linked
                 if (session.getRoomCode() == null && roomCode != null) {
                     session.setRoomCode(roomCode);
                     sessionRepository.save(session);
                 }
                 return session.getId();
             }
-            // Different recipe — can't join room while cooking something else
             throw new AppException(ErrorCode.SESSION_ALREADY_ACTIVE);
         }
 
-        // Start a new session
         var response = sessionService.startSession(userId,
                 StartSessionRequest.builder().recipeId(recipeId).build());
 
-        // Link the newly created session to the room
         if (roomCode != null) {
             sessionRepository.findById(response.getSessionId()).ifPresent(session -> {
                 session.setRoomCode(roomCode);

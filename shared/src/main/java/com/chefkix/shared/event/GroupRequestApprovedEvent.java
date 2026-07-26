@@ -7,9 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Fired when a user's request to join a private group is approved by an admin.
- * <p>
- * Producer: social module (group). Consumer: notification module.
  */
 @Data
 @NoArgsConstructor

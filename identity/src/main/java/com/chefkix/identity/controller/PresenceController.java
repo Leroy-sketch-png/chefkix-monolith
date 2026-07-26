@@ -19,8 +19,6 @@ public class PresenceController {
     private final PresenceService presenceService;
 
     /**
-     * POST /api/v1/presence/heartbeat — Send a heartbeat to indicate user is online.
-     * Body: { "activity": "browsing" | "cooking:Recipe Title" | "creating" }
      */
     @PostMapping("/heartbeat")
     public ApiResponse<Void> heartbeat(
@@ -34,7 +32,6 @@ public class PresenceController {
     }
 
     /**
-     * GET /api/v1/presence/friends — Online friends of the authenticated user.
      */
     @GetMapping("/friends")
     public ApiResponse<List<PresenceResponse>> getFriendsPresence(
@@ -47,7 +44,6 @@ public class PresenceController {
     }
 
     /**
-     * GET /api/v1/presence/friends/cooking — Friends who are currently cooking.
      */
     @GetMapping("/friends/cooking")
     public ApiResponse<List<PresenceResponse>> getFriendsCookingNow(
@@ -60,8 +56,6 @@ public class PresenceController {
     }
 
     /**
-     * GET /api/v1/presence/{userId} — Check if a specific user is online.
-     * Returns online status for any user (public profile info).
      */
     @GetMapping("/{userId}")
     public ApiResponse<UserPresenceResponse> getUserPresence(@PathVariable String userId) {
@@ -73,7 +67,6 @@ public class PresenceController {
     }
 
     /**
-     * POST /api/v1/presence/offline — Explicitly go offline (logout/tab close).
      */
     @PostMapping("/offline")
     public ApiResponse<Void> goOffline(@AuthenticationPrincipal Jwt jwt) {
@@ -82,7 +75,6 @@ public class PresenceController {
                 .success(true).statusCode(200).build();
     }
 
-    // ── Request/Response DTOs ───────────────────────────────────────
 
     record HeartbeatRequest(String activity) {}
     

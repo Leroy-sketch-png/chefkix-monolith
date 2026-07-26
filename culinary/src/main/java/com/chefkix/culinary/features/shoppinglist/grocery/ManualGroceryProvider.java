@@ -7,12 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Manual/default grocery provider.
- * Creates a printable/shareable shopping list when no external
- * grocery delivery provider is configured.
  *
- * This serves as the fallback and also demonstrates the provider pattern
- * for when Instacart/DoorDash integration is added.
  */
 @Slf4j
 @Service
@@ -30,12 +25,11 @@ public class ManualGroceryProvider implements GroceryProvider {
 
     @Override
     public boolean isAvailable() {
-        return true; // Always available
+return true;
     }
 
     @Override
     public List<GroceryProductMatch> matchProducts(List<GroceryItemRequest> items) {
-        // Manual provider returns exact matches with zero prices
         return items.stream()
                 .map(item -> new GroceryProductMatch(
                         item.itemId(),
@@ -51,13 +45,12 @@ public class ManualGroceryProvider implements GroceryProvider {
 
     @Override
     public CheckoutResult createCheckout(List<GroceryItemRequest> items, String userId) {
-        // Manual provider creates a "checkout" that's just a confirmation
         String orderId = "manual-" + UUID.randomUUID().toString().substring(0, 8);
         log.info("Manual checkout created for user {} with {} items", userId, items.size());
 
         return new CheckoutResult(
                 orderId,
-                null, // No external checkout URL
+null,
                 "manual",
                 items.size(),
                 0.0,

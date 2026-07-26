@@ -10,6 +10,6 @@ public class GroupMemberResponse {
     private String userId;
     private String displayName;
     private String avatarUrl;
-    private String role; // e.g., "ADMIN" or "MEMBER"
+private String role;
     private LocalDateTime joinedAt;
 }

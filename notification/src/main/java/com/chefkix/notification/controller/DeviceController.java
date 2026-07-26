@@ -17,7 +17,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Controller for device push token management.
  */
 @RestController
 @RequestMapping("/devices")

@@ -8,9 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 /**
- * Result of a video upload to Cloudinary.
- * Includes URL, thumbnail, and duration metadata.
- * Spec: vision_and_spec/20-media-lifecycle.txt §2
  */
 @Data
 @Builder
@@ -18,7 +15,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class VideoUploadResult {
-    String url;             // Cloudinary secure_url
-    String thumbnailUrl;    // Auto-generated thumbnail
-    Integer durationSec;    // Video duration in seconds
+String url;
+String thumbnailUrl;
+Integer durationSec;
 }

@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Internal profile response for service-to-service communication.
- * Used by chat-service, post-service, etc. to get user info without full profile.
  */
 @Data
 @Builder

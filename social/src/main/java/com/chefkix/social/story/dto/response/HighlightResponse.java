@@ -4,5 +4,5 @@ public record HighlightResponse(
         String id,
         String title,
         String coverUrl,
-        int storyCount // Đếm số lượng story để Frontend hiện con số
+int storyCount
 ) {}

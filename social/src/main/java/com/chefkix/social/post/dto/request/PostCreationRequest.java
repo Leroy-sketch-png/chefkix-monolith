@@ -39,17 +39,14 @@ public class PostCreationRequest {
   @Builder.Default
   Boolean isHidden = false;
 
-  PostType postType; // Optional: QUICK for quick posts, POLL for polls, defaults to PERSONAL
+PostType postType;
 
-  // Poll fields (only when postType == POLL)
   @Size(max = 500) String pollQuestion;
   @Size(max = 200) String pollOptionA;
   @Size(max = 200) String pollOptionB;
 
-  // Recipe Review fields (only when postType == RECIPE_REVIEW)
-  Integer reviewRating; // 1-5 star rating
+Integer reviewRating;
 
-  // Recipe Battle fields (only when postType == RECIPE_BATTLE)
   @Size(max = 100) String battleRecipeIdA;
   @Size(max = 100) String battleRecipeIdB;
 }

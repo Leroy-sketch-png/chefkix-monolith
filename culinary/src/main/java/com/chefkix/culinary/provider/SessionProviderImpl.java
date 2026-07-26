@@ -17,8 +17,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Provider implementation exposing cooking session data to other modules (social/post).
- * Delegates to internal CookingSessionService and RecipeRepository.
  */
 @Slf4j
 @Component

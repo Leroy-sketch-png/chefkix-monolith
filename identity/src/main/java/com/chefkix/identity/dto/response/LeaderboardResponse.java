@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Response DTO for leaderboard endpoint.
- * Contains ranked list of users and current user's position.
  */
 @Data
 @Builder
@@ -18,22 +16,18 @@ import java.util.List;
 public class LeaderboardResponse {
 
     /**
-     * Type of leaderboard: global, friends, or league
      */
     String type;
 
     /**
-     * Timeframe: weekly, monthly, or all_time
      */
     String timeframe;
 
     /**
-     * List of top entries (max 50 by default)
      */
     List<LeaderboardEntry> entries;
 
     /**
-     * Current user's rank info (always included even if not in top entries)
      */
     MyRank myRank;
 
@@ -66,6 +60,6 @@ public class LeaderboardResponse {
         double xpThisWeek;
         Double xpToNextRank;
         Integer nextRankPosition;
-        Long recipesCooked; // User's total completed cooking sessions
+Long recipesCooked;
     }
 }

@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 public class StoryReplyEvent extends BaseEvent {
 
     private String storyId;
-    private String storyOwnerId; // Story owner (will receive the chat message)
-    private String replierId;    // Viewer who replied to the story
+private String storyOwnerId;
+private String replierId;
     private String replyText;
-    private String storyMediaUrl; // Story media URL for chat thumbnail
+private String storyMediaUrl;
 
     @Builder
     public StoryReplyEvent(String storyId, String storyOwnerId, String replierId, String replyText, String storyMediaUrl) {

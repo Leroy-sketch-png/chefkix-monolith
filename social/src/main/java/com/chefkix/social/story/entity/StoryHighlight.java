@@ -17,9 +17,9 @@ public class StoryHighlight {
     @Id
     private String id;
     @Indexed
-    private String userId; // Chủ nhân của bộ sưu tập này
+private String userId;
     private String title;
     private String coverUrl;
-    private List<String> storyIds; // Lưu mảng ID của các Story gốc
+private List<String> storyIds;
     private Instant createdAt;
 }

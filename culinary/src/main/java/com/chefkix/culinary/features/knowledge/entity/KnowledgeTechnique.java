@@ -13,9 +13,6 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Knowledge Graph — Cooking technique reference.
- * Migrated from hardcoded TECHNIQUE_GUIDES + COMMON_MISTAKES.
- * Spec: CHEFKIX_MASTER_PLAN.md §Engine 2
  */
 @Data
 @Builder
@@ -36,16 +33,16 @@ public class KnowledgeTechnique {
     String description;
 
     @Indexed
-    String difficulty; // beginner, intermediate, advanced, expert
+String difficulty;
 
     @Indexed
-    String category; // heat-based, preparation, baking, preservation, asian, plating
+String category;
 
     List<String> relatedEquipment;
 
     String commonMistake;
 
-    List<String> visualCues; // "golden brown crust", "bubbling edges"
+List<String> visualCues;
 
     List<String> relatedCuisines;
 

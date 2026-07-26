@@ -16,8 +16,6 @@ public interface UserProfileRepository extends MongoRepository<UserProfile, Stri
   Optional<UserProfile> findByUserId(String userId);
 
     /**
-     * Field-limited lookup for profile-only APIs.
-     * Excludes heavy nested arrays like friends to reduce payload hydration and tail latency.
      */
     @Query(
       value = "{ 'userId': ?0 }",
@@ -33,14 +31,10 @@ public interface UserProfileRepository extends MongoRepository<UserProfile, Stri
   List<UserProfile> findAllByFriendsFriendId(String friendId);
 
   /**
-   * Find all profiles for given user IDs. Used for social features (followers, following, friends
-   * lists).
    */
   List<UserProfile> findAllByUserIdIn(List<String> userIds);
 
   /**
-   * Find profiles by displayName or username containing search term (case-insensitive).
-   * Used for user discovery with search functionality.
    */
   Page<UserProfile> findByDisplayNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(
       String displayName, String username, Pageable pageable);
