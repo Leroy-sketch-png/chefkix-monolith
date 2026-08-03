@@ -31,4 +31,7 @@ public class ChatMessageRequest {
 
     @Size(max = 100)
     String replyToId;
+
+    @Size(max = 100)
+    String clientMessageId;
 }

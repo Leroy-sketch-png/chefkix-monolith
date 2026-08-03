@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.chefkix.social.chat.entity.ChatMessage;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,8 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
     Page<ChatMessage> findByConversationIdOrderByCreatedDateDesc(String conversationId, Pageable pageable);
 
     List<ChatMessage> findAllBySenderUserId(String userId);
+
+    Optional<ChatMessage> findBySenderUserIdAndClientMessageId(String userId, String clientMessageId);
 
     List<ChatMessage> findAllByReplyToIdIn(List<String> replyToIds);
 

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -116,6 +117,55 @@ class ChatMessageServiceTest {
         assertThat(response.getMessage()).isEqualTo("legacy conversation send");
         verify(conversationLookupService).touchModifiedDate(eq(conversationId), any(Instant.class));
         verify(conversationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReturnsTheExistingMessageForTheSameSenderClientKey() {
+        String conversationId = new org.bson.types.ObjectId().toHexString();
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId(conversationId)
+                .message("water is boiling")
+                .type(MessageType.TEXT)
+                .clientMessageId("client-message-1")
+                .build();
+        Conversation conversation = Conversation.builder()
+                .id(conversationId)
+                .participants(List.of(ParticipantInfo.builder().userId("user-1").build()))
+                .build();
+        ChatMessage mappedMessage = ChatMessage.builder()
+                .conversationId(conversationId)
+                .clientMessageId("client-message-1")
+                .build();
+
+        when(chatMessageRepository.findBySenderUserIdAndClientMessageId(
+                        "user-1", "client-message-1"))
+                .thenReturn(java.util.Optional.empty(), java.util.Optional.of(mappedMessage));
+        when(contentModerationProvider.moderate("water is boiling", "chat"))
+                .thenReturn(ContentModerationProvider.ModerationResult.approved());
+        when(conversationLookupService.findById(conversationId))
+                .thenReturn(java.util.Optional.of(conversation));
+        when(profileProvider.getBasicProfile("user-1")).thenReturn(BasicProfileInfo.builder()
+                .userId("user-1")
+                .displayName("Test User")
+                .firstName("Test")
+                .lastName("User")
+                .avatarUrl("/placeholder-avatar.svg")
+                .build());
+        when(chatMessageMapper.toChatMessage(request)).thenReturn(mappedMessage);
+        when(chatMessageRepository.save(mappedMessage)).thenAnswer(invocation -> {
+            ChatMessage message = invocation.getArgument(0);
+            message.setId("message-1");
+            return message;
+        });
+
+        ChatMessageResponse first = service.create(request);
+        ChatMessageResponse retry = service.create(request);
+
+        assertThat(first.getId()).isEqualTo("message-1");
+        assertThat(retry.getId()).isEqualTo("message-1");
+        assertThat(retry.getClientMessageId()).isEqualTo("client-message-1");
+        verify(chatMessageRepository, times(1)).save(any(ChatMessage.class));
+        verify(contentModerationProvider, times(1)).moderate("water is boiling", "chat");
     }
 
     @Test

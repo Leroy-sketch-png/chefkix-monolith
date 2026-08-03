@@ -11,6 +11,7 @@ import com.chefkix.social.chat.dto.request.ChatReactionRequest;
 import com.chefkix.social.chat.dto.response.ChatMessageResponse;
 import com.chefkix.social.chat.service.ChatMessageService;
 import org.springframework.data.domain.Page;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.AccessLevel;
@@ -23,10 +24,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ChatMessageController {
     ChatMessageService chatMessageService;
+    SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/create")
     ApiResponse<ChatMessageResponse> create(@RequestBody @Valid ChatMessageRequest request) {
-        return ApiResponse.created(chatMessageService.create(request));
+        ChatMessageResponse response = chatMessageService.create(request);
+        messagingTemplate.convertAndSend("/topic/conversation/" + response.getConversationId(), response);
+        return ApiResponse.created(response);
     }
 
     /**

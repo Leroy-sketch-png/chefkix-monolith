@@ -2,6 +2,7 @@ package com.chefkix.social.story.service;
 
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.social.story.dto.request.StoryCreateRequest;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.entity.Story;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -23,9 +25,17 @@ import java.util.List;
 public class StoryServiceImpl implements StoryService {
     private final StoryRepository storyRepository;
     private final StoryMapper storyMapper;
+    private final RecipeProvider recipeProvider;
 
     @Override
     public StoryResponse createStory(String userId, StoryCreateRequest request, String mediaUrl) {
+        String linkedRecipeId = StringUtils.hasText(request.linkedRecipeId())
+                ? request.linkedRecipeId().trim()
+                : null;
+        if (linkedRecipeId != null && recipeProvider.getPublicRecipeSummary(linkedRecipeId) == null) {
+            throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
+        }
+
         Instant now = Instant.now();
         Story story = Story.builder()
                 .userId(userId)
@@ -34,6 +44,7 @@ public class StoryServiceImpl implements StoryService {
                 .items(storyMapper.toStoryItems(request.items()))
                 .imageScale(request.imageScale())
                 .imageRotation(request.imageRotation())
+                .recipeId(linkedRecipeId)
                 .createdAt(now)
                 .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .isDeleted(false)

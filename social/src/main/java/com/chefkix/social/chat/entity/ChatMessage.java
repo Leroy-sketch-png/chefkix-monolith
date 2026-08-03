@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.chefkix.social.chat.enums.MessageType;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
@@ -18,6 +19,11 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "chat_message")
+@CompoundIndex(
+        name = "sender_client_message_unique",
+        def = "{'sender.userId': 1, 'clientMessageId': 1}",
+        unique = true,
+        partialFilter = "{'clientMessageId': {'$type': 'string'}}")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessage {
     @MongoId
@@ -42,6 +48,8 @@ public class ChatMessage {
 
     @Indexed
     Instant createdDate;
+
+    String clientMessageId;
 
     String replyToId;
     String replyToContent;

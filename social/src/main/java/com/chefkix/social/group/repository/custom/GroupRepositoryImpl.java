@@ -41,7 +41,13 @@ public class GroupRepositoryImpl implements GroupCustomRepository {
 
     private void applyCustomSorting(Query query, String sortBy) {
         if ("popular".equalsIgnoreCase(sortBy)) {
-            query.with(Sort.by(Sort.Direction.DESC, "memberCount"));
+            query.with(Sort.by(
+                    Sort.Order.desc("memberCount"),
+                    Sort.Order.desc("createdAt")
+            ));
+            return;
         }
+
+        query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 }

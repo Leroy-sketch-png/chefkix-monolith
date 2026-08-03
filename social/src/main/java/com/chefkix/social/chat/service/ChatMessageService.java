@@ -23,6 +23,7 @@ import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,7 @@ public class ChatMessageService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         String userId = authentication.getName();
+
         conversationLookupService
                 .findById(conversationId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND))
@@ -89,6 +91,22 @@ public class ChatMessageService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         String userId = authentication.getName();
+
+        String clientMessageId = request.getClientMessageId();
+        if (clientMessageId != null) {
+            clientMessageId = clientMessageId.trim();
+            if (clientMessageId.isEmpty()) {
+                clientMessageId = null;
+            }
+            request.setClientMessageId(clientMessageId);
+        }
+        if (clientMessageId != null) {
+            var existingMessage = chatMessageRepository
+                    .findBySenderUserIdAndClientMessageId(userId, clientMessageId);
+            if (existingMessage.isPresent()) {
+                return toChatMessageResponse(existingMessage.get());
+            }
+        }
 
         MessageType msgType = request.getType() != null ? request.getType() : MessageType.TEXT;
         String finalMessageContent = request.getMessage();
@@ -200,7 +218,16 @@ public class ChatMessageService {
 
         chatMessage.setCreatedDate(Instant.now());
 
-        chatMessage = chatMessageRepository.save(chatMessage);
+        try {
+            chatMessage = chatMessageRepository.save(chatMessage);
+        } catch (DuplicateKeyException duplicate) {
+            if (clientMessageId == null) {
+                throw duplicate;
+            }
+            chatMessage = chatMessageRepository
+                    .findBySenderUserIdAndClientMessageId(userId, clientMessageId)
+                    .orElseThrow(() -> duplicate);
+        }
 
         conversationLookupService.touchModifiedDate(request.getConversationId(), Instant.now());
 
@@ -244,6 +271,7 @@ public class ChatMessageService {
                 .message(displayMessage)
                 .sender(message.getSender())
                 .createdDate(message.getCreatedDate())
+                .clientMessageId(message.getClientMessageId())
                 .type(message.getType())
                 .relatedId(message.getRelatedId())
                 .storyOwnerId(message.getStoryOwnerId())
