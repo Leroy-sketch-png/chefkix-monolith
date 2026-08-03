@@ -49,9 +49,15 @@ public class RecipeSpecification {
         if (queryDto.getDifficulty() != null) {
             criteriaList.add(Criteria.where("difficulty").is(queryDto.getDifficulty()));
         }
+        if (queryDto.getDifficulties() != null && !queryDto.getDifficulties().isEmpty()) {
+            criteriaList.add(Criteria.where("difficulty").in(queryDto.getDifficulties()));
+        }
 
         if (StringUtils.hasText(queryDto.getCuisineType())) {
             criteriaList.add(Criteria.where("cuisineType").is(queryDto.getCuisineType()));
+        }
+        if (queryDto.getCuisineTypes() != null && !queryDto.getCuisineTypes().isEmpty()) {
+            criteriaList.add(Criteria.where("cuisineType").in(queryDto.getCuisineTypes()));
         }
 
         if (queryDto.getMaxTimeMinutes() != null) {
@@ -60,6 +66,14 @@ public class RecipeSpecification {
 
         if (queryDto.getDietaryTags() != null && !queryDto.getDietaryTags().isEmpty()) {
             criteriaList.add(Criteria.where("dietaryTags").all(queryDto.getDietaryTags()));
+        }
+
+        if (queryDto.getMinRating() != null) {
+            criteriaList.add(Criteria.where("averageRating").gte(queryDto.getMinRating()));
+        }
+
+        if (queryDto.getQualityTier() != null) {
+            criteriaList.add(Criteria.where("qualityTier").is(queryDto.getQualityTier()));
         }
 
         return new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));

@@ -54,8 +54,10 @@ public class TypesenseDataSyncer {
             return;
         }
 
+        Map<String, PublicAuthor> authorsByUserId = loadPublicAuthors();
         List<Map<String, Object>> docs = recipes.stream()
                 .map(this::recipeToDocument)
+                .map(doc -> withAuthor(doc, authorsByUserId.get(Objects.toString(doc.get("authorId"), ""))))
                 .collect(Collectors.toList());
 
         int synced = typesenseService.importDocuments("recipes", docs);
@@ -155,6 +157,8 @@ public class TypesenseDataSyncer {
         doc.put("totalTime", getIntValue(recipe, "getTotalTimeMinutes"));
         doc.put("cookCount", getIntValue(recipe, "getCookCount"));
         doc.put("avgRating", getDoubleValue(recipe, "getAverageRating"));
+        doc.put("xpReward", getIntValue(recipe, "getXpReward"));
+        doc.put("qualityTier", qualityTierValue(invokeNoArg(recipe, "getQualityTier")));
 
         List<String> ingredientNames = new ArrayList<>();
         Object ingredients = invokeNoArg(recipe, "getFullIngredientList");
@@ -201,6 +205,8 @@ public class TypesenseDataSyncer {
         doc.put("totalTime", numberValue(recipe.get("totalTimeMinutes")).intValue());
         doc.put("cookCount", numberValue(recipe.get("cookCount")).intValue());
         doc.put("avgRating", numberValue(recipe.get("averageRating")).doubleValue());
+        doc.put("xpReward", numberValue(recipe.get("xpReward")).intValue());
+        doc.put("qualityTier", qualityTierValue(recipe.get("qualityTier")));
 
         List<String> ingredientNames = new ArrayList<>();
         Object rawIngredients = recipe.get("fullIngredientList");
@@ -232,12 +238,27 @@ public class TypesenseDataSyncer {
         return value instanceof Number number ? number : 0;
     }
 
+    private String qualityTierValue(Object value) {
+        if (value == null) return "";
+        Object displayValue = invokeNoArg(value, "getValue");
+        if (displayValue != null) return displayValue.toString();
+        return switch (value.toString().trim().toUpperCase(Locale.ROOT).replace(' ', '_')) {
+            case "FOOLPROOF" -> "Foolproof";
+            case "GOOD" -> "Good";
+            case "NEEDS_WORK" -> "Needs Work";
+            case "DRAFT_QUALITY" -> "Draft Quality";
+            default -> value.toString();
+        };
+    }
+
     public void indexRecipe(Object recipe) {
         Object status = invokeNoArg(recipe, "getStatus");
         if (status == null || !RecipeStatus.PUBLISHED.name().equals(status.toString())) {
             return;
         }
-        typesenseService.upsertDocument("recipes", recipeToDocument(recipe));
+        Map<String, Object> document = recipeToDocument(recipe);
+        String authorId = Objects.toString(document.get("authorId"), "");
+        typesenseService.upsertDocument("recipes", withAuthor(document, findPublicAuthor(authorId)));
     }
 
     public void removeRecipe(String recipeId) {
@@ -274,9 +295,9 @@ public class TypesenseDataSyncer {
     }
 
 
-    private void syncPosts() {
+    void syncPosts() {
         Query query = new Query(Criteria.where("hidden").ne(true));
-        List<Document> posts = mongoTemplate.find(query, Document.class, "posts");
+        List<Document> posts = mongoTemplate.find(query, Document.class, "post");
 
         if (posts.isEmpty()) {
             log.info("No posts to sync");
@@ -292,14 +313,20 @@ public class TypesenseDataSyncer {
     }
 
     private Map<String, Object> postToDocument(Object post) {
+        if (post instanceof Document document) {
+            return mongoPostToDocument(document);
+        }
+
         Map<String, Object> doc = new LinkedHashMap<>();
         doc.put("id", getStringValue(post, "getId"));
         doc.put("content", getStringValue(post, "getContent"));
         doc.put("authorId", getStringValue(post, "getUserId"));
         doc.put("authorName", getStringValue(post, "getDisplayName"));
+        doc.put("authorAvatarUrl", getStringValue(post, "getAvatarUrl"));
         doc.put("likeCount", getIntValue(post, "getLikes"));
         doc.put("commentCount", getIntValue(post, "getCommentCount"));
         doc.put("recipeTitle", getStringValue(post, "getRecipeTitle"));
+        doc.put("photoUrl", firstListValue(invokeNoArg(post, "getPhotoUrls")));
 
         Object createdAt = invokeNoArg(post, "getCreatedAt");
         if (createdAt != null) {
@@ -311,6 +338,77 @@ public class TypesenseDataSyncer {
 
         return doc;
     }
+
+    private Map<String, Object> mongoPostToDocument(Document post) {
+        Map<String, Object> doc = new LinkedHashMap<>();
+        Object rawId = post.get("_id");
+        doc.put("id", rawId != null ? rawId.toString() : "");
+        doc.put("content", Objects.toString(post.get("content"), ""));
+        doc.put("authorId", Objects.toString(post.get("userId"), ""));
+        doc.put("authorName", Objects.toString(post.get("displayName"), ""));
+        doc.put("authorAvatarUrl", Objects.toString(post.get("avatarUrl"), ""));
+        doc.put("likeCount", numberValue(post.get("likes")).intValue());
+        doc.put("commentCount", numberValue(post.get("commentCount")).intValue());
+        doc.put("recipeTitle", Objects.toString(post.get("recipeTitle"), ""));
+        doc.put("photoUrl", firstListValue(post.get("photoUrls")));
+
+        Object createdAt = post.get("createdAt");
+        doc.put("createdAt", createdAt instanceof Date date ? date.toInstant().getEpochSecond() : 0L);
+        return doc;
+    }
+
+    private String firstListValue(Object value) {
+        if (value instanceof List<?> list && !list.isEmpty() && list.get(0) != null) {
+            return list.get(0).toString();
+        }
+        return "";
+    }
+
+    private Map<String, PublicAuthor> loadPublicAuthors() {
+        List<Document> profiles = mongoTemplate.find(new Query(), Document.class, "user_profiles");
+        if (profiles == null || profiles.isEmpty()) {
+            return Map.of();
+        }
+
+        return profiles.stream()
+                .map(this::publicAuthorFrom)
+                .filter(author -> !author.userId().isBlank())
+                .collect(Collectors.toMap(PublicAuthor::userId, author -> author, (left, right) -> left));
+    }
+
+    private PublicAuthor findPublicAuthor(String userId) {
+        if (userId == null || userId.isBlank()) {
+            return null;
+        }
+        Document profile = mongoTemplate.findOne(
+                Query.query(Criteria.where("userId").is(userId)),
+                Document.class,
+                "user_profiles"
+        );
+        return profile != null ? publicAuthorFrom(profile) : null;
+    }
+
+    private PublicAuthor publicAuthorFrom(Document profile) {
+        String displayName = Objects.toString(profile.get("displayName"), "").trim();
+        if (displayName.isBlank()) {
+            displayName = Objects.toString(profile.get("username"), "").trim();
+        }
+        return new PublicAuthor(
+                Objects.toString(profile.get("userId"), ""),
+                displayName,
+                Objects.toString(profile.get("avatarUrl"), "")
+        );
+    }
+
+    private Map<String, Object> withAuthor(Map<String, Object> document, PublicAuthor author) {
+        if (author != null) {
+            document.put("authorName", author.name());
+            document.put("authorAvatarUrl", author.avatarUrl());
+        }
+        return document;
+    }
+
+    private record PublicAuthor(String userId, String name, String avatarUrl) {}
 
     @EventListener
     public void onPostIndexEvent(Object event) {

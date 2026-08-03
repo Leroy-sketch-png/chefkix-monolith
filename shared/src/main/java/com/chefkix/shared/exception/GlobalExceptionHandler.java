@@ -2,6 +2,7 @@ package com.chefkix.shared.exception;
 
 import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,18 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .build();
 
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    ResponseEntity<ApiResponse<?>> handleConstraintViolation(ConstraintViolationException ex) {
+        log.warn("Request parameter validation failed: {} constraint violation(s)",
+                ex.getConstraintViolations().size());
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("One or more request parameters are invalid.")
+                .build();
         return ResponseEntity.badRequest().body(response);
     }
 

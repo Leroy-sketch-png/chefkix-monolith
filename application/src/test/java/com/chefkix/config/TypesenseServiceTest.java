@@ -1,8 +1,11 @@
 package com.chefkix.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 
 import com.chefkix.shared.exception.AppException;
@@ -13,6 +16,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 class TypesenseServiceTest {
@@ -64,6 +69,33 @@ class TypesenseServiceTest {
                         "recipes", "quick chicken dinner", "title,description", new float[] {0.5f}, 10));
 
         assertEquals(ErrorCode.SEARCH_SERVICE_UNAVAILABLE, error.getErrorCode());
+        server.verify();
+    }
+
+    @Test
+    void ensureCollectionFieldIsIdempotentWhenFieldExists() {
+        server.expect(requestTo("http://typesense.test/collections/recipes"))
+                .andRespond(withSuccess(
+                        "{\"fields\":[{\"name\":\"qualityTier\",\"type\":\"string\"}]}",
+                        MediaType.APPLICATION_JSON));
+
+        assertTrue(service.ensureCollectionField(
+                "recipes", Map.of("name", "qualityTier", "type", "string")));
+
+        server.verify();
+    }
+
+    @Test
+    void ensureCollectionFieldAddsMissingFieldOnce() {
+        server.expect(requestTo("http://typesense.test/collections/recipes"))
+                .andRespond(withSuccess("{\"fields\":[]}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("http://typesense.test/collections/recipes"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andRespond(withSuccess());
+
+        assertTrue(service.ensureCollectionField(
+                "recipes", Map.of("name", "qualityTier", "type", "string")));
+
         server.verify();
     }
 }

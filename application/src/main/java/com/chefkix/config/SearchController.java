@@ -5,7 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.chefkix.shared.dto.ApiResponse;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -70,12 +74,24 @@ public class SearchController {
             @RequestParam @Size(max = 200) String q,
             @RequestParam(defaultValue = "all") String type,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit,
-            @RequestParam(defaultValue = "1") @Min(1) int page) {
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(required = false) @Size(max = 4)
+                    List<@NotBlank @Size(max = 80) @Pattern(regexp = "^[^`\\r\\n]+$") String> difficulty,
+            @RequestParam(required = false) @Size(max = 12)
+                    List<@NotBlank @Size(max = 80) @Pattern(regexp = "^[^`\\r\\n]+$") String> cuisine,
+            @RequestParam(required = false) @Size(max = 12)
+                    List<@NotBlank @Size(max = 80) @Pattern(regexp = "^[^`\\r\\n]+$") String> dietary,
+            @RequestParam(required = false) @Min(1) @Max(1440) Integer maxTime,
+            @RequestParam(required = false) @DecimalMin("0.0") @DecimalMax("5.0") Double minRating,
+            @RequestParam(required = false)
+                    @Pattern(regexp = "(?i)Foolproof|Good|Needs Work|Draft Quality") String qualityTier) {
 
         Map<String, Object> results = new LinkedHashMap<>();
+        String recipeFilter = buildRecipeFilter(
+                difficulty, cuisine, dietary, maxTime, minRating, qualityTier);
 
         if ("all".equals(type) || "recipes".equals(type)) {
-            results.put("recipes", searchRecipesWithVector(q, limit, page));
+            results.put("recipes", searchRecipesWithVector(q, limit, page, recipeFilter));
         }
         if ("all".equals(type) || "posts".equals(type)) {
             results.put("posts", searchCollection("posts", q, "content,authorName,recipeTitle", limit, page));
@@ -163,19 +179,25 @@ public class SearchController {
 
     /**
      */
-    private Map<String, Object> searchRecipesWithVector(String query, int limit, int page) {
+    private Map<String, Object> searchRecipesWithVector(
+            String query, int limit, int page, String filterBy) {
         String queryBy = "title,description,ingredients,cuisine,tags";
 
         long wordCount = query.trim().split("\\s+").length;
         if (wordCount < NATURAL_LANGUAGE_WORD_THRESHOLD) {
-            return searchCollection("recipes", query, queryBy, limit, page);
+            Map<String, String> params = searchParams(query, queryBy, limit, page);
+            if (StringUtils.hasText(filterBy)) {
+                params.put("filter_by", filterBy);
+            }
+            return typesenseService.search("recipes", params);
         }
 
         try {
             float[] embedding = generateEmbedding(query);
             if (embedding != null) {
                 log.debug("Using hybrid search for query: '{}'", query);
-                return typesenseService.hybridSearch("recipes", query, queryBy, embedding, limit);
+                return typesenseService.hybridSearch(
+                        "recipes", query, queryBy, embedding, limit, page, filterBy);
             }
         } catch (AppException e) {
             throw e;
@@ -183,7 +205,54 @@ public class SearchController {
             log.warn("Vector search failed, falling back to keyword: {}", e.getMessage());
         }
 
-        return searchCollection("recipes", query, queryBy, limit, page);
+        Map<String, String> params = searchParams(query, queryBy, limit, page);
+        if (StringUtils.hasText(filterBy)) {
+            params.put("filter_by", filterBy);
+        }
+        return typesenseService.search("recipes", params);
+    }
+
+    static String buildRecipeFilter(
+            List<String> difficulties,
+            List<String> cuisines,
+            List<String> dietaryTags,
+            Integer maxTime,
+            Double minRating,
+            String qualityTier) {
+        List<String> filters = new ArrayList<>();
+        addExactAny(filters, "difficulty", difficulties);
+        addExactAny(filters, "cuisine", cuisines);
+        if (dietaryTags != null) {
+            dietaryTags.stream()
+                    .filter(StringUtils::hasText)
+                    .map(String::trim)
+                    .distinct()
+                    .forEach(tag -> filters.add("tags:=`" + tag + "`"));
+        }
+        if (maxTime != null) filters.add("totalTime:<=" + maxTime);
+        if (minRating != null) filters.add("avgRating:>=" + minRating);
+        if (StringUtils.hasText(qualityTier)) {
+            filters.add("qualityTier:=`" + qualityTier.trim() + "`");
+        }
+        return String.join(" && ", filters);
+    }
+
+    private static void addExactAny(
+            List<String> filters, String field, List<String> rawValues) {
+        if (rawValues == null) return;
+        List<String> values = rawValues.stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .distinct()
+                .toList();
+        if (values.isEmpty()) return;
+        if (values.size() == 1) {
+            filters.add(field + ":=`" + values.get(0) + "`");
+            return;
+        }
+        filters.add(field + ":=[" + values.stream()
+                .map(value -> "`" + value + "`")
+                .collect(Collectors.joining(", ")) + "]");
     }
 
     @SuppressWarnings("unchecked")

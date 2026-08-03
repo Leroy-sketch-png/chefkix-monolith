@@ -5,6 +5,8 @@ import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.api.dto.CreatorInsightsInfo;
 import com.chefkix.culinary.api.dto.RecipeSummaryInfo;
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.RecipeVisibility;
+import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.interaction.entity.RecipeLike;
 import com.chefkix.culinary.features.interaction.entity.RecipeSave;
 import com.chefkix.culinary.features.interaction.repository.RecipeLikeRepository;
@@ -90,15 +92,28 @@ public class RecipeProviderImpl implements RecipeProvider {
     @Override
     public RecipeSummaryInfo getRecipeSummary(String recipeId) {
         return recipeRepository.findById(recipeId)
-                .map(recipe -> RecipeSummaryInfo.builder()
-                        .id(recipe.getId())
-                        .title(recipe.getTitle())
-                        .coverImageUrl(recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()
-                                ? recipe.getCoverImageUrl().get(0)
-                                : null)
-                        .authorId(recipe.getUserId())
-                        .build())
+                .map(this::toRecipeSummary)
                 .orElse(null);
+    }
+
+    @Override
+    public RecipeSummaryInfo getPublicRecipeSummary(String recipeId) {
+        return recipeRepository
+                .findByIdAndStatusAndRecipeVisibility(
+                        recipeId, RecipeStatus.PUBLISHED, RecipeVisibility.PUBLIC)
+                .map(this::toRecipeSummary)
+                .orElse(null);
+    }
+
+    private RecipeSummaryInfo toRecipeSummary(Recipe recipe) {
+        return RecipeSummaryInfo.builder()
+                .id(recipe.getId())
+                .title(recipe.getTitle())
+                .coverImageUrl(recipe.getCoverImageUrl() != null && !recipe.getCoverImageUrl().isEmpty()
+                        ? recipe.getCoverImageUrl().get(0)
+                        : null)
+                .authorId(recipe.getUserId())
+                .build();
     }
 
         @Override

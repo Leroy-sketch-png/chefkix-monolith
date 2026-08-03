@@ -17,6 +17,8 @@ public interface RecipeProvider {
      */
     RecipeSummaryInfo getRecipeSummary(String recipeId);
 
+    RecipeSummaryInfo getPublicRecipeSummary(String recipeId);
+
     /**
      *
      */

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.RecipeVisibility;
 import com.chefkix.culinary.features.achievement.entity.UserAchievement;
 import com.chefkix.culinary.features.achievement.repository.UserAchievementRepository;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
@@ -29,6 +30,7 @@ import com.chefkix.culinary.features.shoppinglist.repository.ShoppingListReposit
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +88,23 @@ class RecipeProviderImplTest {
                                 activeCookingRedisRepository,
                 eventPublisher);
         org.springframework.test.util.ReflectionTestUtils.setField(provider, "cookingRoomService", cookingRoomService);
+    }
+
+    @Test
+    void getPublicRecipeSummaryUsesPublishedPublicBoundary() {
+        Recipe recipe = Recipe.builder()
+                .id("recipe-1")
+                .title("Pho")
+                .status(RecipeStatus.PUBLISHED)
+                .recipeVisibility(RecipeVisibility.PUBLIC)
+                .build();
+        when(recipeRepository.findByIdAndStatusAndRecipeVisibility(
+                        "recipe-1", RecipeStatus.PUBLISHED, RecipeVisibility.PUBLIC))
+                .thenReturn(Optional.of(recipe));
+
+        assertThat(provider.getPublicRecipeSummary("recipe-1").getTitle()).isEqualTo("Pho");
+        verify(recipeRepository).findByIdAndStatusAndRecipeVisibility(
+                "recipe-1", RecipeStatus.PUBLISHED, RecipeVisibility.PUBLIC);
     }
 
     @Test

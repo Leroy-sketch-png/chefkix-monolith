@@ -59,6 +59,28 @@ public class TypesenseService {
         }
     }
 
+    public boolean ensureCollectionField(String collection, Map<String, Object> field) {
+        try {
+            String schemaBody = restClient
+                    .get()
+                    .uri("/collections/{collection}", collection)
+                    .retrieve()
+                    .body(String.class);
+            Map<String, Object> schema = objectMapper.readValue(
+                    schemaBody == null ? "{}" : schemaBody, new TypeReference<>() {});
+            Object rawFields = schema.get("fields");
+            if (rawFields instanceof List<?> fields && fields.stream().anyMatch(candidate ->
+                    candidate instanceof Map<?, ?> map
+                            && field.get("name").equals(map.get("name")))) {
+                return true;
+            }
+            return updateCollectionSchema(collection, Map.of("fields", List.of(field)));
+        } catch (Exception e) {
+            log.error("Failed to ensure field {} on {}: {}", field.get("name"), collection, e.getMessage());
+            return false;
+        }
+    }
+
     public boolean indexDocument(String collection, Map<String, Object> document) {
         try {
             String body = objectMapper.writeValueAsString(document);
@@ -267,10 +289,17 @@ public class TypesenseService {
     public Map<String, Object> hybridSearch(
             String collection, String query, String queryBy,
             float[] queryVector, int limit) {
+        return hybridSearch(collection, query, queryBy, queryVector, limit, 1, null);
+    }
+
+    public Map<String, Object> hybridSearch(
+            String collection, String query, String queryBy,
+            float[] queryVector, int limit, int page, String filterBy) {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("q", query);
         params.put("query_by", queryBy);
         params.put("per_page", String.valueOf(limit));
+        params.put("page", String.valueOf(page));
         params.put("highlight_full_fields", queryBy);
         params.put("num_typos", "2");
 
@@ -281,6 +310,9 @@ public class TypesenseService {
         }
         vectorStr.append("]");
         params.put("vector_query", "embedding:(" + vectorStr + ", k:" + limit + ")");
+        if (filterBy != null && !filterBy.isBlank()) {
+            params.put("filter_by", filterBy);
+        }
 
         return search(collection, params);
     }

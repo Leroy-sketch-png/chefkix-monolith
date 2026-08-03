@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeIngredientRepository;
+import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.features.recipe.entity.Recipe;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ class TypesenseDataSyncerTest {
                 .append("totalTimeMinutes", 75)
                 .append("cookCount", 18)
                 .append("averageRating", 4.7)
+                .append("xpReward", 240)
+                .append("qualityTier", "FOOLPROOF")
                 .append("fullIngredientList", List.of(new Document("name", "Chicken")))
                 .append("dietaryTags", List.of("gluten-free"))
                 .append("userId", "seed-user")
@@ -55,6 +59,10 @@ class TypesenseDataSyncerTest {
                 .append("createdAt", new Date(1_700_000_000_000L));
         when(mongoTemplate.find(any(Query.class), eq(Document.class), eq("recipes")))
                 .thenReturn(List.of(recipe));
+        when(mongoTemplate.find(any(Query.class), eq(Document.class), eq("user_profiles")))
+                .thenReturn(List.of(new Document("userId", "seed-user")
+                        .append("displayName", "Minh Tran")
+                        .append("avatarUrl", "/avatars/minh.webp")));
         when(typesenseService.importDocuments(eq("recipes"), any())).thenReturn(1);
         when(typesenseService.listDocumentIds("recipes"))
                 .thenReturn(Optional.of(Set.of(id.toString(), "stale-id")));
@@ -69,9 +77,74 @@ class TypesenseDataSyncerTest {
         org.junit.jupiter.api.Assertions.assertEquals(id.toString(), indexed.get("id"));
         org.junit.jupiter.api.Assertions.assertEquals("Peri-Peri Chicken", indexed.get("title"));
         org.junit.jupiter.api.Assertions.assertEquals(List.of("Chicken"), indexed.get("ingredients"));
+        org.junit.jupiter.api.Assertions.assertEquals("Foolproof", indexed.get("qualityTier"));
+        org.junit.jupiter.api.Assertions.assertEquals(240, indexed.get("xpReward"));
         org.junit.jupiter.api.Assertions.assertEquals("/images/recipes/peri-peri-chicken.webp", indexed.get("coverImageUrl"));
+        org.junit.jupiter.api.Assertions.assertEquals("Minh Tran", indexed.get("authorName"));
+        org.junit.jupiter.api.Assertions.assertEquals("/avatars/minh.webp", indexed.get("authorAvatarUrl"));
         verify(typesenseService).deleteDocument("recipes", "stale-id");
         verify(typesenseService, never()).deleteDocument("recipes", id.toString());
+    }
+
+    @Test
+    void mapsExistingPostsFromTheAuthoritativeCollectionWithIdentityAndMedia() {
+        ObjectId id = new ObjectId();
+        Document post = new Document("_id", id)
+                .append("content", "Crispy edges, soft center")
+                .append("userId", "cook-1")
+                .append("displayName", "Lan Nguyen")
+                .append("avatarUrl", "/avatars/lan.webp")
+                .append("likes", 12)
+                .append("commentCount", 3)
+                .append("recipeTitle", "Banh Xeo")
+                .append("photoUrls", List.of("/posts/banh-xeo.webp"))
+                .append("createdAt", new Date(1_700_000_000_000L));
+        when(mongoTemplate.find(any(Query.class), eq(Document.class), eq("post")))
+                .thenReturn(List.of(post));
+        when(typesenseService.importDocuments(eq("posts"), any())).thenReturn(1);
+
+        syncer.syncPosts();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Map<String, Object>>> documents = ArgumentCaptor.forClass(List.class);
+        verify(typesenseService).importDocuments(eq("posts"), documents.capture());
+        Map<String, Object> indexed = documents.getValue().get(0);
+        org.junit.jupiter.api.Assertions.assertEquals(id.toString(), indexed.get("id"));
+        org.junit.jupiter.api.Assertions.assertEquals("Crispy edges, soft center", indexed.get("content"));
+        org.junit.jupiter.api.Assertions.assertEquals("Lan Nguyen", indexed.get("authorName"));
+        org.junit.jupiter.api.Assertions.assertEquals("/avatars/lan.webp", indexed.get("authorAvatarUrl"));
+        org.junit.jupiter.api.Assertions.assertEquals("/posts/banh-xeo.webp", indexed.get("photoUrl"));
+        org.junit.jupiter.api.Assertions.assertEquals(12, indexed.get("likeCount"));
+    }
+
+    @Test
+    void enrichesRealtimeRecipeDocumentsFromThePublicProfile() {
+        Recipe recipe = Recipe.builder()
+                .id("recipe-live")
+                .userId("cook-live")
+                .title("Ginger fish")
+                .status(RecipeStatus.PUBLISHED)
+                .xpReward(180)
+                .build();
+        when(mongoTemplate.findOne(
+                any(Query.class),
+                eq(Document.class),
+                eq("user_profiles")
+        )).thenReturn(new Document("userId", "cook-live")
+                .append("displayName", "Anh Le")
+                .append("avatarUrl", "/avatars/anh.webp"));
+
+        syncer.indexRecipe(recipe);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> document = ArgumentCaptor.forClass(Map.class);
+        verify(typesenseService).upsertDocument(eq("recipes"), document.capture());
+        org.junit.jupiter.api.Assertions.assertEquals("Anh Le", document.getValue().get("authorName"));
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "/avatars/anh.webp",
+                document.getValue().get("authorAvatarUrl")
+        );
+        org.junit.jupiter.api.Assertions.assertEquals(180, document.getValue().get("xpReward"));
     }
 
     @Test

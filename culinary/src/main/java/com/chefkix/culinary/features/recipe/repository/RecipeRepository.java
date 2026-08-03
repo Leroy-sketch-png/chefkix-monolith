@@ -2,6 +2,7 @@ package com.chefkix.culinary.features.recipe.repository;
 
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.RecipeVisibility;
 import com.chefkix.culinary.features.recipe.repository.custom.RecipeRepositoryCustom;
 import com.chefkix.culinary.features.recipe.repository.projection.CreatorInsightsRecipeProjection;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,9 @@ public interface RecipeRepository extends MongoRepository<Recipe,String>, Recipe
             Class<CreatorInsightsRecipeProjection> projectionType);
     
     Page<Recipe> findByStatus(RecipeStatus status, Pageable pageable);
+
+    Optional<Recipe> findByIdAndStatusAndRecipeVisibility(
+            String id, RecipeStatus status, RecipeVisibility recipeVisibility);
     
     List<Recipe> findAllByIdIn(List<String> ids);
 
