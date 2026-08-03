@@ -7,6 +7,8 @@ import lombok.Data;
 @Builder
 public class ChallengeRewardResult {
 private boolean completed;
+private String challengeKind;
+private String challengeId;
 private int bonusXp;
 private String challengeTitle;
 }

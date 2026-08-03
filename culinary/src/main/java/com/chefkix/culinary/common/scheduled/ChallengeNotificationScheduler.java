@@ -1,6 +1,7 @@
 package com.chefkix.culinary.common.scheduled;
 
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
+import com.chefkix.culinary.features.challenge.model.ChallengeWeekKey;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
 import com.chefkix.culinary.features.challenge.repository.SeasonalChallengeRepository;
 import com.chefkix.culinary.features.challenge.service.ChallengePoolService;
@@ -147,8 +148,7 @@ public class ChallengeNotificationScheduler {
             }
 
             LocalDate today = LocalDate.now(ZoneId.of("UTC"));
-            String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
-                    today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+            String weekKey = ChallengeWeekKey.from(today);
 
             List<Document> activeUsers = findActiveUsers();
 

@@ -21,10 +21,13 @@ import com.chefkix.culinary.features.duel.service.DuelService;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
+import com.chefkix.culinary.features.room.model.CookingRoom;
+import com.chefkix.culinary.features.room.model.RoomParticipant;
 import com.chefkix.culinary.features.session.dto.request.CompleteSessionRequest;
 import com.chefkix.culinary.features.session.dto.request.SessionLinkingRequest;
 import com.chefkix.culinary.features.session.dto.response.SessionCompletionResponse;
 import com.chefkix.culinary.features.session.dto.response.SessionLinkingResponse;
+import com.chefkix.culinary.features.session.dto.response.CurrentSessionResponse;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.mapper.CookingSessionMapper;
 import com.chefkix.culinary.features.session.repository.ActiveCookingRedisRepository;
@@ -45,6 +48,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -84,6 +89,50 @@ class CookingSessionServiceTest {
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getCurrentSessionReturnsNullWhenNoActiveOrPausedSessionExists() {
+        authenticate("user-1");
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+                "user-1",
+                List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
+        )).thenReturn(Optional.empty());
+
+        CurrentSessionResponse response = cookingSessionService.getCurrentSession();
+
+        assertThat(response).isNull();
+        verify(recipeRepository, never()).findById(anyString());
+        verify(helper, never()).mapToCurrentSessionResponse(any(), any());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SessionStatus.class, names = {"IN_PROGRESS", "PAUSED"})
+    void getCurrentSessionRestoresEveryResumableStatus(SessionStatus status) {
+        authenticate("user-1");
+        CookingSession session = CookingSession.builder()
+                .id("session-1")
+                .userId("user-1")
+                .recipeId("recipe-1")
+                .status(status)
+                .build();
+        Recipe recipe = Recipe.builder().id("recipe-1").title("Spicy Noodles").build();
+        CurrentSessionResponse expected = CurrentSessionResponse.builder()
+                .sessionId("session-1")
+                .recipeId("recipe-1")
+                .status(status)
+                .build();
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+                "user-1",
+                List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
+        )).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-1")).thenReturn(Optional.of(recipe));
+        when(helper.mapToCurrentSessionResponse(session, recipe)).thenReturn(expected);
+
+        CurrentSessionResponse response = cookingSessionService.getCurrentSession();
+
+        assertThat(response).isSameAs(expected);
+        verify(helper).calculateRemainingTime(session);
     }
 
     @Test
@@ -387,6 +436,8 @@ class CookingSessionServiceTest {
         CookingSession session = buildActiveSession(userId, sessionId, "recipe-1");
         Recipe recipe = buildRecipe("recipe-1", "Spicy Noodles", 100);
         ChallengeRewardResult weeklyReward = ChallengeRewardResult.builder()
+            .challengeKind("WEEKLY")
+            .challengeId("weekly-1")
             .bonusXp(10)
             .challengeTitle("Weekly Heat")
             .build();
@@ -427,7 +478,15 @@ class CookingSessionServiceTest {
         assertThat(completionRequest.getXpAmount()).isEqualTo(40);
         assertThat(response.getStatus()).isEqualTo("COMPLETED");
         assertThat(response.getBaseXpAwarded()).isEqualTo(40);
+        assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isZero();
         assertThat(response.getPendingXp()).isEqualTo(70);
+        assertThat(response.getXpDeliveryStatus()).isEqualTo("APPLIED");
+        assertThat(response.getCompletedChallengeRewards())
+            .extracting(ChallengeRewardResult::getChallengeKind,
+                ChallengeRewardResult::getChallengeId,
+                ChallengeRewardResult::getBonusXp)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple("WEEKLY", "weekly-1", 10));
         assertThat(session.getStatus()).isEqualTo(SessionStatus.COMPLETED);
     }
 
@@ -438,6 +497,8 @@ class CookingSessionServiceTest {
         CookingSession session = buildActiveSession(userId, sessionId, "recipe-1");
         Recipe recipe = buildRecipe("recipe-1", "Spicy Noodles", 100);
         ChallengeRewardResult seasonalReward = ChallengeRewardResult.builder()
+            .challengeKind("SEASONAL")
+            .challengeId("season-1")
             .bonusXp(20)
             .challengeTitle("Season Sprint")
             .build();
@@ -464,8 +525,107 @@ class CookingSessionServiceTest {
             eq(true),
             eq("recipe-1"));
         assertThat(response.getBaseXpAwarded()).isEqualTo(50);
+        assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isZero();
         assertThat(response.getPendingXp()).isEqualTo(70);
         assertThat(response.getCurrentXp()).isNull();
+        assertThat(response.getXpDeliveryStatus()).isEqualTo("QUEUED");
+        assertThat(response.getMessage()).contains("XP is processing").doesNotContain("XP earned");
+        assertThat(response.getCompletedChallengeRewards()).singleElement()
+            .satisfies(reward -> {
+                assertThat(reward.getChallengeKind()).isEqualTo("SEASONAL");
+                assertThat(reward.getChallengeId()).isEqualTo("season-1");
+                assertThat(reward.getBonusXp()).isEqualTo(20);
+            });
+    }
+
+    private static void authenticate(String userId) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(userId, null)
+        );
+    }
+
+    @Test
+    void completeSessionReturnsAnEmptyChallengeRewardListWhenNoneComplete() {
+        String userId = "user-1";
+        String sessionId = "session-1";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-1");
+        Recipe recipe = buildRecipe("recipe-1", "Spicy Noodles", 100);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-1")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-1")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(30).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(970).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getCompletedChallengeRewards()).isEmpty();
+        assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isZero();
+        assertThat(response.getBaseXpAwarded()).isEqualTo(30);
+        assertThat(response.getXpDeliveryStatus()).isEqualTo("APPLIED");
+        assertThat(response.getMessage()).contains("XP earned");
+    }
+
+    @Test
+    void completeSessionReconcilesSimultaneousChallengeAndDuoRewards() {
+        String userId = "user-1";
+        String sessionId = "session-1";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-1");
+        session.setRoomCode("ROOM1");
+        Recipe recipe = buildRecipe("recipe-1", "Spicy Noodles", 100);
+
+        ChallengeRewardResult daily = ChallengeRewardResult.builder()
+            .challengeKind("DAILY").challengeId("daily-1")
+            .challengeTitle("Daily Heat").bonusXp(10).completed(true).build();
+        ChallengeRewardResult weekly = ChallengeRewardResult.builder()
+            .challengeKind("WEEKLY").challengeId("weekly-1")
+            .challengeTitle("Weekly Heat").bonusXp(20).completed(true).build();
+        ChallengeRewardResult seasonal = ChallengeRewardResult.builder()
+            .challengeKind("SEASONAL").challengeId("season-1")
+            .challengeTitle("Season Heat").bonusXp(30).completed(true).build();
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("ROOM1")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("user-2").role("COOK").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-1")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-1")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.of(daily));
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.of(weekly));
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.of(seasonal));
+        when(roomRepository.findByRoomCode("ROOM1")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(108).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(892).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
+        assertThat(response.getCompletedChallengeRewards()).extracting(ChallengeRewardResult::getBonusXp)
+            .containsExactly(10, 20, 30);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(18);
+        assertThat(response.getBaseXpAwarded()).isEqualTo(108);
+        assertThat(response.getPendingXp()).isEqualTo(84);
+        assertThat(response.getXpMultiplier()).isEqualTo(1.2);
+        assertThat(response.getXpDeliveryStatus()).isEqualTo("APPLIED");
+        assertThat(response.getRecipeXpAwarded()
+            + response.getCompletedChallengeRewards().stream().mapToInt(ChallengeRewardResult::getBonusXp).sum()
+            + response.getCoOpBonusXp()).isEqualTo(response.getBaseXpAwarded());
     }
 
     @Test

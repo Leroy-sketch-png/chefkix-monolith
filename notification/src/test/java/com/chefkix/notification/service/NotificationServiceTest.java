@@ -16,6 +16,7 @@ import com.chefkix.notification.enums.NotificationType;
 import com.chefkix.notification.mapper.NotificationMapper;
 import com.chefkix.notification.repository.NotificationRepository;
 import com.chefkix.shared.event.GamificationNotificationEvent;
+import com.chefkix.shared.event.StoryInteractionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,6 +94,34 @@ class NotificationServiceTest {
         assertThat(notification.getTargetEntityId()).isEqualTo("session-1");
         assertThat(notification.getContent()).contains("70 XP");
         verify(messagingTemplate).convertAndSend(eq("/topic/user/user-1"), anyMap());
+    }
+
+    @Test
+    void handleStoryInteractedEventPersistsAndBroadcastsCreatorReturnSignal() {
+        when(notificationPreferencesProvider.isNotificationEnabled("creator-1", "social"))
+                .thenReturn(true);
+
+        StoryInteractionEvent event = StoryInteractionEvent.builder()
+                .storyId("story-1")
+                .storyOwnerId("creator-1")
+                .userId("reactor-1")
+                .userDisplayName("Mai")
+                .userAvatarUrl("/mai.jpg")
+                .interactionType("HEART")
+                .build();
+
+        notificationService.handleStoryInteractedEvent(event);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+        verify(notificationRepository).save(notificationCaptor.capture());
+        Notification notification = notificationCaptor.getValue();
+        assertThat(notification.getType()).isEqualTo(NotificationType.STORY_INTERACTION);
+        assertThat(notification.getRecipientId()).isEqualTo("creator-1");
+        assertThat(notification.getTargetEntityId()).isEqualTo("story-1");
+        assertThat(notification.getLatestActorId()).isEqualTo("reactor-1");
+        assertThat(notification.getLatestActorName()).isEqualTo("Mai");
+        assertThat(notification.getContent()).contains("Mai", "reacted", "your story");
+        verify(messagingTemplate).convertAndSend(eq("/topic/user/creator-1"), anyMap());
     }
 
     @Test

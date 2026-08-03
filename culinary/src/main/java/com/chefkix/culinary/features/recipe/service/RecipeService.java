@@ -365,7 +365,7 @@ public class RecipeService {
         final double normTrending = maxTrending;
 
         List<Map.Entry<Recipe, Double>> scoredCandidates = candidatePage.getContent().stream()
-            .filter(r -> !authenticated || !r.getUserId().equals(currentUserId))
+            .filter(r -> !authenticated || !Objects.equals(r.getUserId(), currentUserId))
             .filter(r -> !finalCookedIds.contains(r.getId()))
             .map(r -> Map.entry(
                 r,
@@ -391,10 +391,7 @@ public class RecipeService {
         }
 
         RecipeDetailResponse response = recipeMapper.toRecipeDetailResponse(pick);
-        try {
-            response.setAuthor(asyncHelper.getProfileAsync(pick.getUserId()).join());
-        } catch (Exception e) {
-            log.warn("Failed to fetch author profile for recipe {}: {}", pick.getId(), e.getMessage());
+        if (response.getAuthor() == null) {
             response.setAuthor(AuthorResponse.builder()
                     .userId(pick.getUserId()).displayName("Chef").build());
         }

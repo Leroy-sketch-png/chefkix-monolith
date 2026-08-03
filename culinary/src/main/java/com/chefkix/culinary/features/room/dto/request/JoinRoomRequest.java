@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.room.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -16,5 +17,6 @@ public class JoinRoomRequest {
 
     @Builder.Default
     @Size(max = 20)
+    @Pattern(regexp = "(?i)COOK|SPECTATOR", message = "role must be COOK or SPECTATOR")
     String role = "COOK";
 }

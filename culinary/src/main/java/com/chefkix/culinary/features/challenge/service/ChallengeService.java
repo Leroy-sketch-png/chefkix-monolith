@@ -15,6 +15,7 @@ import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.helper.StreakCalculatorHelper;
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
+import com.chefkix.culinary.features.challenge.model.ChallengeWeekKey;
 import com.chefkix.culinary.features.challenge.repository.ChallengeLogRepository;
 import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRepository;
 import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRedisRepository;
@@ -180,6 +181,8 @@ return Optional.empty();
 
                 return Optional.of(ChallengeRewardResult.builder()
                         .completed(true)
+                        .challengeKind("DAILY")
+                        .challengeId(challenge.getId())
                         .bonusXp(challenge.getBonusXp())
                         .challengeTitle(challenge.getTitle())
                         .build());
@@ -285,19 +288,9 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
         LocalDateTime weekStartDt = weekStart.atStartOfDay();
         LocalDateTime weekEndDt = weekEnd.atStartOfDay();
 
-        List<Recipe> matchingRecipes = findMatchingRecipes(weekly.getCriteriaMetadata()).stream()
-                .map(dto -> recipeRepository.findById(dto.getId()).orElse(null))
-                .filter(Objects::nonNull)
-                .toList();
-        List<String> matchingRecipeIds = matchingRecipes.stream()
-                .map(Recipe::getId).toList();
+        long progress = countQualifyingWeeklySessions(userId, weekly, weekStartDt, weekEndDt);
 
-        long progress = matchingRecipeIds.isEmpty() ? 0 :
-                cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
-                        userId, matchingRecipeIds, SessionStatus.COMPLETED, weekStartDt, weekEndDt);
-
-        String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
-                today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        String weekKey = ChallengeWeekKey.from(today);
         boolean isCompleted = challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey);
 
         String completedAt = null;
@@ -336,8 +329,7 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
         if (!weekly.isSatisfiedBy(recipe)) return Optional.empty();
 
         LocalDate today = LocalDate.now(ZoneId.of("UTC"));
-        String weekKey = String.format("WEEKLY-%d-W%02d", today.getYear(),
-                today.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        String weekKey = ChallengeWeekKey.from(today);
         if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey)) {
 return Optional.empty();
         }
@@ -345,11 +337,8 @@ return Optional.empty();
         LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
         LocalDate weekEnd = weekStart.plusDays(7);
 
-        List<String> matchingRecipeIds = findRecipeIdsMatchingCriteria(weekly);
-        long currentProgress = matchingRecipeIds.isEmpty() ? 0 :
-                cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
-                        userId, matchingRecipeIds, SessionStatus.COMPLETED,
-                        weekStart.atStartOfDay(), weekEnd.atStartOfDay());
+        long currentProgress = countQualifyingWeeklySessions(
+                userId, weekly, weekStart.atStartOfDay(), weekEnd.atStartOfDay());
 
         long totalProgress = currentProgress + 1;
 
@@ -369,6 +358,8 @@ return Optional.empty();
 
                 return Optional.of(ChallengeRewardResult.builder()
                         .completed(true)
+                        .challengeKind("WEEKLY")
+                        .challengeId(weekly.getId())
                         .bonusXp(weekly.getBonusXp())
                         .challengeTitle(weekly.getTitle())
                         .build());
@@ -380,9 +371,30 @@ return Optional.empty();
         return Optional.empty();
     }
 
-    private List<String> findRecipeIdsMatchingCriteria(ChallengeDefinition challenge) {
-        List<ChallengeResponse.RecipePreviewDto> previews = findMatchingRecipes(challenge.getCriteriaMetadata());
-        return previews.stream().map(ChallengeResponse.RecipePreviewDto::getId).toList();
+    private long countQualifyingWeeklySessions(
+            String userId,
+            ChallengeDefinition challenge,
+            LocalDateTime weekStart,
+            LocalDateTime weekEnd) {
+        var completedSessions = cookingSessionRepository.findByUserIdAndStatusAndCompletedAtBetween(
+                userId, SessionStatus.COMPLETED, weekStart, weekEnd);
+        if (completedSessions.isEmpty()) {
+            return 0;
+        }
+
+        Set<String> recipeIds = completedSessions.stream()
+                .map(session -> session.getRecipeId())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Set<String> qualifyingRecipeIds = recipeRepository.findAllById(recipeIds).stream()
+                .filter(challenge::isSatisfiedBy)
+                .map(Recipe::getId)
+                .collect(Collectors.toSet());
+
+        return completedSessions.stream()
+                .map(session -> session.getRecipeId())
+                .filter(qualifyingRecipeIds::contains)
+                .count();
     }
 
 
@@ -569,6 +581,8 @@ return Optional.empty();
 
                     return Optional.of(ChallengeRewardResult.builder()
                             .completed(true)
+                            .challengeKind("SEASONAL")
+                            .challengeId(ch.getId())
                             .bonusXp(ch.getRewardXp())
                             .challengeTitle(ch.getTitle())
                             .build());

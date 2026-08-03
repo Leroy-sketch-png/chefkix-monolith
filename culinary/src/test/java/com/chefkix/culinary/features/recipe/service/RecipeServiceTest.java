@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.common.enums.RecipeStatus;
@@ -13,11 +14,14 @@ import com.chefkix.culinary.common.enums.SessionStatus;
 import com.chefkix.culinary.common.helper.AsyncHelper;
 import com.chefkix.culinary.common.helper.RecipeHelper;
 import com.chefkix.culinary.features.interaction.service.InteractionService;
+import com.chefkix.culinary.features.recipe.dto.response.RecommendationResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecentCookResponse;
+import com.chefkix.culinary.features.recipe.dto.response.RecipeDetailResponse;
 import com.chefkix.culinary.features.recipe.dto.response.RecipeSocialProofResponse;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.mapper.RecipeMapper;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
+import com.chefkix.culinary.features.recipe.repository.TonightsPickRedisRepository;
 import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.identity.api.ProfileProvider;
@@ -49,6 +53,8 @@ class RecipeServiceTest {
     @Mock
     private RecipeRepository recipeRepository;
     @Mock
+    private TonightsPickRedisRepository tonightsPickRedisRepository;
+    @Mock
     private RecipeHelper recipeHelper;
     @Mock
     private InteractionService interactionService;
@@ -63,6 +69,69 @@ class RecipeServiceTest {
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getTonightsPickReturnsWithoutUnusedAuthorEnrichment() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("viewer-1", null, List.of()));
+
+        Recipe recipe = Recipe.builder()
+                .id("recipe-1")
+                .userId("author-1")
+                .status(RecipeStatus.PUBLISHED)
+                .title("Weeknight Noodles")
+                .build();
+        RecipeDetailResponse mappedRecipe = RecipeDetailResponse.builder()
+                .id("recipe-1")
+                .title("Weeknight Noodles")
+                .build();
+
+        when(tonightsPickRedisRepository.find(any())).thenReturn(Optional.empty());
+        when(profileProvider.getUserPreferences("viewer-1")).thenReturn(List.of());
+        when(profileProvider.getUserLevel("viewer-1")).thenReturn(1);
+        when(cookingSessionRepository.findTop20ByUserIdOrderByStartedAtDesc("viewer-1"))
+                .thenReturn(List.of());
+        when(recipeRepository.findByStatus(eq(RecipeStatus.PUBLISHED), any()))
+                .thenReturn(new PageImpl<>(List.of(recipe)));
+        when(recipeMapper.toRecipeDetailResponse(recipe)).thenReturn(mappedRecipe);
+
+        RecommendationResponse response = recipeService.getTonightsPick();
+
+        assertThat(response.getRecipe()).isSameAs(mappedRecipe);
+        assertThat(response.getRecipe().getAuthor().getUserId()).isEqualTo("author-1");
+        assertThat(response.getRecipe().getAuthor().getDisplayName()).isEqualTo("Chef");
+        verifyNoInteractions(asyncHelper);
+    }
+
+    @Test
+    void getTonightsPickToleratesPublishedRecipeWithoutOwnerId() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("viewer-1", null, List.of()));
+
+        Recipe recipe = Recipe.builder()
+                .id("recipe-1")
+                .status(RecipeStatus.PUBLISHED)
+                .title("Community Stew")
+                .build();
+        RecipeDetailResponse mappedRecipe = RecipeDetailResponse.builder()
+                .id("recipe-1")
+                .title("Community Stew")
+                .build();
+
+        when(tonightsPickRedisRepository.find(any())).thenReturn(Optional.empty());
+        when(profileProvider.getUserPreferences("viewer-1")).thenReturn(List.of());
+        when(profileProvider.getUserLevel("viewer-1")).thenReturn(1);
+        when(cookingSessionRepository.findTop20ByUserIdOrderByStartedAtDesc("viewer-1"))
+                .thenReturn(List.of());
+        when(recipeRepository.findByStatus(eq(RecipeStatus.PUBLISHED), any()))
+                .thenReturn(new PageImpl<>(List.of(recipe)));
+        when(recipeMapper.toRecipeDetailResponse(recipe)).thenReturn(mappedRecipe);
+
+        RecommendationResponse response = recipeService.getTonightsPick();
+
+        assertThat(response.getRecipe()).isSameAs(mappedRecipe);
+        assertThat(response.getRecipe().getAuthor().getDisplayName()).isEqualTo("Chef");
     }
 
     @Test

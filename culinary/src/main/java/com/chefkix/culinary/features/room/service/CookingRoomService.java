@@ -58,6 +58,10 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
     public CookingRoomResponse createRoom(String userId, CreateRoomRequest request) {
+        if (findActiveRoomForUser(userId).isPresent()) {
+            throw new AppException(ErrorCode.ALREADY_IN_ROOM);
+        }
+
         String roomCode = generateUniqueRoomCode();
 
         String sessionId = getOrCreateSession(userId, request.getRecipeId(), roomCode);
@@ -110,9 +114,18 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
             throw new AppException(ErrorCode.ROOM_NOT_FOUND);
         }
 
-        boolean alreadyIn = room.getParticipants().stream()
-                .anyMatch(p -> p.getUserId().equals(userId));
-        if (alreadyIn) {
+        Optional<RoomParticipant> existingParticipant = room.getParticipants().stream()
+                .filter(participant -> participant.getUserId().equals(userId))
+                .findFirst();
+        if (existingParticipant.isPresent()) {
+            RoomParticipant participant = existingParticipant.get();
+            if ("SPECTATOR".equals(participant.getRole()) && "COOK".equals(role)) {
+                return upgradeSpectatorToCook(userId, room, participant);
+            }
+            throw new AppException(ErrorCode.ALREADY_IN_ROOM);
+        }
+
+        if (findActiveRoomForUser(userId).isPresent()) {
             throw new AppException(ErrorCode.ALREADY_IN_ROOM);
         }
 
@@ -142,12 +155,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
         room.getParticipants().add(participant);
 
-        long cookCount = room.getParticipants().stream()
-                .filter(p -> !"SPECTATOR".equals(p.getRole()))
-                .count();
-        if (cookCount >= 2 && CookingRoom.STATUS_WAITING.equals(room.getStatus())) {
-            room.setStatus(CookingRoom.STATUS_COOKING);
-        }
+        promoteRoomToCookingIfReady(room);
 
         roomRepository.save(room);
         log.info("User {} joined room {} as {}", userId, roomCode, role);
@@ -158,6 +166,39 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
                         "role", role));
 
         return toResponse(room, sessionId);
+    }
+
+    private CookingRoomResponse upgradeSpectatorToCook(
+            String userId,
+            CookingRoom room,
+            RoomParticipant participant
+    ) {
+        String sessionId = getOrCreateSession(userId, room.getRecipeId(), room.getRoomCode());
+
+        participant.setRole("COOK");
+        participant.setSessionId(sessionId);
+        promoteRoomToCookingIfReady(room);
+        roomRepository.save(room);
+
+        log.info("User {} upgraded from spectator to cook in room {}", userId, room.getRoomCode());
+        broadcastEvent(
+                room.getRoomCode(),
+                RoomEventType.PARTICIPANT_ROLE_CHANGED,
+                userId,
+                participant.getDisplayName(),
+                Map.of("role", "COOK")
+        );
+
+        return toResponse(room, sessionId);
+    }
+
+    private void promoteRoomToCookingIfReady(CookingRoom room) {
+        long cookCount = room.getParticipants().stream()
+                .filter(participant -> !"SPECTATOR".equals(participant.getRole()))
+                .count();
+        if (cookCount >= 2 && CookingRoom.STATUS_WAITING.equals(room.getStatus())) {
+            room.setStatus(CookingRoom.STATUS_COOKING);
+        }
     }
 
 
@@ -428,12 +469,15 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
      */
     private String getOrCreateSession(String userId, String recipeId, String roomCode) {
         Optional<CookingSession> existing = sessionRepository
-                .findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
+                .findFirstByUserIdAndStatusIn(
+                        userId,
+                        List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED)
+                );
 
         if (existing.isPresent()) {
             CookingSession session = existing.get();
             if (session.getRecipeId().equals(recipeId)) {
-                if (session.getRoomCode() == null && roomCode != null) {
+                if (roomCode != null && !roomCode.equals(session.getRoomCode())) {
                     session.setRoomCode(roomCode);
                     sessionRepository.save(session);
                 }
@@ -453,6 +497,14 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         }
 
         return response.getSessionId();
+    }
+
+    private Optional<CookingRoom> findActiveRoomForUser(String userId) {
+        return roomRepository.findAll().stream()
+                .filter(room -> !CookingRoom.STATUS_DISSOLVED.equals(room.getStatus()))
+                .filter(room -> room.getParticipants().stream()
+                        .anyMatch(participant -> participant.getUserId().equals(userId)))
+                .findFirst();
     }
 
     private String generateUniqueRoomCode() {

@@ -3,6 +3,7 @@ package com.chefkix.culinary.features.cookplan.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
@@ -295,11 +297,16 @@ class CookPlanServiceTest {
 
         CookPlan plan = service.create("user-1", request(2, 45));
 
-        assertThat(plan.getId()).isNull();
+        assertThat(plan.getId()).isEqualTo("plan-1");
         assertThat(plan.getCookBatches()).isEmpty();
         assertThat(plan.getUnmetConstraints())
                 .anyMatch(message -> message.contains("Fewer than two"))
                 .anyMatch(message -> message.contains("unsafe fallback"));
+
+        InOrder replacementOrder = inOrder(cookPlanRepository);
+        replacementOrder.verify(cookPlanRepository)
+                .deleteByUserIdAndPlanDate("user-1", LocalDate.of(2026, 6, 10));
+        replacementOrder.verify(cookPlanRepository).save(plan);
     }
 
     @Test

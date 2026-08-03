@@ -147,25 +147,11 @@ public class CookingSessionService {
 
         double masteryMult = helper.calculateMasteryMultiplier(userId, session.getRecipeId());
         double totalEffectiveXp = recipe.getXpReward() * masteryMult;
-        double baseXp = Math.round(totalEffectiveXp * 0.30);
+        double recipeImmediateXp = Math.round(totalEffectiveXp * 0.30);
         double pendingXp = Math.round(totalEffectiveXp * 0.70);
 
         Optional<ChallengeRewardResult> challengeResult = challengeService.checkAndCompleteChallenge(userId, recipe);
-        String challengeTitle = null;
-        if (challengeResult.isPresent()) {
-            baseXp += challengeResult.get().getBonusXp();
-            challengeTitle = challengeResult.get().getChallengeTitle();
-        }
-
         Optional<ChallengeRewardResult> weeklyResult = challengeService.checkAndCompleteWeeklyChallenge(userId, recipe);
-        if (weeklyResult.isPresent()) {
-            baseXp += weeklyResult.get().getBonusXp();
-            if (challengeTitle == null) {
-                challengeTitle = weeklyResult.get().getChallengeTitle();
-            } else {
-                challengeTitle += " & " + weeklyResult.get().getChallengeTitle();
-            }
-        }
 
         try {
             challengeService.checkAndAdvanceCommunityChallenge(userId, recipe);
@@ -174,16 +160,17 @@ public class CookingSessionService {
         }
 
         Optional<ChallengeRewardResult> seasonalResult = challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe);
-        if (seasonalResult.isPresent()) {
-            baseXp += seasonalResult.get().getBonusXp();
-            if (challengeTitle == null) {
-                challengeTitle = seasonalResult.get().getChallengeTitle();
-            } else {
-                challengeTitle += " & " + seasonalResult.get().getChallengeTitle();
-            }
-        }
+        List<ChallengeRewardResult> completedChallengeRewards = java.util.stream.Stream.of(
+                        challengeResult, weeklyResult, seasonalResult)
+                .flatMap(Optional::stream)
+                .toList();
+        int challengeBonusXp = completedChallengeRewards.stream()
+                .mapToInt(ChallengeRewardResult::getBonusXp)
+                .sum();
+        double immediateXpBeforeCoOp = recipeImmediateXp + challengeBonusXp;
+        double baseXp = immediateXpBeforeCoOp;
         boolean challengeCompleted =
-                challengeResult.isPresent() || weeklyResult.isPresent() || seasonalResult.isPresent();
+                !completedChallengeRewards.isEmpty();
 
         double coOpMultiplier = 1.0;
         String coOpReason = null;
@@ -203,6 +190,7 @@ public class CookingSessionService {
             pendingXp = Math.round(pendingXp * coOpMultiplier);
             log.info("Co-op multiplier applied: {}× ({}) for session {}", coOpMultiplier, coOpReason, sessionId);
         }
+        int coOpBonusXp = (int) Math.round(baseXp - immediateXpBeforeCoOp);
 
         LocalDateTime now = utcNow();
         session.setStatus(SessionStatus.COMPLETED);
@@ -242,7 +230,11 @@ public class CookingSessionService {
             log.warn("Failed to auto-create RECENT_COOK post for session {}: {}", sessionId, e.getMessage());
         }
 
-        String description = "Completed cooking: " + recipe.getTitle() + (challengeTitle != null ? " & Challenge: " + challengeTitle : "");
+        String challengeTitles = String.join(" & ", completedChallengeRewards.stream()
+                .map(ChallengeRewardResult::getChallengeTitle)
+                .toList());
+        String description = "Completed cooking: " + recipe.getTitle()
+                + (!challengeTitles.isBlank() ? " & Challenge: " + challengeTitles : "");
         String idempotencyKey = "xp:COOKING_SESSION:" + userId + ":" + sessionId;
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .userId(userId)
@@ -255,11 +247,15 @@ public class CookingSessionService {
                 .build();
 
         CompletionResult profileResult = null;
+        String xpDeliveryStatus = "QUEUED";
         try {
             profileResult = profileProvider.updateAfterCompletion(completionRequest);
             if (profileResult != null) {
+                xpDeliveryStatus = "APPLIED";
                 log.info("Completion XP applied for user {}: +{} XP, leveledUp={}, level {}->{}",
                         userId, baseXp, profileResult.isLeveledUp(), profileResult.getOldLevel(), profileResult.getNewLevel());
+            } else {
+                throw new IllegalStateException("Identity completion returned no result");
             }
         } catch (Exception e) {
             log.error("Failed to sync XP with identity service for user {}: {}", userId, e.getMessage());
@@ -288,17 +284,24 @@ public class CookingSessionService {
 
         int baseXpInt = (int) Math.round(baseXp);
         int pendingXpInt = (int) Math.round(pendingXp);
+        String completionMessage = "APPLIED".equals(xpDeliveryStatus)
+                ? "Congrats! +" + baseXpInt + " XP earned. Post to unlock " + pendingXpInt + " more XP!"
+                : "Cooking complete. +" + baseXpInt + " XP is processing. Post to unlock " + pendingXpInt + " more XP!";
         SessionCompletionResponse.SessionCompletionResponseBuilder responseBuilder = SessionCompletionResponse.builder()
                 .sessionId(session.getId())
                 .status("COMPLETED")
                 .baseXpAwarded(baseXpInt)
+                .recipeXpAwarded((int) Math.round(recipeImmediateXp))
+                .coOpBonusXp(coOpBonusXp)
                 .pendingXp(pendingXpInt)
                 .xpBreakdown(recipe.getXpBreakdown())
+                .completedChallengeRewards(completedChallengeRewards)
+                .xpDeliveryStatus(xpDeliveryStatus)
                 .postDeadline(session.getPostDeadline())
                 .xpMultiplier(coOpMultiplier > 1.0 ? coOpMultiplier : null)
                 .xpMultiplierReason(coOpReason)
                 .newAchievements(newAchievements)
-                .message("Congrats! +" + baseXpInt + " XP earned. Post to unlock " + pendingXpInt + " more XP!");
+                .message(completionMessage);
 
         if (profileResult != null) {
             responseBuilder
@@ -366,7 +369,8 @@ public class CookingSessionService {
 
     public CurrentSessionResponse getCurrentSession() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<CookingSession> sessionOpt = sessionRepository.findFirstByUserIdAndStatus(userId, SessionStatus.IN_PROGRESS);
+        Optional<CookingSession> sessionOpt = sessionRepository
+                .findFirstByUserIdAndStatusIn(userId, List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED));
 
         if (sessionOpt.isEmpty()) return null;
 
@@ -374,8 +378,8 @@ public class CookingSessionService {
         Recipe recipe = recipeRepository.findById(session.getRecipeId())
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-helper.calculateRemainingTime(session);
-return helper.mapToCurrentSessionResponse(session, recipe);
+        helper.calculateRemainingTime(session);
+        return helper.mapToCurrentSessionResponse(session, recipe);
     }
 
     public CurrentSessionResponse getBySessionId(String sessionId, String userId) {

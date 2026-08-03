@@ -92,7 +92,7 @@ public class CookPlanService {
                 request.getMaxActiveMinutes());
 
         if (selected.size() < MIN_DISHES) {
-            return noPlan(userId, request, preferences, candidates.size());
+            return replaceCurrentPlan(noPlan(userId, request, preferences, candidates.size()));
         }
 
         String batchId = UUID.randomUUID().toString();
@@ -129,8 +129,7 @@ public class CookPlanService {
                         pantryContext.availableNames()))
                 .build();
 
-        cookPlanRepository.deleteByUserIdAndPlanDate(userId, request.getPlanDate());
-        return cookPlanRepository.save(plan);
+        return replaceCurrentPlan(plan);
     }
 
     public CookPlan current(String userId, LocalDate planDate) {
@@ -220,6 +219,11 @@ public class CookPlanService {
                 recipes,
                 existing.getPlannedServings(),
                 pantryContext.availableNames()));
+        return cookPlanRepository.save(plan);
+    }
+
+    private CookPlan replaceCurrentPlan(CookPlan plan) {
+        cookPlanRepository.deleteByUserIdAndPlanDate(plan.getUserId(), plan.getPlanDate());
         return cookPlanRepository.save(plan);
     }
 

@@ -1,6 +1,7 @@
 package com.chefkix.culinary.features.session.dto.response;
 
 import com.chefkix.culinary.features.recipe.entity.Recipe;
+import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResult;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -12,8 +13,12 @@ public class SessionCompletionResponse {
     private String sessionId;
     private String status;
 private Integer baseXpAwarded;
+private Integer recipeXpAwarded;
+private Integer coOpBonusXp;
 private Integer pendingXp;
 private Recipe.XpBreakdown xpBreakdown;
+private List<ChallengeRewardResult> completedChallengeRewards;
+private String xpDeliveryStatus;
     private String message;
     private LocalDateTime postDeadline;
     

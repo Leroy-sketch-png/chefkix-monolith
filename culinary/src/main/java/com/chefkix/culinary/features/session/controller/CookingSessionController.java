@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,19 +103,8 @@ public class CookingSessionController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<ApiResponse<CurrentSessionResponse>> getCurrentSession(
-    ) {
-        CurrentSessionResponse response = sessionService.getCurrentSession();
-        if (response == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ApiResponse.<CurrentSessionResponse>builder()
-                            .success(false)
-                            .statusCode(404)
-                            .message("No active session")
-                            .build()
-            );
-        }
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ApiResponse<CurrentSessionResponse> getCurrentSession() {
+        return ApiResponse.success(sessionService.getCurrentSession());
     }
 
     /**
