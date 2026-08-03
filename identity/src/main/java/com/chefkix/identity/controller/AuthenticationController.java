@@ -5,6 +5,7 @@ import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
+import com.chefkix.identity.dto.response.OtpDeliveryResponse;
 import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.service.*;
@@ -59,11 +60,11 @@ public class AuthenticationController {
   }
 
   @PostMapping(path = "/register")
-  ApiResponse<String> register(
+  ApiResponse<OtpDeliveryResponse> register(
       @RequestBody @Valid SignupRequest request, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
-    signupRequestService.register(request, clientIp);
-    return ApiResponse.<String>builder().data("OTP sent to email").build();
+    OtpDeliveryResponse delivery = signupRequestService.register(request, clientIp);
+    return ApiResponse.success(delivery, "OTP sent to email");
   }
 
   @PostMapping("/refresh-token")

@@ -31,15 +31,16 @@ public class BaseRedisService {
     redisTemplate.delete(key);
   }
 
-  /**
-   */
   public void increment(String key) {
     redisTemplate.opsForValue().increment(key);
   }
 
-  /**
-   */
-  public void expire(String otpHourlyLimitKey, int timeoutInSeconds, TimeUnit timeUnit) {
-    redisTemplate.expire(otpHourlyLimitKey, timeoutInSeconds, TimeUnit.SECONDS);
+  public void expire(String key, long timeout, TimeUnit timeUnit) {
+    redisTemplate.expire(key, timeout, timeUnit);
+  }
+
+  public long getExpireSeconds(String key) {
+    Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+    return ttl == null ? -2L : ttl;
   }
 }

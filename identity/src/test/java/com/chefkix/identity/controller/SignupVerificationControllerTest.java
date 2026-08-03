@@ -10,12 +10,15 @@ import com.chefkix.identity.dto.request.EmailVerificationRequest;
 import com.chefkix.identity.service.AuthenticationService;
 import com.chefkix.identity.service.ProfileService;
 import com.chefkix.identity.service.SignupRequestService;
+import com.chefkix.identity.dto.response.OtpDeliveryResponse;
 import com.chefkix.shared.dto.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpServletRequest;
+import java.time.Instant;
 
 @ExtendWith(MockitoExtension.class)
 class SignupVerificationControllerTest {
@@ -51,6 +54,25 @@ class SignupVerificationControllerTest {
         controller.verifyOtp(verificationRequest(), new MockHttpServletResponse());
 
     assertCreatedAccountFallback(result);
+  }
+
+  @Test
+  void resendEndpointReturnsAuthoritativeOtpDeliveryTiming() {
+    OtpController controller =
+        new OtpController(profileService, signupRequestService, authenticationService);
+    OtpDeliveryResponse timing =
+        OtpDeliveryResponse.builder()
+            .expiresAt(Instant.parse("2026-08-03T10:10:00Z"))
+            .resendAvailableAt(Instant.parse("2026-08-03T10:02:00Z"))
+            .build();
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRemoteAddr("203.0.113.11");
+    when(signupRequestService.resendOtp(EMAIL, "203.0.113.11")).thenReturn(timing);
+
+    var result = controller.resendOtp(EMAIL, request);
+
+    assertThat(result.getData()).isSameAs(timing);
+    assertThat(result.getMessage()).isEqualTo("Successfully resent OTP");
   }
 
   private void assertCreatedAccountFallback(ApiResponse<?> result) {

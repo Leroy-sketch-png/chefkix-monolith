@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.chefkix.identity.dto.request.AuthenticationRequest;
 import com.chefkix.identity.dto.request.GoogleAuthenticationRequest;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
+import com.chefkix.identity.dto.response.OtpDeliveryResponse;
+import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.service.AuthRateLimitService;
 import com.chefkix.identity.service.AuthenticationService;
@@ -26,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import java.time.Instant;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
@@ -56,6 +59,25 @@ class AuthenticationControllerTest {
   @BeforeEach
   void setUp() {
     response = new MockHttpServletResponse();
+  }
+
+  @Test
+  void registerReturnsAuthoritativeOtpDeliveryTiming() {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRemoteAddr("203.0.113.10");
+    SignupRequest signup = SignupRequest.builder().email("new-cook@example.com").build();
+    OtpDeliveryResponse timing =
+        OtpDeliveryResponse.builder()
+            .expiresAt(Instant.parse("2026-08-03T10:10:00Z"))
+            .resendAvailableAt(Instant.parse("2026-08-03T10:01:00Z"))
+            .build();
+    when(signupRequestService.register(signup, "203.0.113.10")).thenReturn(timing);
+
+    var result = controller.register(signup, request);
+
+    assertThat(result.isSuccess()).isTrue();
+    assertThat(result.getData()).isSameAs(timing);
+    assertThat(result.getMessage()).isEqualTo("OTP sent to email");
   }
 
   @Test

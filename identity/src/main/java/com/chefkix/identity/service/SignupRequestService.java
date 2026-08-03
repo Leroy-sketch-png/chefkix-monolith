@@ -1,6 +1,7 @@
 package com.chefkix.identity.service;
 
 import com.chefkix.shared.event.EmailEvent;
+import com.chefkix.identity.dto.response.OtpDeliveryResponse;
 import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
@@ -31,7 +32,7 @@ public class SignupRequestService {
   final BaseRedisService redisService;
 
   @Value("${app.otp.ttl-seconds:600}")
-long otpTtlSeconds;
+  long otpTtlSeconds;
 
   @Value("${app.otp.max-resend-per-hour:3}")
   int maxResendPerHour;
@@ -46,7 +47,7 @@ long otpTtlSeconds;
   int baseCooldownSeconds;
 
   @Transactional
-  public void register(SignupRequest request, String clientIp) {
+  public OtpDeliveryResponse register(SignupRequest request, String clientIp) {
     checkIpRateLimit(clientIp);
 
     if (userProfileRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -91,16 +92,16 @@ long otpTtlSeconds;
 
     req = signupRequestRepository.save(req);
 
-    String cooldownKey = RedisKeyUtils.getOtpCooldownKey(request.getEmail());
-    redisService.set(cooldownKey, "1", baseCooldownSeconds);
-
     generateAndSendOtp(req);
+    redisService.set(
+        RedisKeyUtils.getOtpCooldownKey(request.getEmail()), "1", baseCooldownSeconds);
 
     log.info("Registration initiated for IP: {}", clientIp);
+    return deliveryTiming(req, baseCooldownSeconds);
   }
 
   @Transactional
-  public void resendOtp(String email, String clientIp) {
+  public OtpDeliveryResponse resendOtp(String email, String clientIp) {
     if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
       throw new AppException(ErrorCode.INVALID_EMAIL);
     }
@@ -117,9 +118,10 @@ long otpTtlSeconds;
     generateAndSendOtp(req);
 
     incrementResendCounters(email, clientIp);
-    setProgressiveCooldown(email);
+    int cooldownSeconds = setProgressiveCooldown(email);
 
     log.info("Resend OTP success for IP: {}", clientIp);
+    return deliveryTiming(req, cooldownSeconds);
   }
 
   private void generateAndSendOtp(SignupRequest req) {
@@ -201,7 +203,7 @@ long otpTtlSeconds;
   private void checkRateLimits(String email, String clientIp) {
     String cooldownKey = RedisKeyUtils.getOtpCooldownKey(email);
     if (redisService.exists(cooldownKey)) {
-      String ttl = redisService.get(cooldownKey);
+      long ttl = Math.max(1L, redisService.getExpireSeconds(cooldownKey));
       throw new AppException(ErrorCode.OTP_RATE_LIMIT, "Please wait " + ttl + "s");
     }
 
@@ -230,14 +232,22 @@ long otpTtlSeconds;
     redisService.expire(ipKey, 1, TimeUnit.HOURS);
   }
 
-  private void setProgressiveCooldown(String email) {
+  private int setProgressiveCooldown(String email) {
     String hourlyKey = RedisKeyUtils.getOtpHourlyLimitKey(email);
     int count = getRedisCount(hourlyKey);
 
     int cooldown = baseCooldownSeconds * (int) Math.pow(2, Math.max(0, count - 1));
-cooldown = Math.min(cooldown, 900);
+    cooldown = Math.min(cooldown, 900);
 
     redisService.set(RedisKeyUtils.getOtpCooldownKey(email), "1", cooldown);
+    return cooldown;
+  }
+
+  private OtpDeliveryResponse deliveryTiming(SignupRequest request, int cooldownSeconds) {
+    return OtpDeliveryResponse.builder()
+        .expiresAt(request.getExpiresAt())
+        .resendAvailableAt(request.getLastOtpSentAt().plusSeconds(cooldownSeconds))
+        .build();
   }
 
   private void invalidateOldOtp(SignupRequest req) {

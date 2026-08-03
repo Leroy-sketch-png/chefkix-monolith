@@ -4,6 +4,7 @@ import com.chefkix.identity.dto.request.AuthenticationRequest;
 import com.chefkix.identity.dto.request.EmailVerificationRequest;
 import com.chefkix.shared.dto.ApiResponse;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
+import com.chefkix.identity.dto.response.OtpDeliveryResponse;
 import com.chefkix.identity.service.AuthenticationService;
 import com.chefkix.identity.service.ProfileService;
 import com.chefkix.identity.service.SignupRequestService;
@@ -62,10 +63,10 @@ private static final int REFRESH_TOKEN_MAX_AGE_LOGIN = 7 * 24 * 60 * 60;
   }
 
   @PostMapping("/resend-otp")
-  public ApiResponse<String> resendOtp(
+  public ApiResponse<OtpDeliveryResponse> resendOtp(
       @RequestParam("email") String email, HttpServletRequest httpServletRequest) {
     String clientIp = ClientIpUtils.getClientIpAddress(httpServletRequest);
-    signupRequestService.resendOtp(email, clientIp);
-    return ApiResponse.success("Successfully resent OTP");
+    OtpDeliveryResponse delivery = signupRequestService.resendOtp(email, clientIp);
+    return ApiResponse.success(delivery, "Successfully resent OTP");
   }
 }
