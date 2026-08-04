@@ -72,6 +72,8 @@ public class ReplyService {
             throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
         }
 
+        replyRequest.setTaggedUserIds(MentionIdentity.reconcile(
+                replyRequest.getContent(), replyRequest.getTaggedUserIds(), profileProvider::getBasicProfile));
         Reply reply = replyMapper.toReply(replyRequest);
         String parentCommentAuthorId = comment.getUserId();
 

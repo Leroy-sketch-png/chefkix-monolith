@@ -261,6 +261,8 @@ public class PostService {
                                         PostStatus status,
                                         boolean isHidden) {
 
+        request.setTaggedUserIds(MentionIdentity.reconcile(
+                request.getContent(), request.getTaggedUserIds(), profileProvider::getBasicProfile));
         Post post = postMapper.toPost(request);
         post.setUserId(userId);
 

@@ -80,11 +80,8 @@ public class CommentService {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
-        List<String> extractedTagIds = new ArrayList<>();
-        
-        if (req.getTaggedUserIds() != null && !req.getTaggedUserIds().isEmpty()) {
-            extractedTagIds.addAll(req.getTaggedUserIds());
-        }
+        List<String> extractedTagIds = new ArrayList<>(MentionIdentity.reconcile(
+                req.getContent(), req.getTaggedUserIds(), profileProvider::getBasicProfile));
         
         Matcher matcher = TAG_PATTERN.matcher(req.getContent());
         while (matcher.find()) {
