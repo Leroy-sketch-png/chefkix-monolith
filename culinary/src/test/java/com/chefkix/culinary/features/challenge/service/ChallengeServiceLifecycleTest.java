@@ -10,9 +10,11 @@ import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.common.helper.RecipeHelper;
 import com.chefkix.culinary.common.helper.StreakCalculatorHelper;
+import com.chefkix.culinary.features.challenge.dto.response.ChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.SeasonalChallengeResponse;
 import com.chefkix.culinary.features.challenge.dto.response.WeeklyChallengeResponse;
 import com.chefkix.culinary.features.challenge.entity.CommunityChallenge;
+import com.chefkix.culinary.features.challenge.entity.ChallengeLog;
 import com.chefkix.culinary.features.challenge.entity.SeasonalChallenge;
 import com.chefkix.culinary.features.challenge.model.ChallengeDefinition;
 import com.chefkix.culinary.features.challenge.model.ChallengeWeekKey;
@@ -74,6 +76,37 @@ class ChallengeServiceLifecycleTest {
     }
 
     @Test
+    void seasonalProgressCountsEveryQualifyingCookWithoutAFeaturedRecipeCap() {
+        Instant now = Instant.now();
+        SeasonalChallenge active = SeasonalChallenge.builder()
+                .id("italian-season")
+                .title("Italian Season")
+                .targetCount(10)
+                .startsAt(now.minusSeconds(3600))
+                .endsAt(now.plusSeconds(3600))
+                .status("ACTIVE")
+                .featuredRecipeIds(List.of())
+                .criteria(Map.of("cuisineType", List.of("Italian")))
+                .build();
+        List<Recipe> recipes = java.util.stream.IntStream.rangeClosed(1, 6)
+                .mapToObj(number -> italianRecipe("recipe-" + number))
+                .toList();
+
+        when(seasonalChallengeRepository.findByStatusIn(List.of("ACTIVE", "UPCOMING")))
+                .thenReturn(List.of(active));
+        when(cookingSessionRepository.findByUserIdAndStatusAndCompletedAtBetween(
+                eq("user-1"), eq(SessionStatus.COMPLETED), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(recipes.stream().map(recipe -> completedSession(recipe.getId())).toList());
+        when(recipeRepository.findAllById(any())).thenReturn(recipes);
+        when(challengeLogRepository.findByUserIdAndChallengeDate("user-1", "SEASONAL-italian-season"))
+                .thenReturn(Optional.empty());
+
+        SeasonalChallengeResponse response = challengeService.getSeasonalChallenges("user-1").getFirst();
+
+        assertThat(response.getUserProgress()).isEqualTo(6);
+    }
+
+    @Test
     void futureCommunityChallengeIsNeitherVisibleNorAdvanced() {
         Instant now = Instant.now();
         CommunityChallenge future = CommunityChallenge.builder()
@@ -121,8 +154,8 @@ class ChallengeServiceLifecycleTest {
                 eq("user-1"), eq(SessionStatus.COMPLETED), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(sessions);
         when(recipeRepository.findAllById(any())).thenReturn(recipes);
-        when(recipeRepository.findTop5ByCuisineTypeInIgnoreCase(List.of("Italian")))
-                .thenReturn(recipes.subList(0, 5));
+        when(recipeRepository.findChallengeCandidates(weekly.getCriteriaMetadata(), 20))
+                .thenReturn(recipes);
         when(challengeLogRepository.existsByUserIdAndChallengeDate(eq("user-1"), any()))
                 .thenReturn(false);
 
@@ -168,7 +201,7 @@ class ChallengeServiceLifecycleTest {
                         completedSession(nonmatching.getId()),
                         completedSession("deleted-recipe")));
         when(recipeRepository.findAllById(any())).thenReturn(List.of(qualifying, nonmatching));
-        when(recipeRepository.findTop5ByCuisineTypeInIgnoreCase(List.of("Italian")))
+        when(recipeRepository.findChallengeCandidates(weekly.getCriteriaMetadata(), 20))
                 .thenReturn(List.of(qualifying));
         when(challengeLogRepository.existsByUserIdAndChallengeDate(eq("user-1"), any()))
                 .thenReturn(false);
@@ -182,6 +215,53 @@ class ChallengeServiceLifecycleTest {
                 .isEqualTo("WEEKLY-2026-W01");
         assertThat(ChallengeWeekKey.from(LocalDate.of(2026, 1, 1)))
                 .isEqualTo("WEEKLY-2026-W01");
+    }
+
+    @Test
+    void dailyReadPreservesTheCompletedDefinitionAcrossPoolChanges() {
+        ChallengeDefinition scheduled = ChallengeDefinition.builder()
+                .id("new-daily")
+                .title("New Daily")
+                .criteriaMetadata(Map.of("maxTimeMinutes", 60))
+                .validationLogic(recipe -> recipe.getTotalTimeMinutes() > 0
+                        && recipe.getTotalTimeMinutes() <= 60)
+                .build();
+        ChallengeDefinition completedDefinition = ChallengeDefinition.builder()
+                .id("expert-challenge")
+                .title("Expert Challenge")
+                .description("Completed before the pool changed")
+                .bonusXp(100)
+                .criteriaMetadata(Map.of("maxTimeMinutes", 60, "difficulty", List.of("EXPERT")))
+                .validationLogic(recipe -> recipe.getTotalTimeMinutes() > 0
+                        && recipe.getTotalTimeMinutes() <= 60)
+                .build();
+        ChallengeLog completion = ChallengeLog.builder()
+                .userId("user-1")
+                .challengeId("expert-challenge")
+                .challengeDate(LocalDate.now(java.time.ZoneOffset.UTC).toString())
+                .completedAt(Instant.now())
+                .build();
+        Recipe qualifying = Recipe.builder()
+                .id("recipe-1")
+                .title("Fast recipe")
+                .totalTimeMinutes(45)
+                .build();
+
+        when(challengePoolService.getTodayChallenge()).thenReturn(scheduled);
+        when(challengeLogRepository.findByUserIdAndChallengeDate(
+                "user-1", completion.getChallengeDate())).thenReturn(Optional.of(completion));
+        when(challengePoolService.findDailyChallengeById("expert-challenge"))
+                .thenReturn(Optional.of(completedDefinition));
+        when(recipeRepository.findChallengeCandidates(completedDefinition.getCriteriaMetadata(), 20))
+                .thenReturn(List.of(qualifying));
+
+        ChallengeResponse response = challengeService.getTodayChallenge("user-1");
+
+        assertThat(response.getId()).isEqualTo("expert-challenge");
+        assertThat(response.getTitle()).isEqualTo("Expert Challenge");
+        assertThat(response.isCompleted()).isTrue();
+        assertThat(response.getMatchingRecipes()).extracting(ChallengeResponse.RecipePreviewDto::getId)
+                .containsExactly("recipe-1");
     }
 
     private SeasonalChallenge seasonal(String id, Instant startsAt, Instant endsAt, String status) {

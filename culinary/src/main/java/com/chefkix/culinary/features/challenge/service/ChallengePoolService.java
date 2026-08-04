@@ -9,84 +9,102 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 @Service
 public class ChallengePoolService {
 
+    private static final int DAILY_MAX_MINUTES = 60;
+
     private final List<ChallengeDefinition> pool = new ArrayList<>();
     private final List<ChallengeDefinition> weeklyPool = new ArrayList<>();
+    private final Map<String, ChallengeDefinition> dailyCatalog = new LinkedHashMap<>();
 
     @PostConstruct
     public void initPool() {
+        pool.clear();
+        weeklyPool.clear();
+        dailyCatalog.clear();
 
-        pool.add(ChallengeDefinition.builder()
-                .id("italian-day")
-                .title("Italian Day 🍝")
-                .description("Cook any Italian dish")
-                .bonusXp(50)
-                .criteriaMetadata(Map.of("cuisineType", List.of("Italian")))
-                .validationLogic(r -> checkCuisine(r, "Italian"))
-                .build());
+        registerDaily(dailyChallenge(
+                "italian-day", "Italian Day \uD83C\uDF5D", "Cook an Italian dish in an hour or less",
+                50, DAILY_MAX_MINUTES, Map.of("cuisineType", List.of("Italian")),
+                recipe -> checkCuisine(recipe, "Italian")));
+        registerDaily(dailyChallenge(
+                "veggie-friday", "Veggie Friday \uD83E\uDD57", "Cook a vegetarian dish",
+                50, DAILY_MAX_MINUTES, Map.of("dietaryTags", List.of("vegetarian")),
+                recipe -> checkDietaryTags(recipe, "vegetarian")));
+        registerDaily(dailyChallenge(
+                "french-flair", "French Flair \uD83E\uDD50", "Cook a French dish in an hour or less",
+                60, DAILY_MAX_MINUTES, Map.of("cuisineType", List.of("French")),
+                recipe -> checkCuisine(recipe, "French")));
+        registerDaily(dailyChallenge(
+                "mediterranean-vibes", "Mediterranean Vibes \uD83E\uDED2", "Cook a Mediterranean favorite",
+                50, DAILY_MAX_MINUTES,
+                Map.of("cuisineType", List.of("Greek", "Mediterranean", "Lebanese")),
+                recipe -> checkCuisine(recipe, "Greek", "Mediterranean", "Lebanese")));
+        registerDaily(dailyChallenge(
+                "quick-meal", "Quick Meal \u26A1", "Cook a meal in 30 minutes or less",
+                25, 30, Map.of(), recipe -> true));
+        registerDaily(dailyChallenge(
+                "taco-tuesday", "Taco Tuesday \uD83C\uDF2E", "Cook a Mexican dish in an hour or less",
+                50, DAILY_MAX_MINUTES, Map.of("cuisineType", List.of("Mexican")),
+                recipe -> checkCuisine(recipe, "Mexican")));
+        registerDaily(dailyChallenge(
+                "asian-fusion", "Asian Fusion \uD83E\uDD62", "Cook a dish from an Asian cuisine",
+                50, DAILY_MAX_MINUTES,
+                Map.of("cuisineType", List.of("Japanese", "Chinese", "Thai", "Korean", "Vietnamese")),
+                recipe -> checkCuisine(recipe, "Japanese", "Chinese", "Thai", "Korean", "Vietnamese")));
+        registerDaily(dailyChallenge(
+                "indian-spices", "Indian Spices \uD83C\uDF5B", "Cook an Indian dish in an hour or less",
+                50, DAILY_MAX_MINUTES, Map.of("cuisineType", List.of("Indian")),
+                recipe -> checkCuisine(recipe, "Indian")));
+        registerDaily(dailyChallenge(
+                "plant-power", "Plant Power \uD83C\uDF31", "Cook a vegan dish",
+                60, DAILY_MAX_MINUTES, Map.of("dietaryTags", List.of("vegan")),
+                recipe -> checkDietaryTags(recipe, "vegan")));
+        registerDaily(dailyChallenge(
+                "chicken-challenge", "Chicken Challenge \uD83C\uDF57", "Cook with chicken today",
+                50, DAILY_MAX_MINUTES, Map.of("ingredientContains", List.of("chicken")),
+                recipe -> checkIngredients(recipe, "chicken")));
+        registerDaily(dailyChallenge(
+                "seafood-day", "Seafood Day \uD83E\uDD90", "Cook with fish or shellfish today",
+                60, DAILY_MAX_MINUTES,
+                Map.of("ingredientContains", List.of("fish", "shrimp", "salmon", "tuna")),
+                recipe -> checkIngredients(recipe, "fish", "shrimp", "salmon", "tuna")));
+        registerDaily(dailyChallenge(
+                "express-cook", "Express Cook \uD83C\uDFC3", "Cook a meal in 20 minutes or less",
+                30, 20, Map.of(), recipe -> true));
+        registerDaily(dailyChallenge(
+                "spice-it-up", "Spice It Up \uD83C\uDF36\uFE0F", "Cook with chili, pepper, or another spicy ingredient",
+                50, DAILY_MAX_MINUTES,
+                Map.of("ingredientContains", List.of("chili", "pepper", "sriracha", "jalapeno")),
+                recipe -> checkIngredients(recipe, "chili", "pepper", "sriracha", "jalapeno")));
+        registerDaily(dailyChallenge(
+                "american-classics", "American Classics \uD83C\uDF54", "Cook an American classic",
+                40, DAILY_MAX_MINUTES, Map.of("cuisineType", List.of("American")),
+                recipe -> checkCuisine(recipe, "American")));
 
-        pool.add(ChallengeDefinition.builder()
-                .id("quick-meal")
-                .title("Quick Meal ⚡")
-                .description("Cook a meal in under 30 minutes")
-                .bonusXp(25)
-                .criteriaMetadata(Map.of("maxTimeMinutes", 30))
-                .validationLogic(r -> r.getTotalTimeMinutes() <= 30)
-                .build());
-
-        pool.add(ChallengeDefinition.builder()
-                .id("spice-it-up")
-                .title("Spice It Up 🌶️")
-                .description("Use spicy ingredients like chili or pepper")
-                .bonusXp(50)
-                .criteriaMetadata(Map.of("ingredientContains", List.of("chili", "pepper", "spicy")))
-                .validationLogic(r -> checkIngredients(r, "chili", "pepper", "spicy"))
-                .build());
-
-        pool.add(ChallengeDefinition.builder()
-                .id("asian-fusion")
-                .title("Asian Fusion 🥢")
-                .description("Cook a dish from Asian cuisine")
-                .bonusXp(50)
-                .criteriaMetadata(Map.of("cuisineType", List.of("Japanese", "Chinese", "Thai", "Korean", "Vietnamese")))
-                .validationLogic(r -> checkCuisine(r, "Japanese", "Chinese", "Thai", "Korean", "Vietnamese"))
-                .build());
-
-        pool.add(ChallengeDefinition.builder()
-                .id("comfort-food")
-                .title("Comfort Food 🍲")
-                .description("Classic American or British comfort food")
-                .bonusXp(40)
-                .criteriaMetadata(Map.of(
-                        "cuisineType", List.of("American", "British"),
-                        "difficulty", List.of("BEGINNER", "INTERMEDIATE")
-                ))
-                .validationLogic(r -> checkCuisine(r, "American", "British")
-                        && checkDifficulty(r, "BEGINNER", "INTERMEDIATE"))
-                .build());
-
-        pool.add(ChallengeDefinition.builder()
-                .id("expert-challenge")
-                .title("Expert Challenge 👨‍🍳")
-                .description("Only for the brave! Cook an Expert level dish.")
-                .bonusXp(100)
-                .criteriaMetadata(Map.of("difficulty", List.of("EXPERT")))
-                .validationLogic(r -> checkDifficulty(r, "EXPERT"))
-                .build());
-
-        pool.add(ChallengeDefinition.builder()
-                .id("baking-day")
-                .title("Baking Day 🍰")
-                .description("Time to bake something sweet or savory")
-                .bonusXp(75)
-                .criteriaMetadata(Map.of("skillTags", List.of("baking")))
-                .validationLogic(r -> checkTags(r, "baking", "cake", "oven"))
-                .build());
+        registerRetired(dailyChallenge(
+                "comfort-food", "Comfort Food \uD83C\uDF72", "Classic American or British comfort food",
+                40, DAILY_MAX_MINUTES,
+                Map.of("cuisineType", List.of("American", "British"),
+                        "difficulty", List.of("BEGINNER", "INTERMEDIATE")),
+                recipe -> checkCuisine(recipe, "American", "British")
+                        && checkDifficulty(recipe, "BEGINNER", "INTERMEDIATE")));
+        registerRetired(dailyChallenge(
+                "expert-challenge", "Expert Challenge \uD83D\uDC68\u200D\uD83C\uDF73",
+                "Only for the brave! Cook an Expert level dish.", 100, DAILY_MAX_MINUTES,
+                Map.of("difficulty", List.of("EXPERT")),
+                recipe -> checkDifficulty(recipe, "EXPERT")));
+        registerRetired(dailyChallenge(
+                "baking-day", "Baking Day \uD83C\uDF70", "Bake something sweet or savory",
+                75, DAILY_MAX_MINUTES, Map.of("skillTags", List.of("baking")),
+                recipe -> checkTags(recipe, "baking", "cake", "oven")));
 
 
         weeklyPool.add(ChallengeDefinition.builder()
@@ -116,7 +134,7 @@ public class ChallengePoolService {
                 .bonusXp(175)
                 .target(5)
                 .criteriaMetadata(Map.of("maxTimeMinutes", 30))
-                .validationLogic(r -> r.getTotalTimeMinutes() <= 30)
+                .validationLogic(r -> hasValidDuration(r, 30))
                 .build());
 
         weeklyPool.add(ChallengeDefinition.builder()
@@ -133,10 +151,17 @@ public class ChallengePoolService {
     /**
      */
     public ChallengeDefinition getTodayChallenge() {
+        return getChallengeForDate(LocalDate.now(ZoneId.of("UTC")));
+    }
+
+    ChallengeDefinition getChallengeForDate(LocalDate date) {
         if (pool.isEmpty()) return null;
-        LocalDate today = LocalDate.now(ZoneId.of("UTC"));
-        int index = (today.getDayOfYear() - 1) % pool.size();
+        int index = Math.floorMod(date.toEpochDay(), pool.size());
         return pool.get(index);
+    }
+
+    public Optional<ChallengeDefinition> findDailyChallengeById(String challengeId) {
+        return Optional.ofNullable(dailyCatalog.get(challengeId));
     }
 
     /**
@@ -162,7 +187,7 @@ public class ChallengePoolService {
 
     private boolean checkDifficulty(Recipe r, String... allowedLevels) {
         if (r.getDifficulty() == null) return false;
-String recipeDiff = r.getDifficulty().toString().toUpperCase();
+        String recipeDiff = r.getDifficulty().toString().toUpperCase();
 
         for (String allowed : allowedLevels) {
             if (recipeDiff.equals(allowed.toUpperCase())) return true;
@@ -171,13 +196,12 @@ String recipeDiff = r.getDifficulty().toString().toUpperCase();
     }
 
     private boolean checkIngredients(Recipe r, String... keywords) {
-        String ingredientsStr = "";
-
-        if (r.getFullIngredientList() != null) {
-            ingredientsStr = r.getFullIngredientList().toString().toLowerCase();
-        } else if (r.getDescription() != null) {
-            ingredientsStr = r.getDescription().toLowerCase();
-        }
+        String ingredientsStr = r.getFullIngredientList() == null
+                ? ""
+                : r.getFullIngredientList().stream()
+                        .filter(ingredient -> ingredient != null && ingredient.getName() != null)
+                        .map(ingredient -> ingredient.getName().toLowerCase())
+                        .reduce("", (left, right) -> left + " " + right);
 
         for (String keyword : keywords) {
             if (ingredientsStr.contains(keyword.toLowerCase())) return true;
@@ -186,13 +210,62 @@ String recipeDiff = r.getDifficulty().toString().toUpperCase();
     }
 
     private boolean checkTags(Recipe r, String... keywords) {
-        if (r.getDietaryTags() == null) return false;
+        if (r.getSkillTags() == null) return false;
 
-        for (String tag : r.getDietaryTags()) {
+        for (String tag : r.getSkillTags()) {
+            if (tag == null) continue;
             for (String keyword : keywords) {
+                if (keyword == null) continue;
                 if (tag.toLowerCase().contains(keyword.toLowerCase())) return true;
             }
         }
         return false;
+    }
+
+    private boolean checkDietaryTags(Recipe recipe, String... allowedTags) {
+        if (recipe.getDietaryTags() == null) return false;
+        return recipe.getDietaryTags().stream()
+                .filter(tag -> tag != null)
+                .anyMatch(tag -> List.of(allowedTags).stream()
+                        .filter(allowed -> allowed != null)
+                        .anyMatch(tag::equalsIgnoreCase));
+    }
+
+    private ChallengeDefinition dailyChallenge(
+            String id,
+            String title,
+            String description,
+            int bonusXp,
+            int maxTimeMinutes,
+            Map<String, Object> primaryCriteria,
+            Predicate<Recipe> primaryRule) {
+        Map<String, Object> criteria = new LinkedHashMap<>(primaryCriteria);
+        int boundedMinutes = Math.min(maxTimeMinutes, DAILY_MAX_MINUTES);
+        criteria.put("maxTimeMinutes", boundedMinutes);
+
+        return ChallengeDefinition.builder()
+                .id(id)
+                .title(title)
+                .description(description)
+                .bonusXp(bonusXp)
+                .criteriaMetadata(Map.copyOf(criteria))
+                .validationLogic(recipe -> hasValidDuration(recipe, boundedMinutes)
+                        && primaryRule.test(recipe))
+                .build();
+    }
+
+    private void registerDaily(ChallengeDefinition challenge) {
+        pool.add(challenge);
+        dailyCatalog.put(challenge.getId(), challenge);
+    }
+
+    private void registerRetired(ChallengeDefinition challenge) {
+        dailyCatalog.putIfAbsent(challenge.getId(), challenge);
+    }
+
+    private boolean hasValidDuration(Recipe recipe, int maxTimeMinutes) {
+        return recipe != null
+                && recipe.getTotalTimeMinutes() > 0
+                && recipe.getTotalTimeMinutes() <= maxTimeMinutes;
     }
 }

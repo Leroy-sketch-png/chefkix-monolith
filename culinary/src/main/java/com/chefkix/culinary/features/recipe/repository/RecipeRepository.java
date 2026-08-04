@@ -16,10 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface RecipeRepository extends MongoRepository<Recipe,String>, RecipeRepositoryCustom {
-    List<Recipe> findTop5ByCuisineTypeInIgnoreCase(List<String> cuisines);
-
-    List<Recipe> findTop5ByFullIngredientListInIgnoreCase(List<String> ingredients);
-
     Page<Recipe> findAllByUserIdInOrderByCreatedAtDesc(List<String> userIds, Pageable pageable);
 
     List<Recipe> findByUserIdAndStatusOrderByUpdatedAtDesc(String currentUserId, RecipeStatus recipeStatus);

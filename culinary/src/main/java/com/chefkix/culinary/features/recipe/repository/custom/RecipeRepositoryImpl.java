@@ -2,6 +2,7 @@ package com.chefkix.culinary.features.recipe.repository.custom;
 
 import com.chefkix.culinary.common.dto.query.RecipeSearchQuery;
 import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.RecipeVisibility;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.common.specification.RecipeSpecification;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @Repository
 @RequiredArgsConstructor
@@ -98,5 +101,67 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                 .include("mealRole")
                 .include("fullIngredientList");
         return mongoTemplate.find(query, Recipe.class);
+    }
+
+    @Override
+    public List<Recipe> findChallengeCandidates(Map<String, Object> challengeCriteria, int limit) {
+        List<Criteria> filters = new java.util.ArrayList<>();
+        filters.add(Criteria.where("status").is(RecipeStatus.PUBLISHED));
+        filters.add(new Criteria().orOperator(
+                Criteria.where("recipeVisibility").is(RecipeVisibility.PUBLIC),
+                Criteria.where("recipeVisibility").is(null)));
+
+        Integer maxTimeMinutes = numericCriteria(challengeCriteria, "maxTimeMinutes");
+        if (maxTimeMinutes != null) {
+            filters.add(Criteria.where("totalTimeMinutes").gt(0).lte(maxTimeMinutes));
+        }
+
+        addPatternFilter(filters, challengeCriteria, "cuisineType", "cuisineType", true);
+        addPatternFilter(filters, challengeCriteria, "ingredientContains", "fullIngredientList.name", false);
+        addPatternFilter(filters, challengeCriteria, "dietaryTags", "dietaryTags", true);
+        addPatternFilter(filters, challengeCriteria, "skillTags", "skillTags", true);
+
+        addPatternFilter(filters, challengeCriteria, "difficulty", "difficulty", true);
+
+        Query query = new Query(new Criteria().andOperator(filters.toArray(Criteria[]::new)))
+                .with(Sort.by(Sort.Direction.DESC, "cookCount", "viewCount"))
+                .limit(Math.max(1, Math.min(limit, 20)));
+        return mongoTemplate.find(query, Recipe.class);
+    }
+
+    private void addPatternFilter(
+            List<Criteria> filters,
+            Map<String, Object> challengeCriteria,
+            String criteriaKey,
+            String documentField,
+            boolean exactMatch) {
+        List<String> values = stringListCriteria(challengeCriteria, criteriaKey);
+        if (values.isEmpty()) return;
+
+        List<Pattern> patterns = values.stream()
+                .map(value -> Pattern.compile(
+                        exactMatch ? "^" + Pattern.quote(value) + "$" : Pattern.quote(value),
+                        Pattern.CASE_INSENSITIVE))
+                .toList();
+        filters.add(Criteria.where(documentField).in(patterns));
+    }
+
+    private List<String> stringListCriteria(Map<String, Object> criteria, String key) {
+        if (criteria == null || !(criteria.get(key) instanceof List<?> values)) {
+            return List.of();
+        }
+        return values.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .filter(value -> !value.isBlank())
+                .filter(value -> !"ANY".equalsIgnoreCase(value))
+                .toList();
+    }
+
+    private Integer numericCriteria(Map<String, Object> criteria, String key) {
+        if (criteria != null && criteria.get(key) instanceof Number number) {
+            return Math.max(1, number.intValue());
+        }
+        return null;
     }
 }

@@ -36,12 +36,6 @@ public interface CookingSessionRepository extends MongoRepository<CookingSession
      */
     Page<CookingSession> findByRecipeIdInAndStatus(List<String> recipeIds, SessionStatus status, Pageable pageable);
 
-    /**
-     */
-    long countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
-            String userId, List<String> recipeIds, SessionStatus status,
-            LocalDateTime start, LocalDateTime end);
-
     List<CookingSession> findByUserIdAndStatusAndCompletedAtBetween(
             String userId, SessionStatus status, LocalDateTime start, LocalDateTime end);
 

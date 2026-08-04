@@ -21,6 +21,7 @@ import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRepo
 import com.chefkix.culinary.features.challenge.repository.CommunityChallengeRedisRepository;
 import com.chefkix.culinary.features.challenge.repository.SeasonalChallengeRepository;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
+import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.mongodb.DuplicateKeyException;
 import lombok.RequiredArgsConstructor;
@@ -61,14 +62,20 @@ public class ChallengeService {
             throw new AppException(ErrorCode.CHALLENGE_NOT_FOUND);
         }
 
-String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
+        String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
         Optional<ChallengeLog> logOpt = challengeLogRepository.findByUserIdAndChallengeDate(userId, todayStr);
+
+        if (logOpt.isPresent() && StringUtils.hasText(logOpt.get().getChallengeId())
+                && !Objects.equals(logOpt.get().getChallengeId(), challenge.getId())) {
+            challenge = challengePoolService.findDailyChallengeById(logOpt.get().getChallengeId())
+                    .orElse(challenge);
+        }
 
         boolean isCompleted = logOpt.isPresent();
         String completedAt = isCompleted && logOpt.get().getCompletedAt() != null
                 ? logOpt.get().getCompletedAt().toString() : null;
 
-        List<ChallengeResponse.RecipePreviewDto> matchingRecipes = findMatchingRecipes(challenge.getCriteriaMetadata());
+        List<ChallengeResponse.RecipePreviewDto> matchingRecipes = findMatchingRecipes(challenge);
 
         LocalDate today = LocalDate.now(ZoneId.of("UTC"));
 
@@ -80,13 +87,13 @@ String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
-            .icon(extractChallengeIcon(challenge.getTitle()))
+                .icon(extractChallengeIcon(challenge.getTitle()))
                 .bonusXp(challenge.getBonusXp())
                 .endsAt(endsAtStr)
-.criteria(challenge.getCriteriaMetadata())
+                .criteria(challenge.getCriteriaMetadata())
                 .completed(isCompleted)
                 .completedAt(completedAt)
-.matchingRecipes(matchingRecipes)
+                .matchingRecipes(matchingRecipes)
                 .build();
     }
 
@@ -105,62 +112,30 @@ String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
         return looksLikeEmoji ? lastToken : "🎯";
     }
 
-    /**
-     */
-    /**
-     */
-    private List<ChallengeResponse.RecipePreviewDto> findMatchingRecipes(Map<String, Object> criteria) {
+    private List<ChallengeResponse.RecipePreviewDto> findMatchingRecipes(ChallengeDefinition challenge) {
+        Map<String, Object> criteria = challenge.getCriteriaMetadata();
         if (criteria == null || criteria.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Recipe> recipes = new ArrayList<>();
-
-        if (criteria.containsKey("cuisineType")) {
-            List<String> cuisines = getStringListCriteria(criteria, "cuisineType");
-            recipes = recipeRepository.findTop5ByCuisineTypeInIgnoreCase(cuisines);
-        }
-
-        if (recipes.isEmpty() && criteria.containsKey("ingredientContains")) {
-            List<String> ingredients = getStringListCriteria(criteria, "ingredientContains");
-            recipes = recipeRepository.findTop5ByFullIngredientListInIgnoreCase(ingredients);
-        }
-
-        if (recipes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return recipes.stream()
+        return recipeRepository.findChallengeCandidates(criteria, 20).stream()
+                .filter(challenge::isSatisfiedBy)
+                .limit(5)
                 .map(this::mapToPreviewDto)
-.toList();
-    }
-
-    private List<String> getStringListCriteria(Map<String, Object> criteria, String key) {
-        Object rawValue = criteria.get(key);
-        if (!(rawValue instanceof List<?> rawList)) {
-            return Collections.emptyList();
-        }
-
-        return rawList.stream()
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
                 .toList();
     }
 
-    /**
-     */
     public Optional<ChallengeRewardResult> checkAndCompleteChallenge(String userId, Recipe recipe) {
-
         ChallengeDefinition challenge = challengePoolService.getTodayChallenge();
         if (challenge == null) return Optional.empty();
 
-String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
+        String todayStr = LocalDate.now(ZoneId.of("UTC")).toString();
 
         boolean alreadyCompleted = challengeLogRepository
                 .existsByUserIdAndChallengeDate(userId, todayStr);
 
         if (alreadyCompleted) {
-return Optional.empty();
+            return Optional.empty();
         }
 
         if (challenge.isSatisfiedBy(recipe)) {
@@ -168,9 +143,9 @@ return Optional.empty();
             ChallengeLog historyLog = ChallengeLog.builder()
                     .userId(userId)
                     .challengeId(challenge.getId())
-.challengeTitle(challenge.getTitle())
+                    .challengeTitle(challenge.getTitle())
                     .recipeId(recipe.getId())
-.recipeTitle(recipe.getTitle())
+                    .recipeTitle(recipe.getTitle())
                     .challengeDate(todayStr)
                     .bonusXp(challenge.getBonusXp())
                     .completedAt(Instant.now())
@@ -203,7 +178,7 @@ return Optional.empty();
         Pageable pageable = PageRequest.of(page, size, Sort.by("challengeDate").descending());
         Page<ChallengeLog> historyPage = challengeLogRepository.findByUserId(userId, pageable);
 
-List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.getContent()
+        List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.getContent()
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -219,7 +194,7 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
         long totalBonusXp = (sumResult != null) ? sumResult.totalXp : 0;
 
         return ChallengeHistoryResponse.builder()
-.challenges(challengesList)
+                .challenges(challengesList)
                 .stats(ChallengeHistoryResponse.StatsDto.builder()
                         .totalCompleted((long) allDateStrings.size())
                         .currentStreak(streakResult.getCurrentStreak())
@@ -229,14 +204,12 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
                 .build();
     }
 
-    /**
-     */
     private ChallengeResponse.RecipePreviewDto mapToPreviewDto(Recipe recipe) {
         return ChallengeResponse.RecipePreviewDto.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
-.xpReward(recipe.getXpReward())
-.coverImageUrl(recipe.getCoverImageUrl())
+                .xpReward(recipe.getXpReward())
+                .coverImageUrl(recipe.getCoverImageUrl())
                 .totalTime(recipe.getTotalTimeMinutes())
                 .difficulty(recipe.getDifficulty())
                 .build();
@@ -254,7 +227,7 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
 
             recipeInfo = ChallengeHistoryResponse.RecipeShortInfo.builder()
                     .id(log.getRecipeId())
-.title(log.getRecipeTitle())
+                    .title(log.getRecipeTitle())
                     .imageUrl(recipeImageUrl)
                     .build();
         }
@@ -262,8 +235,8 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
         return ChallengeHistoryResponse.ChallengeItemDto.builder()
                 .id(log.getChallengeId())
                 .title(log.getChallengeTitle())
-.date(LocalDate.parse(log.getChallengeDate()))
-.completed(true)
+                .date(LocalDate.parse(log.getChallengeDate()))
+                .completed(true)
                 .completedAt(log.getCompletedAt() != null
                         ? LocalDateTime.ofInstant(log.getCompletedAt(), ZoneId.of("UTC")) : null)
                 .bonusXpEarned(log.getBonusXp())
@@ -300,7 +273,7 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
                     .orElse(null);
         }
 
-        List<ChallengeResponse.RecipePreviewDto> previewDtos = findMatchingRecipes(weekly.getCriteriaMetadata());
+        List<ChallengeResponse.RecipePreviewDto> previewDtos = findMatchingRecipes(weekly);
 
         return WeeklyChallengeResponse.builder()
                 .id(weekly.getId())
@@ -331,7 +304,7 @@ List<ChallengeHistoryResponse.ChallengeItemDto> challengesList = historyPage.get
         LocalDate today = LocalDate.now(ZoneId.of("UTC"));
         String weekKey = ChallengeWeekKey.from(today);
         if (challengeLogRepository.existsByUserIdAndChallengeDate(userId, weekKey)) {
-return Optional.empty();
+            return Optional.empty();
         }
 
         LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
@@ -599,26 +572,36 @@ return Optional.empty();
     private int countUserSeasonalProgress(String userId, SeasonalChallenge ch) {
         LocalDateTime startDt = LocalDateTime.ofInstant(ch.getStartsAt(), ZoneId.of("UTC"));
         LocalDateTime endDt = LocalDateTime.ofInstant(ch.getEndsAt(), ZoneId.of("UTC"));
+        List<CookingSession> completedSessions = cookingSessionRepository
+                .findByUserIdAndStatusAndCompletedAtBetween(
+                        userId, SessionStatus.COMPLETED, startDt, endDt);
+        if (completedSessions.isEmpty()) return 0;
 
-        List<String> recipeIds;
+        Set<String> qualifyingRecipeIds;
         if (ch.getFeaturedRecipeIds() != null && !ch.getFeaturedRecipeIds().isEmpty()) {
-            recipeIds = ch.getFeaturedRecipeIds();
+            qualifyingRecipeIds = new HashSet<>(ch.getFeaturedRecipeIds());
         } else {
-            recipeIds = findMatchingRecipes(ch.getCriteria()).stream()
-                    .map(ChallengeResponse.RecipePreviewDto::getId)
+            List<String> cookedRecipeIds = completedSessions.stream()
+                    .map(CookingSession::getRecipeId)
+                    .filter(Objects::nonNull)
+                    .distinct()
                     .toList();
+            qualifyingRecipeIds = recipeRepository.findAllById(cookedRecipeIds).stream()
+                    .filter(recipe -> matchesCriteria(recipe, ch.getCriteria()))
+                    .map(Recipe::getId)
+                    .collect(Collectors.toSet());
         }
 
-        if (recipeIds.isEmpty()) return 0;
-
-        return (int) cookingSessionRepository.countByUserIdAndRecipeIdInAndStatusAndCompletedAtBetween(
-                userId, recipeIds, SessionStatus.COMPLETED, startDt, endDt);
+        return (int) completedSessions.stream()
+                .map(CookingSession::getRecipeId)
+                .filter(qualifyingRecipeIds::contains)
+                .count();
     }
 
     /**
      */
     private boolean matchesCriteria(Recipe recipe, Map<String, Object> criteria) {
-if (criteria == null || criteria.isEmpty()) return true;
+        if (criteria == null || criteria.isEmpty()) return true;
 
         String type = (String) criteria.get("type");
         if ("COOK_ANY".equals(type)) return true;
@@ -627,8 +610,7 @@ if (criteria == null || criteria.isEmpty()) return true;
 
         if (criteria.containsKey("cuisineType")) {
             hasAnyCriteria = true;
-            @SuppressWarnings("unchecked")
-            List<String> cuisines = (List<String>) criteria.get("cuisineType");
+            List<String> cuisines = criteriaStrings(criteria.get("cuisineType"));
             if (recipe.getCuisineType() == null ||
                     cuisines.stream().noneMatch(c -> c.equalsIgnoreCase(recipe.getCuisineType()))) {
                 return false;
@@ -637,24 +619,72 @@ if (criteria == null || criteria.isEmpty()) return true;
 
         if (criteria.containsKey("skillTags")) {
             hasAnyCriteria = true;
-            @SuppressWarnings("unchecked")
-            List<String> tags = (List<String>) criteria.get("skillTags");
+            List<String> tags = criteriaStrings(criteria.get("skillTags"));
             if (recipe.getSkillTags() == null ||
-                    recipe.getSkillTags().stream().noneMatch(t ->
+                    recipe.getSkillTags().stream().filter(Objects::nonNull).noneMatch(t ->
                             tags.stream().anyMatch(ct -> ct.equalsIgnoreCase(t)))) {
+                return false;
+            }
+        }
+
+        if (criteria.containsKey("dietaryTags")) {
+            hasAnyCriteria = true;
+            List<String> tags = criteriaStrings(criteria.get("dietaryTags"));
+            if (recipe.getDietaryTags() == null ||
+                    recipe.getDietaryTags().stream().filter(Objects::nonNull).noneMatch(t ->
+                            tags.stream().anyMatch(ct -> ct.equalsIgnoreCase(t)))) {
+                return false;
+            }
+        }
+
+        if (criteria.containsKey("ingredientContains")) {
+            hasAnyCriteria = true;
+            List<String> ingredients = criteriaStrings(criteria.get("ingredientContains"));
+            if (recipe.getFullIngredientList() == null ||
+                    recipe.getFullIngredientList().stream()
+                            .filter(Objects::nonNull)
+                            .map(ingredient -> ingredient.getName())
+                            .filter(Objects::nonNull)
+                            .noneMatch(name -> ingredients.stream()
+                                    .anyMatch(expected -> name.toLowerCase(Locale.ROOT)
+                                            .contains(expected.toLowerCase(Locale.ROOT))))) {
                 return false;
             }
         }
 
         if (criteria.containsKey("difficulty")) {
             hasAnyCriteria = true;
-            String difficulty = (String) criteria.get("difficulty");
+            List<String> difficulties = criteriaStrings(criteria.get("difficulty"));
             if (recipe.getDifficulty() == null ||
-                    !recipe.getDifficulty().name().equalsIgnoreCase(difficulty)) {
+                    difficulties.stream().noneMatch(difficulty ->
+                            recipe.getDifficulty().name().equalsIgnoreCase(difficulty))) {
+                return false;
+            }
+        }
+
+        if (criteria.get("maxTimeMinutes") instanceof Number maxTime) {
+            hasAnyCriteria = true;
+            if (recipe.getTotalTimeMinutes() <= 0
+                    || recipe.getTotalTimeMinutes() > maxTime.intValue()) {
                 return false;
             }
         }
 
         return hasAnyCriteria;
+    }
+
+    private List<String> criteriaStrings(Object rawValue) {
+        if (rawValue instanceof String value) {
+            return value.isBlank() ? List.of() : List.of(value);
+        }
+        if (!(rawValue instanceof List<?> values)) {
+            return List.of();
+        }
+        return values.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .filter(value -> !value.isBlank())
+                .filter(value -> !"ANY".equalsIgnoreCase(value))
+                .toList();
     }
 }
