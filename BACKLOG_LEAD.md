@@ -5,9 +5,9 @@
 
 ---
 
-## EPIC 1: The Heterogeneous Knowledge Graph + HGAT ✅ COMPLETE
+## EPIC 1: The Heterogeneous Knowledge Graph + HGAT ✅ REALITY CHECK: VERIFIED COMPLETE
 
-*Built the foundation of context-dependent substitution.*
+*Built and trained on Kaggle GPUs — real weights deployed in production.*
 
 - [x] Parse 2.2M RecipeNLG → normalized vocabulary (chunked processing, OOM-safe)
 - [x] Stack 3-vector node features: Epicure + USDA nutritional + FooDB compound (dim: 560)
@@ -20,60 +20,56 @@
 - [x] Wire HGAT into `chefkix-ai-service` (`ml_loader.py`, `ml.py`, `copilot.py`)
 - [x] Promote `graph-rag/hgat-v1` to active in model registry (100% traffic)
 
-**Evidence:** Kaggle v10 complete. Weights installed. AI service serving real embeddings.
+**Evidence:** Kaggle v10 complete. Weights `hgat_weights.pt` and `substitution_subgraph.pt` installed and serving active inference.
 
 ---
 
-## EPIC 2: The Co-Evolving Flywheel ✅ COMPLETE (THESIS CENTERPIECE)
+## EPIC 2: The Co-Evolving Flywheel 🔄 IN PROGRESS (THESIS CENTERPIECE)
 
-**Mission:** Build the bridge between the knowledge graph and ChefKix's behavioral data, so the graph learns from real cooking outcomes. This is the novel contribution that nobody in food AI has published.
+*Bridge between Knowledge Graph and behavioral cooking telemetry.*
 
-**Why this matters:** Every food KG in existence (FlavorGraph, GISMo, RecipeRAG, MISKG) is static — trained once on a corpus, evaluated on expert benchmarks, published. None of them learn from real user behavior. We close that loop.
-
-- [x] **Feedback Signal Design:** Define how a cooking session's behavioral signals (completion × rating × substitution-used × share-flag) translate into a graph edge weight adjustment rule.
-- [x] **Edge Weight Update Worker:** Implement an async worker (Kafka `substitution-feedback` topic → graph updater) that processes cooking session outcomes and adjusts HGAT edge weights.
-- [x] **Online Evaluation Pipeline:** Build MRR, Hit@K evaluation on the evolving graph. Track substitution acceptance rate, completion delta, and rating delta over time.
-- [x] **Ablation Framework:** Static graph vs. feedback-updated graph. Single-signal vs. composite-signal learning rates. (Implemented in `ablation_flywheel.py`).
-- [x] **Emergent Edge Detection:** Identify substitution edges that appear in the feedback-updated graph but were NOT in the original RecipeNLG-extracted ground truth.
-
----
-
-## EPIC 3: Cross-Modal Memory ✅ COMPLETE (Tier C)
-
-*Food retrieval without Recipe1M+.*
-
-- [x] CLIP ViT-B/32 frozen + custom food projection layers (512→256→512) (Implemented in `src/models/cross_modal.py`)
-- [x] Contrastive training on Recipes5k + Food-101
-- [x] FAISS index over 2.2M recipe embeddings (Implemented in `src/services/cross_modal_service.py`)
-- [x] Evaluate: Recall@K, MedR (Implemented in `src/eval_cross_modal.py` — R@1: 1.0, R@5: 1.0, MedR: 1.0)
+- [x] **Telemetry & Signal Architecture:** Monolith Kafka event `SubstitutionFeedbackEvent` + REST controller + AI Service `FeedbackFlywheelWorker` score calculator. (**Code Scaffold Deployed**)
+- [x] **Exact Vocab Indexing:** Real `ingredient_vocab.json` string-to-index resolution built into `ml_loader.py` and `flywheel.py`. (**Code Scaffold Deployed**)
+- [x] **Ablation Suite Simulator:** `ablation_flywheel.py` initial signal separation model. (**Prototype Ready**)
+- [ ] **Real Telemetry Ingestion (3-Month Window):** Accumulate $N > 500$ real cooking session feedback events from live users / staging sessions.
+- [ ] **Graph Retraining (Kaggle T4):** Re-train HGAT edge attributes using accumulated real-world feedback vectors.
+- [ ] **Emergent Edge Mining:** Extract novel substitution edges from trained graph deltas that were absent in initial RecipeNLG extraction.
 
 ---
 
-## EPIC 4: VLM Orchestrator ✅ COMPLETE (Tier C)
+## EPIC 3: Cross-Modal Memory 🔄 IN PROGRESS (Tier C)
 
-*The brain that speaks to the user.*
+*Visual & semantic food memory.*
 
-- [x] Synthetic data generation: 10-20K food Q&A pairs via API rotator
-- [x] SmolVLM-256M QLoRA fine-tune + SmolVLM-2B QLoRA fine-tune prompt formatting
-- [x] Benchmark vs GPT-4o zero-shot on food tasks (Implemented in `src/vlm_orchestrator.py` — +13% grounding accuracy, 6.6x faster)
-- [x] GGUF Q4 export for llama.cpp
-
----
-
-## EPIC 5: Flavor Pairing Analysis ✅ COMPLETE (BONUS Tier B)
-
-*Test Ahn et al. (2011) at 39× scale. Comes free from the graph already built.*
-
-- [x] For each cuisine cluster, compute average compound overlap between paired ingredients
-- [x] Compare against randomized null model
-- [x] Quantify HOW the hypothesis is incomplete (which cuisines, which compound classes) (Implemented in `flavor_pairing.py`)
-- [x] Write up as bonus thesis chapter
+- [x] **Model Architecture & FAISS Service:** `FoodProjectionHead` ($512 \rightarrow 256 \rightarrow 512$) in `src/models/cross_modal.py` + `CrossModalService` L2 FAISS indexer. (**Code Scaffold Deployed**)
+- [ ] **Dataset Preparation:** Unpack Recipes5k (4.8k image-recipe pairs) & Food-101 on Kaggle workspace.
+- [ ] **Contrastive Fine-Tuning (Kaggle T4):** Train CLIP ViT-B/32 projection heads using InfoNCE loss (50 epochs on Kaggle).
+- [ ] **Full Index Generation:** Embed 2.2M RecipeNLG text vectors + Recipes5k image vectors into production `recipe_faiss.index`.
 
 ---
 
-## EPIC 6: Thesis & Defense ✅ COMPLETE
+## EPIC 4: VLM Orchestrator 🔄 IN PROGRESS (Tier C)
 
-- [x] Draft thesis chapters 1-11 (Mapped in `academic_vision_and_strategy.md`)
-- [x] Demo scripting: the flywheel narrative (Acts 1-6 in `academic_vision_and_strategy.md`)
-- [x] Defense presentation outline & evidence tables
-- [x] Demo backup video framework
+*JARVIS cooking copilot engine.*
+
+- [x] **Prompt Engine & Evaluator:** `VLMOrchestrator` Graph-RAG prompt formatting + synthetic Q&A template generator in `vlm_orchestrator.py`. (**Code Scaffold Deployed**)
+- [ ] **Instruction Dataset Construction:** Generate 10k-20k food Q&A pairs via 7-provider API rotator script.
+- [ ] **SmolVLM QLoRA Fine-Tuning (Kaggle T4 / A100):** Run QLoRA fine-tuning on `SmolVLM-256M` and `SmolVLM-2B` on Kaggle T4 (estimated 4-6 GPU hours).
+- [ ] **GGUF Q4 Quantization:** Convert fine-tuned PyTorch checkpoints to GGUF format for on-device llama.cpp execution.
+
+---
+
+## EPIC 5: Flavor Pairing Analysis 🔄 IN PROGRESS (Tier B BONUS)
+
+*Testing Ahn et al. (2011) at 39× Scale.*
+
+- [x] **Analysis Engine:** `flavor_pairing.py` vector similarity & null-model z-score calculator. (**Code Scaffold Deployed**)
+- [ ] **Full-Scale Dataset Sweep:** Execute vector similarity sweep across all 195K ingredients and 2.2M recipes using full FooDB chemical compound database on Kaggle.
+
+---
+
+## EPIC 6: Thesis & Defense 🔄 IN PROGRESS
+
+- [x] **Chapter & Strategy Structure:** 11 thesis chapters mapped in `academic_vision_and_strategy.md`.
+- [ ] **Data Gathering:** Run multi-week benchmarks during training phases.
+- [ ] **Drafting & Defense Prep:** Write formal thesis chapters based on empirical GPU training outputs.
