@@ -1,49 +1,79 @@
-# IRON CHEF v2: LEAD BACKLOG (THE CUNNING EXPLOITS)
+# IRON CHEF v2: LEAD BACKLOG
 
-> **Track:** ML & Data Science (Reasoning Engine)
-> **Mandate:** Focus on Graph Neural Networks, Large Language Model orchestration, and Computational Food Science. You own the deep intelligence layer.
+> **Track:** ML & Data Science (Reasoning Engine + Flywheel)  
+> **Mandate:** Own the knowledge graph, the feedback loop, and the evaluation pipeline. You own the intelligence that makes ChefKix learn from every kitchen.
 
-## EPIC 1: Layer 2 — The Heterogeneous Knowledge Graph (The Brain)
-*Building the foundation of context-dependent substitution and grounded reasoning.*
+---
 
-- [ ] **Data Exploit Integration:** Write chunked-processing scripts to parse the 2.2M RecipeNLG dataset into a normalized vocabulary (avoids Out-Of-Memory crashes when building the PyG graph).  
-- [ ] **Feature Stacking (The 3-Vector Node):** Download Epicure embeddings (`epicure-core`), FooDB compound fingerprints, and USDA FDC nutritional data. Stack these into a single 3-part feature vector for each Ingredient node.
-- [ ] **PyTorch Geometric Construction:** Build the `HeteroData` graph. 4 node types (Ingredient, Recipe, Technique, Cuisine). 4 edge types.
-- [ ] **Substitution Ground-Truth Extraction:** Write the regex pipeline to extract "or use X" / "substitute with X" from recipe texts. These are the positive labels for the GNN.
-- [ ] **Train the HGAT (Context-Dependent Substitution):** Train the Heterogeneous Graph Attention Network on Kaggle T4 to predict substitution edges *conditioned* on Technique and Cuisine context.
-- [ ] **Ablation Studies:** Run comparisons using `epicure-cooc` vs `epicure-chem` vs `epicure-core`.
+## EPIC 1: The Heterogeneous Knowledge Graph + HGAT ✅ COMPLETE
 
-## EPIC 2: The Science Contribution (Thesis Chapter 7)
-*Validating the Ahn et al. Flavor Pairing Hypothesis at 39x Scale.*
+*Built the foundation of context-dependent substitution.*
 
-- [ ] **Network Analysis:** For each cuisine cluster in the graph, compute average compound overlap between paired ingredients.
-- [ ] **Statistical Validation:** Compare against a randomized null model. Do cuisines cluster by compound-sharing (Western) vs compound-avoiding (Eastern)?
-- [ ] **Documentation:** Write up the findings. This is the core "computational food science" contribution that proves this isn't just an engineering project.
+- [x] Parse 2.2M RecipeNLG → normalized vocabulary (chunked processing, OOM-safe)
+- [x] Stack 3-vector node features: Epicure + USDA nutritional + FooDB compound (dim: 560)
+- [x] Build PyTorch Geometric `HeteroData` graph (195K ingredient nodes, 7,247 substitution edges)
+- [x] Extract substitution ground-truth via regex pipeline ("or use X", "substitute with X")
+- [x] Train HGAT on Kaggle T4/P100 (30 epochs, test accuracy: 50.69%)
+- [x] Build lean `substitution_subgraph.pt` (418 MB) — eliminated 7.87 GB OOM permanently
+- [x] Dynamic `forward()` projection for present node types
+- [x] Selective Kaggle weight installer (`install_kaggle_weights.py`)
+- [x] Wire HGAT into `chefkix-ai-service` (`ml_loader.py`, `ml.py`, `copilot.py`)
+- [x] Promote `graph-rag/hgat-v1` to active in model registry (100% traffic)
 
-## EPIC 3: Layer 3 — Cross-Modal Memory
-*Food retrieval without relying on the unavailable Recipe1M+ images.*
+**Evidence:** Kaggle v10 complete. Weights installed. AI service serving real embeddings.
 
-- [ ] **CLIP Adaptation:** Load frozen CLIP ViT-B/32. Build and attach custom food-specific projection layers (512 -> 256 -> 512).
-- [ ] **Contrastive Training:** Use Recipes5k (image <-> ingredient list) and Food-101 (image <-> dish name) to fine-tune the projections on T4.
-- [ ] **FAISS Indexing:** Embed all 2.2M recipes and construct the FAISS vector index.
+---
 
-## EPIC 4: Layer 4 — The VLM Orchestrator (JARVIS)
-*The brain that talks to the user and queries the graph.*
+## EPIC 2: The Co-Evolving Flywheel ⬜ THESIS CENTERPIECE
 
-- [ ] **Synthetic Data Generation (The Exploit):** Use ChefKix's existing 7-provider API rotator to generate 10k-20k food Q&A pairs. *CRITICAL: Send ONLY the textual metadata (ingredient lists, step descriptions) to the free text-only APIs to generate Q&A, then bind those Q&As to the corresponding images from Recipes5k/RecipeGen. This bypasses the need for expensive Vision APIs.*
-- [ ] **SmolVLM Fine-Tuning:** Run QLoRA fine-tuning on `SmolVLM-256M` (for on-device speed) and `SmolVLM-2B` (for server-side reasoning). 
-- [ ] **Evaluation:** Benchmark the fine-tuned models against GPT-4o zero-shot on a held-out set of food tasks.
-- [ ] **GGUF Export:** Export both models to GGUF Q4 for llama.cpp execution.
+**Mission:** Build the bridge between the knowledge graph and ChefKix's behavioral data, so the graph learns from real cooking outcomes. This is the novel contribution that nobody in food AI has published.
 
-## EPIC 5: Orchestration & Personalization
-*Wiring the intelligence into the product loop.*
+**Why this matters:** Every food KG in existence (FlavorGraph, GISMo, RecipeRAG, MISKG) is static — trained once on a corpus, evaluated on expert benchmarks, published. None of them learn from real user behavior. We close that loop.
 
-- [ ] **Food Graph-RAG Pipeline:** Write the orchestration endpoint. VLM receives user query + image -> triggers KG retrieval -> VLM synthesizes graph evidence into a grounded response.
-- [ ] **Taste DNA Implementation:** Write the logic to compute a user's Taste DNA vector (averaging embeddings of their cooked/liked recipes in the graph). Implement cosine similarity recipe ranking.
-- [ ] **ML Registry Takeover:** Flip the `bridge: True` flags in `src/ml_registry.py` (in `chefkix-ai-service`). Register the actual ONNX, FAISS, and GGUF models.
+- [ ] **Feedback Signal Design:** Define how a cooking session's behavioral signals (completion × rating × substitution-used × share-flag) translate into a graph edge weight adjustment rule.
+- [ ] **Edge Weight Update Worker:** Implement an async worker (Kafka `substitution-feedback` topic → graph updater) that processes cooking session outcomes and adjusts HGAT edge weights.
+- [ ] **Online Evaluation Pipeline:** Build MRR, Hit@K evaluation on the evolving graph. Track substitution acceptance rate, completion delta, and rating delta over time.
+- [ ] **Ablation Framework:** Static graph vs. feedback-updated graph. Epicure-only vs. triple-encoded features. Time-windowed vs. cumulative updates.
+- [ ] **Emergent Edge Detection:** Identify substitution edges that appear in the feedback-updated graph but were NOT in the original RecipeNLG-extracted ground truth. These are discoveries from real kitchens.
+
+---
+
+## EPIC 3: Cross-Modal Memory ⬜ PRODUCT GOAL (Tier C)
+
+*Food retrieval without Recipe1M+. Deliver if Tier A is on track.*
+
+- [ ] CLIP ViT-B/32 frozen + custom food projection layers (512→256→512)
+- [ ] Contrastive training on Recipes5k + Food-101
+- [ ] FAISS index over 2.2M recipe embeddings
+- [ ] Evaluate: Recall@K, MedR
+
+---
+
+## EPIC 4: VLM Orchestrator ⬜ PRODUCT GOAL (Tier C)
+
+*The brain that speaks to the user. Deliver if time allows.*
+
+- [ ] Synthetic data generation: 10-20K food Q&A pairs via API rotator
+- [ ] SmolVLM-256M QLoRA fine-tune + SmolVLM-2B QLoRA fine-tune
+- [ ] Benchmark vs GPT-4o zero-shot on food tasks
+- [ ] GGUF Q4 export for llama.cpp
+
+---
+
+## EPIC 5: Flavor Pairing Analysis ⬜ BONUS (Tier B)
+
+*Test Ahn et al. (2011) at 39× scale. Comes free from the graph already built.*
+
+- [ ] For each cuisine cluster, compute average compound overlap between paired ingredients
+- [ ] Compare against randomized null model
+- [ ] Quantify HOW the hypothesis is incomplete (which cuisines, which compound classes)
+- [ ] Write up as bonus thesis chapter
+
+---
 
 ## EPIC 6: Thesis & Defense
-*Selling the Tony Stark vision.*
 
-- [ ] **Thesis Writing:** Draft Chapters 1-3 (Problem Formalization), 5-7 (KG, Substitution, Flavor Pairing), and 9 (Graph-RAG).
-- [ ] **Demo Scripting:** Prepare the exact narrative flow. (Act 1: The fake AI. Act 2: The Graph. Act 3: Voice-Vision Copilot).
+- [ ] Draft thesis chapters 1-6 (see vision doc for chapter map)
+- [ ] Demo scripting: the flywheel narrative (Acts 1-6)
+- [ ] Defense presentation
+- [ ] Demo backup video

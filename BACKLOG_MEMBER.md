@@ -1,43 +1,104 @@
-# IRON CHEF v2: MEMBER BACKLOG (THE EXECUTION ENGINE)
+# IRON CHEF v2: MEMBER BACKLOG
 
-> **Track:** Systems & Computer Vision (Perception Engine)
-> **Mandate:** Focus on real-time object detection, hardware optimization, and full-stack systems integration. You own the "Eyes" and the "Nervous System".
+> **Track:** Systems Engineering, Computer Vision & Frontend Intelligence  
+> **Mandate:** You build the instruments that capture cooking behavior and make the AI visible to users. Without your work, the knowledge graph is deaf and blind — it can't hear what users think of its suggestions, and users can't see why it makes them.
 
-## EPIC 1: Layer 1 — The Perception Baseline (YOLO vs RT-DETR)
-*Building the eyes of the cooking copilot.*
+---
 
-- [ ] **Data Pipeline Architecture:** Engineer the Kaggle templates and automation scripts to reliably download and unpack Food-101, Recipes5k, RecipeGen, and Roboflow FOOD-INGREDIENTS.
-- [ ] **Taxonomy Validation:** Ensure the Roboflow dataset labels map correctly to our Phase 1 `taxonomy.yaml`.
-- [ ] **YOLO Training:** Run the training loops for YOLOv8n and YOLOv11n on the FOOD-INGREDIENTS dataset. Export step reports with mAP@50 and mAP@50:95.
-- [ ] **RT-DETR Training:** Run the training loop for the RT-DETR-L challenger model. Compare metrics against the YOLO baselines.
-- [ ] **ONNX Export & Benchmarking:** Export the winning model to ONNX INT8. Write a benchmark script to measure inference latency on CPU (Target: < 100ms).
+## The Mission (Read This First)
 
-## EPIC 2: Perception Scaffold Wiring
-*Connecting the models to the services.*
+ChefKix has a knowledge graph of 195,000 ingredients and their substitution relationships, learned from 2.2 million recipes. When a user is missing an ingredient, the graph suggests a context-aware replacement (e.g., "Use cold coconut oil instead of butter for lamination — 0.83 confidence").
 
-- [ ] **Remove the Stubs:** In `personal/projects/chefkix/perception/`, replace the training stubs with the actual model training code.
-- [ ] **Endpoint Implementation:** Wire the ONNX inference endpoint into the `chefkix-ai-service` FastAPI structure. Ensure it returns standardized bounding boxes matching the taxonomy.
-- [ ] **Evaluation Integration:** Run the `evaluate.py` script on the real models. Generate the final validation JSON reports.
+**The problem:** Every food AI system in existence stops here. They suggest a substitution and hope it works. Nobody measures whether the user actually tried it, whether the dish turned out well, or whether the suggestion was garbage.
 
-## EPIC 3: Voice-Vision Copilot Frontend Wiring (The JARVIS Interface)
-*Connecting the frontend sensors to the intelligence backend.*
+**Our thesis contribution:** We close the loop. When a user accepts a substitution and cooks the recipe, we capture the outcome (did they finish? how did they rate it? did they share it?). That signal flows back into the graph, making it smarter. The graph learns from every kitchen in the network.
 
-- [ ] **Camera Integration:** In `chefkix-fe/src/components/cooking/CookingPanel.tsx`, capture camera frames as Base64 JPEGs and transmit them to the backend Layer 1 endpoint over standard WebSocket (avoids complex WebRTC termination on the Python backend).
-- [ ] **Voice State Management:** Connect `useVoiceMode.ts` state to trigger the Graph-RAG pipeline. Package the audio command + the latest Base64 camera frame.
-- [ ] **TTS Execution:** Implement the Text-To-Speech (TTS) hook to play the VLM's string response back to the user via the `KitchenAudioCoordinator`.
+**Your role:** You build the feedback instrument (the UI that captures substitution choices and cooking outcomes), the graph explorer (the UI that makes the knowledge graph visible), and the evaluation dashboard (the metrics that prove the flywheel works). You also own the perception layer (ingredient detection via YOLO/RT-DETR) — the "eyes" of the system.
 
-## EPIC 4: Hardware & Compute Support
-*Keeping the engines running.*
+---
 
-- [ ] **Compute Cluster Management:** Orchestrate the training workloads. Manage Kaggle T4 schedules to avoid idle timeouts.
-- [ ] **A100 Burst Execution Architecture (3-Day Window):** 
-  - Engineer the environment setup for the A100.
-  - Coordinate the massive hyperparameter sweeps for the HGAT.
-  - Automate the checkpoint backup to remote storage.
+## EPIC 1: The Feedback Instrument ⬜ THESIS-CRITICAL
 
-## EPIC 5: Thesis Engineering Chapters
-*Documenting the systems engineering.*
+**Mission:** Build the UI and backend pipeline that captures *which* substitution a user accepted, tracks the cooking session that follows, and records the outcome. Without this, the graph is static and the thesis has no novel contribution.
 
-- [ ] **Chapter 4 (Perception):** Write the comparative analysis of YOLO vs RT-DETR. Include all metric tables and latency graphs.
-- [ ] **Chapter 10 (Deployment & Integration):** Document the frontend wiring, ONNX CPU optimization, and the voice-vision copilot data flow.
-- [ ] **Chapter 11 (Evaluation Support):** Compile the final metric tables for the thesis appendix.
+### 1A: Substitution Acceptance UI
+- [ ] During recipe cooking (in the CookingPlayer), when the user encounters a missing ingredient, display graph-suggested substitutions with confidence scores.
+- [ ] Capture the user's choice: **accept** (which one?), **reject** (used something else — what?), or **skip** (cooked without substituting).
+- [ ] Send the substitution decision event to the backend (`POST /api/v1/cooking-session/{id}/substitution-feedback`).
+
+### 1B: Cooking Outcome Capture
+- [ ] After a cooking session that involved a substitution, show a brief post-session modal: "How did the substitution work?" (thumbs up / thumbs down / neutral) + optional dish rating.
+- [ ] This is NOT a new rating system — it piggybacks on the existing post-session XP flow. One extra card in the completion carousel.
+- [ ] Send the outcome event to the backend.
+
+### 1C: Backend Feedback Pipeline
+- [ ] Create the `SubstitutionFeedbackEvent` in the monolith: records (sessionId, userId, originalIngredient, substituteIngredient, technique, cuisine, accepted, sessionCompleted, rating, shared).
+- [ ] Publish to Kafka topic `substitution-feedback`.
+- [ ] The Lead's graph update worker consumes this topic — you don't need to touch the ML side.
+
+---
+
+## EPIC 2: The Graph Explorer ⬜ DEMO-CRITICAL
+
+**Mission:** Build a visualization UI where users (and thesis examiners during the demo) can explore ingredient relationships, see confidence scores, and see "Validated by X cooks" badges on substitution edges. This is the demo centerpiece.
+
+- [ ] **Graph Visualization Page:** A new page (`/explore/graph` or similar) showing an interactive ingredient relationship map. Use a force-directed graph layout (D3.js or vis-network).
+- [ ] **Substitution Detail Panel:** Tap an ingredient → see its top substitutions with confidence scores, technique context, and "Tried by X cooks, Y% success rate" badges.
+- [ ] **Search Integration:** Type an ingredient name → highlight it in the graph → show its neighborhood.
+- [ ] **Backend Endpoint:** `GET /api/v1/graph/ingredient/{name}/substitutions` → returns ranked substitutions with confidence, cook count, and success rate.
+
+---
+
+## EPIC 3: The Evaluation Dashboard ⬜ THESIS-CRITICAL
+
+**Mission:** Build an internal dashboard that shows the flywheel metrics. This produces the evidence for the thesis evaluation chapter.
+
+- [ ] **Substitution Acceptance Rate Over Time:** Line chart showing what % of suggested substitutions users accept, week over week.
+- [ ] **Graph Edge Weight Drift:** Visualize how confidence scores on specific substitution edges change as feedback accumulates.
+- [ ] **Emergent Edges:** Highlight substitution relationships that appeared in the feedback data but were NOT in the original 2.2M recipe corpus. These are discoveries from real kitchens.
+- [ ] **A/B Comparison:** If we run static-graph vs. feedback-graph experiments, show the metric deltas.
+
+---
+
+## EPIC 4: Perception Layer — The Eyes ⬜ PRODUCT GOAL
+
+**Mission:** Give ChefKix the ability to see ingredients through the camera. This feeds the product's investor narrative and supports future copilot features.
+
+### 4A: Model Training & Benchmark
+- [ ] Set up training pipeline for YOLOv8n, YOLOv11n, and RT-DETR-L on the Roboflow FOOD-INGREDIENTS dataset.
+- [ ] Run comparative benchmark: mAP@50, mAP@50:95, inference latency, model size.
+- [ ] Export the winning model to ONNX INT8. Target: <100ms inference on CPU.
+
+### 4B: Service Integration
+- [ ] Wire the ONNX inference endpoint into `chefkix-ai-service`. Return standardized bounding boxes matching the ingredient taxonomy.
+- [ ] Frontend: In CookingPanel, capture camera frames and send to the detection endpoint. Display bounding boxes over the camera feed.
+
+---
+
+## EPIC 5: Voice-Vision Copilot Wiring ⬜ PRODUCT GOAL (IF TIME ALLOWS)
+
+**Mission:** Connect the frontend voice and camera systems to the intelligence backend. This is the "JARVIS" experience — the investor wow-moment. Deliver if Epics 1-3 are on track.
+
+- [ ] Upgrade `useVoiceMode.ts` to continuous wake-word listening ("Hey ChefKix").
+- [ ] Build the orchestration route: voice command + camera frame → backend VLM → TTS response.
+- [ ] Implement intervention UI alerts (warning toast when AI detects an issue).
+
+---
+
+## EPIC 6: Thesis Engineering Chapters
+
+- [ ] **Chapter 5 (The Flywheel):** Document the feedback pipeline architecture, the substitution acceptance UI, and the data flow from cooking session → graph update.
+- [ ] **Chapter 6 (Flywheel Evaluation):** Compile the evaluation dashboard metrics into thesis-ready tables and charts.
+- [ ] **Chapter 8 (Perception):** Write the YOLO vs RT-DETR comparative analysis with metric tables and latency graphs.
+- [ ] **Chapter 10 (System Architecture):** Document the full IRON CHEF stack, ONNX optimization, and deployment.
+
+---
+
+## Priority Guide
+
+| Priority | Epics | Why |
+|:---|:---|:---|
+| 🔴 **Do First** | Epic 1 (Feedback Instrument), Epic 3 (Eval Dashboard) | Without these, the thesis has no novel contribution and no evidence. |
+| 🟡 **Do Next** | Epic 2 (Graph Explorer), Epic 4 (Perception) | The demo needs the graph explorer. Perception is the product differentiator. |
+| 🟢 **If Time** | Epic 5 (Voice Copilot) | Investor wow-moment. Not thesis-critical. |
+| 📝 **Continuous** | Epic 6 (Thesis Chapters) | Write as you build. Don't leave it all for the end. |
