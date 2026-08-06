@@ -32,7 +32,7 @@ import lombok.Setter;
         @JsonSubTypes.Type(value = DuelEvent.class, name = "DUEL_ACTION"),
         @JsonSubTypes.Type(value = StoryInteractionEvent.class, name = "STORY_INTERACTED"),
         @JsonSubTypes.Type(value = StoryReplyEvent.class, name = "STORY_REPLIED"),
-
+        @JsonSubTypes.Type(value = SubstitutionFeedbackEvent.class, name = "SUBSTITUTION_FEEDBACK_ACTION"),
 })
 @Getter
 @Setter
