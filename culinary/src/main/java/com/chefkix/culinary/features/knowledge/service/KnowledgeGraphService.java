@@ -2,6 +2,7 @@ package com.chefkix.culinary.features.knowledge.service;
 
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeTechnique;
+import com.chefkix.culinary.features.knowledge.dto.KnowledgeGraphResponse;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeIngredientRepository;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeTechniqueRepository;
 import lombok.AccessLevel;
@@ -14,6 +15,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -47,6 +51,27 @@ public class KnowledgeGraphService {
 
     public List<KnowledgeIngredient> getAllIngredients() {
         return ingredientRepo.findAll();
+    }
+
+    public KnowledgeGraphResponse getGraph() {
+        List<KnowledgeIngredient> ingredients = ingredientRepo.findAll();
+        List<KnowledgeGraphResponse.Node> nodes = ingredients.stream()
+                .map(ingredient -> new KnowledgeGraphResponse.Node(
+                        ingredient.getCanonicalName(), ingredient.getName(), ingredient.getCategory(),
+                        ingredient.getAllergenFlags() == null ? List.of() : ingredient.getAllergenFlags()))
+                .toList();
+        List<KnowledgeGraphResponse.Edge> edges = new ArrayList<>();
+        for (KnowledgeIngredient ingredient : ingredients) {
+            if (ingredient.getSubstitutions() == null) continue;
+            for (KnowledgeIngredient.Substitution substitution : ingredient.getSubstitutions()) {
+                ingredientRepo.findByCanonicalName(substitution.getAlternative().toLowerCase().trim())
+                        .ifPresent(target -> edges.add(new KnowledgeGraphResponse.Edge(
+                                ingredient.getCanonicalName(), target.getCanonicalName(), "substitution",
+                                substitution.getRatio() == null ? 0.5 : Math.min(1.0, substitution.getRatio()),
+                                substitution.getContext())));
+            }
+        }
+        return new KnowledgeGraphResponse(nodes, edges);
     }
 
 
