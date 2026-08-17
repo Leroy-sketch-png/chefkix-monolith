@@ -3,6 +3,7 @@ package com.chefkix.culinary.features.knowledge.controller;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeTechnique;
 import com.chefkix.culinary.features.knowledge.service.KnowledgeGraphService;
+import com.chefkix.culinary.features.knowledge.dto.KnowledgeGraphResponse;
 import com.chefkix.shared.dto.ApiResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,12 @@ import java.util.List;
 public class KnowledgeGraphController {
 
     KnowledgeGraphService knowledgeGraphService;
+
+    @GetMapping("/graph")
+    public ApiResponse<KnowledgeGraphResponse> getGraph() {
+        return ApiResponse.<KnowledgeGraphResponse>builder()
+                .success(true).statusCode(200).data(knowledgeGraphService.getGraph()).build();
+    }
 
 
     @GetMapping("/ingredients")
