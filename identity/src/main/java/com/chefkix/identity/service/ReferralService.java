@@ -43,14 +43,7 @@ public class ReferralService {
     /**
      */
     public ReferralCodeResponse getOrCreateMyCode(String userId) {
-        ReferralCode code = referralCodeRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    ReferralCode newCode = ReferralCode.builder()
-                            .userId(userId)
-                            .code(generateUniqueCode())
-                            .build();
-                    return referralCodeRepository.save(newCode);
-                });
+        ReferralCode code = getOrCreateReferralCode(userId);
         return toCodeResponse(code);
     }
 
@@ -108,14 +101,7 @@ public class ReferralService {
     /**
      */
     public ReferralStatsResponse getMyStats(String userId) {
-        ReferralCode code = referralCodeRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    ReferralCode newCode = ReferralCode.builder()
-                            .userId(userId)
-                            .code(generateUniqueCode())
-                            .build();
-                    return referralCodeRepository.save(newCode);
-                });
+        ReferralCode code = getOrCreateReferralCode(userId);
 
         List<ReferralRedemption> redemptions = referralRedemptionRepository
                 .findByReferrerUserId(userId);
@@ -179,6 +165,29 @@ public class ReferralService {
             }
         }
         throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Creates the first code lazily and handles concurrent first loads.
+     * The unique userId index is the source of truth when two requests race.
+     */
+    private ReferralCode getOrCreateReferralCode(String userId) {
+        return referralCodeRepository.findByUserId(userId).orElseGet(() -> {
+            ReferralCode newCode = ReferralCode.builder()
+                    .userId(userId)
+                    .code(generateUniqueCode())
+                    .build();
+            try {
+                return referralCodeRepository.save(newCode);
+            } catch (DuplicateKeyException exception) {
+                return referralCodeRepository.findByUserId(userId)
+                        .orElseThrow(() -> {
+                            log.error("Referral code insert raced without a readable winner for userId={}", userId,
+                                    exception);
+                            return new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
+                        });
+            }
+        });
     }
 
     private ReferralCodeResponse toCodeResponse(ReferralCode code) {
