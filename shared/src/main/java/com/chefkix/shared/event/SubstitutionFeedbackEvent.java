@@ -21,15 +21,18 @@ public class SubstitutionFeedbackEvent extends BaseEvent {
     private String substituteIngredient;
     private String technique;
     private String cuisine;
+    private SubstitutionFeedbackChoice choice;
     private boolean accepted;
     private boolean sessionCompleted;
     private Double userRating; // 1.0 - 5.0 scale, nullable
+    private String tasteFeedback;
     private boolean shared;
 
     @Builder
     public SubstitutionFeedbackEvent(String userId, String sessionId, String originalIngredient,
                                      String substituteIngredient, String technique, String cuisine,
-                                     boolean accepted, boolean sessionCompleted, Double userRating,
+                                     SubstitutionFeedbackChoice choice, boolean accepted,
+                                     boolean sessionCompleted, Double userRating, String tasteFeedback,
                                      boolean shared) {
         super("SUBSTITUTION_FEEDBACK_ACTION", userId);
         this.sessionId = sessionId;
@@ -37,9 +40,11 @@ public class SubstitutionFeedbackEvent extends BaseEvent {
         this.substituteIngredient = substituteIngredient;
         this.technique = technique;
         this.cuisine = cuisine;
+        this.choice = choice;
         this.accepted = accepted;
         this.sessionCompleted = sessionCompleted;
         this.userRating = userRating;
+        this.tasteFeedback = tasteFeedback;
         this.shared = shared;
         this.eventId = buildDeterministicEventId(userId, sessionId, originalIngredient, substituteIngredient);
     }

@@ -1,9 +1,15 @@
 package com.chefkix.culinary.features.session.controller;
 
 import com.chefkix.shared.dto.ApiResponse;
+import com.chefkix.shared.event.SubstitutionFeedbackChoice;
 import com.chefkix.shared.event.SubstitutionFeedbackEvent;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,19 +31,40 @@ public class SubstitutionFeedbackController {
         @NotBlank(message = "Original ingredient is required")
         private String originalIngredient;
 
-        @NotBlank(message = "Substitute ingredient is required")
         private String substituteIngredient;
 
         private String technique;
         private String cuisine;
-        private boolean accepted;
+        @NotNull(message = "Substitution choice is required")
+        private SubstitutionFeedbackChoice choice;
+
         private boolean sessionCompleted;
+
+        @Min(value = 1, message = "userRating must be at least 1")
+        @Max(value = 5, message = "userRating must be at most 5")
         private Double userRating;
+
+        @Pattern(regexp = "up|neutral|down", message = "tasteFeedback must be up, neutral, or down")
+        private String tasteFeedback;
+
         private boolean shared;
+
+        @AssertTrue(message = "A substitute ingredient is required for accept or reject")
+        public boolean hasSubstituteWhenNeeded() {
+            return choice == SubstitutionFeedbackChoice.SKIP
+                    || (substituteIngredient != null && !substituteIngredient.isBlank());
+        }
+    }
+
+    @Data
+    @RequiredArgsConstructor
+    public static class FeedbackReceipt {
+        private final boolean recorded;
+        private final String eventId;
     }
 
     @PostMapping("/{sessionId}/substitution-feedback")
-    public ApiResponse<String> submitFeedback(
+    public ApiResponse<FeedbackReceipt> submitFeedback(
             @PathVariable String sessionId,
             @Valid @RequestBody SubstitutionFeedbackRequest request
     ) {
@@ -50,9 +77,11 @@ public class SubstitutionFeedbackController {
                 .substituteIngredient(request.getSubstituteIngredient())
                 .technique(request.getTechnique())
                 .cuisine(request.getCuisine())
-                .accepted(request.isAccepted())
+                .choice(request.getChoice())
+                .accepted(request.getChoice() == SubstitutionFeedbackChoice.ACCEPT)
                 .sessionCompleted(request.isSessionCompleted())
                 .userRating(request.getUserRating())
+                .tasteFeedback(request.getTasteFeedback())
                 .shared(request.isShared())
                 .build();
 
@@ -61,6 +90,6 @@ public class SubstitutionFeedbackController {
 
         kafkaTemplate.send(TOPIC, userId, event);
 
-        return ApiResponse.success("Substitution feedback received and published to telemetry flywheel.");
+        return ApiResponse.success(new FeedbackReceipt(true, event.getEventId()));
     }
 }
