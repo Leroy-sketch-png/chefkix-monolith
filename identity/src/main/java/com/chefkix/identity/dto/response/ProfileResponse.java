@@ -37,6 +37,8 @@ String accountType;
 
   List<String> preferences;
 
+  List<String> allergenFlags;
+
   StatisticResponse statistics;
 
   List<FriendshipResponse> friends;

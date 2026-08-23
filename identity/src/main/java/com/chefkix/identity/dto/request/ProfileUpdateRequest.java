@@ -49,4 +49,8 @@ public class ProfileUpdateRequest {
 
   @Size(max = 20, message = "Preferences must contain at most 20 items")
   List<String> preferences;
+
+  @Size(max = 100, message = "Allergen profile must contain at most 100 items")
+  List<@Size(max = 100, message = "Allergen values must be at most 100 characters") String>
+      allergenFlags;
 }

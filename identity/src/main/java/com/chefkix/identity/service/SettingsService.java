@@ -2,6 +2,7 @@ package com.chefkix.identity.service;
 
 import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.repository.UserSettingsRepository;
+import com.chefkix.identity.util.AllergenFlagNormalizer;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import java.util.Collection;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,6 +30,7 @@ import org.springframework.stereotype.Service;
 public class SettingsService {
 
   UserSettingsRepository settingsRepository;
+  MongoTemplate mongoTemplate;
 
   private static final Set<String> VALID_PROFILE_VISIBILITY = Set.of("public", "friends_only", "private");
   private static final Set<String> VALID_MESSAGES_FROM = Set.of("everyone", "friends", "nobody");
@@ -177,7 +183,12 @@ public class SettingsService {
       settings.getCooking().setDietaryRestrictions(cooking.getDietaryRestrictions());
     }
     if (cooking.getAllergies() != null) {
-      settings.getCooking().setAllergies(cooking.getAllergies());
+      var normalizedAllergens = AllergenFlagNormalizer.normalize(cooking.getAllergies());
+      settings.getCooking().setAllergies(normalizedAllergens);
+      mongoTemplate.updateFirst(
+          Query.query(Criteria.where("userId").is(userId)),
+          new Update().set("allergenFlags", normalizedAllergens),
+          "user_profiles");
     }
     if (cooking.getDislikedIngredients() != null) {
       settings.getCooking().setDislikedIngredients(cooking.getDislikedIngredients());
@@ -261,15 +272,28 @@ public class SettingsService {
               UserSettings newSettings = UserSettings.builder().userId(userId).build();
               return settingsRepository.save(newSettings);
             });
+    boolean changed = false;
+    if (settings.getPrivacy() == null) {
+      settings.setPrivacy(UserSettings.PrivacySettings.builder().build());
+      changed = true;
+    }
+    if (settings.getNotifications() == null) {
+      settings.setNotifications(UserSettings.NotificationSettings.builder().build());
+      changed = true;
+    }
+    if (settings.getCooking() == null) {
+      settings.setCooking(UserSettings.CookingPreferences.builder().build());
+      changed = true;
+    }
     if (settings.getApp() == null) {
       settings.setApp(UserSettings.AppPreferences.builder().build());
-      return settingsRepository.save(settings);
+      changed = true;
     }
     if (settings.getApp().getKitchenAudio() == null) {
       settings.getApp().setKitchenAudio(UserSettings.KitchenAudioPreferences.builder().build());
-      return settingsRepository.save(settings);
+      changed = true;
     }
-    return settings;
+    return changed ? settingsRepository.save(settings) : settings;
   }
 
   private String getCurrentUserId() {
