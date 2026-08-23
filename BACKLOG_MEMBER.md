@@ -132,18 +132,18 @@ Every phase has work for YOU that does NOT depend on the Lead finishing first. I
 
 ---
 
-### EPIC 7: Feedback Instrument (Complete UI) 🟡 PARTIALLY BUILT
+### EPIC 7: Feedback Instrument (Complete UI) ✅ COMPLETE
 
 **Point:** The behavioral learning framework needs data. You build the UI that captures it. When a user accepts a substitution and cooks with it, we need to know: did they accept it? Did they finish cooking? How did it taste? This data feeds back into the graph.
 
 - [x] Backend `SubstitutionFeedbackEvent` created in monolith
 - [x] Kafka topic `substitution-feedback` ready
 - [x] AI Service `FeedbackFlywheelWorker` consumes and processes
-- [ ] In CookingPlayer, when user encounters a missing ingredient: show graph suggestions with confidence + compound explanation (ties into Epic 5)
-- [ ] Capture user choice: **accept** (which substitute?), **reject** (used something else — what?), **skip** (cooked without substituting)
-- [ ] Send choice to `POST /api/v1/cooking-session/{id}/substitution-feedback`
-- [ ] Post-session modal: "How did the substitution work?" (thumbs up / neutral / thumbs down) + dish rating
-- [ ] Piggyback on existing post-session XP flow — one extra card in the completion carousel
+- [x] In CookingPlayer, when user encounters a missing ingredient: show graph suggestions with confidence + compound explanation (ties into Epic 5)
+- [x] Capture user choice: **accept** (which substitute?), **reject** (used something else — what?), **skip** (cooked without substituting)
+- [x] Send choice to `POST /api/v1/cooking-sessions/{id}/substitution-feedback`
+- [x] Post-session modal: "How did the substitution work?" (thumbs up / neutral / thumbs down) + dish rating
+- [x] Piggyback on existing post-session XP flow — one extra card in the completion carousel
 
 ---
 
