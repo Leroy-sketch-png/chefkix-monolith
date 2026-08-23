@@ -2,6 +2,8 @@ package com.chefkix.identity.service;
 
 import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.repository.UserSettingsRepository;
+import com.chefkix.identity.repository.UserProfileRepository;
+import com.chefkix.identity.util.AllergenFlagNormalizer;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import java.util.Collection;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 public class SettingsService {
 
   UserSettingsRepository settingsRepository;
+  UserProfileRepository profileRepository;
 
   private static final Set<String> VALID_PROFILE_VISIBILITY = Set.of("public", "friends_only", "private");
   private static final Set<String> VALID_MESSAGES_FROM = Set.of("everyone", "friends", "nobody");
@@ -177,7 +180,12 @@ public class SettingsService {
       settings.getCooking().setDietaryRestrictions(cooking.getDietaryRestrictions());
     }
     if (cooking.getAllergies() != null) {
-      settings.getCooking().setAllergies(cooking.getAllergies());
+      var normalizedAllergens = AllergenFlagNormalizer.normalize(cooking.getAllergies());
+      settings.getCooking().setAllergies(normalizedAllergens);
+      profileRepository.findByUserId(userId).ifPresent(profile -> {
+        profile.setAllergenFlags(normalizedAllergens);
+        profileRepository.save(profile);
+      });
     }
     if (cooking.getDislikedIngredients() != null) {
       settings.getCooking().setDislikedIngredients(cooking.getDislikedIngredients());

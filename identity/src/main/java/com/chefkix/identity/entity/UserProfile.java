@@ -2,6 +2,7 @@ package com.chefkix.identity.entity;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -49,6 +50,10 @@ String accountType;
   LocalDate dob;
 
   List<String> preferences;
+
+  /** Stable allergen identifiers and user-entered custom allergen values. */
+  @Builder.Default
+  List<String> allergenFlags = new ArrayList<>();
 
 
   Statistics statistics;

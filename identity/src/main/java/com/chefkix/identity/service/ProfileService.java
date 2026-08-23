@@ -17,6 +17,7 @@ import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
+import com.chefkix.identity.entity.UserSettings;
 import com.chefkix.identity.events.UserIndexEvent;
 import com.chefkix.identity.enums.RelationshipStatus;
 import com.chefkix.shared.event.UserDeletedEvent;
@@ -31,6 +32,7 @@ import com.chefkix.social.api.PostProvider;
 import com.chefkix.social.api.dto.PostSummary;
 import com.chefkix.identity.utils.SecurityUtils;
 import com.chefkix.identity.utils.SocialUtils;
+import com.chefkix.identity.util.AllergenFlagNormalizer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import java.time.Instant;
@@ -127,7 +129,11 @@ public class ProfileService {
   @Deprecated
   public List<ProfileResponse> getAllProfilesLimited() {
     var page = profileRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 100));
-    return page.getContent().stream().map(profileMapper::toProfileResponse).toList();
+    return page.getContent().stream().map(profile -> {
+      ProfileResponse response = profileMapper.toProfileResponse(profile);
+      response.setAllergenFlags(null);
+      return response;
+    }).toList();
   }
 
   /**
@@ -148,7 +154,11 @@ public class ProfileService {
       profilePage = profileRepository.findAll(safePageable);
     }
     
-    return profilePage.map(profileMapper::toProfileResponse);
+    return profilePage.map(profile -> {
+      ProfileResponse response = profileMapper.toProfileResponse(profile);
+      response.setAllergenFlags(null);
+      return response;
+    });
   }
 
   @Transactional(readOnly = true)
@@ -182,6 +192,9 @@ response.setIsBlocked(false);
     if (response.getFriends() == null) {
       response.setFriends(Collections.emptyList());
     }
+    if (response.getAllergenFlags() == null) {
+      response.setAllergenFlags(Collections.emptyList());
+    }
     return response;
   }
 
@@ -208,6 +221,7 @@ response.setIsBlocked(false);
       response.setEmail(null);
       response.setPhoneNumber(null);
       response.setDob(null);
+      response.setAllergenFlags(null);
       if (response.getFriends() == null) {
         response.setFriends(Collections.emptyList());
       }
@@ -222,6 +236,9 @@ response.setIsBlocked(false);
       response.setIsBlocked(false);
       if (response.getFriends() == null) {
         response.setFriends(Collections.emptyList());
+      }
+      if (response.getAllergenFlags() == null) {
+        response.setAllergenFlags(Collections.emptyList());
       }
       return response;
     }
@@ -258,6 +275,7 @@ response.setIsBlocked(false);
       response.setEmail(null);
       response.setPhoneNumber(null);
       response.setDob(null);
+      response.setAllergenFlags(null);
     }
 
     return response;
@@ -348,6 +366,19 @@ response.setIsBlocked(false);
             update.set("preferences", request.getPreferences());
             userProfile.setPreferences(request.getPreferences());
         }
+        if (request.getAllergenFlags() != null) {
+            List<String> normalizedAllergens =
+                    AllergenFlagNormalizer.normalize(request.getAllergenFlags());
+            update.set("allergenFlags", normalizedAllergens);
+            userProfile.setAllergenFlags(normalizedAllergens);
+            userSettingsRepository.findByUserId(userId).ifPresent(settings -> {
+                if (settings.getCooking() == null) {
+                    settings.setCooking(UserSettings.CookingPreferences.builder().build());
+                }
+                settings.getCooking().setAllergies(normalizedAllergens);
+                userSettingsRepository.save(settings);
+            });
+        }
 
         Query query = new Query(Criteria.where("userId").is(userId));
         mongoTemplate.updateFirst(query, update, UserProfile.class);
@@ -358,7 +389,10 @@ response.setIsBlocked(false);
         response.setRelationshipStatus(RelationshipStatus.SELF);
         response.setFollowing(false);
         if (response.getFriends() == null) {
-            response.setFriends(Collections.emptyList());
+          response.setFriends(Collections.emptyList());
+        }
+        if (response.getAllergenFlags() == null) {
+          response.setAllergenFlags(Collections.emptyList());
         }
         return response;
     }
@@ -476,6 +510,7 @@ response.setIsBlocked(false);
     if (profile.getPreferences() != null) {
       data.put("preferences", profile.getPreferences());
     }
+    data.put("allergenFlags", AllergenFlagNormalizer.normalize(profile.getAllergenFlags()));
 
     long followersCount = followRepository.countByFollowingId(userId);
     long followingCount = followRepository.countByFollowerId(userId);
@@ -669,6 +704,7 @@ response.setIsBlocked(false);
                 localResponse.setEmail(null);
                 localResponse.setPhoneNumber(null);
                 localResponse.setDob(null);
+                localResponse.setAllergenFlags(null);
               }
 
               return localResponse;
