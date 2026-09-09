@@ -12,6 +12,27 @@
 | **PARTIAL** | 16/35 | Senath preferences complete/DPO running, USDA, FlavorDB, allergen reviews, LLM allergen raw pilot, cross-modal, bounded photo-to-evidence chain |
 | **OPEN** | 4/35 | Context-aware IRON CHEF model, VLM training, explanation user study, defense evidence |
 
+## LEAD → MEMBER quick handoff checklist
+
+### Verified inputs and evidence available
+- [x] Graph vocabulary and bounded sample exported: `ingredient_vocab_v2.json` and `graph_sample.json`
+- [x] FooDB compound layer verified: 971 foods, 206 compounds, 125,992 links; exhaustive pair reconstruction passes
+- [x] M2 Stage 1 complete and DPO Segments 1-2 verified through exact step 87/261; Segment 3 is running
+- [x] OFF v75 complete snapshot acquired: all 4,726,416 source rows scanned; 351,351 eligible English ingredient-label rows hash-bound
+- [x] FDA enforcement layer acquired: 29,278 records and 7,047 bounded policy candidates
+- [x] Matched Mistral allergen arm captured: 208/208 schema-valid raw responses; independent scoring is not complete
+- [x] M3 rights-bound candidate pool and two blinded review packs prepared: 50 candidates across 20 labels
+- [x] M4 projection benchmark completed and rejected under its frozen +2pp gate; do not install its weights
+- [x] Photo → graph → explanation offline benchmark completed: 179/783 paired-recipe-correct complete chains
+
+### Not ready — MEMBER must not present or wire as completed capability
+- [ ] Normalized production allergen corpus/API with verified negatives and clinical validation
+- [ ] GPT-4o/Gemini comparative allergen arms, independent adjudication, or winner table
+- [ ] Completed DPO model, post-DPO SFT, frozen test predictions, or accepted M2 quality claim
+- [ ] Accepted M3 labels, trained VLM, ingredient-detection quality, or production vision endpoint
+- [ ] Accepted M4 replacement weights or production FAISS index
+- [ ] User-camera/voice end-to-end capability, user study, or defense-ready product evidence
+
 ### What is RUNNING now
 - **OFF allergen snapshot:** v75 replaces the 503-record/6,400-row systematic sample ceiling with an immutable-revision scan of all 4,726,416 current food rows. It atomically emits 351,351 eligible English ingredient-label records at SHA `807fe58e...9c68`; independent reconstruction passes 16/16 fields, 16/16 mutations reject, and seven tests pass. The raw 1,225 allergen/2,379 trace tag vocabularies contain substantial malformed/non-allergen contamination. L20 remains PARTIAL pending normalization, independent labels/negatives, clinical validity, production lifecycle, rights review, and user evidence.
 - **Senath DPO:** stage 1, 7,500 preferences, and bounded DPO Segments 1-2 are transactionally complete through exact step 87/261. Segment-2 manifest is `f34d33ff...4a84f`; Segment 3 was launched once with that exact pin and is authenticated RUNNING. Pulled/local Segment-3 source is byte-identical `9887b7e5...6fbc`; generic chain mutations reject 21/21, package mutations reject 12/12, and ten transactional/refusal tests pass. Near-zero Segment-2 loss is not quality evidence: exact preference correctness remains 0/7,500 and rejected responses are systematically longer (median 5.14x), so shortcut separability remains explicit.
@@ -206,12 +227,14 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 
 ## PHASE 4: Safety & Explanation
 
-### EPIC 5: Allergen Policy ⚠️ PARTIAL E2 — REAL BENCHMARK PENDING
+### EPIC 5: Allergen Policy ⚠️ PARTIAL E3 SOURCE / CLINICAL VALIDATION OPEN
 
 - [x] FDA Big 9 + EU 14 families; tri-state policy (SAFE/UNKNOWN/BLOCKED)
 - [x] v7 concordance: declared recall 400/408 (98.04%), trace recall 22/40 (55%)
 - [x] v13 FDA export: 29,278 records, 7,047 policy candidates, 126 cross-contact
 - [x] v14 blinded adjudication protocol frozen (`3ef4eff1...`), 228 cases — INSUFFICIENT_REVIEW
+- [x] v75 complete OFF snapshot: 4,726,416/4,726,416 rows scanned; 351,351 eligible English ingredient-label records; source/derived hashes and 16/16 independent contracts verify
+- [ ] Normalize and independently adjudicate the malformed/non-allergen long tail across 1,225 allergen and 2,379 trace tag values
 - [ ] Two independent qualified reviews + adjudication under frozen protocol
 - [ ] Verified negatives + representative runtime inputs
 
@@ -264,15 +287,15 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 2 | Related Work | Drafted |
 | 3 | Multi-Signal Food KG | Verified; USDA partial |
 | 4 | IRON CHEF GNN: Fusion Paradox & SAG (M1) | corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent |
-| 5 | ChefKix-Mistral-7B (M2) | segments 1-5 verified; segment 6 running; no predictions |
-| 6 | ChefKix-VLM (M3) | historical mock text-only LoRA rejected; real multimodal training pending |
+| 5 | ChefKix-Mistral-7B (M2) | Stage 1 complete; DPO Segments 1-2 verified through 87/261; Segment 3 running; no predictions |
+| 6 | ChefKix-VLM (M3) | historical mock text-only LoRA rejected; 50 rights-bound candidates await two reviews; training absent |
 | 7 | ChefKix-CLIP (M4) | real three-seed frozen-feature projection trained and rejected; external/serving path open |
 | 8 | Compound Explanation | Factuality E3; user study open |
 | 9 | Real LLM Allergen Benchmark | matched Mistral raw arm complete; GPT-4o/Gemini + adjudication open |
 | 10 | Selective Abstention | Protocol frozen; no candidate |
-| 11 | Photo → Intelligence Pipeline | Components exist; integration open |
+| 11 | Photo → Intelligence Pipeline | bounded offline chain verified at 179/783 paired-correct; user camera/voice/product lifecycle open |
 | 12 | System Architecture | Drafted |
-| 13 | Evaluation & Ablation | v11 done; Recipe1MSubs open |
+| 13 | Evaluation & Ablation | v11 and corrected SAG/Recipe1MSubs falsifiers complete; both learned candidates rejected |
 | 14 | Conclusion & Future Work | Drafted |
 
 - [x] Defense adversarial pack: 24 questions × 17 domains; 4/4 mutation rejection — L35 PARTIAL E2
