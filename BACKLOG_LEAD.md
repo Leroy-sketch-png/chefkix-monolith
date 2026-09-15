@@ -15,6 +15,8 @@
 ## LEAD → MEMBER quick handoff checklist
 
 ### Verified inputs and evidence available
+- [x] 2026-09-15 collaboration checkpoint: LEAD work is published across monolith, AI, frontend, and infrastructure review branches; generated weights/raw responses remain excluded from Git
+- [x] Monolith integration carries durable substitution-feedback receipts, hardened Typesense synchronization, async draft coverage, and notification history; the post-conflict full Maven reactor completed successfully on 2026-09-15
 - [x] Graph vocabulary and bounded sample exported: `ingredient_vocab_v2.json` and `graph_sample.json`
 - [x] FooDB compound layer verified: 971 foods, 206 compounds, 125,992 links; exhaustive pair reconstruction passes
 - [x] M2 Stage 1 complete and DPO Segments 1-2 verified through exact step 87/261; Segment 3 is running
