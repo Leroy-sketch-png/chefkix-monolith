@@ -62,7 +62,8 @@ class TypesenseDataSyncerTest {
         when(mongoTemplate.find(any(Query.class), eq(Document.class), eq("user_profiles")))
                 .thenReturn(List.of(new Document("userId", "seed-user")
                         .append("displayName", "Minh Tran")
-                        .append("avatarUrl", "/avatars/minh.webp")));
+                        .append("avatarUrl", "/avatars/minh.webp")
+                        .append("verified", true)));
         when(typesenseService.importDocuments(eq("recipes"), any())).thenReturn(1);
         when(typesenseService.listDocumentIds("recipes"))
                 .thenReturn(Optional.of(Set.of(id.toString(), "stale-id")));
@@ -82,6 +83,7 @@ class TypesenseDataSyncerTest {
         org.junit.jupiter.api.Assertions.assertEquals("/images/recipes/peri-peri-chicken.webp", indexed.get("coverImageUrl"));
         org.junit.jupiter.api.Assertions.assertEquals("Minh Tran", indexed.get("authorName"));
         org.junit.jupiter.api.Assertions.assertEquals("/avatars/minh.webp", indexed.get("authorAvatarUrl"));
+        org.junit.jupiter.api.Assertions.assertEquals(true, indexed.get("authorVerified"));
         verify(typesenseService).deleteDocument("recipes", "stale-id");
         verify(typesenseService, never()).deleteDocument("recipes", id.toString());
     }
@@ -118,6 +120,26 @@ class TypesenseDataSyncerTest {
     }
 
     @Test
+    void indexesServerOwnedVerificationForUserSearch() {
+        when(mongoTemplate.find(any(Query.class), eq(Document.class), eq("user_profiles")))
+                .thenReturn(List.of(new Document("userId", "creator-1")
+                        .append("username", "minh")
+                        .append("displayName", "Minh Tran")
+                        .append("verified", true)));
+        when(typesenseService.importDocuments(eq("users"), any())).thenReturn(1);
+
+        syncer.syncUsers();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Map<String, Object>>> documents = ArgumentCaptor.forClass(List.class);
+        verify(typesenseService).importDocuments(eq("users"), documents.capture());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                true,
+                documents.getValue().getFirst().get("isVerified")
+        );
+    }
+
+    @Test
     void enrichesRealtimeRecipeDocumentsFromThePublicProfile() {
         Recipe recipe = Recipe.builder()
                 .id("recipe-live")
@@ -132,7 +154,8 @@ class TypesenseDataSyncerTest {
                 eq("user_profiles")
         )).thenReturn(new Document("userId", "cook-live")
                 .append("displayName", "Anh Le")
-                .append("avatarUrl", "/avatars/anh.webp"));
+                .append("avatarUrl", "/avatars/anh.webp")
+                .append("verified", true));
 
         syncer.indexRecipe(recipe);
 
@@ -144,6 +167,7 @@ class TypesenseDataSyncerTest {
                 "/avatars/anh.webp",
                 document.getValue().get("authorAvatarUrl")
         );
+        org.junit.jupiter.api.Assertions.assertEquals(true, document.getValue().get("authorVerified"));
         org.junit.jupiter.api.Assertions.assertEquals(180, document.getValue().get("xpReward"));
     }
 

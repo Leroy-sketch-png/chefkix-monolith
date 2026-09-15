@@ -85,7 +85,7 @@ public class TypesenseDataSyncer {
         });
     }
 
-    private void syncUsers() {
+    void syncUsers() {
         List<Map<String, Object>> userProfiles = new ArrayList<>();
 
         var rawProfiles = mongoTemplate.find(new Query(),
@@ -100,6 +100,7 @@ public class TypesenseDataSyncer {
             userDoc.put("lastName", doc.getString("lastName"));
             userDoc.put("bio", doc.getString("bio"));
             userDoc.put("avatarUrl", doc.getString("avatarUrl"));
+            userDoc.put("isVerified", Boolean.TRUE.equals(doc.get("verified")));
             Integer followers = doc.getInteger("followerCount");
             userDoc.put("followerCount", followers != null ? followers : 0);
             Integer recipeCount = doc.getInteger("recipesCreated");
@@ -396,7 +397,8 @@ public class TypesenseDataSyncer {
         return new PublicAuthor(
                 Objects.toString(profile.get("userId"), ""),
                 displayName,
-                Objects.toString(profile.get("avatarUrl"), "")
+                Objects.toString(profile.get("avatarUrl"), ""),
+                Boolean.TRUE.equals(profile.get("verified"))
         );
     }
 
@@ -404,11 +406,12 @@ public class TypesenseDataSyncer {
         if (author != null) {
             document.put("authorName", author.name());
             document.put("authorAvatarUrl", author.avatarUrl());
+            document.put("authorVerified", author.verified());
         }
         return document;
     }
 
-    private record PublicAuthor(String userId, String name, String avatarUrl) {}
+    private record PublicAuthor(String userId, String name, String avatarUrl, boolean verified) {}
 
     @EventListener
     public void onPostIndexEvent(Object event) {
