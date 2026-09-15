@@ -1,231 +1,235 @@
-# IRON CHEF v3: MEMBER BACKLOG
-
-> **Track:** Systems Engineering, Computer Vision & Frontend Intelligence  
-> **Mandate:** You build the surfaces that make the AI visible, trustworthy, and impressive. Without your work, the intelligence is invisible to everyone who matters.
+﻿# IRON CHEF v3: MEMBER BACKLOG
+> **Track:** Systems Engineering, Computer Vision & Frontend Intelligence
+> **CURRENT-STATE OVERRIDE — 2026-08-24:** Fabricated metric claims purged. Do NOT display Hit@1 0.2222, allergen 0.00% vs 10.00%, or behavioral +1.01% as current results — all are withdrawn. The evaluation dashboard now shows REAL evidence: what is verified, what is partial, what is open.
 
 ---
 
-## Why Your Work Matters (Read This — It's Not Just Tasks)
+## What You Are Building (And Why It Matters)
 
-Here's the situation: We have an AI system that recommends ingredient substitutions. So does everyone else — GISMo (Meta), Mistral fine-tunes, GPT-4o. If we just recommend "use coconut oil instead of butter," we're one of a hundred.
+We have four trained models under construction. Without your work, they are invisible:
 
-**What makes us different is THREE things that only YOU can make visible:**
+| Model | What it does | What you make visible |
+|:---|:---|:---|
+| **M1 HGAT + SAG** | Substitution reasoning; diagnoses why naive fusion fails | Graph explorer, ablation charts, SAG gate visualization |
+| **M2 ChefKix-Mistral-7B** | LLM fine-tuned on substitution preferences | Benchmark comparison table vs. GISMo baseline |
+| **M3 ChefKix-VLM** | Food visual understanding; points phone at fridge | Camera integration, ingredient detection overlay |
+| **M4 ChefKix-CLIP** | Photo → recipe cross-modal retrieval | Cross-modal search UI, dish recognition |
 
-### 1. We explain WHY with real chemistry
-When we say "use coconut oil," we also say "because it shares 73% of butter's volatile compounds (caprylic acid, lauric acid) and has a similar melting point (24°C vs 32°C), making it suitable for baking." That chemistry data comes from FooDB (70,000+ compounds) and FlavorDB (25,000+ flavor molecules). **Nobody else in food AI does this.** But if users can't SEE the explanation, it doesn't exist.
-
-### 2. We guarantee allergen safety — LLMs can't
-When a peanut-allergic user asks for a substitution, GPT-4o might suggest "try almond butter" (tree nut cross-reactivity). Our system checks against Open Food Facts (4M+ products) and the EU/FDA allergen databases, and BLOCKS dangerous suggestions. **This is a provable safety advantage.** But if users can't SEE the safety check, it's just backend code nobody knows about.
-
-### 3. We beat published benchmarks — and we can SHOW the numbers
-Our HGAT is trained on 80K substitution pairs from MISKG and evaluated against GISMo (~20.56% Hit@1) and fine-tuned Mistral (~21.75% Hit@1). **When we beat those numbers, the benchmark table is the most important slide in the thesis defense.** But someone needs to BUILD the dashboard that displays those numbers clearly.
-
-**Your work is what turns invisible backend intelligence into something professors lean forward to look at, investors ask questions about, and users trust with their health.**
+**The allergen killshot:** Nobody has run a head-to-head LLM allergen safety benchmark. When Lead runs it, you build the table that shows GPT-4o recommending dangerous substitutions and IRON CHEF catching them. That table is a thesis defense slide.
 
 ---
 
 ## Phased Execution (Concurrent With Lead)
 
-Every phase has work for YOU that does NOT depend on the Lead finishing first. Items marked with 📥 use data files the Lead exports for you. Until those files arrive, you work with mock/sample data.
+Items marked with 📥 use Lead-exported files. Until those arrive, build with mock/sample data — real data swaps in with zero UI changes.
 
 ---
 
-## PHASE 1: Scaffolds & Infrastructure (Weeks 1-2)
+## PHASE 1: Scaffolds & Infrastructure
 
-*The Lead is downloading datasets and building the graph. You're building the UI infrastructure that will display intelligence once it exists. Nothing here is blocked.*
+### EPIC 1: Graph Explorer Infrastructure 🟡 UNBLOCKED
 
-### EPIC 1: Graph Explorer Infrastructure 🟡 NOT STARTED
+The visual centerpiece of the thesis demo. When a professor says "show me the graph," this is what they see.
 
-**Point:** This is the visual centerpiece of the thesis demo. When a professor says "show me the graph," this is what they see. A force-directed graph of ingredients connected by substitution edges, colored by confidence, with chemistry overlays. It needs to look impressive and be interactive.
+- [ ] Set up graph visualization library (D3.js force-directed or vis-network) at `/explore/graph`
+- [ ] Node renderer: ingredients, colored by signal coverage (semantic/nutritional/chemical)
+- [ ] Edge renderer: substitution edges, width proportional to MISKG frequency
+- [ ] Node detail panel: tap ingredient → name, category, compound data, USDA nutrients
+- [ ] Edge detail panel: tap edge → substitution context, compound overlap %, signal gate weights (once SAG runs)
+- [ ] Search bar: type ingredient → highlight node → center view
+- [ ] Signal filter toggles: show/hide semantic / nutritional / chemical signals
+- [x] 📥 `graph_sample.json` (1,840 ingredients, multi-relational) available at `chefkix-fe/public/data/`
 
-- [ ] Set up graph visualization library (D3.js force-directed or vis-network) on a new page `/explore/graph`
-- [ ] Build graph renderer: nodes (ingredients) + edges (substitutions) with force-directed layout
-- [ ] Build node detail panel: tap ingredient → side panel with name, category, placeholder for compound data
-- [ ] Build edge detail panel: tap edge → substitution confidence, placeholder for compound overlap
-- [ ] Build search bar: type ingredient name → highlight node → center view
-- [ ] Build signal filter toggles: show/hide edge types (substitution, co-occurrence, chemical similarity)
-- [ ] 📥 Use `graph_sample.json` (500 ingredients, exported by Lead) to develop against. Until it arrives, generate mock data with 50 random ingredient names and random edges.
-
-**Why mock data is fine for now:** The visualization code doesn't care whether the data is real or fake. You're building the renderer, the interactions, the layout. When real data arrives, you swap the data source. Zero rework.
+**New: SAG Gate Visualization (once EPIC 3b results arrive)**
+- [ ] For each substitution edge: show 3-bar mini chart of [semantic gate / nutritional gate / chemical gate] weights
+- [ ] Color code: gate > 0.5 = dominant signal; < 0.15 = suppressed
+- [ ] This is what makes SAG visible to professors — the model "decided" which signal to trust
 
 ---
 
-### EPIC 2: Evaluation Dashboard Shell 🟡 NOT STARTED
+### EPIC 2: Evaluation Dashboard — Real Evidence Only 🟡 UNBLOCKED
 
-**Point:** The thesis defense ends with a slide showing benchmark numbers in a table. This dashboard is that slide, live. It needs to display Hit@1, MRR, NDCG across multiple models (GISMo, Mistral, Gemini, ours) in a clear comparison table, plus ablation bar charts and allergen safety tables.
+> ⚠️ **Do NOT populate with old fabricated numbers.** The dashboard must show real current evidence. When numbers are pending, show "PENDING — training in progress" or "OPEN — protocol not yet executed." Honesty is a feature.
 
-- [ ] Create dashboard page (`/admin/evaluation` or similar, protected route)
-- [ ] Build benchmark comparison table component: rows = metrics, columns = models. Hardcode GISMo and Mistral published numbers now.
-- [ ] Build ablation bar chart component: "Which signal matters most?" (Chemical / Nutritional / Semantic / All)
-- [ ] Build allergen safety comparison table: IRON CHEF vs. GPT-4o vs. Gemini violation rates
-- [ ] Build data loader that reads from JSON files (📥 `benchmark_results.json`, `ablation_results.json`, `allergen_benchmark.json` — all exported by Lead)
-- [ ] Until Lead exports real results, use placeholder numbers. The layout and components are the work.
+**Benchmark table component:**
+- [ ] Create dashboard page (`/demo/evaluation`, auth-protected)
+- [ ] Model comparison table — columns: Hit@1 / Hit@5 / Hit@10 / MRR / NDCG@10 — rows:
+  - GISMo baseline (overall): 20.694% / — / 54.164% / 0.31636 / — ✅ VERIFIED
+  - GISMo baseline (unseen pairs): 1.206% / — / — / 0.04308 / — ✅ VERIFIED
+  - Lookup-frequency (overall): 17.996% / — / — / 0.27625 / — ✅ VERIFIED
+  - Lookup-frequency (unseen): 0.0% / — / — / 0.00015 / — ✅ VERIFIED
+  - IRON CHEF HGAT v11 semantic-only: 0.495% Hit@1 ✅ VERIFIED (full-catalog evaluation)
+  - IRON CHEF HGAT v11 all-signals: 0.252% Hit@1 ✅ VERIFIED NEGATIVE
+  - IRON CHEF SAG: PENDING (running on Kaggle)
+  - ChefKix-Mistral-7B: PENDING (training)
+- [ ] Add protocol note under each row: dataset, split, seed count, evaluation date
 
-**Why this matters now:** If we wait until benchmarks are done to START building the dashboard, we lose 2-3 weeks. Build the shell now, plug in real numbers later.
+**Ablation chart component:**
+- [ ] 📥 Load `ablation_results.json` → ablation bar chart: semantic 0.495% vs. USDA 0.171% vs. FooDB 0.114% vs. all-signals 0.252%
+- [ ] Title: "Signal Ablation — Why Naive Fusion Fails" (this is the SAG motivation)
+- [ ] Color: semantic = blue, nutritional = green, chemical = orange, all-signals = red (worse)
+- [ ] Note: "SAG attempts to fix this — results pending"
+
+**Cross-modal baseline component:**
+- [ ] Recipes5k zero-shot CLIP: R@1 34.10% / R@5 77.01% / R@10 91.19% ✅ VERIFIED
+- [ ] Ingredient identification: base CLIP 8.02% mAP / category prior 64.95% ✅ VERIFIED
+- [ ] ChefKix-CLIP trained: PENDING
+- [ ] ChefKix-VLM ingredient mAP: PENDING
 
 ---
 
 ### EPIC 3: Allergen Profile in Onboarding 🟡 NOT STARTED
 
-**Point:** Before the system can protect a user from allergens, it needs to KNOW their allergens. This is a profile setup task — purely frontend + backend entity work. No dependency on the AI allergen guard.
-
-- [ ] Add allergen declaration step to onboarding flow (or user profile settings)
-- [ ] Display EU 14 allergens as toggleable chips: gluten, crustaceans, eggs, fish, peanuts, soybeans, milk, tree nuts, celery, mustard, sesame, sulphites, lupin, molluscs
-- [ ] Display FDA top 9 as separate group (overlap is fine — they map to EU list)
-- [ ] Add "Other / Custom" free-text field for less common allergies
-- [ ] Store allergen profile on user entity in monolith (`allergenFlags: string[]`)
-- [ ] Send allergen profile with substitution API requests as query parameter or header
-
-**Why this unblocks later work:** When the Lead's allergen guard is ready, the frontend already knows the user's allergens and passes them in API calls. Zero wait.
+- [ ] Add allergen declaration step to onboarding or profile settings
+- [ ] EU 14 allergens as toggleable chips: gluten, crustaceans, eggs, fish, peanuts, soybeans, milk, tree nuts, celery, mustard, sesame, sulphites, lupin, molluscs
+- [ ] FDA Big 9 as separate group (overlap is expected)
+- [ ] "Other / Custom" free-text field
+- [ ] Store `allergenFlags: string[]` on user entity in monolith
+- [ ] Send allergen profile with substitution API requests
 
 ---
 
 ### EPIC 4: Camera Integration Scaffold 🟡 NOT STARTED
 
-**Point:** The investor demo has a moment where you point your phone at ingredients and the system recognizes them. The camera capture, permission handling, and bounding box overlay are pure frontend work. The detection model comes from the Lead later.
-
-- [ ] Build camera capture component (use `getUserMedia` API or existing camera utils)
-- [ ] Build bounding box overlay renderer (canvas or SVG layer on top of camera feed)
-- [ ] Build "Scan Ingredients" button in CookingPlayer or a new `/scan` page
-- [ ] Wire to detection endpoint (mock response for now: return 3-4 hardcoded ingredient detections with bounding boxes)
-- [ ] When Lead publishes the YOLOv8 detection endpoint, swap mock → real. Zero UI rework.
+- [ ] Camera capture component (`getUserMedia` API) at `/scan`
+- [ ] Bounding box overlay renderer (canvas/SVG layer on camera feed)
+- [ ] "Scan Ingredients" button in CookingPlayer or scan page
+- [ ] Wire to detection endpoint (mock: 3-4 hardcoded ingredient detections with bounding boxes)
+- [ ] When Lead publishes YOLOv8 detection endpoint, swap mock → real
 
 ---
 
-## PHASE 2: Wire Intelligence Surfaces (Weeks 3-5)
-
-*The Lead is training HGAT v2 and building the compound engine. As data files and API endpoints become available, you wire them into your scaffolds.*
+## PHASE 2: Wire Intelligence Surfaces
 
 ### EPIC 5: Compound Explanation UI 🔴 THESIS-CRITICAL
 
-**Point:** This is THE differentiator. Every food AI says "use coconut oil." Only we say "use coconut oil BECAUSE of 73% shared volatile compounds." This UI makes that visible. It's the moment in the demo where everyone goes "oh, this is different."
+The differentiator. Every food AI says "use coconut oil." Only we say "use coconut oil BECAUSE of shared bounded compounds."
 
-- [ ] 📥 Once Lead exports compound data via substitution API, redesign substitution card in CookingPlayer:
-  - Confidence score with color-coded bar (0.91 = green, 0.45 = yellow, 0.20 = red)
-  - "Why this works" section: top 3-5 shared compounds with names
-  - "Nutritional comparison" section: side-by-side calories/fat/protein per 100g
-  - One-liner explanation: "73% shared volatile compounds, similar melting point"
-- [ ] Build compound overlap visualization (Venn-style or horizontal bar showing shared vs. unique compounds)
-- [ ] Build "Chemistry-grounded" badge on graph-based suggestions vs. "LLM-suggested" badge on Gemini fallback
-- [ ] Build comparison view: when multiple substitutions exist, side-by-side on compound overlap %, nutritional delta, allergen safety, confidence
+> ⚠️ Do NOT claim "73% shared volatile compounds" or chemistry compatibility. Only display: shared compound list (binary presence), Jaccard overlap %, missing coverage flags. Usefulness user study is open — we cannot yet claim this helps.
 
-**Interim approach:** Until the compound API is live, build the UI components with mock compound data (hardcode butter → coconut oil example). The component design and interaction are the work. Real data swaps in with zero layout changes.
-
----
-
-### EPIC 6: Allergen Safety UI 🔴 THESIS-CRITICAL
-
-**Point:** This is where we PROVE we're safer than ChatGPT. The UI needs to show allergen status on EVERY substitution suggestion — and show a comparison page where our system catches violations that GPT-4o misses. That comparison page is a thesis defense slide.
-
-- [ ] 📥 Once Lead wires allergen guard into API, add safety indicators to every substitution suggestion:
-  - ✅ "Safe" (no allergen conflict with user's profile)
-  - ⚠️ "Check" (possible cross-reactivity — needs brand-level verification)
-  - 🚫 "Blocked" (allergen violation — never shown as primary, shown as "blocked" with reason)
-- [ ] Show WHICH specific allergen is flagged ("Contains: tree nuts — matches your peanut allergy cross-reactivity profile")
-- [ ] Build head-to-head comparison page (`/demo/allergen-safety`):
-  - Input: "I'm allergic to peanuts, substitute for peanut butter in this recipe"
-  - Two columns: "IRON CHEF response" vs. "GPT-4o response"
-  - Highlight: allergen violations GPT-4o missed that we caught
-- [ ] Add allergen warning banner on recipe detail page when recipe contains user's allergens
-
-**Interim approach:** Before the allergen API is live, build the UI components against the allergen profile you built in Epic 3. Display mock safety statuses. Swap mock → real when backend is ready.
+- [ ] Redesign substitution card in CookingPlayer:
+  - Confidence: show source (graph-based vs. LLM-fallback) with badge — do NOT show fabricated confidence scores
+  - "Shared compounds" section: list shared compound names (labeled as presence records, not flavor evidence)
+  - "Nutritional comparison" section: real USDA side-by-side (only if USDA coverage exists)
+  - "Missing coverage" notice: if ingredient not in FooDB, show gap honestly
+- [ ] Compound overlap bar: shared compound count / total candidate compounds
+- [ ] "Graph-based" vs. "LLM-suggested" badge — be honest about source
+- [ ] Comparison view: multiple substitutions side-by-side with compound overlap and allergen status
 
 ---
 
-### EPIC 7: Feedback Instrument (Complete UI) 🟡 PARTIALLY BUILT
+### EPIC 6: Allergen Safety UI & Killshot Display 🔴 THESIS-CRITICAL
 
-**Point:** The behavioral learning framework needs data. You build the UI that captures it. When a user accepts a substitution and cooks with it, we need to know: did they accept it? Did they finish cooking? How did it taste? This data feeds back into the graph.
+- [ ] Allergen indicator on every substitution suggestion:
+  - ✅ SAFE (no known conflict with user profile for declared allergens)
+  - ⚠️ UNKNOWN (ingredient not in vocabulary — cannot verify)
+  - 🚫 BLOCKED (allergen conflict detected — show which allergen)
+- [ ] Show WHICH allergen triggered the block ("Contains: tree nuts")
+- [ ] Show UNKNOWN prominently — do not silently pass unrecognized ingredients
 
-- [x] Backend `SubstitutionFeedbackEvent` created in monolith
-- [x] Kafka topic `substitution-feedback` ready
-- [x] AI Service `FeedbackFlywheelWorker` consumes and processes
-- [ ] In CookingPlayer, when user encounters a missing ingredient: show graph suggestions with confidence + compound explanation (ties into Epic 5)
-- [ ] Capture user choice: **accept** (which substitute?), **reject** (used something else — what?), **skip** (cooked without substituting)
-- [ ] Send choice to `POST /api/v1/cooking-session/{id}/substitution-feedback`
-- [ ] Post-session modal: "How did the substitution work?" (thumbs up / neutral / thumbs down) + dish rating
-- [ ] Piggyback on existing post-session XP flow — one extra card in the completion carousel
+**Allergen Killshot Dashboard (`/demo/allergen-safety`):**
+- [ ] Build head-to-head comparison page (populate after Lead runs EPIC 5b real API calls)
+- [ ] Layout: query column | IRON CHEF response | GPT-4o response | Gemini response
+- [ ] Highlight violations: red background on LLM columns where allergen was missed
+- [ ] Table: violation rate per system, per allergen group, with Wilson CIs
+- [ ] Note: "IRON CHEF catches all declared-allergen violations by construction; cross-contact and unknown gaps shown explicitly"
+- [ ] This is empty/PENDING until Lead completes EPIC 5b real API calls
 
 ---
 
-## PHASE 3: Polish & Demo (Weeks 5-7)
+### EPIC 7: Feedback Instrument 🟡 PARTIALLY BUILT
 
-*Lead is running behavioral simulation and flavor analysis. You're polishing demo surfaces and wiring real data into everything.*
+- [x] Backend `SubstitutionFeedbackEvent` + Kafka topic + `FeedbackFlywheelWorker`
+- [ ] In CookingPlayer, when ingredient is missing: show graph suggestions with source (HGAT/LLM) and compound records
+- [ ] Capture: accept (which substitute?), reject (used what?), skip
+- [ ] Send to `POST /api/v1/cooking-session/{id}/substitution-feedback`
+- [ ] Post-session: "How did the substitution work?" (thumbs up / neutral / down) + dish rating
 
-### EPIC 8: Photo Intelligence Pipeline (Wire Real Models) 🟡 PRODUCT GOAL
+> Note: the behavioral learning framework is not yet accepted as a thesis contribution. Raw feedback collection is valid; avoid claiming it improves the model until a preregistered evaluation accepts it.
 
-**Point:** This is the investor "wow" moment. Point phone at ingredients → system recognizes them → suggests recipes → shows substitutions with chemistry. It's the full pipeline working end-to-end.
+---
 
-- [ ] 📥 Swap mock detection endpoint with Lead's real YOLOv8 ONNX endpoint
-- [ ] Display detected ingredients with confidence scores
-- [ ] Query HGAT: "You have ingredients for 3 recipes" with match scores
-- [ ] For each recipe: show substitutions needed with compound explanations and allergen checks
-- [ ] 📥 Wire cross-modal retrieval: photo of dish → CLIP endpoint → matching recipes
+## PHASE 3: Polish & Demo
+
+### EPIC 8: Photo Intelligence Pipeline 🟡 PRODUCT DEMO GOAL
+
+- [ ] 📥 Swap mock detection endpoint with Lead's YOLOv8 ONNX endpoint
+- [ ] Display detected ingredients with confidence scores and bounding boxes
+- [ ] Query HGAT: "You have these ingredients — here's what you can cook" with substitution suggestions
+- [ ] 📥 Wire ChefKix-CLIP endpoint: photo of dish → cross-modal retrieval → matching recipes
+- [ ] End-to-end pipeline: camera → detect → identify → substitute → allergen check → compound record
 
 ---
 
 ### EPIC 9: Evaluation Dashboard (Wire Real Results) 🟡 THESIS-CRITICAL
 
-**Point:** Plug in all the real numbers from Lead's benchmarks and make the dashboard thesis-defense ready.
-
-- [ ] 📥 Load `benchmark_results.json` → populate comparison table with real Hit@1/MRR numbers
-- [ ] 📥 Load `ablation_results.json` → populate ablation bar charts
-- [ ] 📥 Load `allergen_benchmark.json` → populate allergen safety comparison
-- [ ] 📥 Load behavioral simulation results → show MRR delta (static vs. feedback HGAT)
-- [ ] Add "export as image" button for each chart (for thesis PDF inclusion)
-- [ ] Polish: proper axis labels, legends, color coding, responsive layout
+- [ ] 📥 Load `benchmark_results.json` → populate comparison table with REAL numbers as they arrive
+- [ ] 📥 Load `ablation_results.json` → ablation charts (v11 results already available)
+- [ ] Allergen benchmark table: populate after Lead runs real API calls (EPIC 5b)
+- [ ] Cross-modal table: populate after ChefKix-CLIP training (EPIC 12)
+- [ ] VLM ingredient mAP: populate after ChefKix-VLM training (EPIC 11)
+- [ ] "Export as image" button for each chart (for thesis PDF)
+- [ ] All PENDING items show honest placeholder: "Training in progress" / "Protocol not yet executed"
 
 ---
 
 ### EPIC 10: Graph Explorer (Wire Real Data) 🟡 DEMO-CRITICAL
 
-**Point:** Swap mock graph data with real knowledge graph. Add compound and allergen overlays.
-
-- [ ] 📥 Swap `graph_sample.json` with full graph data from Lead's API endpoint
-- [ ] Wire node detail panel: real compound profile from FooDB (top 5 flavor molecules), USDA nutritional snapshot, allergen flags
-- [ ] Wire edge detail panel: real compound overlap %, nutritional comparison, cook validation count
-- [ ] Add "Technique context" to edge detail: "works for baking, not for frying"
-- [ ] Performance: lazy-load neighborhoods instead of rendering entire 16K-node graph at once
+- [ ] 📥 Swap `graph_sample.json` with real graph API or updated export
+- [ ] Wire node detail: compound profile from FooDB (presence records, not flavor claims), USDA nutrients, allergen flags
+- [ ] Wire edge detail: MISKG frequency, compound overlap %, SAG gate weights (after EPIC 3b)
+- [ ] Performance: lazy-load neighborhoods; do not render full 8,552-node graph at once
 
 ---
 
-## PHASE 4: Thesis & Defense (Weeks 7-12)
+## PHASE 4: Thesis Support (14 Chapters)
 
-### EPIC 11: Thesis Engineering Chapters 📝 CONTINUOUS
+### EPIC 11: Thesis Engineering Screenshots (14 chapters, updated)
 
-- [ ] **Chapter 5 (Compound Explanation):** Screenshots of compound UI, explanation pipeline diagram, user-facing examples
-- [ ] **Chapter 6 (Allergen Safety):** Screenshots of safety UI, head-to-head comparison page, violation rate evidence
-- [ ] **Chapter 7 (Behavioral Learning):** Feedback instrument UI flow, data capture architecture
-- [ ] **Chapter 8 (Multi-Modal):** Photo pipeline screenshots, detection + graph query demo
-- [ ] **Chapter 10 (System Architecture):** Full IRON CHEF v3 stack diagram, deployment, $0 hosting
-- [ ] **Chapter 11 (Evaluation):** Export dashboard charts as thesis-ready figures
+| Chapter | Your contribution |
+|:---|:---|
+| 3 (Knowledge Graph) | Graph explorer screenshots, signal coverage map |
+| 4 (M1 GNN + SAG) | Ablation bar chart, SAG gate visualization, graph explorer |
+| 5 (M2 Mistral) | Benchmark table showing Mistral vs. GISMo (after training) |
+| 6 (M3 VLM) | Ingredient identification UI, camera overlay |
+| 7 (M4 CLIP) | Cross-modal search results, dish recognition screenshots |
+| 8 (Compound Explanation) | Substitution card with compound records |
+| 9 (Allergen Benchmark) | Killshot comparison table |
+| 10 (Selective Abstention) | Abstention UI showing UNKNOWN status |
+| 11 (Photo Pipeline) | End-to-end pipeline demo screenshots/video |
+| 12 (System Architecture) | Full IRON CHEF v3 stack diagram |
+| 13 (Evaluation) | Dashboard export as thesis figures |
 
 ---
 
 ### EPIC 12: Voice-Vision Copilot ⬜ TIER C (IF TIME ALLOWS)
 
-**Point:** The "JARVIS" experience — voice-controlled cooking with graph-grounded answers. Incredible demo, but not thesis-critical. Only do this if Epics 1-10 are solid.
-
-- [ ] Upgrade `useVoiceMode.ts` to continuous wake-word listening ("Hey ChefKix")
-- [ ] Orchestration route: voice command + camera frame → VLM with Graph-RAG → TTS response
-- [ ] Intervention alerts when AI detects a potential issue
+- [ ] Continuous wake-word listening ("Hey ChefKix")
+- [ ] Orchestration: voice + camera frame → VLM + Graph-RAG → TTS response
+- [ ] Only if Epics 1-11 are solid
 
 ---
 
 ## Priority Guide
 
-| Priority | Epics | Phase | Why | Blocked By |
+| Priority | Epic | Status | Why | Blocker |
 |:---|:---|:---|:---|:---|
-| 🟡 **Start Now** | Epic 1 (Graph Explorer Scaffold), Epic 2 (Dashboard Shell), Epic 3 (Allergen Profile), Epic 4 (Camera Scaffold) | Phase 1 | Build infrastructure while Lead builds intelligence. Nothing is blocked. | **Nothing** |
-| 🔴 **Wire When Ready** | Epic 5 (Compound Explanation UI), Epic 6 (Allergen Safety UI) | Phase 2 | Make the thesis contributions VISIBLE. Start with mock data, swap to real. | Lead's compound + allergen APIs (use mocks until then) |
-| 🟡 **Complete** | Epic 7 (Feedback Instrument) | Phase 2 | Behavioral data capture — partially built, needs UI completion. | **Nothing** |
-| 🟡 **Polish** | Epic 8 (Photo Pipeline), Epic 9 (Dashboard Real Data), Epic 10 (Graph Real Data) | Phase 3 | Plug in real models and real numbers. Demo readiness. | Lead's endpoints + benchmark exports |
-| 🟢 **If Time** | Epic 12 (Voice Copilot) | Phase 3+ | Investor wow-moment. Not thesis-critical. | Everything else being solid |
-| 📝 **Continuous** | Epic 11 (Thesis Chapters) | All | Screenshot and document as you build. | **Nothing** |
+| 🔴 P0 BUILD NOW | EPIC 1 (Graph Explorer) | 🟡 Ready for `/explore/graph` | Visual centerpiece; `graph_sample.json` mounted | Nothing |
+| 🔴 P0 BUILD NOW | EPIC 2 (Eval Dashboard) | 🟡 Ready with REAL verified numbers | Defense slide live; v11 ablation data available | Nothing |
+| 🔴 P0 BUILD NOW | EPIC 5 (Compound UI) | 🟡 Ready with honesty constraints | Differentiator; compound API live | Nothing |
+| 🔴 P0 BUILD NOW | EPIC 6 (Allergen Safety UI) | 🟡 Shell + PENDING state | Killshot display shell; real data after EPIC 5b | EPIC 5b (Lead) |
+| 🟡 P1 WIRE | EPIC 3 (Allergen Profile Onboarding) | 🟡 Not started | Unblocks allergen guard | Nothing |
+| 🟡 P1 WIRE | EPIC 7 (Feedback Instrument) | 🟡 Partially built | Raw feedback collection | Nothing |
+| 🟢 IF TIME | EPIC 12 (Voice Copilot) | ⬜ Tier C | After everything else solid | M1-M4 complete |
 
 ---
 
 ## The Bottom Line
 
-You're not building busywork UI. You're building the **surfaces that make invisible intelligence visible.** Without your compound explanation cards, the chemistry reasoning is backend code nobody sees. Without your allergen safety indicators, the safety advantage over ChatGPT is a claim nobody can verify. Without your evaluation dashboard, the benchmark numbers are JSON files nobody can read.
+You build the surfaces that make invisible intelligence visible. Without your work:
+- SAG gate weights are a JSON file nobody reads
+- The allergen killshot is a terminal command nobody sees
+- The benchmark comparison is numbers nobody can compare
+- Four trained models exist in `.pt` files that impress nobody
 
-**The Lead builds the brain. You build the face.** Neither is useful without the other. The thesis and the demo succeed or fail on whether the intelligence is VISIBLE and TRUSTWORTHY to people who are not engineers.
+**Lead builds four trained models. You make four trained models impressive.**
