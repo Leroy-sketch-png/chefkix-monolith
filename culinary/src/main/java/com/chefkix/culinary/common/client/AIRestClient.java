@@ -5,6 +5,7 @@ import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanRequest;
 import com.chefkix.culinary.features.ai.dto.internal.AIMealPlanResponse;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.shared.event.SubstitutionFeedbackEvent;
 import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  */
@@ -254,6 +257,34 @@ throw e;
         } catch (Exception e) {
             log.warn("Embedding generation failed (search falls back to keyword): {}", e.getMessage());
             return null;
+        }
+    }
+
+    public void recordSubstitutionFeedback(SubstitutionFeedbackEvent event) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event_id", event.getEventId());
+        payload.put("session_id", event.getSessionId());
+        payload.put("original_ingredient", event.getOriginalIngredient());
+        payload.put("substitute_ingredient", event.getSubstituteIngredient());
+        payload.put("candidate_receipt", event.getCandidateReceipt());
+        payload.put("accepted", event.isAccepted());
+        payload.put("session_completed", event.isSessionCompleted());
+        payload.put("shared", event.isShared());
+        if (event.getUserRating() != null) payload.put("user_rating", event.getUserRating());
+        if (event.getTechnique() != null) payload.put("technique", event.getTechnique());
+        if (event.getCuisine() != null) payload.put("cuisine", event.getCuisine());
+
+        try {
+            webClient.post()
+                    .uri("/flywheel/feedback")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block(Duration.ofSeconds(10));
+        } catch (Exception e) {
+            log.error("AI substitution feedback delivery failed for eventId={}", event.getEventId(), e);
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
 }
