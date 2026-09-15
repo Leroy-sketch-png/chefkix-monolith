@@ -41,6 +41,7 @@ public class AsyncHelper {
                 .username(profile.getUsername())
                 .displayName(profile.getDisplayName())
                 .avatarUrl(profile.getAvatarUrl())
+                .verified(profile.isVerified())
                 .build();
 
         return CompletableFuture.completedFuture(author);
