@@ -144,6 +144,7 @@ public class DraftService {
                                 .displayName(authorProfile.getDisplayName())
                                 .avatarUrl(authorProfile.getAvatarUrl())
                                 .username(authorProfile.getUsername())
+                                .verified(authorProfile.isVerified())
                                 .build());
                     } else {
                         response.setAuthor(AuthorResponse.builder()
