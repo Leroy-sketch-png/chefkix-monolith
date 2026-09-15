@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Slice;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,15 @@ public class BellNotificationController {
             @RequestParam(defaultValue = "false") boolean unreadOnly) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         return ApiResponse.success(notificationService.getNotifications(userId, limit, unreadOnly));
+    }
+
+    @GetMapping("/page")
+    public ApiResponse<Slice<NotificationResponse>> getNotificationPage(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "false") boolean unreadOnly) {
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ApiResponse.success(notificationService.getNotificationPage(userId, page, size, unreadOnly));
     }
 
     @PutMapping
