@@ -1,19 +1,16 @@
 package com.chefkix.culinary.features.session.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.chefkix.shared.event.SubstitutionFeedbackChoice;
-import com.chefkix.shared.event.SubstitutionFeedbackEvent;
+import com.chefkix.culinary.features.session.service.SubstitutionFeedbackService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -21,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class SubstitutionFeedbackControllerTest {
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private SubstitutionFeedbackService feedbackService;
 
     @InjectMocks
     private SubstitutionFeedbackController controller;
@@ -32,47 +29,21 @@ class SubstitutionFeedbackControllerTest {
     }
 
     @Test
-    void publishesAnAcceptedSubstitutionWithItsExplicitChoice() {
+    void delegatesValidatedEvidenceToTheDurableService() {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("user-1", null));
-
-        SubstitutionFeedbackController.SubstitutionFeedbackRequest request =
-                new SubstitutionFeedbackController.SubstitutionFeedbackRequest();
+        var request = new SubstitutionFeedbackController.SubstitutionFeedbackRequest();
+        request.setClientFeedbackId("client-1");
         request.setOriginalIngredient("butter");
         request.setSubstituteIngredient("coconut oil");
-        request.setChoice(SubstitutionFeedbackChoice.ACCEPT);
-        request.setSessionCompleted(false);
+        request.setCandidateReceipt("receipt-v1");
+        request.setAccepted(true);
+        when(feedbackService.submit("user-1", "session-1", request)).thenReturn("event-1");
 
         var response = controller.submitFeedback("session-1", request);
 
         assertThat(response.isSuccess()).isTrue();
-        assertThat(response.getData().isRecorded()).isTrue();
-
-        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(kafkaTemplate).send(eq("substitution-feedback"), eq("user-1"), eventCaptor.capture());
-
-        SubstitutionFeedbackEvent event = (SubstitutionFeedbackEvent) eventCaptor.getValue();
-        assertThat(event.getChoice()).isEqualTo(SubstitutionFeedbackChoice.ACCEPT);
-        assertThat(event.isAccepted()).isTrue();
-        assertThat(event.getEventId()).contains("coconut oil");
-    }
-
-    @Test
-    void allowsSkipWithoutInventingASubstituteIngredient() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", null));
-
-        SubstitutionFeedbackController.SubstitutionFeedbackRequest request =
-                new SubstitutionFeedbackController.SubstitutionFeedbackRequest();
-        request.setOriginalIngredient("butter");
-        request.setChoice(SubstitutionFeedbackChoice.SKIP);
-
-        var response = controller.submitFeedback("session-1", request);
-
-        assertThat(response.isSuccess()).isTrue();
-        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(kafkaTemplate).send(eq("substitution-feedback"), eq("user-1"), eventCaptor.capture());
-        assertThat(((SubstitutionFeedbackEvent) eventCaptor.getValue()).getSubstituteIngredient())
-                .isNull();
+        assertThat(response.getData()).contains("event-1");
+        verify(feedbackService).submit("user-1", "session-1", request);
     }
 }

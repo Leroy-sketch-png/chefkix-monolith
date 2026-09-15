@@ -73,6 +73,15 @@ public class KafkaConsumerConfig {
   }
 
   @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.shared.event.SubstitutionFeedbackEvent>
+      substitutionFeedbackKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
+    return createFactory(
+        com.chefkix.shared.event.SubstitutionFeedbackEvent.class,
+        "substitution-feedback-ai-projection-group",
+        kafkaOperations);
+  }
+
+  @Bean
   public ConcurrentKafkaListenerContainerFactory<String, com.chefkix.identity.entity.UserEvent>
       userEventKafkaListenerContainerFactory(KafkaOperations<Object, Object> kafkaOperations) {
     return createFactory(com.chefkix.identity.entity.UserEvent.class, "user-events-group", kafkaOperations);
