@@ -25,6 +25,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -211,5 +216,54 @@ class NotificationServiceTest {
         assertThat(notificationCaptor.getAllValues().get(0).getContent()).contains("Level 4");
         assertThat(notificationCaptor.getAllValues().get(1).getContent()).contains("First Ramen", "Night Cook");
         verify(messagingTemplate, times(2)).convertAndSend(eq("/topic/user/user-1"), anyMap());
+    }
+
+    @Test
+    void getNotificationPagePreservesPagingSortMappingAndHasNext() {
+        Notification notification = Notification.builder()
+                .id("notification-21")
+                .recipientId("user-1")
+                .type(NotificationType.POST_COMMENT)
+                .content("Mai commented on your post")
+                .build();
+        Pageable repositoryPage = PageRequest.of(
+                2,
+                10,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(notificationRepository.findAllByRecipientId("user-1", repositoryPage))
+                .thenReturn(new SliceImpl<>(java.util.List.of(notification), repositoryPage, true));
+
+        Slice<NotificationResponse> result = notificationService
+                .getNotificationPage("user-1", 2, 10, false);
+
+        assertThat(result.getNumber()).isEqualTo(2);
+        assertThat(result.getSize()).isEqualTo(10);
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.getContent())
+                .extracting(NotificationResponse::getId)
+                .containsExactly("notification-21");
+        verify(notificationRepository).findAllByRecipientId("user-1", repositoryPage);
+        verify(notificationRepository, never())
+                .findAllByRecipientIdAndIsReadFalse(eq("user-1"), any(Pageable.class));
+    }
+
+    @Test
+    void getNotificationPageUsesUnreadRepositoryWhenRequested() {
+        Pageable repositoryPage = PageRequest.of(
+                0,
+                20,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(notificationRepository.findAllByRecipientIdAndIsReadFalse("user-1", repositoryPage))
+                .thenReturn(new SliceImpl<>(java.util.List.of(), repositoryPage, false));
+
+        Slice<NotificationResponse> result = notificationService
+                .getNotificationPage("user-1", 0, 20, true);
+
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.getContent()).isEmpty();
+        verify(notificationRepository)
+                .findAllByRecipientIdAndIsReadFalse("user-1", repositoryPage);
+        verify(notificationRepository, never())
+                .findAllByRecipientId(eq("user-1"), any(Pageable.class));
     }
 }

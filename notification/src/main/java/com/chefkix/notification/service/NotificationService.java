@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -645,22 +646,23 @@ event.getGroupId(),
     }
 
     public List<NotificationResponse> getNotifications(String userId, int limit, boolean unreadOnly) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return getNotificationPage(userId, 0, limit, unreadOnly).getContent();
+    }
 
-        List<Notification> notifications;
+    public Slice<NotificationResponse> getNotificationPage(
+            String userId, int page, int size, boolean unreadOnly) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Slice<Notification> notifications;
         if (unreadOnly) {
             notifications = notificationRepository
-                    .findAllByRecipientIdAndIsReadFalse(userId, pageable)
-                    .getContent();
+                    .findAllByRecipientIdAndIsReadFalse(userId, pageable);
         } else {
             notifications = notificationRepository
-                    .findAllByRecipientId(userId, pageable)
-                    .getContent();
+                    .findAllByRecipientId(userId, pageable);
         }
 
-        return notifications.stream()
-                .map(notificationMapper::toNotificationResponse)
-                .collect(Collectors.toList());
+        return notifications.map(notificationMapper::toNotificationResponse);
     }
 
     public void updateReadStatus(String userId, NotificationUpdateRequest request) {
