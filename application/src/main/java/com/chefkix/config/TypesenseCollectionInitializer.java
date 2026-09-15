@@ -37,6 +37,8 @@ public class TypesenseCollectionInitializer {
                 "name", "qualityTier", "type", "string", "facet", true, "optional", true);
         Map<String, Object> authorAvatarField = Map.of(
                 "name", "authorAvatarUrl", "type", "string", "optional", true);
+        Map<String, Object> authorVerifiedField = Map.of(
+                "name", "authorVerified", "type", "bool", "optional", true);
         Map<String, Object> xpRewardField = Map.of(
                 "name", "xpReward", "type", "int32", "optional", true);
         typesenseService.createCollection(Map.of(
@@ -57,6 +59,7 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "authorId", "type", "string", "optional", true),
                         Map.of("name", "authorName", "type", "string", "optional", true),
                         authorAvatarField,
+                        authorVerifiedField,
                         Map.of("name", "coverImageUrl", "type", "string", "optional", true),
                         Map.of("name", "createdAt", "type", "int64"),
                         Map.of("name", "embedding", "type", "float[]", "num_dim", 3072,
@@ -70,6 +73,9 @@ public class TypesenseCollectionInitializer {
         }
         if (!typesenseService.ensureCollectionField("recipes", authorAvatarField)) {
             log.error("Typesense recipes authorAvatarUrl field is not ready; creator avatars will be omitted");
+        }
+        if (!typesenseService.ensureCollectionField("recipes", authorVerifiedField)) {
+            log.error("Typesense recipes authorVerified field is not ready; creator badges will be omitted");
         }
         if (!typesenseService.ensureCollectionField("recipes", xpRewardField)) {
             log.error("Typesense recipes xpReward field is not ready; XP proof will be omitted");
@@ -106,6 +112,8 @@ public class TypesenseCollectionInitializer {
     }
 
     private void createUsersCollection() {
+        Map<String, Object> verifiedField = Map.of(
+                "name", "isVerified", "type", "bool", "optional", true);
         typesenseService.createCollection(Map.of(
                 "name", "users",
                 "fields", List.of(
@@ -116,10 +124,14 @@ public class TypesenseCollectionInitializer {
                         Map.of("name", "lastName", "type", "string", "optional", true),
                         Map.of("name", "bio", "type", "string", "optional", true),
                         Map.of("name", "avatarUrl", "type", "string", "optional", true),
+                        verifiedField,
                         Map.of("name", "followerCount", "type", "int32", "optional", true),
                         Map.of("name", "recipeCount", "type", "int32", "optional", true)
                 )
         ));
+        if (!typesenseService.ensureCollectionField("users", verifiedField)) {
+            log.error("Typesense users isVerified field is not ready; creator badges will be omitted");
+        }
     }
 
     private void createIngredientsCollection() {

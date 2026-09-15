@@ -33,17 +33,24 @@ class TypesenseCollectionInitializerTest {
 
         Map<String, Object> recipeSchema = schemaNamed(schemaCaptor.getAllValues(), "recipes");
         Map<String, Object> postSchema = schemaNamed(schemaCaptor.getAllValues(), "posts");
-        assertThat(fieldNames(recipeSchema)).contains("authorName", "authorAvatarUrl", "xpReward");
+        Map<String, Object> userSchema = schemaNamed(schemaCaptor.getAllValues(), "users");
+        assertThat(fieldNames(recipeSchema)).contains(
+                "authorName", "authorAvatarUrl", "authorVerified", "xpReward");
         assertThat(fieldNames(postSchema)).contains("authorName", "authorAvatarUrl", "photoUrl");
+        assertThat(fieldNames(userSchema)).contains("isVerified");
 
         verify(typesenseService).ensureCollectionField(
                 eq("recipes"), fieldNamed("authorAvatarUrl"));
+        verify(typesenseService).ensureCollectionField(
+                eq("recipes"), fieldNamed("authorVerified"));
         verify(typesenseService).ensureCollectionField(
                 eq("recipes"), fieldNamed("xpReward"));
         verify(typesenseService).ensureCollectionField(
                 eq("posts"), fieldNamed("authorAvatarUrl"));
         verify(typesenseService).ensureCollectionField(
                 eq("posts"), fieldNamed("photoUrl"));
+        verify(typesenseService).ensureCollectionField(
+                eq("users"), fieldNamed("isVerified"));
     }
 
     private Map<String, Object> schemaNamed(
