@@ -2,9 +2,9 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
-## LEAD v77 execution update — DPO Segment 3 complete; Segment 4 queued (2026-09-15)
+## LEAD v77 execution update — DPO Segment 3 complete; Segment 4 running (2026-09-15)
 
-DPO Segment 3 was live-polled as `COMPLETE` and transactionally ingested on the first attempt. The 12-file checkpoint at step 131 carries manifest SHA-256 `a245ca0f...25ade`, the exact Segment-2 predecessor pin, and the frozen split/dependency contract; no transport errors or replacement were required. Segment 4 was rebuilt from that manifest, independently package-validated, and launched once. Kaggle accepted version 1 with zero invalid sources and reports `QUEUED`. Only 131/261 DPO steps are proven; Segment 4 completion, final adapter, post-DPO SFT, predictions, scoring, rights, and product value remain open.
+DPO Segment 3 was live-polled as `COMPLETE` and transactionally ingested on the first attempt. The 12-file checkpoint at step 131 carries manifest SHA-256 `a245ca0f...25ade`, the exact Segment-2 predecessor pin, and the frozen split/dependency contract; no transport errors or replacement were required. Segment 4 was rebuilt from that manifest, independently package-validated, and launched once. Kaggle accepted version 1 with zero invalid sources and now reports `RUNNING`. Only 131/261 DPO steps are proven; Segment 4 completion, final adapter, post-DPO SFT, predictions, scoring, rights, and product value remain open.
 
 ---
 
@@ -182,13 +182,13 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] DPO Segment 1 verified: exact step 44/261, 12 checkpoint files, manifest `d726c48a...09df`
 - [x] DPO Segment 2 verified: exact step 87/261, 12 checkpoint files, manifest `f34d33ff...4a84f`
 - [x] DPO Segment 3 verified: exact step 131/261, 12 checkpoint files, manifest `a245ca0f...25ade`, exact Segment-2 predecessor pin
-- [ ] DPO Segment 4 QUEUED with exact Segment-3 predecessor pin; Segments 5-6 gated
+- [ ] DPO Segment 4 RUNNING with exact Segment-3 predecessor pin; Segments 5-6 gated
 
 **Stage 3 — Post-DPO SFT + Inference:**
 - [ ] Post-DPO SFT; 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-3 COMPLETE / DPO SEGMENT 4 QUEUED`. Historical failures and incomplete transports remain preserved and rejected. Only 131/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-3 COMPLETE / DPO SEGMENT 4 RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Only 131/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
 
 ---
 
@@ -314,7 +314,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + DPO segments 1-3 VERIFIED; monolithic DPO rejected; DPO segment 4 QUEUED | Ingest/validate Segment 4 after COMPLETE; release its pinned successor, then post-DPO SFT |
+| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + DPO segments 1-3 VERIFIED; monolithic DPO rejected; DPO segment 4 RUNNING | Ingest/validate Segment 4 after COMPLETE; release its pinned successor, then post-DPO SFT |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -322,7 +322,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Monolithic DPO timed out at 91/261; bounded segments 1-3/6 COMPLETE at 131/261; segment 4 QUEUED; post-DPO SFT gated | Transactionally advance the six-segment state-preserving chain; auto-advance SFT only after final DPO verification |
+| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Monolithic DPO timed out at 91/261; bounded segments 1-3/6 COMPLETE at 131/261; segment 4 RUNNING; post-DPO SFT gated | Transactionally advance the six-segment state-preserving chain; auto-advance SFT only after final DPO verification |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
