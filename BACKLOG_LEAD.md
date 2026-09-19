@@ -2,9 +2,9 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
-## LEAD v82 execution update — Segment 5 accepted (2026-09-19)
+## LEAD v83 execution update — Segment 5 running; multi-arm bridge ready (2026-09-19)
 
-DPO Segment 4 v3 is transactionally verified at exact step 153/261 with 12 checkpoint files, manifest `a9fe5d69...8787`, and the exact Segment-3 predecessor pin. Versions 1 and 2 remain preserved/rejected cancellations. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. After the earlier quota rejection, one fail-closed Segment-5 push was accepted as Kaggle version 1 with zero invalid sources and the exact Segment-4 manifest pin; post-launch state is `QUEUED`.
+DPO Segment 4 v3 is transactionally verified at exact step 153/261 with 12 checkpoint files, manifest `a9fe5d69...8787`, and the exact Segment-3 predecessor pin. Versions 1 and 2 remain preserved/rejected cancellations. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. Segment 5 version 1 is `RUNNING` with the exact Segment-4 manifest pin. In parallel, a deterministic immutable multi-arm allergen merger now validates complete 208-cell arms, exact hashes, provider/model/finish metadata, one-attempt cells, and response-ID uniqueness; nine tests plus five adversarial subtests pass. Gemini's configured variable is empty and OpenAI is absent, so neither result is claimed.
 
 ---
 
@@ -183,7 +183,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] DPO Segment 2 verified: exact step 87/261, 12 checkpoint files, manifest `f34d33ff...4a84f`
 - [x] DPO Segment 3 verified: exact step 131/261, 12 checkpoint files, manifest `a245ca0f...25ade`, exact Segment-2 predecessor pin
 - [x] DPO Segment 4 v3 verified: exact step 153/261, 12 checkpoint files, manifest `a9fe5d69...8787`, exact Segment-3 predecessor pin
-- [ ] DPO Segment 5 version 1 QUEUED to exact step 174; package binds verified Segment-4 manifest `a9fe5d69...8787`
+- [ ] DPO Segment 5 version 1 RUNNING to exact step 174; package binds verified Segment-4 manifest `a9fe5d69...8787`
 
 **Stage 3 — Post-DPO SFT + Inference:**
 - [ ] Post-DPO SFT; 10,747-case inference under frozen evaluator
@@ -262,6 +262,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 - [x] Repair to a matched 208-query/208-family protocol where every system performs the same three-candidate task; structurally encode all 13 declared allergen groups and cross-contact policy
 - [x] Pin and persist requested/provider-returned identity, response ID, timeout, per-cell atomic checkpoint, attempt, latency, finish, usage, response hash, and sealed run hash
 - [x] Run Mistral `mistral-small-2603`: 208/208 schema-valid cells, zero errors, 208 unique provider response IDs; raw validation rejects 8/8 corruptions
+- [x] Build immutable multi-arm evidence merger: exact 208-query/hash/model/finish contract, duplicate/collision refusal, nine tests + five adversarial subtests
 - [ ] Run GPT-4o `gpt-4o-2024-08-06` and Gemini `gemini-2.5-flash` when credentials are configured
 - [x] Generate two independently shuffled 208-item v2 review instruments and sealed identity key; validation rejects 6/6 corruptions and response-style/single-system blinding limits are explicit
 - [ ] Complete two independent reviews and adjudication under a consistent frozen rubric
@@ -269,7 +270,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 - [ ] Hash-bind all responses + scores
 - [ ] Report: the table — who recommended dangerous substitutes, who caught them
 
-**Evidence state:** `PARTIAL E2 MATCHED 208-CASE MISTRAL RAW ARM / GPT-4O + GEMINI + REVIEW OPEN`. The old heuristic scorer is retired fail-closed. Raw calls do not authorize safety or comparative rates.
+**Evidence state:** `PARTIAL E2 MATCHED 208-CASE MISTRAL RAW ARM / MULTI-ARM MERGE READY / GPT-4O + GEMINI + REVIEW OPEN`. The old heuristic scorer is retired fail-closed. Raw calls and merge readiness do not authorize safety or comparative rates.
 
 **Allowed defense claim now:** under a frozen matched protocol, Mistral `mistral-small-2603` produced 208/208 schema-valid raw responses with zero errors and independently reconstructing evidence. Do not show a winner table, safety rate, zero-violation claim, GPT-4o/Gemini result, or novelty claim until remaining arms and independent adjudication pass.
 
