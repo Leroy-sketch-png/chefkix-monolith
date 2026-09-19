@@ -4,7 +4,7 @@
 
 ## LEAD v83 execution update — Segment 5 running; multi-arm bridge ready (2026-09-19)
 
-DPO Segment 4 v3 is transactionally verified at exact step 153/261 with 12 checkpoint files, manifest `a9fe5d69...8787`, and the exact Segment-3 predecessor pin. Versions 1 and 2 remain preserved/rejected cancellations. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. Segment 5 version 1 is `RUNNING` with the exact Segment-4 manifest pin. In parallel, a deterministic immutable multi-arm allergen merger now validates complete 208-cell arms, exact hashes, provider/model/finish metadata, one-attempt cells, and response-ID uniqueness; nine tests plus five adversarial subtests pass. Gemini's configured variable is empty and OpenAI is absent, so neither result is claimed.
+DPO Segment 4 v3 is transactionally verified at exact step 153/261 with 12 checkpoint files, manifest `a9fe5d69...8787`, and the exact Segment-3 predecessor pin. Versions 1 and 2 remain preserved/rejected cancellations. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. Segment 5 version 1 is `RUNNING` with the exact Segment-4 manifest pin. In parallel, a deterministic immutable multi-arm allergen bridge validates complete 208-cell arms, exact hashes, provider/model/finish metadata, one-attempt cells, and response-ID uniqueness, then emits two independently shuffled system-hidden review packs plus a sealed key; eleven tests plus nine adversarial subtests pass. Gemini's configured variable is empty and OpenAI is absent, so neither result is claimed.
 
 ---
 
@@ -263,6 +263,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 - [x] Pin and persist requested/provider-returned identity, response ID, timeout, per-cell atomic checkpoint, attempt, latency, finish, usage, response hash, and sealed run hash
 - [x] Run Mistral `mistral-small-2603`: 208/208 schema-valid cells, zero errors, 208 unique provider response IDs; raw validation rejects 8/8 corruptions
 - [x] Build immutable multi-arm evidence merger: exact 208-query/hash/model/finish contract, duplicate/collision refusal, nine tests + five adversarial subtests
+- [x] Build multi-system blind-review packager: independent reviewer order, hidden system identity, sealed key, immutable outputs, identity/prior-label/candidate/coverage refusal
 - [ ] Run GPT-4o `gpt-4o-2024-08-06` and Gemini `gemini-2.5-flash` when credentials are configured
 - [x] Generate two independently shuffled 208-item v2 review instruments and sealed identity key; validation rejects 6/6 corruptions and response-style/single-system blinding limits are explicit
 - [ ] Complete two independent reviews and adjudication under a consistent frozen rubric
@@ -270,7 +271,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 - [ ] Hash-bind all responses + scores
 - [ ] Report: the table — who recommended dangerous substitutes, who caught them
 
-**Evidence state:** `PARTIAL E2 MATCHED 208-CASE MISTRAL RAW ARM / MULTI-ARM MERGE READY / GPT-4O + GEMINI + REVIEW OPEN`. The old heuristic scorer is retired fail-closed. Raw calls and merge readiness do not authorize safety or comparative rates.
+**Evidence state:** `PARTIAL E2 MATCHED 208-CASE MISTRAL RAW ARM / MULTI-ARM MERGE + REVIEW PACK READY / GPT-4O + GEMINI + REVIEW OPEN`. The old heuristic scorer is retired fail-closed. Raw calls and pipeline readiness do not authorize safety or comparative rates.
 
 **Allowed defense claim now:** under a frozen matched protocol, Mistral `mistral-small-2603` produced 208/208 schema-valid raw responses with zero errors and independently reconstructing evidence. Do not show a winner table, safety rate, zero-violation claim, GPT-4o/Gemini result, or novelty claim until remaining arms and independent adjudication pass.
 
