@@ -2,9 +2,9 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
-## LEAD v83 execution update — Segment 5 running; multi-arm bridge ready (2026-09-19)
+## LEAD v84 execution update — step 174 verified; Segment 6 running (2026-09-21)
 
-DPO Segment 4 v3 is transactionally verified at exact step 153/261 with 12 checkpoint files, manifest `a9fe5d69...8787`, and the exact Segment-3 predecessor pin. Versions 1 and 2 remain preserved/rejected cancellations. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. Segment 5 version 1 is `RUNNING` with the exact Segment-4 manifest pin. In parallel, a deterministic immutable multi-arm allergen bridge validates complete 208-cell arms, exact hashes, provider/model/finish metadata, one-attempt cells, and response-ID uniqueness, then emits two independently shuffled system-hidden review packs plus a sealed key; eleven tests plus nine adversarial subtests pass. Gemini's configured variable is empty and OpenAI is absent, so neither result is claimed.
+DPO Segment 5 version 1 is transactionally verified at exact step 174/261 with 12 checkpoint files, manifest `7bbf682c...9340d`, exact Segment-4 predecessor pin, and boundary evaluation loss `1.4209885490501506e-09`; near-zero loss remains shortcut-confound evidence, not quality proof. Seven packages validate, 12/12 semantic mutations reject, and 13/13 focused tests pass. Segment 6 version 1 is `RUNNING` toward step 218 with the exact Segment-5 manifest pin and zero invalid sources. The deterministic multi-arm allergen bridge remains ready; Gemini's configured variable is empty and OpenAI is absent, so neither result is claimed.
 
 ---
 
@@ -183,13 +183,14 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] DPO Segment 2 verified: exact step 87/261, 12 checkpoint files, manifest `f34d33ff...4a84f`
 - [x] DPO Segment 3 verified: exact step 131/261, 12 checkpoint files, manifest `a245ca0f...25ade`, exact Segment-2 predecessor pin
 - [x] DPO Segment 4 v3 verified: exact step 153/261, 12 checkpoint files, manifest `a9fe5d69...8787`, exact Segment-3 predecessor pin
-- [ ] DPO Segment 5 version 1 RUNNING to exact step 174; package binds verified Segment-4 manifest `a9fe5d69...8787`
+- [x] DPO Segment 5 version 1 verified: exact step 174/261, 12 checkpoint files, manifest `7bbf682c...9340d`, exact Segment-4 predecessor pin
+- [ ] DPO Segment 6 version 1 RUNNING to exact step 218; package binds verified Segment-5 manifest `7bbf682c...9340d`
 
 **Stage 3 — Post-DPO SFT + Inference:**
 - [ ] Post-DPO SFT; 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-4 COMPLETE / SEGMENT 5 QUEUED`. Historical failures and incomplete transports remain preserved and rejected. Only 153/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-5 COMPLETE / SEGMENT 6 RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Only 174/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
 
 ---
 
@@ -317,7 +318,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + DPO segments 1-4 VERIFIED through step 153; Segment 5 QUEUED | Ingest and validate exact step 174 after remote completion |
+| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + DPO segments 1-5 VERIFIED through step 174; Segment 6 RUNNING | Ingest and validate exact step 218 after remote completion |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -325,7 +326,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Monolithic DPO rejected; 153/261 verified; Segment 5 version 1 QUEUED to step 174 | Advance only after transactional validation; post-DPO SFT remains gated |
+| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Monolithic DPO rejected; 174/261 verified; Segment 6 version 1 RUNNING to step 218 | Advance only after transactional validation; post-DPO SFT remains gated |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
