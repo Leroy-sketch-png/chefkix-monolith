@@ -8,6 +8,10 @@ import com.chefkix.shared.dto.ApiResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,15 +21,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/knowledge")
 @RequiredArgsConstructor
+@Validated
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class KnowledgeGraphController {
 
     KnowledgeGraphService knowledgeGraphService;
 
     @GetMapping("/graph")
-    public ApiResponse<KnowledgeGraphResponse> getGraph() {
+    public ApiResponse<KnowledgeGraphResponse> getGraph(
+            @RequestParam(required = false) @Size(max = 120) String root,
+            @RequestParam(required = false) @Size(max = 120) String q,
+            @RequestParam(defaultValue = "1") @Min(0) @Max(2) int depth,
+            @RequestParam(defaultValue = "100") @Min(1) @Max(500) int limit) {
         return ApiResponse.<KnowledgeGraphResponse>builder()
-                .success(true).statusCode(200).data(knowledgeGraphService.getGraph()).build();
+                .success(true).statusCode(200).data(knowledgeGraphService.getGraph(root, q, depth, limit)).build();
     }
 
 
