@@ -13,6 +13,7 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(500, "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_INPUT(400, "Invalid input data", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST(400, "Invalid request", HttpStatus.BAD_REQUEST),
+    KNOWLEDGE_INGREDIENT_NOT_FOUND(404, "Knowledge ingredient not found", HttpStatus.NOT_FOUND),
     INVALID_KEY(400, "Invalid key", HttpStatus.BAD_REQUEST),
     DUPLICATE_KEY(409, "Duplicate key", HttpStatus.CONFLICT),
     UNAUTHENTICATED(401, "Unauthenticated", HttpStatus.UNAUTHORIZED),
