@@ -72,8 +72,9 @@ public class KnowledgeGraphService {
         List<KnowledgeIngredient> ingredients;
         boolean hasMore;
         if (root != null && !root.isBlank()) {
-            ingredients = neighborhood(root.trim().toLowerCase(Locale.ROOT), depth, limit);
-            hasMore = total > ingredients.size();
+            List<KnowledgeIngredient> expanded = neighborhood(root.trim().toLowerCase(Locale.ROOT), depth, limit + 1);
+            hasMore = expanded.size() > limit;
+            ingredients = hasMore ? expanded.subList(0, limit) : expanded;
         } else {
             var pageRequest = PageRequest.of(0, limit, Sort.by("canonicalName"));
             Page<KnowledgeIngredient> page = query == null || query.isBlank()

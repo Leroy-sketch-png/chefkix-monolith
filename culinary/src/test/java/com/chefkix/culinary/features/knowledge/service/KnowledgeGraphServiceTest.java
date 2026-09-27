@@ -72,16 +72,30 @@ class KnowledgeGraphServiceTest {
     }
 
     @Test
-    void rootLimitStopsExpansionBeforeFetchingNeighbors() {
+    void rootLimitReportsMoreOnlyWhenReachableNeighborsExist() {
         var butter = ingredient("butter", "coconut oil", 0.75);
+        var coconut = ingredient("coconut oil", null, null);
         when(ingredientRepo.count()).thenReturn(3L);
         when(ingredientRepo.findByCanonicalName("butter")).thenReturn(Optional.of(butter));
+        when(ingredientRepo.findByCanonicalNameIn(List.of("coconut oil"))).thenReturn(List.of(coconut));
 
         var graph = service.getGraph("butter", null, 2, 1);
 
         assertThat(graph.nodes()).hasSize(1);
         assertThat(graph.edges()).isEmpty();
         assertThat(graph.hasMore()).isTrue();
+    }
+
+    @Test
+    void isolatedRootDoesNotReportUnrelatedIngredientsAsMore() {
+        var butter = ingredient("butter", null, null);
+        when(ingredientRepo.count()).thenReturn(3L);
+        when(ingredientRepo.findByCanonicalName("butter")).thenReturn(Optional.of(butter));
+
+        var graph = service.getGraph("butter", null, 2, 1);
+
+        assertThat(graph.nodes()).hasSize(1);
+        assertThat(graph.hasMore()).isFalse();
         verify(ingredientRepo, never()).findByCanonicalNameIn(anyCollection());
     }
 
