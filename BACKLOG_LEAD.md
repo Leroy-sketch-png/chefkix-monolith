@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v93 execution update — exact post-DPO handoff and Stage 3 running (2026-09-30)
+
+The downstream package cluster no longer references retired DPO Segment 6. Builder, validator, Stage-3 runtime, and transactional ingester now bind exact verified step-261 manifest SHA-256 `435f02e7461992a53d1e4e4882ec7d8bb3da5a3b19d571a2164f382e050f6b72`, Segment 9, its Segment-8 dependency, and the verified v69 terminal evidence. Static validation passes seven scientific checks and 7/7 adversarial mutations; 15 focused tests pass. Kaggle accepted post-DPO SFT version 1 with zero invalid sources and authenticated state `QUEUED`.
+
+This checks off the retained-adapter handoff and Stage-3 launch only. Stage-3 completion, adapter integrity, 10,747 frozen predictions, matched scoring, paper reproduction, and M2 model quality remain open.
+
+---
+
 ## LEAD v92 execution update — segmented DPO complete and verified (2026-09-30)
 
 Final Segment 9 version 3 completed and transactionally validates exact step 261/261 with 12 checkpoint files, exact Segment-8 predecessor pin `54ea62d6...c645`, final manifest `9c63d9ed...159e`, terminal state `STAGE2_COMPLETE`, and final evaluation loss `1.1670465704938238e-09`. All nine packages now reconstruct end-to-end; canceled long intervals remain preserved and rejected. This checks off segmented DPO execution only. Near-zero loss remains shortcut-confound evidence, not quality proof. Post-DPO SFT, frozen predictions, matched scoring, paper reproduction, safety, rights, and product value remain open.
@@ -76,7 +84,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ### Not ready — MEMBER must not present or wire as completed capability
 - [ ] Normalized production allergen corpus/API with verified negatives and clinical validation
 - [ ] GPT-4o/Gemini comparative allergen arms, independent adjudication, or winner table
-- [ ] Completed DPO model, post-DPO SFT, frozen test predictions, or accepted M2 quality claim
+- [ ] Completed post-DPO SFT, frozen test predictions, or accepted M2 quality claim
 - [ ] Accepted M3 labels, trained VLM, ingredient-detection quality, or production vision endpoint
 - [ ] Accepted M4 replacement weights or production FAISS index
 - [ ] User-camera/voice end-to-end capability, user study, or defense-ready product evidence
@@ -84,7 +92,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ### What is RUNNING now
 - **OFF allergen snapshot:** v75 replaces the 503-record/6,400-row systematic sample ceiling with an immutable-revision scan of all 4,726,416 current food rows. It atomically emits 351,351 eligible English ingredient-label records at SHA `807fe58e...9c68`; independent reconstruction passes 16/16 fields, 16/16 mutations reject, and seven tests pass. The raw 1,225 allergen/2,379 trace tag vocabularies contain substantial malformed/non-allergen contamination. L20 remains PARTIAL pending normalization, independent labels/negatives, clinical validity, production lifecycle, rights review, and user evidence.
 - **Senath DPO:** all nine hash-pinned packages are transactionally complete through exact step 261/261. Final manifest is `9c63d9ed...159e`, terminal state is `STAGE2_COMPLETE`, and final evaluation loss is `1.1670465704938238e-09`. Execution is complete; model quality is not proven.
-- **Senath downstream gate:** DPO uses the frozen 7,000 train/500 disjoint validation split from 7,500 unique bounded preference identities. Transport validates before promotion, preserves canonical evidence on failure, and now resolves Kaggle 403 absence only after complete authenticated inventory. Post-DPO SFT/inference remain gated on verified DPO completion.
+- **Senath downstream gate:** Stage 3 version 1 is queued from the exact verified step-261 DPO manifest. Transport validates before promotion, preserves canonical evidence on failure, and resolves Kaggle 403 absence only after complete authenticated inventory. Stage-3 completion, inference, and scoring remain gated separately.
 - **Substitution feedback:** receipted candidates only. V70 proves exact offline recovery after actual isolated source-volume deletion. V71 adds preview-first local archival: keep at least two verified copies, hash-bind the complete inventory, preserve corrupt/unknown artifacts, reject stale/tampered/escaping/colliding plans, and move old verified copies into unique batches with zero deletion. Exact-source image `f7933732...ffb80` passes 10/10; tests are 24/24 and retention attacks 7/7. Automated quiescence, policy/scheduling, replicated storage, external/multi-instance durability, orchestrated recovery, representative events, and a scorer remain open.
 - **Allergen adjudication protocol:** frozen (`3ef4eff1...`), 228 blinded FDA cases. Awaiting two independent reviews.
 - **Allergen LLM benchmark:** matched 208-query protocol frozen; Mistral `mistral-small-2603` raw arm is 208/208 with zero errors and independently validated hashes/metadata. GPT-4o/Gemini and two-reviewer adjudication remain absent; no score is authorized.
@@ -102,7 +110,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | Model | Epic | Status | Next action |
 |:---|:---|:---|:---|
 | **M1 IRON CHEF GNN** (HGAT + SAG) | EPIC 3 + EPIC 3b | Corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent | Preserve both rejections; reopen only with a materially stronger preregistered graph-preserving/OOD candidate |
-| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE and verified through 261/261; quality claim open | Validate retained adapter handoff, then execute frozen post-DPO SFT and downstream scoring as separate gates |
+| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; exact handoff verified; post-DPO SFT v1 QUEUED | Transactionally validate Stage 3, then execute frozen inference and matched scoring as separate gates |
 | **M3 ChefKix-VLM** (QLoRA) | EPIC 11 | OPEN; real collator E2 + 50-candidate/20-label per-file rights snapshot E3 + two-reviewer pack; label truth absent | Complete two independent reviews, adjudicate and replace rejects to accepted quotas, freeze hash-disjoint splits, then repackage/launch |
 | **M4 ChefKix-CLIP** (projection fine-tune) | EPIC 12 | VERIFIED E2 trained projection NEGATIVE; R@1 34.10→35.42%, +2pp gate missed | Preserve rejection; reopen only with rights-resolved prospective/external protocol |
 
@@ -208,7 +216,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 
 ### EPIC 10: ChefKix-Mistral-7B — Custom LLM Training Pipeline 🔴 ACTIVE (M2)
 
-This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradictions, generating our own preference pairs, designing 6-segment checkpointed execution.
+This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradictions, generating our own preference pairs, and completing nine-package checkpointed DPO execution before the exact post-DPO handoff.
 
 **Stage 1 — SFT (LoRA 64/32, 15K examples, 3 epochs):**
 - [x] Segment 1 verified: step 90, all 12 checkpoint files, independent manifest match (E3)
@@ -232,10 +240,12 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] DPO Segment 9/final completion: version 3 validated exact step 261, terminal `STAGE2_COMPLETE`, manifest `9c63d9ed...159e`, and final evaluation
 
 **Stage 3 — Post-DPO SFT + Inference:**
-- [ ] Post-DPO SFT; 10,747-case inference under frozen evaluator
+- [x] Bind Stage-3 package to exact verified step-261 manifest; validate retained-adapter handoff; launch Kaggle version 1 once
+- [ ] Transactionally validate completed post-DPO SFT adapter
+- [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-5 COMPLETE / SEGMENT 6 CANCELED`. Historical failures and incomplete transports remain preserved and rejected. Only 174/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / POST-DPO SFT RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Exact DPO execution and Stage-3 launch are proven; no completed post-DPO adapter, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
 
 ---
 
@@ -363,7 +373,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + segmented DPO VERIFIED COMPLETE through step 261 | Verify adapter handoff; execute frozen post-DPO SFT, inference, and matched scoring as separate gates |
+| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + segmented DPO complete; exact handoff verified; Stage 3 v1 QUEUED | Validate Stage 3 transactionally; then launch frozen inference once |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -371,7 +381,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Segmented DPO COMPLETE at 261/261; near-zero loss is not quality proof | Preserve execution evidence; validate adapter handoff before launching post-DPO SFT |
+| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Segmented DPO COMPLETE at 261/261; Stage 3 v1 QUEUED; near-zero loss is not quality proof | Monitor without duplicate launch; ingest only after exact validation |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
