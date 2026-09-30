@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v94 execution update — inference successor made fail-closed (2026-09-30)
+
+Inference can no longer launch against a merely plausible Stage-3 artifact. Its package starts with an unmaterialized identity sentinel and refuses runtime execution. After Stage 3 completes, the transactional ingester must validate exact Stage-2 ancestry, frozen dataset/settings, and every adapter hash, atomically materialize the exact Stage-3 manifest SHA-256, rebuild the downstream manifest, and rerun package validation before one launch. Static gates pass and 17 focused tests cover identity/settings substitution, transactional promotion, remote-state refusal, and launch acknowledgement.
+
+Stage 3 remains running. This clears successor-provenance preparation only; completed post-DPO SFT, inference output, matched scoring, and model quality remain unchecked.
+
+---
+
 ## LEAD v93 execution update — exact post-DPO handoff and Stage 3 running (2026-09-30)
 
 The downstream package cluster no longer references retired DPO Segment 6. Builder, validator, Stage-3 runtime, and transactional ingester now bind exact verified step-261 manifest SHA-256 `435f02e7461992a53d1e4e4882ec7d8bb3da5a3b19d571a2164f382e050f6b72`, Segment 9, its Segment-8 dependency, and the verified v69 terminal evidence. Static validation passes seven scientific checks and 7/7 adversarial mutations; 15 focused tests pass. Kaggle accepted post-DPO SFT version 1 with zero invalid sources and authenticated state `QUEUED`.
@@ -241,6 +249,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 
 **Stage 3 — Post-DPO SFT + Inference:**
 - [x] Bind Stage-3 package to exact verified step-261 manifest; validate retained-adapter handoff; launch Kaggle version 1 once
+- [x] Make inference fail closed until exact verified Stage-3 manifest materialization
 - [ ] Transactionally validate completed post-DPO SFT adapter
 - [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
