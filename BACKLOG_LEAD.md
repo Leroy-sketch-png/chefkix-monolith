@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v97 execution update — Stage 3 launch boundary hardened (2026-10-01)
+
+The segmented Stage-3 executable now pins base script SHA-256 `88d79461...c8c6` across builder, validator, and ingester. Only the exact weekly-GPU-quota response is preserved as a retryable non-launch; malformed acknowledgements, authentication/transport failures, and other runtime errors propagate fail closed. Completed segments must reconstruct the exact expected 12-file checkpoint inventory in addition to every hash and exact-resume state.
+
+All nine packages rebuild byte-identically, static validation remains `PASS`, 8/8 semantic attacks reject, and eight focused tests pass. Authenticated Segment 1 remains `NOT_CREATED`; no second push occurred. Stage 3, inference, scoring, and model-quality boxes remain unchecked.
+
+---
+
 ## LEAD v96 execution update — segmented Stage 3 ready; GPU quota gate (2026-10-01)
 
 The canceled 561-step monolith is replaced by nine exact-resume packages at `70, 140, 187, 257, 327, 374, 444, 514, 561`. The longest span is 70 steps (about 8.2 hours at the observed rate), while evaluations stay exactly at 187/374/561. Every successor binds the exact predecessor manifest and reconstructs checkpoint, optimizer, scheduler, RNG, trainer, data-selection, Stage-2, and retained-best state. Nine packages compile; 8/8 semantic attacks reject and five focused tests pass.
@@ -116,7 +124,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ### What is RUNNING now
 - **OFF allergen snapshot:** v75 replaces the 503-record/6,400-row systematic sample ceiling with an immutable-revision scan of all 4,726,416 current food rows. It atomically emits 351,351 eligible English ingredient-label records at SHA `807fe58e...9c68`; independent reconstruction passes 16/16 fields, 16/16 mutations reject, and seven tests pass. The raw 1,225 allergen/2,379 trace tag vocabularies contain substantial malformed/non-allergen contamination. L20 remains PARTIAL pending normalization, independent labels/negatives, clinical validity, production lifecycle, rights review, and user evidence.
 - **Senath DPO:** all nine hash-pinned packages are transactionally complete through exact step 261/261. Final manifest is `9c63d9ed...159e`, terminal state is `STAGE2_COMPLETE`, and final evaluation loss is `1.1670465704938238e-09`. Execution is complete; model quality is not proven.
-- **Senath downstream gate:** Stage 3 version 1 is queued from the exact verified step-261 DPO manifest. Transport validates before promotion, preserves canonical evidence on failure, and resolves Kaggle 403 absence only after complete authenticated inventory. Stage-3 completion, inference, and scoring remain gated separately.
+- **Senath downstream gate:** monolithic Stage 3 version 1 is preserved canceled without artifacts. The exact-resume nine-package recovery is validated, but Segment 1 remains absent under the weekly GPU quota gate. Transport validates before promotion and resolves Kaggle 403 absence only after complete authenticated inventory. Stage-3 completion, inference, and scoring remain gated separately.
 - **Substitution feedback:** receipted candidates only. V70 proves exact offline recovery after actual isolated source-volume deletion. V71 adds preview-first local archival: keep at least two verified copies, hash-bind the complete inventory, preserve corrupt/unknown artifacts, reject stale/tampered/escaping/colliding plans, and move old verified copies into unique batches with zero deletion. Exact-source image `f7933732...ffb80` passes 10/10; tests are 24/24 and retention attacks 7/7. Automated quiescence, policy/scheduling, replicated storage, external/multi-instance durability, orchestrated recovery, representative events, and a scorer remain open.
 - **Allergen adjudication protocol:** frozen (`3ef4eff1...`), 228 blinded FDA cases. Awaiting two independent reviews.
 - **Allergen LLM benchmark:** matched 208-query protocol frozen; Mistral `mistral-small-2603` raw arm is 208/208 with zero errors and independently validated hashes/metadata. GPT-4o/Gemini and two-reviewer adjudication remain absent; no score is authorized.
@@ -134,7 +142,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | Model | Epic | Status | Next action |
 |:---|:---|:---|:---|
 | **M1 IRON CHEF GNN** (HGAT + SAG) | EPIC 3 + EPIC 3b | Corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent | Preserve both rejections; reopen only with a materially stronger preregistered graph-preserving/OOD candidate |
-| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; exact handoff verified; post-DPO SFT v1 QUEUED | Transactionally validate Stage 3, then execute frozen inference and matched scoring as separate gates |
+| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; monolithic Stage 3 canceled; segmented recovery ready and GPU-quota blocked | Launch exact Segment 1 once quota recovers, then transactionally validate each segment before frozen inference and matched scoring |
 | **M3 ChefKix-VLM** (QLoRA) | EPIC 11 | OPEN; real collator E2 + 50-candidate/20-label per-file rights snapshot E3 + two-reviewer pack; label truth absent | Complete two independent reviews, adjudicate and replace rejects to accepted quotas, freeze hash-disjoint splits, then repackage/launch |
 | **M4 ChefKix-CLIP** (projection fine-tune) | EPIC 12 | VERIFIED E2 trained projection NEGATIVE; R@1 34.10→35.42%, +2pp gate missed | Preserve rejection; reopen only with rights-resolved prospective/external protocol |
 
@@ -273,7 +281,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / POST-DPO SFT RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Exact DPO execution and Stage-3 launch are proven; no completed post-DPO adapter, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / SEGMENTED POST-DPO SFT READY + GPU QUOTA BLOCKED`. Historical failures and incomplete transports remain preserved and rejected. Exact DPO execution is proven; the prior monolithic Stage-3 launch is preserved canceled, while recovery Segment 1 has not launched. No completed post-DPO adapter, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
 
 ---
 
