@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v95 execution update — Stage 3 canceled and inference blocked (2026-10-01)
+
+Post-DPO SFT version 1 ended `CANCEL_ACKNOWLEDGED` with no failure message and an empty remote file inventory. The preserved log SHA-256 `a30a54f...105dc` reaches optimizer step 101/561 at `11:49:56`; the last periodic record is epoch `0.53`, loss `0.1519`. At roughly 421 seconds per step, the monolithic 561-step/three-epoch package cannot fit Kaggle's execution window and canceled before the first epoch evaluation/save boundary. No manifest, checkpoint, or Stage-3 adapter exists.
+
+No retry was issued and inference remained cryptographically unmaterialized, so it did not launch. Stage-3 completion stays unchecked. Recovery requires a materially segmented package chain with exact optimizer/scheduler/RNG resume and retained-best semantics; the partial log is failure evidence, not model quality.
+
+---
+
 ## LEAD v94 execution update — inference successor made fail-closed (2026-09-30)
 
 Inference can no longer launch against a merely plausible Stage-3 artifact. Its package starts with an unmaterialized identity sentinel and refuses runtime execution. After Stage 3 completes, the transactional ingester must validate exact Stage-2 ancestry, frozen dataset/settings, and every adapter hash, atomically materialize the exact Stage-3 manifest SHA-256, rebuild the downstream manifest, and rerun package validation before one launch. Static gates pass and 17 focused tests cover identity/settings substitution, transactional promotion, remote-state refusal, and launch acknowledgement.
@@ -251,6 +259,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] Bind Stage-3 package to exact verified step-261 manifest; validate retained-adapter handoff; launch Kaggle version 1 once
 - [x] Make inference fail closed until exact verified Stage-3 manifest materialization
 - [ ] Transactionally validate completed post-DPO SFT adapter
+- [ ] Replace canceled monolithic Stage 3 with a validated segmented recovery protocol before any retry
 - [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
@@ -382,7 +391,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + segmented DPO complete; exact handoff verified; Stage 3 v1 QUEUED | Validate Stage 3 transactionally; then launch frozen inference once |
+| ⛔ BLOCKED | Senath downstream reproduction | EPIC 10 | DPO complete; monolithic Stage 3 canceled at 101/561 with zero artifacts | Design and validate segmented Stage-3 recovery before any retry; inference remains blocked |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -390,7 +399,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Segmented DPO COMPLETE at 261/261; Stage 3 v1 QUEUED; near-zero loss is not quality proof | Monitor without duplicate launch; ingest only after exact validation |
+| ⛔ BLOCKED | DPO + Post-DPO SFT | EPIC 10 | DPO COMPLETE; Stage 3 v1 canceled at 101/561 with no checkpoint | Preserve failure; require segmented exact-resume design before retry |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
