@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v101 execution update — OFF taxonomy risk partition (2026-10-02)
+
+The complete OFF snapshot's 3,377-tag union is now partitioned against hash-pinned official taxonomy bytes. Twenty-three exact positive identities cover 760,877/767,780 occurrences (`99.100914%`); official `en:none` is isolated at 564 occurrences; 17 same-language alias candidates cover 32 and remain review-only; 3,336 unrecognized values dominate identity count but cover only 6,307 occurrences (`0.821459%`). The queue is occurrence-ranked and binds snapshot manifest `5caa20cf...1dde`, derived snapshot `807fe58e...9c68`, and taxonomy `6fb38bfb...d153f`.
+
+Every tag and occurrence reconstructs; 8/8 semantic substitutions reject and six focused tests pass. A v100 precursor remains rejected for incomplete Unicode-ligature normalization; v101 repairs it. This checks off deterministic risk partitioning only. Current-taxonomy timing differs from the frozen snapshot, and alias acceptance, qualified adjudication, verified negatives, clinical validity, production serving, legal review, and user outcomes remain unchecked.
+
+---
+
 ## LEAD v99 execution update — secondary Stage 3 step 70 verified (2026-10-02)
 
 Secondary Segment 1 is checked off as transactionally verified at exact step 70/561. Terminal state is `STAGE3_SEGMENT_1_COMPLETE`; manifest SHA-256 is `ed1e3db4...d991d`; all 12 required checkpoint files and hashes reconstruct with exact Stage-2 ancestry, frozen base revision, data hashes, and selection hashes. Pulled remote source is byte-identical to launched SHA-256 `d583e92f...a3af`; runtime source identity matches its LF-normalized form.
@@ -350,6 +358,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] v13 FDA export: 29,278 records, 7,047 policy candidates, 126 cross-contact
 - [x] v14 blinded adjudication protocol frozen (`3ef4eff1...`), 228 cases — INSUFFICIENT_REVIEW
 - [x] v75 complete OFF snapshot: 4,726,416/4,726,416 rows scanned; 351,351 eligible English ingredient-label records; source/derived hashes and 16/16 independent contracts verify
+- [x] v101 partition all 3,377 union tags by exact official identity, `none` sentinel, review-only alias candidate, and unrecognized value; occurrence-ranked queue reconstructs and 8/8 mutations reject
 - [ ] Normalize and independently adjudicate the malformed/non-allergen long tail across 1,225 allergen and 2,379 trace tag values
 - [ ] Two independent qualified reviews + adjudication under frozen protocol
 - [ ] Verified negatives + representative runtime inputs
