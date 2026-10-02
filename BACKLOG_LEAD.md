@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v99 execution update — secondary Stage 3 step 70 verified (2026-10-02)
+
+Secondary Segment 1 is checked off as transactionally verified at exact step 70/561. Terminal state is `STAGE3_SEGMENT_1_COMPLETE`; manifest SHA-256 is `ed1e3db4...d991d`; all 12 required checkpoint files and hashes reconstruct with exact Stage-2 ancestry, frozen base revision, data hashes, and selection hashes. Pulled remote source is byte-identical to launched SHA-256 `d583e92f...a3af`; runtime source identity matches its LF-normalized form.
+
+Only after those gates passed, secondary Segment 2 was pinned to exact manifest `ed1e3db4...d991d`, bound to the same private bridge dataset and Segment 1 as its sole kernel predecessor, and launched once. Complete owner inventory proved absence; Kaggle accepted version 1 with zero invalid sources and authenticated state is `QUEUED` toward step 140. Step 140, remaining Stage-3 segments, retained-best adapter integrity, inference, scoring, and model quality remain unchecked.
+
+---
+
 ## LEAD v98 execution update — secondary Kaggle capacity activated (2026-10-01)
 
 The new `tnvtrung` bearer credential is durably isolated from the preserved `phanphutho` legacy key under user-only ACLs and uses official Kaggle CLI 2.2.4. Because `tnvtrung` cannot read private `phanphutho` kernels, a private 11-file bridge dataset was created and remotely inventoried against exact Stage-2 manifest `435f02e7...6b72`, all eight adapter files, and frozen train/validation hashes.
