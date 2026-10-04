@@ -77,9 +77,9 @@ Code: frontend `src/components/scan/`, `src/app/api/ingredient-detection/`. Chec
 - [x] Confidence, named compound list, overlap graphic, comparison and nutrition components exist.
 - [x] Ordinary requests do not silently fall back to mock compound data.
 - [x] Graph details unwrap official AI evidence and keep unavailable comparisons explicit.
-- [ ] G3: fix `src/lib/compound-explanation.ts` coercion of missing overlap/nutrition into zero; update all consumers/checks.
-- [ ] G3: preserve source identity/grounding on substitution cards, including nested/degraded API responses.
-- [ ] G3: remove unsupported functional-chemistry wording from illustrative examples; label presence overlap accurately and mock safety unverified.
+- [x] G3: missing overlap/nutrition remain null/Unavailable across cards and comparisons; explicit zero and producer units have regression checks.
+- [x] G3: preserve grounding, official source identity/fingerprint, and nested/degraded states; AI pantry attaches official evidence and discards generated chemistry claims.
+- [x] G3: retire fabricated compound examples and independent boolean safety badges; label overlap as presence, not cooking suitability.
 - [ ] Capture real payload/UI evidence for Chapter 8. Usefulness requires the Lead's ethics-reviewed N≥20 study.
 
 Code: frontend `src/components/recipe/CompoundExplanation.tsx`, `src/lib/compound-explanation.ts`; check: `compound-explanation.test.ts`. Dependency: official FooDB API/manifest, not a hardcoded butter example.
@@ -89,7 +89,8 @@ Code: frontend `src/components/recipe/CompoundExplanation.tsx`, `src/lib/compoun
 - [x] Safety indicators, recipe warning banner and source-aware resolver exist.
 - [x] G1: `/demo/allergen-safety` is a fixed illustration. Scripted examples are not attributed to GPT-4o; no fake prompt execution; unverified examples stay Check.
 - [x] Dashboard shows matched Mistral raw capture without a safety rate.
-- [ ] G4: certify SAFE/UNKNOWN/BLOCKED and blocked-primary exclusion across all substitution surfaces; never infer SAFE from absent tags/policy.
+- [x] G4: regression checks cover SAFE/UNKNOWN/BLOCKED, malformed/empty policy, local/custom conflicts, profile forwarding and blocked primary actions on recipe/cooking surfaces. Neither frontend nor AI name screening infers Safe from absence of a match.
+- [ ] G4: certify the authenticated deployed profile → policy → UI flow and reviewed policy handoff. Local mocks/API tests do not close this acceptance gate.
 - [ ] G4: keep v101 taxonomy alias candidates review-only when a reviewed endpoint is supplied.
 - [ ] Real head-to-head view requires matched arms, two independent reviews, adjudication, rates/abstention/Wilson intervals and hash-bound scores.
 
@@ -122,7 +123,8 @@ Contract: `chefkix-fe/docs/epic-8-photo-intelligence-integration.md`. Check: `sr
 - [ ] G6: detailed Lead exports with dataset, split, protocol, seeds, source/prediction hashes and decision.
 - [ ] G6: repeated/unseen strata, rejected M1/M4 results and selective-abstention gates; benchmark completion is not deployment acceptance.
 - [ ] G6: safety review status, Wilson intervals and abstention only when scored evidence exists.
-- [ ] G6: readable provenance and negative/pending status inside SVG/PNG figures; surrounding HTML legends are insufficient for standalone exports.
+- [x] G6: SVG/PNG captions carry status, notes, supplied dataset/split/protocol/seeds/full hashes/decision/claim limits; missing provenance is explicit. Runtime validation rejects malformed supplied provenance.
+- [ ] G6: bind these fields to independently checked Lead artifacts and validate scored intervals/abstention/strata; rendering metadata is not scientific verification.
 
 Detailed atomic ledger/artifacts are absent locally. Never reconstruct a missing score from training loss, checkpoint count or a paper summary.
 
@@ -166,3 +168,12 @@ Contract/check: frontend `docs/epic-12-voice-vision-copilot.md`, `src/features/v
 5. Commit/push code and evidence pointers; exclude credentials, private raw responses, weights and generated caches.
 
 Validation record and remaining boundaries: `chefkix-fe/docs/member-lead-alignment-2026-10-04.md`.
+
+
+## Integration follow-through — 2026-10-04
+
+Frontend G3/G4/G6 changes pair with AI branch `codex/member-evidence-contract`. AI contract/policy tests: 35 passed. Frontend regression verification and production-build results are recorded in the PR. No deployed workflow certification or database import is claimed.
+
+G5 remains dependent on the canonical export/manifest. The available AI `models/graph_sample.json` contains 500 nodes and 37 edges (SHA-256 `0cd3c9c9b33f9935db393f41fef190a16498cdd7222badfec7333532d882dedc`), with no full graph rights/schema/import manifest. Compound FooDB provenance describes a separate presence artifact; it is not the graph import manifest. Obtain the full artifact, validate schema/hash/identities/edge endpoints/counts/rights, stage a collection, check bounded API coverage, and retain the prior collection for rollback before switching. Do not interpret sample edge confidence as a cooking ratio.
+
+Accepted models, independent reviews, rights-cleared user/device evidence and the atomic ledger remain outstanding. These dependencies prevent reporting full leader integration, even after all currently testable member fixes merge.
