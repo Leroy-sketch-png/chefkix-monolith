@@ -41,3 +41,8 @@ cp.txt
 *.env.local
 *.keys
 !.env.example
+
+# Generated report review caches (sources and final reports are versioned)
+/tmp/**/*.png
+/tmp/**/*.ttf
+/tmp/**/__pycache__/

@@ -1,0 +1,170 @@
+{
+  "input": "C:\\Users\\LENOVO\\Downloads\\PhanPhuTho_VoTrungTin_ Sprint2.docx",
+  "fonts_by_char_count": {
+    "Google Sans": 3396
+  },
+  "direct_run_formatting_runs": 95,
+  "direct_paragraph_formatting_paragraphs": 82,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 2,
+      "text": "\u0110\u1ed3 \u00e1n: Step-by-Step Cooking Platform \u2013 N\u1ec1n t\u1ea3ng Chia s\u1ebb \u1ea8m th\u1ef1c Gamified",
+      "style": "normal"
+    },
+    {
+      "para_index": 3,
+      "text": "Tr\u01b0\u1eddng: Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc C\u00f4ng ngh\u1ec7 Th\u00f4ng tin - \u0110HQG TP.HCM",
+      "style": "normal"
+    },
+    {
+      "para_index": 4,
+      "text": "Gi\u1ea3ng vi\u00ean h\u01b0\u1edbng d\u1eabn: ThS. Tr\u1ea7n Th\u1ecb H\u1ed3ng Y\u1ebfn",
+      "style": "normal"
+    },
+    {
+      "para_index": 5,
+      "text": "Nh\u00f3m th\u1ef1c hi\u1ec7n: Phan Ph\u00fa Th\u1ecd, V\u00f5 Trung T\u00edn",
+      "style": "normal"
+    },
+    {
+      "para_index": 6,
+      "text": "Ng\u00e0y b\u00e1o c\u00e1o: 23/02/2026",
+      "style": "normal"
+    },
+    {
+      "para_index": 32,
+      "text": "Ng\u01b0\u1eddi l\u1eadp b\u00e1o c\u00e1o: V\u00f5 Trung T\u00edn",
+      "style": "normal"
+    },
+    {
+      "para_index": 33,
+      "text": "M\u1ee5c",
+      "style": "normal"
+    },
+    {
+      "para_index": 34,
+      "text": "N\u1ed9i dung",
+      "style": "normal"
+    },
+    {
+      "para_index": 35,
+      "text": "Tr\u1ea1ng th\u00e1i",
+      "style": "normal"
+    },
+    {
+      "para_index": 48,
+      "text": "Nh\u00f3m ch\u1ee9c n\u0103ng",
+      "style": "normal"
+    },
+    {
+      "para_index": 49,
+      "text": "Ti\u1ec3u m\u1ee5c",
+      "style": "normal"
+    },
+    {
+      "para_index": 50,
+      "text": "Tr\u1ea1ng th\u00e1i",
+      "style": "normal"
+    },
+    {
+      "para_index": 51,
+      "text": "Ghi ch\u00fa",
+      "style": "normal"
+    },
+    {
+      "para_index": 64,
+      "text": "R\u1ee7i ro",
+      "style": "normal"
+    },
+    {
+      "para_index": 65,
+      "text": "Bi\u1ec7n ph\u00e1p kh\u1eafc ph\u1ee5c",
+      "style": "normal"
+    },
+    {
+      "para_index": 68,
+      "text": "Th\u00e0nh vi\u00ean",
+      "style": "normal"
+    },
+    {
+      "para_index": 69,
+      "text": "Ph\u1ee5 tr\u00e1ch",
+      "style": "normal"
+    },
+    {
+      "para_index": 70,
+      "text": "Ghi ch\u00fa",
+      "style": "normal"
+    },
+    {
+      "para_index": 71,
+      "text": "V\u00f5 Trung T\u00edn",
+      "style": "normal"
+    },
+    {
+      "para_index": 74,
+      "text": "Phan Ph\u00fa Th\u1ecd",
+      "style": "normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "B\u00c1O C\u00c1O TI\u1ebeN \u0110\u1ed8 2 TU\u1ea6N (SPRINT 2)",
+        "style": "Heading 2"
+      },
+      {
+        "para_index": 2,
+        "text": "\u0110\u1ed3 \u00e1n: Step-by-Step Cooking Platform \u2013 N\u1ec1n t\u1ea3ng Chia s\u1ebb \u1ea8m th\u1ef1c Gamified",
+        "style": "normal"
+      },
+      {
+        "para_index": 3,
+        "text": "Tr\u01b0\u1eddng: Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc C\u00f4ng ngh\u1ec7 Th\u00f4ng tin - \u0110HQG TP.HCM",
+        "style": "normal"
+      },
+      {
+        "para_index": 4,
+        "text": "Gi\u1ea3ng vi\u00ean h\u01b0\u1edbng d\u1eabn: ThS. Tr\u1ea7n Th\u1ecb H\u1ed3ng Y\u1ebfn",
+        "style": "normal"
+      },
+      {
+        "para_index": 5,
+        "text": "Nh\u00f3m th\u1ef1c hi\u1ec7n: Phan Ph\u00fa Th\u1ecd, V\u00f5 Trung T\u00edn",
+        "style": "normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 1,
+        "run_text": "B\u00c1O C\u00c1O TI\u1ebeN \u0110\u1ed8 2 TU\u1ea6N (SPRINT 2)",
+        "style": "Heading 2"
+      },
+      {
+        "para_index": 2,
+        "run_text": "\u0110\u1ed3 \u00e1n:",
+        "style": "normal"
+      },
+      {
+        "para_index": 2,
+        "run_text": " Step-by-Step Cooking Platform \u2013 N\u1ec1n t\u1ea3ng Chia s\u1ebb \u1ea8m th\u1ef1c Gamified",
+        "style": "normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "Tr\u01b0\u1eddng:",
+        "style": "normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": " Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc C\u00f4ng ngh\u1ec7 Th\u00f4ng tin - \u0110HQG TP.HCM",
+        "style": "normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}
