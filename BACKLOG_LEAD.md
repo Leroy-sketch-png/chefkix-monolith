@@ -2,6 +2,100 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v101 execution update — OFF taxonomy risk partition (2026-10-02)
+
+The complete OFF snapshot's 3,377-tag union is now partitioned against hash-pinned official taxonomy bytes. Twenty-three exact positive identities cover 760,877/767,780 occurrences (`99.100914%`); official `en:none` is isolated at 564 occurrences; 17 same-language alias candidates cover 32 and remain review-only; 3,336 unrecognized values dominate identity count but cover only 6,307 occurrences (`0.821459%`). The queue is occurrence-ranked and binds snapshot manifest `5caa20cf...1dde`, derived snapshot `807fe58e...9c68`, and taxonomy `6fb38bfb...d153f`.
+
+Every tag and occurrence reconstructs; 8/8 semantic substitutions reject and six focused tests pass. A v100 precursor remains rejected for incomplete Unicode-ligature normalization; v101 repairs it. This checks off deterministic risk partitioning only. Current-taxonomy timing differs from the frozen snapshot, and alias acceptance, qualified adjudication, verified negatives, clinical validity, production serving, legal review, and user outcomes remain unchecked.
+
+---
+
+## LEAD v99 execution update — secondary Stage 3 step 70 verified (2026-10-02)
+
+Secondary Segment 1 is checked off as transactionally verified at exact step 70/561. Terminal state is `STAGE3_SEGMENT_1_COMPLETE`; manifest SHA-256 is `ed1e3db4...d991d`; all 12 required checkpoint files and hashes reconstruct with exact Stage-2 ancestry, frozen base revision, data hashes, and selection hashes. Pulled remote source is byte-identical to launched SHA-256 `d583e92f...a3af`; runtime source identity matches its LF-normalized form.
+
+Only after those gates passed, secondary Segment 2 was pinned to exact manifest `ed1e3db4...d991d`, bound to the same private bridge dataset and Segment 1 as its sole kernel predecessor, and launched once. Complete owner inventory proved absence; Kaggle accepted version 1 with zero invalid sources and authenticated state is `QUEUED` toward step 140. Step 140, remaining Stage-3 segments, retained-best adapter integrity, inference, scoring, and model quality remain unchecked.
+
+---
+
+## LEAD v98 execution update — secondary Kaggle capacity activated (2026-10-01)
+
+The new `tnvtrung` bearer credential is durably isolated from the preserved `phanphutho` legacy key under user-only ACLs and uses official Kaggle CLI 2.2.4. Because `tnvtrung` cannot read private `phanphutho` kernels, a private 11-file bridge dataset was created and remotely inventoried against exact Stage-2 manifest `435f02e7...6b72`, all eight adapter files, and frozen train/validation hashes.
+
+Secondary Segment 1 preserves exact script SHA-256 `d583e92f...a3af`; only owner/input metadata changed. Complete owner inventory proved it absent before Kaggle accepted version 1 with zero invalid sources. Authenticated state is `RUNNING`. This checks off the governed Segment-1 launch only; exact step 70, checkpoint integrity, Stage-3 completion, inference, scoring, and model quality remain unchecked.
+
+---
+
+## LEAD v97 execution update — Stage 3 launch boundary hardened (2026-10-01)
+
+The segmented Stage-3 executable now pins base script SHA-256 `88d79461...c8c6` across builder, validator, and ingester. Only the exact weekly-GPU-quota response is preserved as a retryable non-launch; malformed acknowledgements, authentication/transport failures, and other runtime errors propagate fail closed. Completed segments must reconstruct the exact expected 12-file checkpoint inventory in addition to every hash and exact-resume state.
+
+All nine packages rebuild byte-identically, static validation remains `PASS`, 8/8 semantic attacks reject, and eight focused tests pass. Authenticated Segment 1 remains `NOT_CREATED`; no second push occurred. Stage 3, inference, scoring, and model-quality boxes remain unchecked.
+
+---
+
+## LEAD v96 execution update — segmented Stage 3 ready; GPU quota gate (2026-10-01)
+
+The canceled 561-step monolith is replaced by nine exact-resume packages at `70, 140, 187, 257, 327, 374, 444, 514, 561`. The longest span is 70 steps (about 8.2 hours at the observed rate), while evaluations stay exactly at 187/374/561. Every successor binds the exact predecessor manifest and reconstructs checkpoint, optimizer, scheduler, RNG, trainer, data-selection, Stage-2, and retained-best state. Nine packages compile; 8/8 semantic attacks reject and five focused tests pass.
+
+Kaggle rejected the authenticated Segment-1 push with `Maximum weekly GPU quota of 30.00 hours reached.` Segment 1 remains `NOT_CREATED`; this is not a failed training run or a launch. Recovery is package-ready but quota-blocked, and inference remains blocked.
+
+---
+
+## LEAD v95 execution update — Stage 3 canceled and inference blocked (2026-10-01)
+
+Post-DPO SFT version 1 ended `CANCEL_ACKNOWLEDGED` with no failure message and an empty remote file inventory. The preserved log SHA-256 `a30a54f...105dc` reaches optimizer step 101/561 at `11:49:56`; the last periodic record is epoch `0.53`, loss `0.1519`. At roughly 421 seconds per step, the monolithic 561-step/three-epoch package cannot fit Kaggle's execution window and canceled before the first epoch evaluation/save boundary. No manifest, checkpoint, or Stage-3 adapter exists.
+
+No retry was issued and inference remained cryptographically unmaterialized, so it did not launch. Stage-3 completion stays unchecked. Recovery requires a materially segmented package chain with exact optimizer/scheduler/RNG resume and retained-best semantics; the partial log is failure evidence, not model quality.
+
+---
+
+## LEAD v94 execution update — inference successor made fail-closed (2026-09-30)
+
+Inference can no longer launch against a merely plausible Stage-3 artifact. Its package starts with an unmaterialized identity sentinel and refuses runtime execution. After Stage 3 completes, the transactional ingester must validate exact Stage-2 ancestry, frozen dataset/settings, and every adapter hash, atomically materialize the exact Stage-3 manifest SHA-256, rebuild the downstream manifest, and rerun package validation before one launch. Static gates pass and 17 focused tests cover identity/settings substitution, transactional promotion, remote-state refusal, and launch acknowledgement.
+
+Stage 3 remains running. This clears successor-provenance preparation only; completed post-DPO SFT, inference output, matched scoring, and model quality remain unchecked.
+
+---
+
+## LEAD v93 execution update — exact post-DPO handoff and Stage 3 running (2026-09-30)
+
+The downstream package cluster no longer references retired DPO Segment 6. Builder, validator, Stage-3 runtime, and transactional ingester now bind exact verified step-261 manifest SHA-256 `435f02e7461992a53d1e4e4882ec7d8bb3da5a3b19d571a2164f382e050f6b72`, Segment 9, its Segment-8 dependency, and the verified v69 terminal evidence. Static validation passes seven scientific checks and 7/7 adversarial mutations; 15 focused tests pass. Kaggle accepted post-DPO SFT version 1 with zero invalid sources and authenticated state `QUEUED`.
+
+This checks off the retained-adapter handoff and Stage-3 launch only. Stage-3 completion, adapter integrity, 10,747 frozen predictions, matched scoring, paper reproduction, and M2 model quality remain open.
+
+---
+
+## LEAD v92 execution update — segmented DPO complete and verified (2026-09-30)
+
+Final Segment 9 version 3 completed and transactionally validates exact step 261/261 with 12 checkpoint files, exact Segment-8 predecessor pin `54ea62d6...c645`, final manifest `9c63d9ed...159e`, terminal state `STAGE2_COMPLETE`, and final evaluation loss `1.1670465704938238e-09`. All nine packages now reconstruct end-to-end; canceled long intervals remain preserved and rejected. This checks off segmented DPO execution only. Near-zero loss remains shortcut-confound evidence, not quality proof. Post-DPO SFT, frozen predictions, matched scoring, paper reproduction, safety, rights, and product value remain open.
+
+---
+
+## LEAD v91 execution update — DPO step 240 verified; final Segment 9 running (2026-09-29)
+
+New Segment 8 version 1 completed and transactionally validates exact step 240/261 with 12 checkpoint files, exact Segment-7 predecessor pin `258a5ded...5635`, and manifest `54ea62d6...c645`. Step 240 is transport-only; the final evaluation remains at 261. Final Segment 9 was rebuilt with the exact step-240 pin and Kaggle accepted materially changed version 3 with zero invalid sources, queued toward step 261. Only 240/261 steps are verified; do not check off DPO or begin post-DPO SFT until exact step-261 artifacts, final evaluation, and adapter integrity transactionally validate.
+
+---
+
+## LEAD v90 execution update — shortened final recovery running (2026-09-29)
+
+The canceled 43-step final interval is now split into `218→240→261`, adding only a transport checkpoint while preserving all optimizer steps and evaluations at 87/174/261. Verified packages 1-7 have zero content diff. The nine-package build validates `PASS`, rejects 12/12 semantic corruptions, and passes 13 focused tests. New Segment 8 version 1 was launched once with exact step-218 manifest pin `258a5ded...5635`, zero invalid sources, and authenticated state `RUNNING` toward step 240. Only 218/261 steps are verified; do not check off Segment 8 or launch the final package until exact step-240 artifacts transactionally validate.
+
+---
+
+## LEAD v89 execution update — final Segment 8 canceled (2026-09-29)
+
+Final Segment 8 version 2 ended `CANCEL_ACKNOWLEDGED` with no failure message or remote files. The failed state is preserved and no retry was issued. Its 43-step 218→261 interval repeats the long-duration failure shape of earlier canceled packages, while 22/21/22-step recoveries completed. Only 218/261 steps remain verified. Exact step 261, final evaluation, final adapter, completed DPO, and model quality are absent; post-DPO SFT remains gated. Require a materially shorter validated final recovery boundary before any retry.
+
+---
+
+## LEAD v88 execution update — DPO step 218 verified; final segment running (2026-09-28)
+
+Segment 7 version 1 completed and transactionally validates exact step 218/261 with 12 checkpoint files, exact Segment-6 predecessor pin `ebee8452...309e`, and manifest `258a5ded...5635`. Step 218 is transport-only; evaluations remain frozen at 87/174/261. The fully-pinned validator mutation was corrected to remain genuinely adversarial; 12/12 semantic corruptions reject and 13 focused tests pass. The final Segment 8 package was rebuilt with the exact Segment-7 pin and Kaggle accepted materially changed version 2 with zero invalid sources, queued toward step 261. Only 218/261 steps are verified; do not check off final DPO or begin post-DPO SFT until exact step-261 artifacts and evaluation transactionally validate.
+
+---
+
 ## LEAD v87 execution update — DPO step 196 verified; Segment 7 running (2026-09-23)
 
 Shortened Segment 6 version 2 completed and transactionally validates at exact step 196/261 with 12 checkpoint files, exact Segment-5 predecessor pin `7bbf682c...9340d`, and manifest `ebee8452...309e`. The step-196 checkpoint is transport-only; evaluations remain frozen at 87/174/261, and the last boundary loss is not model-quality evidence. Segment 7 version 1 was launched once with the exact Segment-6 manifest pin, zero invalid sources, and authenticated state `RUNNING` toward step 218. Only 196/261 steps are verified; do not check off Segment 7 or launch the final package until exact step-218 artifacts transactionally validate.
@@ -35,7 +129,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 - [x] Monolith integration carries durable substitution-feedback receipts, hardened Typesense synchronization, async draft coverage, and notification history; the post-conflict full Maven reactor completed successfully on 2026-09-15
 - [x] Graph vocabulary and bounded sample exported: `ingredient_vocab_v2.json` and `graph_sample.json`
 - [x] FooDB compound layer verified: 971 foods, 206 compounds, 125,992 links; exhaustive pair reconstruction passes
-- [x] M2 Stage 1 complete and DPO Segments 1-6 verified through exact step 196/261; Segment 7 version 1 is running toward step 218
+- [x] M2 Stage 1, 7,500 preferences, and all nine DPO segments verified through exact step 261/261; terminal state `STAGE2_COMPLETE`
 - [x] OFF v75 complete snapshot acquired: all 4,726,416 source rows scanned; 351,351 eligible English ingredient-label rows hash-bound
 - [x] FDA enforcement layer acquired: 29,278 records and 7,047 bounded policy candidates
 - [x] Matched Mistral allergen arm captured: 208/208 schema-valid raw responses; independent scoring is not complete
@@ -46,15 +140,15 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ### Not ready — MEMBER must not present or wire as completed capability
 - [ ] Normalized production allergen corpus/API with verified negatives and clinical validation
 - [ ] GPT-4o/Gemini comparative allergen arms, independent adjudication, or winner table
-- [ ] Completed DPO model, post-DPO SFT, frozen test predictions, or accepted M2 quality claim
+- [ ] Completed post-DPO SFT, frozen test predictions, or accepted M2 quality claim
 - [ ] Accepted M3 labels, trained VLM, ingredient-detection quality, or production vision endpoint
 - [ ] Accepted M4 replacement weights or production FAISS index
 - [ ] User-camera/voice end-to-end capability, user study, or defense-ready product evidence
 
 ### What is RUNNING now
 - **OFF allergen snapshot:** v75 replaces the 503-record/6,400-row systematic sample ceiling with an immutable-revision scan of all 4,726,416 current food rows. It atomically emits 351,351 eligible English ingredient-label records at SHA `807fe58e...9c68`; independent reconstruction passes 16/16 fields, 16/16 mutations reject, and seven tests pass. The raw 1,225 allergen/2,379 trace tag vocabularies contain substantial malformed/non-allergen contamination. L20 remains PARTIAL pending normalization, independent labels/negatives, clinical validity, production lifecycle, rights review, and user evidence.
-- **Senath DPO:** stage 1, 7,500 preferences, and bounded DPO Segments 1-6 are transactionally complete through exact step 196/261. Segment-6 manifest is `ebee8452...309e`; Segment 7 version 1 was launched once with that exact pin and is authenticated `RUNNING` toward step 218. The eight-package chain preserves all 261 optimizer steps and evaluations at 87/174/261; near-zero boundary loss is shortcut-confound evidence, not model quality.
-- **Senath downstream gate:** DPO uses the frozen 7,000 train/500 disjoint validation split from 7,500 unique bounded preference identities. Transport validates before promotion, preserves canonical evidence on failure, and now resolves Kaggle 403 absence only after complete authenticated inventory. Post-DPO SFT/inference remain gated on verified DPO completion.
+- **Senath DPO:** all nine hash-pinned packages are transactionally complete through exact step 261/261. Final manifest is `9c63d9ed...159e`, terminal state is `STAGE2_COMPLETE`, and final evaluation loss is `1.1670465704938238e-09`. Execution is complete; model quality is not proven.
+- **Senath downstream gate:** monolithic Stage 3 version 1 is preserved canceled without artifacts. The exact-resume recovery now runs Segment 1 version 1 on `tnvtrung` from a private exact-input bridge; authenticated state is `RUNNING`. Transport validates before promotion. Step 70, Stage-3 completion, inference, and scoring remain gated separately.
 - **Substitution feedback:** receipted candidates only. V70 proves exact offline recovery after actual isolated source-volume deletion. V71 adds preview-first local archival: keep at least two verified copies, hash-bind the complete inventory, preserve corrupt/unknown artifacts, reject stale/tampered/escaping/colliding plans, and move old verified copies into unique batches with zero deletion. Exact-source image `f7933732...ffb80` passes 10/10; tests are 24/24 and retention attacks 7/7. Automated quiescence, policy/scheduling, replicated storage, external/multi-instance durability, orchestrated recovery, representative events, and a scorer remain open.
 - **Allergen adjudication protocol:** frozen (`3ef4eff1...`), 228 blinded FDA cases. Awaiting two independent reviews.
 - **Allergen LLM benchmark:** matched 208-query protocol frozen; Mistral `mistral-small-2603` raw arm is 208/208 with zero errors and independently validated hashes/metadata. GPT-4o/Gemini and two-reviewer adjudication remain absent; no score is authorized.
@@ -72,7 +166,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | Model | Epic | Status | Next action |
 |:---|:---|:---|:---|
 | **M1 IRON CHEF GNN** (HGAT + SAG) | EPIC 3 + EPIC 3b | Corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent | Preserve both rejections; reopen only with a materially stronger preregistered graph-preserving/OOD candidate |
-| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + DPO segments 1-6 verified through 196/261; segment 7 v1 RUNNING to 218 | Advance only after exact hash-pinned checkpoint validation; post-DPO SFT remains gated on step 261 |
+| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; monolithic Stage 3 canceled; secondary-account recovery Segment 1 RUNNING | Validate exact step 70, then pin and launch Segment 2 before frozen inference and matched scoring |
 | **M3 ChefKix-VLM** (QLoRA) | EPIC 11 | OPEN; real collator E2 + 50-candidate/20-label per-file rights snapshot E3 + two-reviewer pack; label truth absent | Complete two independent reviews, adjudicate and replace rejects to accepted quotas, freeze hash-disjoint splits, then repackage/launch |
 | **M4 ChefKix-CLIP** (projection fine-tune) | EPIC 12 | VERIFIED E2 trained projection NEGATIVE; R@1 34.10→35.42%, +2pp gate missed | Preserve rejection; reopen only with rights-resolved prospective/external protocol |
 
@@ -178,7 +272,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 
 ### EPIC 10: ChefKix-Mistral-7B — Custom LLM Training Pipeline 🔴 ACTIVE (M2)
 
-This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradictions, generating our own preference pairs, designing 6-segment checkpointed execution.
+This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradictions, generating our own preference pairs, and completing nine-package checkpointed DPO execution before the exact post-DPO handoff.
 
 **Stage 1 — SFT (LoRA 64/32, 15K examples, 3 epochs):**
 - [x] Segment 1 verified: step 90, all 12 checkpoint files, independent manifest match (E3)
@@ -197,13 +291,21 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] DPO Segment 4 v3 verified: exact step 153/261, 12 checkpoint files, manifest `a9fe5d69...8787`, exact Segment-3 predecessor pin
 - [x] DPO Segment 5 version 1 verified: exact step 174/261, 12 checkpoint files, manifest `7bbf682c...9340d`, exact Segment-4 predecessor pin
 - [x] DPO Segment 6 recovery complete: canceled version 1 preserved; shortened version 2 validated exact step 196 with manifest `ebee8452...309e`
-- [ ] DPO Segment 7 completion: version 1 is running from 196→218 and is not complete until exact step-218 artifacts validate
+- [x] DPO Segment 7 complete: version 1 validated exact step 218 with manifest `258a5ded...5635`
+- [x] DPO Segment 8 recovery complete: version 1 validated exact step 240 with manifest `54ea62d6...c645`
+- [x] DPO Segment 9/final completion: version 3 validated exact step 261, terminal `STAGE2_COMPLETE`, manifest `9c63d9ed...159e`, and final evaluation
 
 **Stage 3 — Post-DPO SFT + Inference:**
-- [ ] Post-DPO SFT; 10,747-case inference under frozen evaluator
+- [x] Bind Stage-3 package to exact verified step-261 manifest; validate retained-adapter handoff; launch Kaggle version 1 once
+- [x] Make inference fail closed until exact verified Stage-3 manifest materialization
+- [ ] Transactionally validate completed post-DPO SFT adapter
+- [x] Replace canceled monolithic Stage 3 with a validated segmented recovery protocol before any retry
+- [x] Build and validate nine-package Stage-3 exact-resume recovery; 8/8 attacks reject
+- [x] Launch Segment 1 with positive version acknowledgement; secondary account version 1 is authenticated `RUNNING`
+- [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + DPO SEGMENTS 1-5 COMPLETE / SEGMENT 6 CANCELED`. Historical failures and incomplete transports remain preserved and rejected. Only 174/261 DPO steps are proven; no final DPO adapter, post-DPO model, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / SEGMENTED POST-DPO SFT SEGMENT 1 RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Exact DPO execution and the secondary Segment-1 launch are proven; exact step 70 is not. No completed post-DPO adapter, predictions, or test score exists. Near-zero preference loss is treated as shortcut-confound evidence, not model quality.
 
 ---
 
@@ -256,6 +358,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] v13 FDA export: 29,278 records, 7,047 policy candidates, 126 cross-contact
 - [x] v14 blinded adjudication protocol frozen (`3ef4eff1...`), 228 cases — INSUFFICIENT_REVIEW
 - [x] v75 complete OFF snapshot: 4,726,416/4,726,416 rows scanned; 351,351 eligible English ingredient-label records; source/derived hashes and 16/16 independent contracts verify
+- [x] v101 partition all 3,377 union tags by exact official identity, `none` sentinel, review-only alias candidate, and unrecognized value; occurrence-ranked queue reconstructs and 8/8 mutations reject
 - [ ] Normalize and independently adjudicate the malformed/non-allergen long tail across 1,225 allergen and 2,379 trace tag values
 - [ ] Two independent qualified reviews + adjudication under frozen protocol
 - [ ] Verified negatives + representative runtime inputs
@@ -311,7 +414,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 2 | Related Work | Drafted |
 | 3 | Multi-Signal Food KG | Verified; USDA partial |
 | 4 | IRON CHEF GNN: Fusion Paradox & SAG (M1) | corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent |
-| 5 | ChefKix-Mistral-7B (M2) | Stage 1 complete; DPO Segments 1-6 verified through 196/261; Segment 7 v1 running toward 218; no predictions |
+| 5 | ChefKix-Mistral-7B (M2) | Stage 1 + preferences + segmented DPO complete through 261/261; post-DPO SFT and predictions absent |
 | 6 | ChefKix-VLM (M3) | historical mock text-only LoRA rejected; 50 rights-bound candidates await two reviews; training absent |
 | 7 | ChefKix-CLIP (M4) | real three-seed frozen-feature projection trained and rejected; external/serving path open |
 | 8 | Compound Explanation | Factuality E3; user study open |
@@ -331,7 +434,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔥 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-1 + 7,500 preferences + DPO segments 1-6 VERIFIED through step 196; Segment 7 v1 RUNNING to 218 | Transactionally validate exact step 218 before launching the final package |
+| 🔴 ACTIVE | Senath downstream reproduction | EPIC 10 | Nine-package Stage-3 recovery validated; secondary Segment 1 version 1 RUNNING | Transactionally validate exact step 70, then pin and launch Segment 2; inference remains blocked |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -339,7 +442,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔥 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | Monolithic DPO rejected; 196/261 verified; Segment 7 v1 RUNNING | Preserve canceled attempts; require exact step-218 evidence; post-DPO SFT remains gated |
+| 🔴 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | DPO complete; segmented Stage 3 Segment 1 RUNNING on secondary account | Validate exact step 70 before any successor launch |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
