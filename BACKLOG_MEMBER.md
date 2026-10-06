@@ -1,6 +1,6 @@
 # IRON CHEF v3: MEMBER BACKLOG
 
-> **Aligned 2026-10-04 with LEAD v101**, monolith `origin/master` commit `e2e0dfc` (latest update dated 2026-10-02).
+> **Aligned 2026-10-06 with LEAD v102**, monolith `origin/master` commit `e7e5154` (latest update dated 2026-10-06).
 > **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
 > This replaces the historical member backlog, preserved in Git history. A checked engineering task means code exists with the cited checks; it does **not** certify a model, deployment, clinical safety or thesis result.
 
@@ -9,7 +9,7 @@
 | Lead evidence | Member consequence |
 | --- | --- |
 | M1 corrected SAG and true-context dual encoder rejected | Preserve negative results; no accepted HGAT production score. |
-| M2 DPO complete; Stage 3 exact step 70/561 verified; Segment 2 queued toward 140 as of v99 | Show training progress separately from quality. No frozen predictions/matched M2 score. Do not infer later completion from elapsed time. |
+| M2 DPO complete; secondary Stage 3 Segment 2 transactionally verified at exact step 140/561; Segment 3 is running toward step 187 as of v102 | Show training progress separately from quality. Step 187, retained-best integrity, remaining segments, inference, scoring and model quality are still open. Do not infer later completion from elapsed time. |
 | M3 50 rights-bound candidates and two review packs; accepted labels/training absent | Camera UI may exist; production detection and user-camera capability remain open. |
 | M4 trained projection rejected | Do not install rejected weights or advertise a production replacement index. |
 | Official FooDB factuality verified | Display compound presence; overlap does not prove cooking suitability, melting point, flavor equivalence or usefulness. |
@@ -17,6 +17,10 @@
 | Mistral small 2603: matched 208/208 raw responses | Raw capture status only. GPT-4o/Gemini, two independent reviews/adjudication remain open. No winner/rate claim. |
 | L29 offline chain: 179/783 paired-correct complete chains | Graph coverage is not end-to-end correctness. No user-camera, hidden-ingredient, functional chemistry or safety claim. |
 | Durable receipts and runtime certificates exist | Preserve receipt/auth boundaries. Operational policy, representative outcomes, recovery and user evidence remain separate. |
+
+## Sprint report traceability
+
+The current VoTrungTin-owned requirements, Use Cases, Data Flows, UI-facing contracts and member scaffold acceptance for Sprint 1–2 are mapped in [docs/iron-chef/votrungtin-sprint-1-2.md](docs/iron-chef/votrungtin-sprint-1-2.md). The reports assign the dataset matrix, canonical vocabulary and evaluation protocol to the Lead; these remain dependencies rather than Member completion claims. Sprint 2 runs through 2026-10-10, so its planned state is not treated as a historical completion record at the 2026-10-06 checkpoint.
 
 ## Implementation sequence
 
@@ -110,9 +114,10 @@ Code: frontend `src/components/cooking/CookingPlayer.tsx`; monolith `culinary/..
 
 - [x] Same-origin detection, ingredient-to-recipe and dish retrieval adapters; unconfigured services stay unavailable.
 - [x] Match cards, missing ingredients and substitution handoff exist.
+- [x] G8: validate the browser caller against the monolith, cap image and ingredient payloads, propagate cancellation and bound provider requests to 30 seconds. User bearer tokens are not sent to model providers.
 - [ ] G8: accepted detector, retrieval model/index and manifest identities before real integration.
 - [ ] G8: rights-cleared external/user-camera evidence; separate recipe correctness from graph coverage.
-- [ ] G8: auth, cancellation/timeouts, upload failures and camera lifecycle on real devices.
+- [ ] G8: provider-specific authentication, upload failures and camera lifecycle on real devices.
 
 Contract: `chefkix-fe/docs/epic-8-photo-intelligence-integration.md`. Check: `src/app/api/photo-intelligence/__tests__/routes.test.ts`. L29's offline result does not complete this epic.
 
