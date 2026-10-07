@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v103 blocked update — Segment 3 incomplete transport (2026-10-07)
+
+Secondary Segment 3 reports remote `COMPLETE`, but official-CLI transport failed with `IncompleteRead(199249616 bytes read, 169892568 more expected)`. The preserved isolated directory contains 11 partial files and 373,160,325 bytes: eight apparent retained-adapter files, only three checkpoint files, a zero-byte checkpoint adapter, and no segment manifest. Canonical evidence was not created or overwritten.
+
+No retry was made, no Segment-3 validation claim was emitted, and Segment 4 was neither built nor launched. Stage-3 remains verified only through exact step 140/561. Step 187 evaluation, retained-best integrity, Segment-3 ancestry reconstruction, remaining Stage-3 execution, inference, scoring, and model quality remain blocked pending a separately authorized complete transport attempt.
+
+---
+
 ## LEAD v102 execution update — secondary Stage 3 step 140 verified (2026-10-06)
 
 Secondary Segment 2 is checked off as transactionally verified at exact step 140/561. Terminal state is `STAGE3_SEGMENT_2_COMPLETE`; manifest SHA-256 is `2324c21e...03bd`; all 12 required checkpoint files and hashes reconstruct with exact Segment-1 manifest `ed1e3db...d991d`, Stage-2 manifest `435f02e7...6b72`, frozen base revision, data hashes, and selection hashes. Pulled remote source matches the launched source after LF normalization.
@@ -156,7 +164,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ### What is RUNNING now
 - **OFF allergen snapshot:** v75 replaces the 503-record/6,400-row systematic sample ceiling with an immutable-revision scan of all 4,726,416 current food rows. It atomically emits 351,351 eligible English ingredient-label records at SHA `807fe58e...9c68`; independent reconstruction passes 16/16 fields, 16/16 mutations reject, and seven tests pass. The raw 1,225 allergen/2,379 trace tag vocabularies contain substantial malformed/non-allergen contamination. L20 remains PARTIAL pending normalization, independent labels/negatives, clinical validity, production lifecycle, rights review, and user evidence.
 - **Senath DPO:** all nine hash-pinned packages are transactionally complete through exact step 261/261. Final manifest is `9c63d9ed...159e`, terminal state is `STAGE2_COMPLETE`, and final evaluation loss is `1.1670465704938238e-09`. Execution is complete; model quality is not proven.
-- **Senath downstream gate:** monolithic Stage 3 version 1 is preserved canceled without artifacts. The exact-resume recovery has transactionally validated Segments 1-2 through exact step 140/561 and now runs Segment 3 version 1 on `tnvtrung` from the private exact-input bridge. Step 187 evaluation, retained-best integrity, Stage-3 completion, inference, and scoring remain gated separately.
+- **Senath downstream gate:** monolithic Stage 3 version 1 is preserved canceled without artifacts. The exact-resume recovery is transactionally verified through step 140/561. Segment 3 reports remote `COMPLETE`, but incomplete transport left no manifest and a zero-byte checkpoint adapter, so step 187 remains unverified and Segment 4 is not launched.
 - **Substitution feedback:** receipted candidates only. V70 proves exact offline recovery after actual isolated source-volume deletion. V71 adds preview-first local archival: keep at least two verified copies, hash-bind the complete inventory, preserve corrupt/unknown artifacts, reject stale/tampered/escaping/colliding plans, and move old verified copies into unique batches with zero deletion. Exact-source image `f7933732...ffb80` passes 10/10; tests are 24/24 and retention attacks 7/7. Automated quiescence, policy/scheduling, replicated storage, external/multi-instance durability, orchestrated recovery, representative events, and a scorer remain open.
 - **Allergen adjudication protocol:** frozen (`3ef4eff1...`), 228 blinded FDA cases. Awaiting two independent reviews.
 - **Allergen LLM benchmark:** matched 208-query protocol frozen; Mistral `mistral-small-2603` raw arm is 208/208 with zero errors and independently validated hashes/metadata. GPT-4o/Gemini and two-reviewer adjudication remain absent; no score is authorized.
@@ -174,7 +182,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | Model | Epic | Status | Next action |
 |:---|:---|:---|:---|
 | **M1 IRON CHEF GNN** (HGAT + SAG) | EPIC 3 + EPIC 3b | Corrected SAG and true-context dual encoder VERIFIED E3 NEGATIVE; accepted model absent | Preserve both rejections; reopen only with a materially stronger preregistered graph-preserving/OOD candidate |
-| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; monolithic Stage 3 canceled; secondary recovery verified through step 140 and Segment 3 RUNNING | Validate exact step 187 evaluation and retained-best evidence before the next segment; inference remains blocked |
+| **M2 ChefKix-Mistral-7B** (SFT+DPO+SFT) | EPIC 10 | Stage 1 + preferences + segmented DPO COMPLETE; post-DPO SFT verified through step 140; Segment 3 transport blocked | Obtain separately authorized complete Segment-3 transport, then validate step 187/evaluation/retained-best evidence before any successor |
 | **M3 ChefKix-VLM** (QLoRA) | EPIC 11 | OPEN; real collator E2 + 50-candidate/20-label per-file rights snapshot E3 + two-reviewer pack; label truth absent | Complete two independent reviews, adjudicate and replace rejects to accepted quotas, freeze hash-disjoint splits, then repackage/launch |
 | **M4 ChefKix-CLIP** (projection fine-tune) | EPIC 12 | VERIFIED E2 trained projection NEGATIVE; R@1 34.10→35.42%, +2pp gate missed | Preserve rejection; reopen only with rights-resolved prospective/external protocol |
 
@@ -312,11 +320,11 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] Launch Segment 1 with positive version acknowledgement
 - [x] Transactionally validate Segment 1 at exact step 70 and launch hash-pinned Segment 2
 - [x] Transactionally validate Segment 2 at exact step 140 and launch hash-pinned Segment 3
-- [ ] Transactionally validate Segment 3 at exact step 187, including first frozen evaluation and retained-best adapter
+- [ ] Transactionally validate Segment 3 at exact step 187, including first frozen evaluation and retained-best adapter — BLOCKED by preserved incomplete transport; no automatic retry
 - [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
 
-**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / POST-DPO SFT SEGMENTS 1-2 VERIFIED / SEGMENT 3 RUNNING`. Historical failures and incomplete transports remain preserved and rejected. Exact execution is proven only through step 140/561; the first Stage-3 evaluation at step 187 is still pending. No completed post-DPO adapter, predictions, or test score exists. Training loss is execution telemetry, not model-quality evidence.
+**Evidence state:** L12 = `PARTIAL E3 STAGE-1 + 7,500 PREFERENCES + SEGMENTED DPO COMPLETE / POST-DPO SFT VERIFIED THROUGH STEP 140 / SEGMENT 3 TRANSPORT BLOCKED`. Historical failures and incomplete transports remain preserved and rejected. Remote `COMPLETE` is not accepted without the missing manifest and exact checkpoint inventory. No completed post-DPO adapter, predictions, or test score exists.
 
 ---
 
@@ -445,7 +453,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 
 | Priority | Task | Epic | Status | Next action |
 |:---|:---|:---|:---|:---|
-| 🔴 ACTIVE | Senath downstream reproduction | EPIC 10 | Stage-3 Segments 1-2 verified through step 140; secondary Segment 3 version 1 RUNNING | Validate exact step 187 evaluation and retained-best evidence; inference remains blocked |
+| 🟠 BLOCKED | Senath downstream reproduction | EPIC 10 | Verified through step 140; Segment 3 remote COMPLETE but transport is incomplete and unvalidated | Require explicit authorization for one new isolated transport attempt; validate before any Segment 4 launch |
 | ✅ COMPLETE | Corrected SAG falsifier | EPIC 3b | VERIFIED E3 NEGATIVE | Preserve result; do not tune or promote rejected architecture |
 | ✅ COMPLETE | True-context dual encoder falsifier | EPIC 3c | VERIFIED E3 NEGATIVE | Preserve rejection; require a materially stronger frozen candidate before reopening L13 execution |
 | ⚠️ PARTIAL | Photo → evidence graph → explanation | L29 | 179/783 correct end-to-end chains; exhaustive reconstruction PASS | Require rights-cleared external/user-camera evidence and product lifecycle before promotion |
@@ -453,7 +461,7 @@ No novelty or first-of-kind claim is accepted. One matched raw arm is complete; 
 | 🔥 NEXT | Allergen matched arms + independent review | EPIC 5b | MISTRAL 208/208 RAW / RESULT UNAUTHORIZED | Configure GPT-4o/Gemini credentials, execute same frozen protocol, then complete two reviews/adjudication |
 | 🟡 QUEUED | ChefKix-VLM real multimodal QLoRA | EPIC 11 | REAL COLLATOR + 50 RIGHTS-BOUND CANDIDATES + TWO-REVIEWER PACK; LABEL TRUTH BLOCKED | Complete both reviews, adjudicate/replace to accepted quotas, freeze splits, repackage exact protocol, launch |
 | ✅ COMPLETE NEGATIVE | ChefKix-CLIP frozen-feature projection | EPIC 12 | VERIFIED E2 REJECTED | Preserve weights as evidence; do not deploy; reopen only under external/rights-cleared protocol |
-| 🔴 ACTIVE | DPO + Post-DPO SFT | EPIC 10 | DPO complete; post-DPO SFT verified through step 140; Segment 3 RUNNING on secondary account | Validate exact step 187 and first frozen evaluation before any successor launch |
+| 🟠 BLOCKED | DPO + Post-DPO SFT | EPIC 10 | DPO complete; post-DPO SFT verified through step 140; Segment 3 transport incomplete | Preserve partial bytes; no retry or successor until explicitly authorized and fully validated |
 | 🟡 QUEUED | User study (N≥20) | EPIC 4 | NOT STARTED | Ethics review → recruit |
 | 🟡 QUEUED | USDA vocabulary expansion | EPIC 1 | PARTIAL E2 | High-frequency adjudication |
 | 🟡 QUEUED | Allergen adjudication reviews | EPIC 5 | BLOCKED | Two qualified reviewers |
