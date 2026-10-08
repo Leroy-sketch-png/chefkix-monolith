@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
+## LEAD v107 execution update — secondary ingestion transactionalized (2026-10-08)
+
+Secondary Stage-3 ingestion is now one fail-closed operation. It performs no transport for `QUEUED`/`RUNNING`, receipts terminal blockers, permits exactly one isolated attempt after `COMPLETE`, preserves failed bytes and hashes, refuses invalid canonical evidence, revalidates valid canonical evidence, and promotes only after the full segmented validator passes.
+
+Nine focused tests pass and the combined ingestion/successor regression is 16/16, including post-promotion receipt-failure truth. A live authenticated Segment-5 probe returned `RUNNING`, action `NONE`, zero transport, and zero receipts. This checks off ingestion-boundary hardening only; exact step 327, later evaluation, final adapter, inference, scoring, and quality remain unchecked.
+
+---
+
 ## LEAD v106 execution update — secondary successor construction hardened (2026-10-08)
 
 Secondary Stage-3 successor construction is now transactional and evidence-derived. It recursively validates predecessor artifacts and exact manifest identity, binds prior local source to the runtime manifest, rechecks frozen Stage-2/boundary/evaluation/exact-resume contracts, stages in isolation, validates full script and Kaggle metadata, and promotes only after every gate passes. It refuses existing-package overwrite.
@@ -347,6 +355,7 @@ This is NOT reproduction. We built our own 3-stage pipeline fixing 11 contradict
 - [x] Transactionally validate Segment 3 at exact step 187, including first frozen evaluation and all eight retained-best files; prior incomplete transport remains rejected
 - [x] Transactionally validate Segment 4 at exact step 257 with frozen evaluation/retained-best continuity; launch hash-pinned Segment 5
 - [x] Harden secondary successor construction with recursive predecessor/source validation, isolated staging, atomic promotion, overwrite refusal, and 7/7 focused tests
+- [x] Automate secondary segment ingestion with single-attempt preserved-failure transport, validation-before-promotion, invalid-canonical refusal, and 9/9 focused tests
 - [ ] Transactionally validate Segment 5 at exact step 327 before the step-374 evaluation segment
 - [ ] 10,747-case inference under frozen evaluator
 - [ ] Hash all predictions; stratify repeated/unseen; compare vs. GISMo
