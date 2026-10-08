@@ -1,4 +1,6 @@
 # IRON CHEF v3: LEAD BACKLOG
+
+LEAD v108 (2026-10-08): secondary ingestion now records status lookup failures durably without transport or raw exception output, and rejects wrong-kernel or multiple status lines. Combined ingestion/successor regression passes 18/18. Segment 5 remains RUNNING; exact step 327 remains unchecked.
 > **AUTHORITY:** `academic_vision_and_strategy.md` is canonical. This backlog is derived from §4 (Nine Contributions), §6 (Execution Plan), and the LEAD evidence ledger. When they conflict, the strategy file wins.
 > **CURRENT-STATE OVERRIDE — 2026-09-09 (v76):** Historical narrative below is superseded. Atomic truth is `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`. Do not quote fabricated metric claims (Hit@1 0.222, allergen 0.00%, or the removed 0.94/0.81 Voice-Vision grounding comparison) as current evidence.
 
