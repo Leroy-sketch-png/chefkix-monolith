@@ -1,5 +1,7 @@
 # VoTrungTin — Sprint 1 and Sprint 2 member deliverables
 
+> Historical checkpoint from 2026-10-06. For the Word/PDF SRS, Use Cases and Data Flow updated against Lead v109 and browser captures, see [the 2026-10-11 package](../../output/sprints/2026-10-11/README.md).
+
 **Checkpoint:** 2026-10-06
 **Purpose:** Turn the two sprint reports into an actionable member-owned SRS, use-case and data-flow baseline, with acceptance criteria mapped to both team backlogs.
 

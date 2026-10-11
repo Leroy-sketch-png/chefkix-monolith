@@ -1,6 +1,6 @@
 # IRON CHEF v3: MEMBER BACKLOG
 
-> **Aligned 2026-10-06 with LEAD v102**, monolith `origin/master` commit `e7e5154` (latest update dated 2026-10-06).
+> **Documentation alignment 2026-10-11 with LEAD v109**, monolith `origin/master` commit `8bb8167` (latest update dated 2026-10-09). Member implementation states below remain based on the checked engineering branch and have not been promoted by training progress alone.
 > **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
 > This replaces the historical member backlog, preserved in Git history. A checked engineering task means code exists with the cited checks; it does **not** certify a model, deployment, clinical safety or thesis result.
 
@@ -9,7 +9,7 @@
 | Lead evidence | Member consequence |
 | --- | --- |
 | M1 corrected SAG and true-context dual encoder rejected | Preserve negative results; no accepted HGAT production score. |
-| M2 DPO complete; secondary Stage 3 Segment 2 transactionally verified at exact step 140/561; Segment 3 is running toward step 187 as of v102 | Show training progress separately from quality. Step 187, retained-best integrity, remaining segments, inference, scoring and model quality are still open. Do not infer later completion from elapsed time. |
+| M2 DPO complete; secondary Stage 3 verified through exact step 327/561 as of Lead v109; Segment 6 received a launch acknowledgement toward step 374 | Show training progress separately from quality. Step 374, Stage-3 completion, final adapter, inference, scoring and model quality are still open. Do not infer later completion from elapsed time. |
 | M3 50 rights-bound candidates and two review packs; accepted labels/training absent | Camera UI may exist; production detection and user-camera capability remain open. |
 | M4 trained projection rejected | Do not install rejected weights or advertise a production replacement index. |
 | Official FooDB factuality verified | Display compound presence; overlap does not prove cooking suitability, melting point, flavor equivalence or usefulness. |
@@ -20,7 +20,7 @@
 
 ## Sprint report traceability
 
-The current VoTrungTin-owned requirements, Use Cases, Data Flows, UI-facing contracts and member scaffold acceptance for Sprint 1–2 are mapped in [docs/iron-chef/votrungtin-sprint-1-2.md](docs/iron-chef/votrungtin-sprint-1-2.md). The reports assign the dataset matrix, canonical vocabulary and evaluation protocol to the Lead; these remain dependencies rather than Member completion claims. Sprint 2 runs through 2026-10-10, so its planned state is not treated as a historical completion record at the 2026-10-06 checkpoint.
+The VoTrungTin-owned requirements, Use Cases, Data Flows, UI-facing contracts and member scaffold acceptance for Sprint 1–2 were first mapped in [docs/iron-chef/votrungtin-sprint-1-2.md](docs/iron-chef/votrungtin-sprint-1-2.md). The current Word/PDF package and browser evidence are indexed in [output/sprints/2026-10-11/README.md](output/sprints/2026-10-11/README.md). The reports assign the dataset matrix, canonical vocabulary and evaluation protocol to the Lead; these remain dependencies rather than Member completion claims. Sprint 2 ended 2026-10-10; a planned report item is not a completion record without its acceptance evidence.
 
 ## Implementation sequence
 
