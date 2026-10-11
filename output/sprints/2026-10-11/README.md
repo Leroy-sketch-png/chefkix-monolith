@@ -1,7 +1,9 @@
-# Bộ tài liệu Sprint 2 của Võ Trung Tín
+# Vo Trung Tin — Sprint 2 documentation
 
-Ngày kiểm tra: 11/10/2026. Bộ này gồm ba tài liệu, mỗi tài liệu có bản Word và PDF: SRS, Use Cases và Data Flow. Hai sơ đồ PNG có thể chèn riêng vào báo cáo. Các ảnh browser thật chụp ngày 06/10/2026 nằm trong thư mục `evidence/` của gói ZIP.
+Reviewed 11 October 2026. The English edition is the preferred set for review: the Software Requirements Specification, Use Cases, and Data Flow Specification are each supplied as Word and PDF files. All document text and tables use Times New Roman. Tables use two columns, wider cells, and generous padding for easier reading. The separate English PNG diagrams can be inserted into a report. The ZIP also includes real browser captures from 6 October 2026 in `evidence/`.
 
-Nguồn tiến độ: `BACKLOG_MEMBER.md` trên nhánh `codex/member-sprint12-deliverables` (mốc 06/10/2026) và `BACKLOG_LEAD.md` v109 tại `origin/master` commit `8bb8167` (09/10/2026). Nguồn phân công: Sprint 2 report do người dùng cung cấp. Mã FE/monolith dùng để kiểm tra route và API.
+Progress sources: `BACKLOG_MEMBER.md` on `codex/member-sprint12-deliverables` (6 October checkpoint), `BACKLOG_LEAD.md` v109 at `origin/master` commit `8bb8167` (9 October), the supplied Sprint 2 report for assignment scope, and reviewed frontend and monolith routes and contracts.
 
-Giới hạn chính: ảnh graph chứng minh UI chạy với seed 25 nguyên liệu và 4 cạnh, chưa phải đồ thị Lead đã nhập. Ảnh scan chứng minh controls trên browser, chưa chứng minh detector thực, sửa detection hoặc thiết bị thật. Lead v109 xác minh Stage 3 đến exact step 327/561 và mới khởi chạy Segment 6 hướng bước 374; chưa có xác nhận chất lượng model, inference, scoring hoặc deployment production. Các khoảng trống này được ghi rõ trong từng tài liệu.
+Evidence limits are explicit in each document. The graph browser captures show a working UI backed by a 25-ingredient, four-edge local seed, not an imported Lead graph. The scan captures show browser controls, not accepted detector inference, detection editing, or real-device proof. Lead v109 verifies Stage 3 through exact step 327/561 and records only a Segment 6 launch toward step 374; final model quality, scoring, inference, and production deployment remain unverified.
+
+The earlier Vietnamese files remain alongside the English edition for reference.
