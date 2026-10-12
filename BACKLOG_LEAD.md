@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v114 — Segment 7 verified; Segment 8 launched (2026-10-12)
+
+- **L44 progress boundary:** one official secondary-account Kaggle transaction downloaded and validated Segment 7 at exact step 444, terminal state `STAGE3_SEGMENT_7_COMPLETE`, exact 12-file checkpoint inventory/hashes, recursively pinned Segment-6→1 and Stage-2 ancestry, frozen source/data selections, and manifest integrity. Segment-7 manifest SHA-256: `d3406733ca38209df9d25b7dd1883cc20a2659611573588f7c32d27690d15481`.
+- The manifest preserves exactly the unchanged step-187 (`0.19342221319675446`) and step-374 (`0.20272061228752136`) evaluation entries. The eight-file retained-best adapter and all hashes remain identical to Segment 6; model SHA-256 is `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814`.
+- Only after those gates passed, Segment 8 was built for `tnvtrung` with the exact Segment-7 manifest pin, the same private bridge dataset, and Segment 7 as sole kernel predecessor. Package validation passed; one official-CLI launch was positively acknowledged as version 1. Script SHA-256 `2c97fce2424b992cd76a65c1c40de283847a805ff896145b23d14d782d825af7`; metadata SHA-256 `375a941232b12fa343a4e89eb34ac32c9f27884ac62b41ee39c8d56d8c840f88`. Latest secondary status observed `RUNNING` between `2026-10-12T11:36:38Z` and `11:36:40Z` toward step 514; no Segment-8 output has been validated.
+- Evidence: root [`secondary_stage3_segment7_advancement.json`](../ai/out/iron-chef-lead-v99/secondary_stage3_segment7_advancement.json), transactional-ingestion and launch receipts under `ai/out/iron-chef-lead-v99/action-receipts/`. Stage-3 completion, inference, scoring, and model quality remain unproven; loss/evaluation/status are not quality evidence.
+
 ## Verified execution update — 2026-10-12
 
 - **L13′ COMPLETE — scope edit only.** The former new-GNN backlog wording is replaced by a shift-aware selector over frozen scorers, with its method and guarantee boundary in SSoT [§8](../academic_vision_and_strategy.md#s8). This does **not** close scientific work package L13: no accepted model is established.
