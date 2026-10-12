@@ -102,7 +102,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | **W10–12** | Dec 14–Jan 3 | ARR v1; internal review. ARR v2; limitations/datasheet. Final read, hashes. | Figures/tables regenerate. | Service-contributor registration ready |
 | **W13** | **Jan 4, 2027** | **ARR submission (AoE)** | | Registration form open until 48h post-deadline |
 
-**Capacity arithmetic (SSoT §18.1):** 225 MUST + 32 SHOULD + 70 COULD = 327 lead hours. 8 weeks at 30h/week = 240h (short 87h). At 40h/week = 320h (fits). **Run arithmetic with real hours on Oct 12 (U1), pick compression level before starting.**
+**Capacity arithmetic (SSoT §18.1):** 225 MUST + 32 SHOULD + 70 COULD = 327 lead hours; 91 member hours. 8 weeks at 30h/week = 240h (short 87h). At 40h/week = 320h (fits). **Run arithmetic with real hours on Oct 12 (U1), pick compression level before starting.**
 
 **Compression protocol (SSoT §18.4):** Level 0 (full), Level 1 (drop COULD except 20-case Vietnamese appendix), Level 2 (GISMo/lookup only calibration, no judge, n=208 allergen, minimal Explorer), Level 3 (collapse map + 100-case audit + allergen interval + bounded negatives + claims register). Gates never weakened.
 
