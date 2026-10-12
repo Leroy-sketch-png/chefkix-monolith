@@ -16,6 +16,8 @@ public class ChallengeHistoryResponse {
 
     private StatsDto stats;
 
+    private PaginationDto pagination;
+
     @Data
     @Builder
     public static class ChallengeItemDto {
@@ -35,6 +37,15 @@ private LocalDateTime completedAt;
         private int currentStreak;
         private int longestStreak;
         private long totalBonusXp;
+    }
+
+    @Data
+    @Builder
+    public static class PaginationDto {
+        private int page;
+        private int size;
+        private long totalElements;
+        private boolean hasNext;
     }
 
     @Data @Builder

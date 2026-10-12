@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -22,6 +23,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CookingRoomWsController {
+
+    private static final Set<String> ALLOWED_REACTIONS = Set.of("🔥", "👏", "❤️", "😂", "😮", "💪");
 
     CookingRoomService roomService;
 
@@ -92,12 +95,13 @@ if (roomService.isSpectator(request.getRoomCode(), userId)) return;
     @MessageMapping("/room.reaction")
     public void handleReaction(RoomEventRequest request) {
         String userId = getUserId();
-        if (request.getRoomCode() == null || request.getEmoji() == null) return;
+        String emoji = request.getEmoji() == null ? null : request.getEmoji().strip();
+        if (request.getRoomCode() == null || emoji == null || !ALLOWED_REACTIONS.contains(emoji)) return;
         if (!roomService.isParticipant(request.getRoomCode(), userId)) return;
 
         roomService.broadcastEvent(request.getRoomCode(), RoomEventType.REACTION,
                 userId, null,
-                Map.of("emoji", request.getEmoji()));
+                Map.of("emoji", emoji));
     }
 
     @MessageMapping("/room.sessionCompleted")

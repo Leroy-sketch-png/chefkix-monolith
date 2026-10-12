@@ -1,4 +1,6 @@
-# IRON CHEF v3: MEMBER BACKLOG
+﻿# IRON CHEF v4: MEMBER BACKLOG
+> **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §17.2 (Member Packages), §12 (Product Proof), §13 (Compute), §25 (Bounded Task Recipes), and the critical dependency path in §17.4. When they conflict, the strategy file wins.
+> **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" UI work retired. New focus: graph v4, Explorer, evidence endpoint, demo, reproducibility.
 
 > **Aligned 2026-10-04 with LEAD v101**, monolith `origin/master` commit `e2e0dfc` (latest update dated 2026-10-02).
 > **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
@@ -6,140 +8,186 @@
 
 ## Current handoff
 
-| Lead evidence | Member consequence |
-| --- | --- |
-| M1 corrected SAG and true-context dual encoder rejected | Preserve negative results; no accepted HGAT production score. |
-| M2 DPO complete; Stage 3 exact step 70/561 verified; Segment 2 queued toward 140 as of v99 | Show training progress separately from quality. No frozen predictions/matched M2 score. Do not infer later completion from elapsed time. |
-| M3 50 rights-bound candidates and two review packs; accepted labels/training absent | Camera UI may exist; production detection and user-camera capability remain open. |
-| M4 trained projection rejected | Do not install rejected weights or advertise a production replacement index. |
-| Official FooDB factuality verified | Display compound presence; overlap does not prove cooking suitability, melting point, flavor equivalence or usefulness. |
-| OFF v101 taxonomy risk partition reconstructed | Exact taxonomy matches differ from review-only alias candidates. Adjudication, negatives, clinical validity, serving and legal review remain open. |
-| Mistral small 2603: matched 208/208 raw responses | Raw capture status only. GPT-4o/Gemini, two independent reviews/adjudication remain open. No winner/rate claim. |
-| L29 offline chain: 179/783 paired-correct complete chains | Graph coverage is not end-to-end correctness. No user-camera, hidden-ingredient, functional chemistry or safety claim. |
-| Durable receipts and runtime certificates exist | Preserve receipt/auth boundaries. Operational policy, representative outcomes, recovery and user evidence remain separate. |
+The v4 thesis demonstrates **measurement, not models**. Your work makes the measurement visible:
 
-## Implementation sequence
+| Contribution | What You Make Visible | SSoT Reference |
+|--------------|----------------------|----------------|
+| **C1 Instrument** | Strata breakdown, audit pool construction, blinded labeling UI | §5, §6, §25.2–25.3 |
+| **C2 Measurement** | Per-cell Hit@k / valid@k tables with intervals, collapse map figure | §5.4, §6.9, §12.8 Act 2 |
+| **C3 Guardrail** | Cost-of-trust curves, cell status badges (ok/vacuous/no_guarantee), abstention panel | §8.7–8.8, §12.4, §12.6 |
+| **C4 Human Evidence** | Rater agreement dashboard (κ with cluster CI), judge calibration report | §6.8, §7.5, §14.6 |
+| **C5 Product Proof** | `/explore/graph` (real artifact), `/api/v1/graph/evidence` (shadow), 5-min recorded demo | §12.4–12.8, §25.7 |
 
-| Priority / gap | Scope | Owner / dependency |
-| --- | --- | --- |
-| P0 / G1 | Validate evaluation exports; retire withdrawn public scores, winner cues and scripted provider attribution | Member; first implementation in this alignment |
-| P0 / G2 | Remap thesis capture workspace to all 14 Lead chapters | Member; first implementation in this alignment |
-| P1 / G3 | Missing compound overlap/nutrition stays unavailable in every substitution card; preserve factuality/source boundaries | Member + official compound API |
-| P1 / G4 | Tri-state safety, custom allergens and profile-to-policy flow; distinguish taxonomy candidates from accepted labels | Member integration + Lead adjudicated policy |
-| P1 / G5 | Import rights/provenance-bound graph vocabulary into bounded API; expose real coverage | Member import + Lead exact manifest |
-| P1 / G6 | Per-result dataset, split, protocol, seed count, hashes and claim limits in views/exported figures | Member renderer + Lead metric manifests |
-| P2 / G7 | Receipted feedback UI/retry/recovery with representative cooked-session evidence | Member + Lead/runtime evidence |
-| P2 / G8 | Complete photo pipeline after accepted model/endpoint handoff; real device evidence | Joint; M3/M4 acceptance/rights gates |
-| P2 / G9 | Thesis figures, deployment evidence, scored rehearsal | Joint; source artifacts and human reviews/study/rehearsal |
-| Tier C / G10 | Voice-Vision integration and lifecycle | Deferred until core gates pass |
+**No VLM/CLIP camera integration.** No "four trained models" UI. No behavioral learning dashboard. The bounded negatives chapter covers what didn't work.
 
 ## EPIC 1: Graph explorer infrastructure — IMPLEMENTED, coverage partial
 
-- [x] Force renderer, node/edge detail, search and signal filters at `/explore/graph`.
-- [x] Explicit opt-in mock mode; ordinary requests use the monolith graph API.
-- [x] Bounded search/neighborhood loading rather than whole-graph rendering.
-- [ ] Capture keyboard/mobile and large-graph performance evidence using the accepted imported graph (G5).
+## Member Work Packages (from SSoT §17.2)
 
-Code: `chefkix-fe/src/features/graph-explorer/`. Checks: `GraphExplorer.test.tsx`, `GraphCanvas.test.tsx`, `GraphDetailPanel.test.tsx`, `graphExplorerService.test.ts`. Handoff: `chefkix-fe/docs/epic-10-graph-integration.md`.
+| ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
+|----|--------------------------|--------------|--------------|
+| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed-graph degree-sum check passes; every Round 0 number reproduced or struck. | Real seed arrays, runtime artifact access | 10h |
+| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
+| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** §12.4–12.5 implementation. T-03 to T-09 pass. Feature flag OFF by default. Real artifact only; tampered artifact refuses render. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
+| **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. | M-B case frames; official GISMo checkpoint | 8h |
+| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10, T-11, T-12 pass. Act 3 recorded from frozen files (not live API). Clean checkout, network disabled except API arms. | M-C Explorer; L38/L39 results | 12h |
+| **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
+| **M-G** | **Fill artifact paths & hashes for 16 flagged register rows:** Updated register where `register_scoreboard.py` exits 0. Real hashes, not placeholders. | All evidence artifacts | 6h |
+| **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
+| **M-I** | **Job manifests & runner (fixture-tested):** §13.6–13.7 scripts + fixture. Fail-closed path and happy path both tested before any real run. | PR15 (reference code defects) | 6h |
 
 ## EPIC 2: Evaluation dashboard shell — IMPLEMENTED, evidence contract partial
 
-- [x] Protected `/admin/evaluation`, benchmark table, ablation/allergen/behavioral charts and PNG export controls.
-- [x] Bundled JSON or configured remote manifest loader.
-- [x] G1: runtime validation for both sources; malformed sections, invalid metrics, duplicate IDs and inconsistent MRR deltas reject.
-- [x] G1: pending/placeholder metrics suppressed; completed safety rates require adjudication metadata. Schema validation does not authenticate external evidence.
-- [x] G1: public JSON matches dashboard records; historical synthetic exports retired from serving, preserved in Git history.
-- [x] G1: unverified paper Mistral value removed from matched scoreboard; M2 stays pending; cross-protocol winner badge removed.
-- [ ] Full G6 provenance, comparison groups, confidence intervals and export captions.
+## Critical Dependency Path (from SSoT §17.4)
 
-Code: `chefkix-fe/src/features/evaluation-dashboard/`. Checks: `evaluationDashboardService.test.ts`, `publicEvaluationExports.test.ts`. Contract: `chefkix-fe/docs/epic-9-evaluation-integration.md`.
+```
+L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L45 (writing) → L46 (defense)
+         ↑                              ↑
+    M-B (pools)                   M-D (arm outputs) ← L44 (inference)
+M-A (graph truth) → M-C (Explorer) → M-E (demo)
+L42 (novelty) → L45 (claim wording)
+L39 (allergen) → L45
+```
 
-## EPIC 3: Allergen profile — IMPLEMENTED in settings, live acceptance pending
-
-- [x] EU 14/FDA 9 selector and custom flags in settings meet the original onboarding-or-settings requirement.
-- [x] Monolith `UserProfile.allergenFlags`, normalization and profile/settings persistence.
-- [x] Substitution requests carry allergen flags.
-- [ ] G4: verify saved profile → authenticated request → AI policy → displayed result across all callers, custom/unknown terms and empty profiles.
-
-Code: frontend `src/components/settings/AllergenProfileSelector.tsx`, `src/lib/allergen-profile.ts`, `src/services/ai.ts`; monolith `identity/src/main/java/com/chefkix/identity/` profile/settings services. Checks: `allergen-profile.test.ts`, `allergen-safety.test.ts`.
+**Your blocking items:** M-A (unblocks M-C), M-B (unblocks L36/L38), M-D (unblocks L38/L44). Prioritize M-A → M-B → M-D → M-C → M-E.
 
 ## EPIC 4: Camera scaffold — IMPLEMENTED, model capability open
 
-- [x] Camera capture, ingredient overlay, confidence/source display and `/scan` workspace.
-- [x] Mock detection requires explicit configuration; missing real endpoints return integration-pending states.
-- [ ] G8: record permission refusal, camera switching, stream cleanup and mobile-device evidence.
-- [ ] Enable production detection only after an accepted Lead model/endpoint handoff. Configuration alone is not quality evidence.
+## Phase 1: Truth & Infrastructure (Weeks 0–2)
 
-Code: frontend `src/components/scan/`, `src/app/api/ingredient-detection/`. Checks: `IngredientScanner.test.tsx`, `IngredientDetectionOverlay.test.tsx`.
+### M-A: Graph & Coverage Truth (10h) — **START WEEK 0**
+> SSoT §12.1–12.3, §25.1 (P1)
 
-## EPIC 5: Compound explanation — IMPLEMENTED surface, contract gaps open
+- [ ] Locate actual seed arrays (`KnowledgeGraphSeeder.java`, `18-knowledge-graph.js` or equivalents)
+- [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
+- [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
+- [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
+- [ ] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line)
+- [ ] Emit `GRAPH_TRUTH.csv` and `COVERAGE_CURVES.csv` with provenance labels
+- [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
 
-- [x] Confidence, named compound list, overlap graphic, comparison and nutrition components exist.
-- [x] Ordinary requests do not silently fall back to mock compound data.
-- [x] Graph details unwrap official AI evidence and keep unavailable comparisons explicit.
-- [x] G3: missing overlap/nutrition remain null/Unavailable across cards and comparisons; explicit zero and producer units have regression checks.
-- [x] G3: preserve grounding, official source identity/fingerprint, and nested/degraded states; AI pantry attaches official evidence and discards generated chemistry claims.
-- [x] G3: retire fabricated compound examples and independent boolean safety badges; label overlap as presence, not cooking suitability.
-- [ ] Capture real payload/UI evidence for Chapter 8. Usefulness requires the Lead's ethics-reviewed N≥20 study.
+### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**
+> SSoT §5.5, §25.2 (P2), Appendix A functions (review only, not mandatory)
 
-Code: frontend `src/components/recipe/CompoundExplanation.tsx`, `src/lib/compound-explanation.ts`; check: `compound-explanation.test.ts`. Dependency: official FooDB API/manifest, not a hardcoded butter example.
+- [ ] Implement `build_strata.py`: GISMo primary identity, Senath secondary, seen/unseen (one frozen function on train/val/test), evidence_coverage (FooDB both-endpoints), cell key (seen\|unseen × profiled\|not)
+- [ ] Emit: `cases_val.jsonl`, `cases_test.jsonl`, `strata_counts.csv`, `identity_map.csv`, `manifest.json` (hashes + script git SHA)
+- [ ] Implement `build_pools.py` using `stratified_sample()` and `blinded_pool()` from Appendix A (do not reimplement)
+- [ ] **FIXTURE FIRST:** 40-case / 3-arm fixture → tests proving:
+  - (a) Rerun with same seed = identical
+  - (b) Rater view contains no arm name/rank
+  - (c) Gold appears in pool
+  - (d) Missing arm output fails closed
+  - (e) Per-stratum minimums honored
+  - Test duplicate candidates, insufficient strata, identity collisions, missing metadata
+- [ ] After fixture passes: run on real val/test case files; report actual counts/hashes
+- [ ] **Acceptance:** Regenerate bit-for-bit; pool builder deterministic; fixture tests pass
+
+### M-F: First-Party Recipe Inventory & License Check (4h) — **START WEEK 1**
+> SSoT §17.2 M-F, §10.8, U8
+
+- [ ] Count first-party ChefKix recipes available for private-Western cell
+- [ ] Record license per recipe/source
+- [ ] Mark unclear licenses `UNKNOWN`
+- [ ] **Acceptance:** Count + license table delivered; numbers stated
 
 ## EPIC 6: Allergen safety UI — IMPLEMENTED surface, comparison open
 
-- [x] Safety indicators, recipe warning banner and source-aware resolver exist.
-- [x] G1: `/demo/allergen-safety` is a fixed illustration. Scripted examples are not attributed to GPT-4o; no fake prompt execution; unverified examples stay Check.
-- [x] Dashboard shows matched Mistral raw capture without a safety rate.
-- [x] G4: regression checks cover SAFE/UNKNOWN/BLOCKED, malformed/empty policy, local/custom conflicts, profile forwarding and blocked primary actions on recipe/cooking surfaces. Neither frontend nor AI name screening infers Safe from absence of a match.
-- [ ] G4: certify the authenticated deployed profile → policy → UI flow and reviewed policy handoff. Local mocks/API tests do not close this acceptance gate.
-- [ ] G4: keep v101 taxonomy alias candidates review-only when a reviewed endpoint is supplied.
-- [ ] Real head-to-head view requires matched arms, two independent reviews, adjudication, rates/abstention/Wilson intervals and hash-bound scores.
+## Phase 2: Arms & Explorer (Weeks 2–4)
 
-Code: frontend `src/lib/allergen-safety.ts`, `src/components/recipe/AllergenSafetyIndicator.tsx`, `RecipeAllergenBanner.tsx`. Checks: `allergen-safety.test.ts`, `allergenIllustration.test.tsx`.
+### M-D: GISMo & Lookup Arm Outputs (8h) — **START WEEK 2**
+> SSoT §5.7, §13.3
+
+- [ ] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases
+- [ ] Generate lookup-frequency baseline ranked lists on same cases
+- [ ] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl`
+- [ ] Verify determinism: two runs produce identical outputs
+- [ ] **Acceptance:** Every case present; deterministic across runs
+
+### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
+> SSoT §12.2–12.7, §25.7 (P6)
+
+- [ ] Build `graph_eval_v4` (train-only substitution edges; test asserts no val/test pair) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
+- [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
+- [ ] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — **additive, read-only, does not change `/suggest_substitutions`**
+- [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
+- [ ] Run acceptance tests T-01 through T-12 (§12.7) + existing suites covering touched code
+- [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
+
+### M-I: Job Manifests & Runner (6h) — **START WEEK 2**
+> SSoT §13.6–13.7, §25.1, PR15
+
+- [ ] Implement job manifest schema (§13.6) and runner contract (refuse on hash mismatch, fresh timestamped output dir, `RECEIPT.json`, exit non-zero on stop conditions)
+- [ ] **FIXTURE FIRST:** Happy path + each failing path (hash mismatch, missing input, cost cap, error rate >5%, invalid output >2%)
+- [ ] **Acceptance:** Fixture tests pass; runner refuses bad manifests
 
 ## EPIC 7: Feedback instrument — IMPLEMENTED, product evidence partial
 
-- [x] Choice/outcome and post-session feedback controls in CookingPlayer.
-- [x] Monolith endpoint, Kafka projection, durable candidate receipt forwarding and service/listener checks.
-- [x] AI ingestion/replay path exists; receipt-bearing candidates remain the acceptance boundary.
-- [ ] G7: execute accept/reject/skip/taste across frontend/monolith/AI; verify missing receipt, retry/idempotency, failed projection and replay.
-- [ ] G7: representative outcomes, scorer, automated quiescence, replicated storage and operational recovery remain open. UI completion is not learning improvement.
+## Phase 3: Demo & Reproducibility (Weeks 4–6)
 
-Code: frontend `src/components/cooking/CookingPlayer.tsx`; monolith `culinary/.../features/session/`. Checks: `substitution-button-feedback.test.tsx`, `SubstitutionFeedbackControllerTest`, `SubstitutionFeedbackServiceTest`, `SubstitutionFeedbackListenerTest`.
+### M-E: Demo Build & Test Suite (12h) — **START WEEK 4 (after M-C, L38/L39 results)**
+> SSoT §12.7–12.8, §25.7 (P6)
+
+- [ ] Record Act 3 from frozen files (side-by-side raw LLM vs filtered+calibrated on same input) — **not live API**
+- [ ] Implement T-10: demo runs with network disabled except API arms (recorded fallback exists)
+- [ ] Implement T-11: no secret in any log/response/artifact (scan clean)
+- [ ] Implement T-12: all existing suites covering touched code still pass (report verbatim)
+- [ ] **Acceptance:** T-10, T-11, T-12 pass; recorded Act 3 loads; abstain panel reachable
+
+### M-G: Claims Register Artifact Reconstruction (6h) — **START WEEK 4**
+> SSoT §15, §25.5 (P5), §17.2 M-G
+
+- [ ] For each of 16 flagged VERIFIED rows in seed register (R01, R02, R03, R05, R06, R08, R09, R10, R11, R12, R13, R14, R18, R19, R25, R31): find artifact, compute real SHA256, reproduce claimed value
+- [ ] Write claim/evidence mismatches to `EVIDENCE_VS_CLAIM.csv` (do not silently rewrite)
+- [ ] Update register copy with real paths/hashes; run `register_scoreboard.py` → exit 0
+- [ ] **Acceptance:** Register script exits 0; mismatches documented separately
+
+### M-H: README & Reproducibility Kit (8h) — **START WEEK 6**
+> SSoT §17.2 M-H, §24.3
+
+- [ ] One-command script from clean checkout → main figure (collapse map or cost-of-trust)
+- [ ] Third-person clean-machine reproduction test (documented)
+- [ ] README: data sources, licenses, how to run each pipeline, artifact locations, freeze dates
+- [ ] **Acceptance:** Third person reproduces Table 1 on their machine
 
 ## EPIC 8: Photo intelligence — ADAPTERS IMPLEMENTED, accepted models blocked
 
-- [x] Same-origin detection, ingredient-to-recipe and dish retrieval adapters; unconfigured services stay unavailable.
-- [x] Match cards, missing ingredients and substitution handoff exist.
-- [ ] G8: accepted detector, retrieval model/index and manifest identities before real integration.
-- [ ] G8: rights-cleared external/user-camera evidence; separate recipe correctness from graph coverage.
-- [ ] G8: auth, cancellation/timeouts, upload failures and camera lifecycle on real devices.
+## Phase 4: Parallel Support (Ongoing)
 
-Contract: `chefkix-fe/docs/epic-8-photo-intelligence-integration.md`. Check: `src/app/api/photo-intelligence/__tests__/routes.test.ts`. L29's offline result does not complete this epic.
+### Overnight Factory Jobs (from SSoT §13.5)
+> Eligible for unattended runs (idempotent, hash-logged, stop conditions):
 
-## EPIC 9: Evaluation with real results — PARTIAL
+| Job | Inputs | Output | Stop Condition |
+|-----|--------|--------|----------------|
+| Strata/identity regeneration | Official splits | `cases_*.jsonl`, `strata_counts.csv`, manifest | Count mismatch |
+| Candidate pool builder | Arm outputs, audit sample | Blinded pools + private key | Missing arm output |
+| Arm inference (rank arms) | Cases | Top-M lists | Missing case, nondeterminism |
+| Arm inference (API) | Cases, key | Top-M lists + call logs | Cost cap, error rate >5% |
+| Judge labeling | Pools | Judgments JSON | Invalid rate >2%, cost cap |
+| Calibration + diagnostics | Val labels | `t̂` tables (`t-hat tables`, `t_hat`), diagnostics | Any diagnostic flag (no auto-continue) |
+| Coverage curves | Adjudicated identities | `COVERAGE_CURVES.csv` | Identity hash mismatch |
+| Graph build + verifier | Sources | Two artifacts + stats | Provenance gap |
+| Novelty query runner | Query list | Hashed raw responses | Rate limits hit repeatedly |
 
-- [x] Bundled records preserve GISMo reproduction and rejected ablation/feedback evidence with caveats.
-- [x] Missing M1/M2/allergen results stay pending; G1 prevents placeholder rates entering charts.
-- [ ] G6: detailed Lead exports with dataset, split, protocol, seeds, source/prediction hashes and decision.
-- [ ] G6: repeated/unseen strata, rejected M1/M4 results and selective-abstention gates; benchmark completion is not deployment acceptance.
-- [ ] G6: safety review status, Wilson intervals and abstention only when scored evidence exists.
-- [x] G6: SVG/PNG captions carry status, notes, supplied dataset/split/protocol/seeds/full hashes/decision/claim limits; missing provenance is explicit. Runtime validation rejects malformed supplied provenance.
-- [ ] G6: bind these fields to independently checked Lead artifacts and validate scored intervals/abstention/strata; rendering metadata is not scientific verification.
-
-Detailed atomic ledger/artifacts are absent locally. Never reconstruct a missing score from training loss, checkpoint count or a paper summary.
+**Morning review (10 min daily):** Receipt present, exit status, spend vs cap, stop conditions, diagnostics, row counts, warnings. **You decide; factory does not.** See §13.8 for the canonical review policy.
 
 ## EPIC 10: Graph with real data — BOUNDED API IMPLEMENTED, import pending
 
-- [x] Monolith name/alias search, root/depth/limit neighborhoods, bounded edges and pagination metadata.
-- [x] Frontend lazy neighborhood loading and maximum 500-node working view.
-- [x] Grounded compound profile/pair endpoints wired; quantity ratios are not confidence.
-- [ ] G5: ingest exact Lead vocabulary/graph with hash/schema/rights/coverage validation, provenance and safe rollback.
-- [ ] G5: actual USDA snapshots, validated cook counts and technique-context only when supported. Current seed data lacks these fields.
-- [ ] Capture API-backed evidence against the imported collection; the seeded graph is not the full research graph.
+## Acceptance Test Checklist (from SSoT §12.7 — all must be automated/scripted)
 
-Code: monolith `culinary/src/main/java/com/chefkix/culinary/features/knowledge/`; checks: `KnowledgeGraphServiceTest`, `KnowledgeGraphControllerTest`. Frontend handoff: `docs/epic-10-graph-integration.md`.
-
-## EPIC 11: Thesis engineering — WORKSPACE ALIGNED, captures open
+| ID | Test | Pass Condition |
+|----|------|----------------|
+| T-01 | `graph_eval_v4` contains no val/test pair | 0 leaks |
+| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal |
+| T-03 | Explorer loads with real artifact, hash shown | Visible hash |
+| T-04 | Explorer with tampered artifact refuses render | Refusal message |
+| T-05 | Unknown ingredient → "not in graph", no invented node | Verified |
+| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | Verified |
+| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | Verified |
+| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Verified |
+| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty |
+| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified |
+| T-11 | No secret in any log/response/artifact | Scan clean |
+| T-12 | All existing suites covering touched code pass | Report verbatim |
 
 - [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
 - [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.
@@ -149,31 +197,31 @@ Code: monolith `culinary/src/main/java/com/chefkix/culinary/features/knowledge/`
 - [ ] G9: ethics/recruitment/user study, independent allergen/image reviews and recorded/scored defense rehearsal are human/Lead dependencies.
 - [ ] Reconcile preserved sprint drafts before submission. They are schedule drafts, not current completion evidence.
 
-Code/check: frontend `src/features/thesis-engineering/`, `thesisEvidenceManifest.test.ts`.
+## Evidence Integrity Rules (same as Lead)
 
-## EPIC 12: Voice-Vision copilot — OPTIONAL SCAFFOLD ONLY
-
-- [x] Wake-word, optional camera, TTS, intervention display and endpoint adapter code exist.
-- [ ] G10: accepted model, grounded answers/citations, permission/input lifecycle, full-stage correctness and user evidence.
-- [ ] Preserve Lead's rejected end-to-end finding. The scaffold does not supersede it; never show the withdrawn grounding comparison.
+- Never mark COMPLETE because code was written — require executable evidence.
+- Never compare cancelled run or paper number to locally executed result.
+- Never report metric without dataset, split, protocol version, seed count.
+- Negative results are thesis contributions — report honestly.
+- Every number carries a claim ID. Unverified = say so.
+- Fixture-test before real data. Durable scripts in approved files. Full paths, `-LiteralPath`.
+- Label numbers: `COMPUTED_NOW`, `QUOTED_FROM_ARTIFACT` (path/key), or `UNVERIFIED`.
 
 Contract/check: frontend `docs/epic-12-voice-vision-copilot.md`, `src/features/voice-copilot/__tests__/voiceCopilotService.test.ts`.
 
-## Keeping the tracks aligned
+## Appendix: Mapping from v3 Member Backlog (for reference only)
 
-1. Fetch Lead; record commit/newest update above. Do not infer completion from queued/running state.
-2. Read newest updates before older narrative. Obtain the atomic artifact if they conflict; do not rewrite Lead research results.
-3. Map changes to G1–G10 and member epic. Distinguish code present, locally checked, deployed, scientifically verified and human-reviewed evidence.
-4. Update dashboard/thesis records and tests together. Preserve rejected history outside active score-serving paths.
-5. Commit/push code and evidence pointers; exclude credentials, private raw responses, weights and generated caches.
-
-Validation record and remaining boundaries: `chefkix-fe/docs/member-lead-alignment-2026-10-04.md`.
-
-
-## Integration follow-through — 2026-10-04
-
-Frontend G3/G4/G6 changes pair with AI branch `codex/member-evidence-contract`. AI contract/policy tests: 35 passed. Frontend regression verification and production-build results are recorded in the PR. No deployed workflow certification or database import is claimed.
-
-G5 remains dependent on the canonical export/manifest. The available AI `models/graph_sample.json` contains 500 nodes and 37 edges (SHA-256 `0cd3c9c9b33f9935db393f41fef190a16498cdd7222badfec7333532d882dedc`), with no full graph rights/schema/import manifest. Compound FooDB provenance describes a separate presence artifact; it is not the graph import manifest. Obtain the full artifact, validate schema/hash/identities/edge endpoints/counts/rights, stage a collection, check bounded API coverage, and retain the prior collection for rollback before switching. Do not interpret sample edge confidence as a cooking ratio.
-
-Accepted models, independent reviews, rights-cleared user/device evidence and the atomic ledger remain outstanding. These dependencies prevent reporting full leader integration, even after all currently testable member fixes merge.
+| v3 Epic | v4 Treatment |
+|---------|--------------|
+| EPIC 1 (Graph Explorer) | M-C (real-data Explorer, feature-flagged, hash-pinned) |
+| EPIC 2 (Eval Dashboard) | M-E (demo) + thesis figures regenerated from scripts |
+| EPIC 3 (Allergen Onboarding) | Separate product work; not thesis contribution |
+| EPIC 4 (Camera Scaffold) | Retired — no VLM/voice in v4 |
+| EPIC 5 (Compound UI) | C5 product proof: evidence endpoint shows compound presence (presence only, not flavor) |
+| EPIC 6 (Allergen Killshot UI) | C5: evidence endpoint + Explorer show allergen flags + abstention |
+| EPIC 7 (Feedback Instrument) | Separate product work; behavioral learning not a thesis contribution |
+| EPIC 8 (Photo Pipeline) | Retired — photo chain is bounded negative (179/783 correct) |
+| EPIC 9 (Eval Dashboard Wire) | M-E + thesis figure regeneration |
+| EPIC 10 (Graph Explorer Wire) | M-C |
+| EPIC 11 (Thesis Screenshots) | M-H reproducibility kit; figures regenerate from scripts |
+| EPIC 12 (Voice Copilot) | Retired — Tier C, not in v4 scope |

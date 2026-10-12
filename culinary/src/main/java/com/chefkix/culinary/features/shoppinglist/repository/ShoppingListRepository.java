@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface ShoppingListRepository extends MongoRepository<ShoppingList, String> {
     List<ShoppingList> findByUserIdOrderByCreatedAtDesc(String userId);
     Optional<ShoppingList> findByIdAndUserId(String id, String userId);
+    Optional<ShoppingList> findByUserIdAndSourceCookPlanId(String userId, String sourceCookPlanId);
     Optional<ShoppingList> findByShareToken(String shareToken);
     void deleteByIdAndUserId(String id, String userId);
     void deleteAllByUserId(String userId);
