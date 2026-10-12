@@ -15,6 +15,7 @@ public class ShoppingListResponse {
     List<ShoppingListItem> items;
     String source;
     String sourceMealPlanId;
+    String sourceCookPlanId;
     String sourceRecipeId;
     String shareToken;
     int totalItems;
