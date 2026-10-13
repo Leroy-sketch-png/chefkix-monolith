@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v115 — Segment 8 artifact boundary verified (2026-10-13)
+
+- One official secondary-account Kaggle output transaction validated Segment 8 at exact step 514 and terminal state `STAGE3_SEGMENT_8_COMPLETE`: the exact 12-file checkpoint inventory/hashes, pinned Segment-7→1 and Stage-2 ancestry, frozen source and selection identities, manifest integrity, and retained-best continuity all passed.
+- Segment-8 manifest SHA-256: `7857ddce5ff6efe5e61175fa63172a0c9c42a6f458212c742104a3ff4f4de189`; normalized launched-source SHA-256: `92c25e0daa6886e75ffd0360e10a543fa0a6467fc6a7b0cb71c5dc5a611bd176`. Manifest and trainer state contain only the unchanged step-187 (`0.19342221319675446`) and step-374 (`0.20272061228752136`) evaluations; step 514 adds no evaluation. The eight-file retained-best inventory matches Segment 7, including adapter model SHA-256 `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814` and best loss `0.19342221319675446`.
+- Root evidence: `ai/out/iron-chef-lead-v99/secondary_stage3_segment8_advancement.json`; verified output: `ai/out/iron-chef-lead-v99/segment-8-output/`. Artifact/provenance validation does not establish inference, scoring, model quality, or overall Stage-3 completion. Segment 9 is not prepared or launched; its identity/package contract awaits human direction.
+
 ## LEAD v114 — Segment 7 verified; Segment 8 launched (2026-10-12)
 
 - **L44 progress boundary:** one official secondary-account Kaggle transaction downloaded and validated Segment 7 at exact step 444, terminal state `STAGE3_SEGMENT_7_COMPLETE`, exact 12-file checkpoint inventory/hashes, recursively pinned Segment-6→1 and Stage-2 ancestry, frozen source/data selections, and manifest integrity. Segment-7 manifest SHA-256: `d3406733ca38209df9d25b7dd1883cc20a2659611573588f7c32d27690d15481`.
