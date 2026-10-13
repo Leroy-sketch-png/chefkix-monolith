@@ -8,6 +8,11 @@
 - The only evaluation records remain the unchanged step-187 and step-374 evaluations. This observation establishes status and artifact/provenance continuity only—not inference, scoring, model quality or overall Stage-3 completion. Segment 9 remains unprepared and unauthorized pending human direction.
 - Durable receipt: [`segment8_status_revalidated.json`](../ai/out/iron-chef-lead-v99/action-receipts/20261013T055911.437826Z-segment8_status_revalidated.json). Canonical details: [`SESSION.md`](../SESSION.md) and [`academic_vision_and_strategy.md`](../academic_vision_and_strategy.md).
 
+## L42 prior-art lead — 2026-10-13
+
+- OpenReview search-index excerpts surfaced the anonymous ICLR 2026 submission “SpheriQ: Probabilistic Hyperbolic Reasoning for Interpretable Recommendation,” whose indexed text discusses calibration, risk–coverage, selective recommendation and confidence-threshold abstention. It is a potentially direct-adjacent generic recommender comparator, not the same task as ingredient-substitution selection.
+- The forum/PDF/API returned challenge verification; no full-text screen, author identity, review outcome, byte hash, or reproduced result is available. Treat the excerpt as a lead only. It narrows broad absence claims but does not resolve the frozen exact selective ingredient-substitution question. L42 remains open; see [SCOPE L42](../SCOPE.md) and canonical Appendix C/S36.
+
 ## LEAD v115 — Segment 8 artifact boundary verified (2026-10-13)
 
 - One official secondary-account Kaggle output transaction validated Segment 8 at exact step 514 and terminal state `STAGE3_SEGMENT_8_COMPLETE`: the exact 12-file checkpoint inventory/hashes, pinned Segment-7→1 and Stage-2 ancestry, frozen source and selection identities, manifest integrity, and retained-best continuity all passed.
