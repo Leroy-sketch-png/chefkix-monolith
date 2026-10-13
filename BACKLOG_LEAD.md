@@ -10,8 +10,8 @@
 
 ## L42 prior-art lead — 2026-10-13
 
-- OpenReview search-index excerpts surfaced the anonymous ICLR 2026 submission “SpheriQ: Probabilistic Hyperbolic Reasoning for Interpretable Recommendation,” whose indexed text discusses calibration, risk–coverage, selective recommendation and confidence-threshold abstention. It is a potentially direct-adjacent generic recommender comparator, not the same task as ingredient-substitution selection.
-- The forum/PDF/API returned challenge verification; no full-text screen, author identity, review outcome, byte hash, or reproduced result is available. Treat the excerpt as a lead only. It narrows broad absence claims but does not resolve the frozen exact selective ingredient-substitution question. L42 remains open; see [SCOPE L42](../SCOPE.md) and canonical Appendix C/S36.
+- Deeper ordinary OpenReview search-index excerpts from the same anonymous ICLR 2026 SpheriQ submission describe four generic recommendation/reasoning datasets, 80/10/10 splits, validation-grid tuning, five fixed seeds, ECE/Brier/AURC, risk–coverage, selective NDCG@10-versus-coverage, and an MIND confidence-threshold abstention case study. These are indexed author-submitted claims, not reproduced findings or a full-text screen.
+- This is direct-adjacent prior art for broad generic selective-recommendation/risk–coverage absence claims, not the frozen ingredient-substitution task. It does not establish conformal/finitesample guarantees, unseen-pair substitution evaluation, evidence-missingness strata, or provenance-bearing substitute abstention. Direct PDF/forum access remains challenge-blocked; no bytes/hash, authors, current decision, complete protocol review, or independent adjudication. L42 remains open; exact novelty remains UNKNOWN. See [SCOPE L42](../SCOPE.md) and canonical Appendix C/S36.
 
 ## LEAD v115 — Segment 8 artifact boundary verified (2026-10-13)
 
