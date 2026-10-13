@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## Segment 8 status revalidation — 2026-10-13
+
+- At `2026-10-13T05:59:11.437826Z`, the separately vaulted `tnvtrung` wrapper invoked the official Kaggle CLI and returned Segment 8 version 1 `COMPLETE`. The already downloaded canonical output was revalidated locally at exact step 514, `STAGE3_SEGMENT_8_COMPLETE`, with the 12-file checkpoint inventory, eight-file retained-best inventory and manifest SHA-256 `7857ddce5ff6efe5e61175fa63172a0c9c42a6f458212c742104a3ff4f4de189`; no new output download was attempted.
+- The only evaluation records remain the unchanged step-187 and step-374 evaluations. This observation establishes status and artifact/provenance continuity only—not inference, scoring, model quality or overall Stage-3 completion. Segment 9 remains unprepared and unauthorized pending human direction.
+- Durable receipt: [`segment8_status_revalidated.json`](../ai/out/iron-chef-lead-v99/action-receipts/20261013T055911.437826Z-segment8_status_revalidated.json). Canonical details: [`SESSION.md`](../SESSION.md) and [`academic_vision_and_strategy.md`](../academic_vision_and_strategy.md).
+
 ## LEAD v115 — Segment 8 artifact boundary verified (2026-10-13)
 
 - One official secondary-account Kaggle output transaction validated Segment 8 at exact step 514 and terminal state `STAGE3_SEGMENT_8_COMPLETE`: the exact 12-file checkpoint inventory/hashes, pinned Segment-7→1 and Stage-2 ancestry, frozen source and selection identities, manifest integrity, and retained-best continuity all passed.
