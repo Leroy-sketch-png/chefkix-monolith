@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v194 — Reproduce the bounded OFF taxonomy partition (2026-10-14)
+
+- **L48 / R18 advanced:** independently rebuilt the partition from the hash-pinned Sep 8 OFF snapshot manifest and preserved official allergen taxonomy bytes last-modified Sep 30. Result: 3,377 distinct tags / 767,780 occurrences: 23 exact positive identities cover 760,877; the official `en:none` sentinel covers 564; 17 unique same-language aliases cover 32 and remain review-only; 3,336 unrecognized tags cover 6,307.
+- The validator independently reconstructed report/queue bytes and rejected 8/8 semantic mutations; focused taxonomy tests pass 6/6. R18 is now `VERIFIED` only for this precise snapshot/taxonomy partition. The updated 45-row derivative validates at 11 `VERIFIED`, 4 `PARTIAL`, 30 `UNVERIFIED` (SHA-256 `a46bfe7499135945996cb0c993faff66c53ef97e268e09fd323425d623de7c7b`). Evidence record SHA-256 `d71d326dd0c2a8853348f15605b66aa814e1655c4ed8836bb3784ec0feda790f`; report SHA-256 `a5745b992f3ac9c9aa21708fb4d0322dc2ecf0fe585919d2f1c8e4f34bfe5c1a`; validation output SHA-256 `a5f97d1caacec550178ab2dd94c03aa7fd3847e7626893398e1f19798185cdb7`.
+- **Evidence boundary:** the taxonomy post-dates the frozen snapshot, so do not describe this as taxonomy state at ingestion time. Aliases are suggestions, unrecognized values are not negatives, and `en:none` is not a positive allergen. No independent adjudication, clinical sensitivity/specificity, production safety, or user outcomes are established. This closes one bounded register row only; L20/L39 and L48 remain open, with no thesis-completion percentage.
+- **Next:** continue the register’s R19–R24 source/protocol mapping separately from this partition. Human adjudication, paid model arms, and any safety claims remain behind their ethics, reviewer, rights, budget, and protocol gates.
+
 ## LEAD v193 — Refresh M-A local runtime availability observation (2026-10-14)
 
 - Read-only host check at `2026-10-14T06:54:07Z`: Docker is reachable. `docker ps -a` showed infrastructure dependencies only; no ChefKix AI-service or monolith container was present. Keycloak was `Exited (1)` and MongoDB was `unhealthy`. The host had no process/listener on the checked application ports 8000, 8080, 8081, 3000, or 5000.
