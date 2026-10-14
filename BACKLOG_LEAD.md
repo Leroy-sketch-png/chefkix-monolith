@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v270 — Bind R32–R35 to the active human-evidence gates
+
+- **Row/source check:** the v197 R32–R35 entries are all `UNVERIFIED` with `LOCAL_MIGRATION_CHECKLIST_ONLY` provenance; their labels (“Human audit150/two raters,” “H1 frozen decision result,” “Per-cell calibration on frozen protocol,” and “Human-validated judge”) are inventory seeds, not findings. The current 44-R31 derivative retains those statuses and maps the four rows to L36/L38/L43.
+- **Crosswalk clarification:** R32/R33 map to L36, with PR01–03/10 resolved before collection or H1 interpretation; R34 maps to L38 under PR04–08 and Freeze B with unavailable/sparse cells explicit; R35 maps to L43, dependent on L36, with PR02/05/10 resolved before judge freeze. These gates match the active strategy and LEAD v262/v263.
+- **Disposition:** added the gate references and evidence ceilings to the current row map. With this pass, 13 of the original 28 target rows have later row-level boundaries or receipts reflected in the backlog crosswalk; this is not a claims-register status count, semantic completion of the remaining 15, or thesis-progress percentage. No CSV/status, protocol, human data collection, SSoT, or experiment changed; L48 remains open.
+
 ## LEAD v269 — Sync remaining applied L48 row pointers to the current crosswalk
 
 - **Chain inspected:** the latest preserved sequential output, `ai/out/iron-chef-lead-v248-row-overlays/44-R31.csv` (SHA-256 `cfdc7c9b3490a31d404f334a6626a801a3bc41ee2779027322af76f4edb372f1`), contains later row-specific L39 pointers for R21–R24 and historical-artifact pointers for R30–R31 than the older v248 proposal table.
@@ -152,10 +158,10 @@
 | R29 | `L42 novelty funnel and independent review; LEAD v236/v247/v265.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
 | R30 | `L48 maps R30 to historical L29/v43 artifacts (LEAD v237): ai/out/iron-chef-lead-v43/photo_graph_explanation_results.json SHA-256 74aed329d73cf21ebd2852cd59d07945c5c880ddfb511ebb9616bfe8ae6f9e39; VALIDATION.json SHA-256 8b9c0cb77cbbaa053fef5e2642700fa3df199bacca02b324de5471cf3a3210a8.` | Bounded offline chain reports 179/783 end-to-end paired-recipe-correct paths; not photo perception, ingredient detection, hidden-ingredient inference, user-camera capability, safety, or usefulness. v197 remains UNVERIFIED. |
 | R31 | `L48 maps R31 to dated historical L30/v49 evidence (LEAD v237): ai/out/iron-chef-lead-v49/VOICE_VISION_GRAPH_RAG_RESULT.json SHA-256 87822e7c97687d3aed7426444f3fc30fb5a5b19273039baffed729801e1142ab; VALIDATION.json SHA-256 7eb8f7d07ffcc80c000ecbbda3c78f006817ed8ee75b0191b644047bd9484d28.` | Records 100/100 loopback requests returning truthful unavailability at that observation only; not a fresh endpoint check or present-capability claim. v197 remains UNVERIFIED. |
-| R32 | `L36 human audit and independent-label package.` | Requires the approved audit protocol, actual labels/adjudication, and unresolved PR01–03/10 gates. |
-| R33 | `L36 H1 frozen decision result.` | Requires frozen protocol, executable analysis, and the bounded decision result; no result is inferred from setup. |
-| R34 | `L38 per-cell calibration.` | Blocked until PR04–08 and Freeze B; no aggregate-only calibration claim. |
-| R35 | `L43 human-validated judge; dependent on L36.` | Prompt completion is insufficient; require human comparison and judge gates. |
+| R32 | `L36 human audit and independent-label package; PR01–03/10 gates (LEAD v262).` | Requires approved protocol, actual labels/adjudication, and resolved estimand, allocation, label, and interval rules; source row remains UNVERIFIED. |
+| R33 | `L36 H1 frozen decision result; LEAD v262.` | Requires prospectively frozen estimand/denominator/operator, actual labels/adjudication, and executable analysis; setup is not a result. |
+| R34 | `L38 per-cell calibration; PR04–08 and Freeze B (LEAD v263).` | Require all-cell outcomes and explicit unavailable/sparse statuses; judge agreement or aggregate-only calibration does not pass. |
+| R35 | `L43 human-validated judge; dependent on L36; PR02/05/10 (LEAD v263).` | Prompt completion is insufficient; resolve label policy, leakage/exposure partition, and gate definitions, then require human comparison or an explicit unusable outcome. |
 | R36 | `L40 native-reviewed Vietnamese pilot; gated by L41 and rights.` | Native review and pilot evidence required; translation or synthetic checks do not suffice. |
 | R37 | `M-F rights inventory; L39 only if cases enter the allergen frame.` | Inventory is not permission; resolve scope/license before use. |
 | R38 | `M-A graph/coverage truth, then M-C Explorer.` | Graph and coverage evidence precede Explorer proof; code presence is not runtime/demo evidence. |
