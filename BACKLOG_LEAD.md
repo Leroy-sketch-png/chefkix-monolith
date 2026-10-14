@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v233 — Keep K10's resource response from becoming an automatic scope cut (2026-10-14)
+
+- **Alignment check:** K10's mitigation said “Use free/open-weight LLM,” which reads as an automatic substitute if API access/budget is late. Active SSoT §18 directs pursuit of the ideal scope through resource acquisition or timing adjustment; §19 allows no unlimited spend and no automatic paid retries. The mitigation now puts authorized key/quota/budget and schedule/resource resolution first; a different model arm requires explicit HUMAN/protocol approval, pinned identity, and revised claims boundary. This does not authorize spend or a provider call.
+- **Boundary:** schedule and freeze dates remain proposed, not confirmed. No resource status was changed, and no key, quota, price, or provider availability was assumed.
+
 ## LEAD v232 — Refresh K8's last-recorded Segment-10 timestamp (2026-10-14)
 
 - **Stale risk-table pointer corrected:** K8 still cited the Segment-10 `RUNNING` observation at `2026-10-14T04:22:10Z`, although LEAD v175 records a later poll at `2026-10-14T05:50:49.607985Z` with zero artifact transfers and zero Segment-11 launches. The K8 trigger now points to that later recorded observation and labels it historical, not fresh. The risk remains: no step-631 successor artifact boundary is validated after Segment 9 step 561.
@@ -739,7 +744,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K7 | Validation scores missing | M | H | M-B check fails | Regenerate GISMo val (cheap); LLM arms on subsample |
 | K8 | Stage 3 late/fails | M | M | No next authorized artifact boundary validated after Segment 9 step 561; Segment 10 last recorded `RUNNING` at 2026-10-14T05:50:49.607985Z (LEAD v175), historical and not a fresh poll | Require exact successor checkpoint/manifest validation; Stage-2 adapter hedge remains available |
 | K9 | Inference too slow | M | M | 200-case timing | Stratified subsample (§13.3) |
-| K10 | API keys/budget unavailable | M | H | No key by Oct 22 | Use free/open-weight LLM; pin version; say so |
+| K10 | API keys/budget unavailable | M | H | No key by proposed Freeze A Oct 22 | Pursue authorized access/resources or adjust timing first; any alternate arm requires explicit HUMAN/protocol approval, pinned model identity, and revised claims boundary; no automatic spend or substitution |
 | K11 | Ethics blocks usefulness study | M | L | No written disposition recorded in local notes by proposed Oct 12 target; actual status unconfirmed (LEAD v217/v219) | Escalate resource/schedule; do not automatically cancel H4 (§14) |
 | K12 | Allergen n too small to certify | H | M | Arithmetic fixed | Expand to ≥299 or report interval |
 | K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24 forbidden-claims audit; claims register |
