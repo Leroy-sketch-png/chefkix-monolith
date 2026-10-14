@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v235 — Keep K12 sample-size routes behind an explicit protocol choice (2026-10-14)
+
+- **Risk-response correction:** K12's “expand to ≥299 or report interval” did not say who chooses or when. L39 and LEAD v223 preserve two alternatives—expand the frozen n=208 frame to the prespecified ≥299 target, or use the defined n=208 bounded-interval route—with no automatic fallback and no human choice/additional sample frame yet recorded. The mitigation now requires an explicit HUMAN choice and protocol freeze before either route is executed or interpreted.
+- **Boundary:** this does not decide sample size, alter the existing 208 cases, or authorize new provider calls. Until the protocol route and evidence gates pass, report no violation-rate or safety conclusion.
+
 ## LEAD v234 — Extend the R16/R17 source check to the configured public origin (2026-10-14)
 
 - **Additional read-only resolution attempt:** a depth-1 fetch of the three reports' cited commit `2952c1a9ba2d7494981c72c49c4bae321de22e4c` from the configured public `chefkix-ai-service` origin returned `upload-pack: not our ref`; no source object was fetched. A direct GitHub commit-page read timed out. Together with LEAD v229's local object lookup and current-file hash, the exact source bytes remain unavailable through the checked local checkout and this ordinary public-origin attempt. This does not prove the commit never existed or that no private/archive copy exists.
@@ -751,7 +756,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K9 | Inference too slow | M | M | 200-case timing | Stratified subsample (§13.3) |
 | K10 | API keys/budget unavailable | M | H | No key by proposed Freeze A Oct 22 | Pursue authorized access/resources or adjust timing first; any alternate arm requires explicit HUMAN/protocol approval, pinned model identity, and revised claims boundary; no automatic spend or substitution |
 | K11 | Ethics blocks usefulness study | M | L | No written disposition recorded in local notes by proposed Oct 12 target; actual status unconfirmed (LEAD v217/v219) | Escalate resource/schedule; do not automatically cancel H4 (§14) |
-| K12 | Allergen n too small to certify | H | M | Arithmetic fixed | Expand to ≥299 or report interval |
+| K12 | Allergen n too small to certify | H | M | Arithmetic fixed; route choice and any added frame remain unapproved | HUMAN selects and freezes the prespecified ≥299 expansion or n=208 bounded-interval route before execution; no automatic fallback or safety conclusion |
 | K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24 forbidden-claims audit; claims register |
 | K14 | Novelty duplicate found | L–M | H | L42 search | Present scoped alternatives to HUMAN; re-scope C1 only with explicit direction |
 | K15 | Advisor says scope mismatch | L–M | H | U2 reply | Re-scope before more spend |
