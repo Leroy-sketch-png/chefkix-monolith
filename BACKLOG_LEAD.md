@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v193 — Refresh M-A local runtime availability observation (2026-10-14)
+
+- Read-only host check at `2026-10-14T06:54:07Z`: Docker is reachable. `docker ps -a` showed infrastructure dependencies only; no ChefKix AI-service or monolith container was present. Keycloak was `Exited (1)` and MongoDB was `unhealthy`. The host had no process/listener on the checked application ports 8000, 8080, 8081, 3000, or 5000.
+- **Bounded result:** this supersedes the 2026-10-12 observation that the Docker Desktop engine pipe was unavailable, only for this host/time. The local API/runtime path was not running in this check, so no graph was loaded and no runtime graph count was obtained. It does not establish absence or state of a separately deployed service. No service was started, no logs or credentials were read, and no health state was repaired.
+- **M-A disposition:** local runtime availability is now `NOT OBSERVED / unavailable on checked host at observation time`, not a reconciled graph-truth result. M-A and R39/R40 remain open; keep artifact inventories and runtime claims separate. Next meaningful check requires an authorized healthy AI-service/runtime path, then trace exact producer→artifact→loaded process before recording graph counts.
+
 ## LEAD v192 — Separate M-A artifact graphs from runtime truth (2026-10-14)
 
 - **Bounded local evidence now exists:** the source-only seed interpretation yields 79 typed vertices/59 directed statement arcs under its explicit unique-alias rule; the serialized HGAT subgraph has 195,600 feature rows and 7,247 directed arcs; and the AI-service sample graph has a separate 37-arc inventory. Reports are hash-pinned in SCOPE's M-A audit; the static graph-truth/HGAT inspector suite passed 10 tests (including 2 subtests) on this read-only check.
