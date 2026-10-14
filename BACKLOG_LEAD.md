@@ -40,6 +40,12 @@
 - **Evidence boundary:** checked current root `SESSION.md`, `CLAIM.md`, `SCOPE.md`, and the strategy's active §14/§17–18 references; these local notes do not record a written ethics disposition or two named raters. That absence is not proof that no external response or arrangement exists. Do not mark L41 complete, assume reviewers are unavailable, or let the stale schedule imply current readiness.
 - **Critical-path effect / next acceptance:** L41 remains an explicit human dependency for L36/L43/L38. Reconcile the actual ethics/rater state with the human owner, then reforecast remaining dates and capacity against the real academic deadline before representing the schedule as current. Meanwhile continue independent L42/L48 and member work that does not require those human gates; do not lower evidence or safety criteria to recover dates.
 
+## LEAD v218 — Reconcile canonical v171 text with the newer v197 register (2026-10-14)
+
+- **Fresh bounded validation:** reran `ai/tools/validate_claims_register.py` against `ai/out/iron-chef-lead-v197/claims-register-R01-R45-v197.csv`; it passes 45 unique IDs and all repository-local artifact/reproduction hashes, reporting 11 `VERIFIED`, 6 `PARTIAL`, and 28 `UNVERIFIED`. File SHA-256 remains `44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`. The overlay includes R14/R18 as bounded `VERIFIED`, R19/R20 as `PARTIAL`; validation is structural/local-byte evidence, not independent claim reproduction.
+- **Canonical lag / correction:** the current root SSoT §15.2 explicitly names v171 (10/4/31) as its latest reviewed derivative; §15.1 also retains v170 history. Therefore LEAD v214's statement that the SSoT “still summarizes v170” is imprecise/stale: canonical §15.2 is v171, while the newer locally validated v197 remains a separate derivative not yet reconciled into canonical text. Do not silently replace v171 with v197 or treat v197's counts as a thesis score.
+- **L48 next / acceptance:** update the derived L48 row to name both states accurately. Canonicalize the newer overlay only through an authorized SSoT reconciliation that preserves v170/v171 provenance, row-level ceilings, and the actual R18–R20 evidence records; then rerun the validator on the exact promoted derivative. Until that happens, L48 and overall progress remain open/unscored.
+
 ## LEAD v210 — Keep M-A evidence work moving without an invented HGAT decision (2026-10-14)
 
 - **Canonical-direction check:** active SSoT §1 says the R0 graph counts require fresh reconstruction and asserts no new graph statistics; §15/R39 quarantines the seed/runtime counts; §17 retains M-A graph/coverage truth. The old “HGAT v1 active” and four-model claims occur in Appendix Y, which the SSoT explicitly labels superseded, not active instructions. The active strategy therefore does not require a new HGAT serving commitment to continue M-A's evidence inventory.
@@ -572,7 +578,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | **L45** | 14 evidence-bound thesis chapters (§21) | All results/claims | 80+h | Cut by cut line (§3.6) |
 | **L46** | Source-bound defense answers; timed human rehearsal; zero forbidden claims | Thesis (L45) | 15h | None |
 | **L47** | ARR paper draft per §23 | Evidence + venue check | 40h | Thesis only |
-| **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, and explicit open/unknown dispositions | Strategy integration recorded complete; current v197 derivative is structurally valid at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212); canonical SSoT §15 still summarizes v170 and needs authorized reconciliation; row-level evidence audit remains open | Re-estimate; 10h was the source proposal | None |
+| **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, and explicit open/unknown dispositions | Strategy integration recorded complete; local v197 derivative validates at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212/v218); canonical SSoT §15.2 still names v171 at 10/4/31; authorized reconciliation and row-level evidence audit remain open | Re-estimate; 10h was the source proposal | None |
 
 **Critical dependency path (SSoT §17.4):**
 ```
