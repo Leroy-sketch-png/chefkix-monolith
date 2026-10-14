@@ -2,6 +2,36 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v221 — Reconcile generic R15–R45 mappings to active packages (2026-10-14)
+
+- **Input / scope:** read-only inspection of the hash-pinned v197 derivative (`44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`), active SSoT §§15 and 17.1, and this backlog's work-package table. This is a planning crosswalk, not a change to the register or evidence status.
+- **Crosswalk:**
+
+| Register rows | Active lead/member package or disposition | Exact limit |
+|---|---|---|
+| R15 | No current package; L41 is an ethics/raters dependency, not a usefulness study | Human understanding/usefulness needs a separately scoped and authorized study before any result claim. |
+| R16–R17 | L48 evidence mapping only; no current package owns reproducing OFF declared-group or Trace concordance | Bind exact source and denominator, then decide whether reproduction remains needed; do not infer from L39. |
+| R18 | L48 preserves the historical OFF partition evidence; L39 owns new matched/adjudicated allergen outputs | The new L39 outputs do not independently reproduce the old taxonomy counts. |
+| R19–R20 | L39, with L41 dependencies; legacy L22 is protocol/raw-arm scope only | Protocol readiness and Mistral collection do not establish matched model arms or independent adjudication. |
+| R21–R24 | L39, gated by L41 and rights/API availability | Require actual GPT-4o/Gemini outputs, independent adjudication, and either expanded n or the prespecified bounded interval. |
+| R25 | L44 for verified predecessor/training-chain evidence; L48 for the inventory | No separate active package compares preference inventories; preserve that part of the claim as open until artifact mapping is explicit. |
+| R26–R27 | L44 | Validate exact checkpoint/manifest ancestry and matched inference outputs separately; a launch/status poll alone is insufficient. |
+| R28–R29, R42 | L42 | Novelty funnel and independent review; R42 remains attributed literature evidence, not a local reproduction. |
+| R30–R31 | L48 evidence inventory only; no current photo/voice package | Preserve the bounded historical negative/availability records; do not imply present product capability or add new work without scope. |
+| R32–R33 | L36 | Independent labels/adjudication and the frozen H1 decision result; unresolved PR01–03/10 remain gates. |
+| R34 | L38 | Per-cell calibration only after PR04–08 and the freeze pass. |
+| R35 | L43, dependent on L36 | Human comparison and judge gates; prompt completion alone is not validation. |
+| R36 | L40, gated by L41 and rights | Native review and actual pilot evidence; no guarantee from translation or synthetic checks. |
+| R37 | M-F; L39 only if those rights-cleared cases enter its allergen frame | Inventory/rights evidence is not permission to use cases until scope and license are resolved. |
+| R38 | M-A then M-C | Graph/coverage truth precedes the flagged Explorer; code presence is not runtime/demo proof. |
+| R39–R40 | M-A | Reconstruct the exact R0 graph/input and coverage/source-column definitions; keep quarantined until reproduced. |
+| R41 | No current execution package; PR15 blocks reuse of Appendix A code as a validated self-test | Preserve the source-author claim only; independent implementation validation requires its own authorized task. |
+| R43 | L46 | Source-bound answers plus timed human rehearsal; written answers alone do not satisfy the gate. |
+| R44 | L41 | Written institutional disposition is a human dependency; absence from local notes is not proof of rejection. |
+| R45 | L47 | Verify current venue rules and actual contributor eligibility/consent before treating the paper gate as met. |
+
+- **L48 acceptance update:** the generic v197 candidate mappings are now reconciled to current package IDs or explicitly left unassigned with a reason. The register itself remains unchanged; its 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED counts and the canonical-v171 reconciliation gap remain as recorded in v212/v218. Next: audit the mapped artifact/evidence pointers row by row and update the register only through its validated evidence-overlay workflow.
+
 ## LEAD v220 — Correct SSoT pointers and bound the next L48 mapping pass (2026-10-14)
 
 - **Cross-reference correction:** the active SSoT puts the forbidden-claims list in §24, not §24.2, and explicitly identifies §13.6 (not §13.8) for job-manifest details. Corrected the W7/K13/rhythm pointers; the morning review now points to §24 for cadence and §13.6 for receipt contents.
@@ -591,7 +621,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | **L45** | 14 evidence-bound thesis chapters (§21) | All results/claims | 80+h | Cut by cut line (§3.6) |
 | **L46** | Source-bound defense answers; timed human rehearsal; zero forbidden claims | Thesis (L45) | 15h | None |
 | **L47** | ARR paper draft per §23 | Evidence + venue check | 40h | Thesis only |
-| **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, and explicit open/unknown dispositions | Strategy integration recorded complete; local v197 derivative validates at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212/v218); canonical SSoT §15.2 still names v171 at 10/4/31; authorized reconciliation and row-level evidence audit remain open | Re-estimate; 10h was the source proposal | None |
+| **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, explicit open/unknown dispositions, and current-package crosswalk | Strategy integration recorded complete; LEAD v221 maps the generic v197 rows to current packages or explicit no-package dispositions; local v197 derivative validates at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212/v218); canonical SSoT §15.2 still names v171 at 10/4/31; artifact audit and authorized reconciliation remain open | Re-estimate; 10h was the source proposal | None |
 
 **Critical dependency path (SSoT §17.4):**
 ```
