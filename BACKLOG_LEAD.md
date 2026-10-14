@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v240 — Convert the Jan 4 target into a non-fictional capacity checkpoint (2026-10-14)
+
+- **Calendar arithmetic:** from 2026-10-14 to the official ACL 2027 ARR deadline (2027-01-04, 11:59 p.m. UTC−12/AoE) is 82 calendar days, or 11 weeks 5 days. The source's 327 lead-hour / 91 member-hour estimates would imply about 27.9 lead hours/week and 7.8 member hours/week only in the deliberately conservative scenario that none of those source-estimated hours had yet been earned. These are arithmetic on `[P]` inputs, not measured remaining effort, confirmed capacity, or a feasibility verdict. Source deadline: `https://2027.aclweb.org/calls/main/`; source estimates: SSoT §18.
+- **Reforecast acceptance:** at the next HUMAN capacity/calendar check, record the date and evidence for actual remaining hours by lead/member and by unfinished package, confirmed weekly availability, defense/submission milestones, and unresolved human/rights/ethics/venue gates. Recompute the weekly pace from that baseline and identify the critical-path slack. Until those inputs are recorded, label the week plan proposed/stale; do not convert 327/91 into remaining hours, call the plan on-track/off-track, or silently compress scope. If the full ideal scope does not fit confirmed resources, pursue people/time/authorized overnight work first and present any scope alternative for HUMAN decision with its lost proof and retained destination.
+- **Evidence boundary:** checked the active Lead schedule/risk table and local `SESSION.md`, `CLAIM.md`, and `SCOPE.md` for a confirmed capacity/calendar baseline; none was found in those records. This bounded local absence does not prove no external arrangement exists. No human availability, defense date, raters, ethics disposition, or package completion was inferred or changed.
+
 ## LEAD v239 — Add ARR desk-rejection checks to the L47 paper gate (2026-10-14)
 
 - **Submission-risk audit:** the current ARR call requires original, completed, unpublished work; prohibits dual submission during review; disallows overlap in stated contributions; and fixes the author list after the deadline. It requires a dedicated `Limitations` section and a completed Responsible NLP checklist. Its AI-assistance policy requires relevant disclosure for low-novelty generated text/new ideas and places correctness/plagiarism responsibility on human authors. Sources: `https://aclrollingreview.org/cfp` (originality, submission, authorship, checklist, AI assistance, limitations); `https://2027.aclweb.org/calls/main/` (ACL 2027 two-stage ARR/commitment path).
@@ -743,7 +749,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 ## Schedule & Capacity (from SSoT §18)
 
-**Source schedule snapshot (SSoT §18; not refreshed):** `Today: 2026-10-12`. Defense assumed on/after Dec 8 (U3). All dates are proposals `[P]`; see LEAD v217 for the current calendar reconciliation and unresolved gate status.
+**Source schedule snapshot (SSoT §18; not refreshed):** `Today: 2026-10-12`. Defense assumed on/after Dec 8 (U3). All dates are proposals `[P]`; see LEAD v217 for the current calendar reconciliation and unresolved gate status and LEAD v240 for the current 82-day arithmetic and required capacity-baseline inputs. No status or feasibility conclusion is implied.
 
 | Week | Dates | Lead Focus | Member Focus | Gates / Freezes |
 |------|-------|------------|--------------|-----------------|
@@ -791,7 +797,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K19 | Overnight job overspend | L | M | Receipt > cap | Per-job caps; refuse-to-start |
 | K20 | Teammate unavailable | M | M | Tasks slip 2 weeks | Reassign independent work; pursue resources/timing; any scope change requires explicit HUMAN decision (§18) |
 | K21 | R0 numbers leak into thesis | M | H | Figure without claim ID | Register rule (§15.2) |
-| K22 | Non-thesis workload | H | H | Weekly hours below confirmed capacity plan | Reconcile actual hours; pursue resources or schedule adjustment (§18); use source scenarios only by explicit HUMAN decision |
+| K22 | Non-thesis workload / unmeasured remaining capacity | H | H | No dated, package-level remaining-hours and confirmed-availability baseline is recorded locally (LEAD v240); the 327/91 source estimates are not remaining effort | Record actual availability and unfinished-package estimates; recompute pace/slack; pursue resources/timing first; any fallback requires explicit HUMAN decision and retained-proof statement |
 
 **Pre-mortem triggers (SSoT §19.3 — reopen architecture only on these):**
 - H1 lower Wilson bound ≥ Δmin → lead with benchmark validity
