@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v238 — Turn L47/R45 into a dated ARR service-contributor gate (2026-10-14)
+
+- **Official-rule refresh:** the official ACL 2027 call lists the ARR submission deadline as Jan 4, 2027 at 11:59 p.m. UTC−12 (AoE), and ACL 2027 uses a two-stage ARR review then conference commitment. The current ARR call says that, from October 2026, review capacity is capped and a submission is guaranteed review only when it brings a qualified service contributor; each contributor may cover at most two submissions. The contributor must be familiar with the paper, affirm its expected top-tier quality, be available and willing, and register within 48 hours after the deadline. Authors and contributors need complete, accurate OpenReview profiles; author profiles must be complete no later than one week after the deadline. Sources: `https://2027.aclweb.org/calls/main/`; `https://aclrollingreview.org/cfp`.
+- **Eligibility is a separate unresolved gate:** ARR's current qualification page is explicitly marked “Work in progress” and warns implementation details may change. Its automatic publication/degree routes and manual-review route are criteria for the designated reviewer/service contributor; they cannot establish any particular person's eligibility without that person's verified profile/publication or review evidence and, where applicable, ARR's checker/manual disposition. Source: `https://aclrollingreview.org/qualifications`.
+- **L47 acceptance / R45 crosswalk:** before treating the paper route as ready, record the chosen venue/cycle; identify a named candidate; verify that candidate through ARR's current checker or documented manual pathway; obtain explicit written willingness and consent for the service, quality endorsement, two-submission capacity, and replacement obligation; verify accurate OpenReview profile fields; and calendar the contributor-registration and author-profile deadlines. Keep each proof linked and dated. Do not contact or nominate a candidate, create/update profiles, submit, or assert eligibility/consent as part of this backlog mapping.
+- **Disposition:** R45 remains `UNVERIFIED`; no candidate, eligibility evidence, consent, service registration, or venue submission is evidenced in the current local record. K16 remains open and its trigger is now “No named, verified, willing qualified contributor with capacity and complete profile by the internal readiness checkpoint”; the fallback remains “Thesis-only or later ARR cycle,” not an assumed waiver. Deadline is a planning constraint, not evidence that the paper is ready. This update does not change paper claims, the SSoT, register status/counts, or authorize submission.
+
 ## LEAD v235 — Keep K12 sample-size routes behind an explicit protocol choice (2026-10-14)
 
 - **Risk-response correction:** K12's “expand to ≥299 or report interval” did not say who chooses or when. L39 and LEAD v223 preserve two alternatives—expand the frozen n=208 frame to the prespecified ≥299 target, or use the defined n=208 bounded-interval route—with no automatic fallback and no human choice/additional sample frame yet recorded. The mitigation now requires an explicit HUMAN choice and protocol freeze before either route is executed or interpreted.
@@ -123,7 +130,7 @@
 | R41 | No current execution package; PR15 blocks reuse of Appendix A code as a validated self-test | Preserve the source-author claim only; independent implementation validation requires its own authorized task. |
 | R43 | L46 | Source-bound answers plus timed human rehearsal; written answers alone do not satisfy the gate. |
 | R44 | L41 | Written institutional disposition is a human dependency; absence from local notes is not proof of rejection. |
-| R45 | L47 | Verify current venue rules and actual contributor eligibility/consent before treating the paper gate as met. |
+| R45 | L47; LEAD v238 | Verify a named candidate's current ARR qualification, actual consent/capacity, accurate profile, and cycle deadlines before treating the paper gate as met; current policy implementation is marked work in progress. R45 remains `UNVERIFIED`; no candidate or consent is recorded. |
 
 - **L48 acceptance update:** the generic v197 candidate mappings are now reconciled to current package IDs or explicitly left unassigned with a reason. The register itself remains unchanged; its 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED counts and the canonical-v171 reconciliation gap remain as recorded in v212/v218. Next: audit the mapped artifact/evidence pointers row by row and update the register only through its validated evidence-overlay workflow.
 
@@ -715,7 +722,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | **L44** | Validated Stage 3; 200-case timing; matched ranked outputs for val/test subsamples | Quota, adapter, arm construction | 12h + waiting | Stage-2 adapter arm |
 | **L45** | 14 evidence-bound thesis chapters (§21) | All results/claims | 80+h | Cut by cut line (§3.6) |
 | **L46** | Source-bound defense answers; timed human rehearsal; zero forbidden claims | Thesis (L45) | 15h | None |
-| **L47** | ARR paper draft per §23 | Evidence + venue check | 40h | Thesis only |
+| **L47** | ARR paper draft per §23; dated venue, service-contributor eligibility/consent/capacity, OpenReview-profile, and deadline evidence per LEAD v238 | Evidence + current venue check; named qualified willing contributor is a hard readiness dependency, not presumed | 40h | Thesis only or later cycle if contributor/venue gates are not met |
 | **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, explicit open/unknown dispositions, and current-package crosswalk | Strategy integration recorded complete; LEAD v221 maps the generic v197 rows to current packages or explicit no-package dispositions; local v197 derivative validates at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212/v218); canonical SSoT §15.2 still names v171 at 10/4/31; artifact audit and authorized reconciliation remain open | Re-estimate; 10h was the source proposal | None |
 
 **Critical dependency path (SSoT §17.4):**
@@ -772,7 +779,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24 forbidden-claims audit; claims register |
 | K14 | Novelty duplicate found | L–M | H | L42 search | Present scoped alternatives to HUMAN; re-scope C1 only with explicit direction |
 | K15 | Advisor says scope mismatch | L–M | H | U2 reply | Re-scope before more spend |
-| K16 | No qualified ARR contributor | M | M | None by Dec 1 | Thesis only or later cycle |
+| K16 | No named, verified, willing qualified ARR contributor with capacity and complete profile by the internal readiness checkpoint | M | M | Candidate, qualification evidence, written consent/capacity, or profile checks are not present in the local record (LEAD v238); Dec 1 is an internal trigger, not a verified ARR deadline | Thesis only or later ARR cycle; do not assume a waiver or guaranteed review |
 | K17 | Licenses block release | M | L–M | M-F, §10.2 | Release code/aggregates only |
 | K18 | Scope creep | H | H | Work exceeds confirmed MUST scope | Review weekly against the ideal scope; pursue resources/timing first (§18); any cut requires explicit HUMAN decision and recorded consequence |
 | K19 | Overnight job overspend | L | M | Receipt > cap | Per-job caps; refuse-to-start |
