@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v176 — Draft the midterm evidence narration (2026-10-14)
+
+- Root `master` now includes a timed three-minute speaker-notes draft and checklist at `ai/demos/iron-chef-midterm-v26-speaker-notes.md`. Nine focused tests bind its timing, decision, metrics, fit boundary, and limits to the exhibit. No audience rehearsal or listener-comprehension result is claimed.
+- Q124 remains incomplete: rendered mobile acceptance and timed human rehearsal are still open. The exhibit presents a fixed-benchmark rejection, not a product demo or quality claim.
+- Latest guarded Segment-10 status: RUNNING at `2026-10-14T05:16:07.160877Z`; 0 artifact transfers / 0 Segment-11 launch attempts. The five-minute monitor remains active.
+
 ## LEAD v175 — Rinse narrow-layout overflow in the midterm exhibit (2026-10-14)
 
 - The saved 390px capture showed horizontal clipping outside the intentionally wide table. Root `master` now constrains intrinsic grid-child sizing and makes the strata table's horizontal scroll region labeled and keyboard-focusable, with visible focus and a mobile scroll cue. Eight structure/accessibility/provenance tests pass; this is not rendered mobile acceptance.
