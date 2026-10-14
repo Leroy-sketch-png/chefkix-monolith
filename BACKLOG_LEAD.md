@@ -2,6 +2,44 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v248 — Make the remaining L48 overlay mappings row-exact (2026-10-14)
+
+- **Input recheck:** read-only inspection of `ai/out/iron-chef-lead-v197/claims-register-R01-R45-v197.csv`, SHA-256 `44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`. The 28 target rows (R15–R17, R21–R45) still carry the same generic `L_item_mapping`; each remains `UNVERIFIED`. This is a backlog-only mapping specification, not a register edit, evidence-status judgment, or claim reproduction.
+- **Proposed per-row mapping values:** use the following row-specific values in the future validated overlay, retaining each row's exact current evidence and all non-mapping fields (LEAD v243–v244):
+
+| Row | `L_item_mapping` value for a future overlay | Ceiling / required check |
+|---|---|---|
+| R15 | `No current package; L41 is only an ethics/raters dependency, not the human understanding/usefulness study.` | Scope and authorize a separate study before claiming understanding or usefulness. |
+| R16 | `L48 candidate-report audit; LEAD v222/v229/v234.` | Candidate OFF reports only; obtain exact policy bytes from authorized provenance, verify producer hash, independently regenerate, and preserve competing numerators. |
+| R17 | `L48 candidate-report audit; LEAD v222/v229/v234.` | Candidate trace report only; same source/hash/reproduction gate as R16. |
+| R21 | `L39 matched allergen study; gated by L41, rights, and API availability.` | GPT-4o arm output and adjudication; protocol approval and rights first. |
+| R22 | `L39 matched allergen study; gated by L41, rights, and API availability.` | Gemini arm output and adjudication; protocol approval and rights first. |
+| R23 | `L39 independent allergen adjudication; gated by L41 and case rights.` | Independent reviewer records and adjudication artifact required. |
+| R24 | `L39 sample-size route; gated by explicit protocol choice and L41.` | HUMAN must choose/freeze ≥299 expansion or bounded n=208 interval route before execution or interpretation. |
+| R25 | `L44 verified Stage-1/Stage-2/preference/DPO chain; LEAD v225.` | Hash-linked execution lineage only; does not establish preference correctness, usefulness, or quality. |
+| R26 | `L44 segmented Stage-3 boundary; LEAD v226.` | Historical v197 wording is stale; require validated segment artifact/manifest chain and an approved overlay. |
+| R27 | `L44 inference and matched-scoring contract; LEAD v227.` | Resolve global-vs-segmented completion identity before materialization; then require independent hash-bound inference and matched scoring. |
+| R28 | `L42 prior-art review; LEAD v236/v247.` | Bounded prior-art screen and rejected broad claims only; retain partial status. |
+| R29 | `L42 novelty funnel and independent review; LEAD v236/v247.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
+| R30 | `L48 overlay maps historical L29 evidence; LEAD v237.` | v43 supports bounded offline retrieval→graph figures only; no photo perception, ingredient detection, or usefulness inference. |
+| R31 | `L48 overlay maps historical L30 evidence; LEAD v237.` | v49 is a dated 100/100 unavailable-runtime observation, not a fresh endpoint check or current-capability claim. |
+| R32 | `L36 human audit and independent-label package.` | Requires the approved audit protocol, actual labels/adjudication, and unresolved PR01–03/10 gates. |
+| R33 | `L36 H1 frozen decision result.` | Requires frozen protocol, executable analysis, and the bounded decision result; no result is inferred from setup. |
+| R34 | `L38 per-cell calibration.` | Blocked until PR04–08 and Freeze B; no aggregate-only calibration claim. |
+| R35 | `L43 human-validated judge; dependent on L36.` | Prompt completion is insufficient; require human comparison and judge gates. |
+| R36 | `L40 native-reviewed Vietnamese pilot; gated by L41 and rights.` | Native review and pilot evidence required; translation or synthetic checks do not suffice. |
+| R37 | `M-F rights inventory; L39 only if cases enter the allergen frame.` | Inventory is not permission; resolve scope/license before use. |
+| R38 | `M-A graph/coverage truth, then M-C Explorer.` | Graph and coverage evidence precede Explorer proof; code presence is not runtime/demo evidence. |
+| R39 | `M-A reconstructs R0 seed/runtime graph statistics.` | Reconstruct exact producer→artifact→runtime path and denominator/identity/directionality before unquarantining. |
+| R40 | `M-A reconstructs R0 coverage curves and source columns.` | Reconstruct exact source-column and coverage definitions; keep historical R0 numbers quarantined until reproduced. |
+| R41 | `No current package; PR15 blocks reuse of Appendix A as a validated synthetic self-test.` | Preserve author claim only; independent implementation validation needs a separately scoped task. |
+| R42 | `L42 attributed literature evidence; LEAD v236/v247.` | Prior-art report only, not local reproduction; retain reported-number attribution and bounded scope. |
+| R43 | `L46 source-bound defense answers and timed rehearsal.` | Rebuilt answers plus observed human rehearsal; written answers alone do not pass. |
+| R44 | `L41 written institutional ethics classification/approval.` | Record actual institutional disposition; absence from local notes is not a rejection. |
+| R45 | `L47 ARR service-contributor gate; LEAD v238/v245/v246.` | Requires named candidate, current qualification evidence, written consent/capacity, accurate profile, and cycle-specific deadlines. |
+
+- **Overlay acceptance:** these values make the remaining map row-specific but do not complete the register. Apply only after reviewing each exact source row and constructing its full evidence record; preserve all non-mapping cells byte-for-byte in value, chain unique intermediate outputs, diff each row, validate the final 45-row derivative, and record hashes as specified in LEAD v243–v244. No `Evidence_status`, outcome, provenance, artifact path/hash, reproduction field, or SSoT text changes here. L48 remains **OPEN**; 11/6/28 remains a structural snapshot, not a progress percentage or scientific result.
+
 ## LEAD v247 — Refresh L42's recommender-conformal comparator boundary (2026-10-14)
 
 - **Official program update:** the CIKM 2026 program now lists Amendola et al., “Conformal Prediction for Statistically Reliable LLM-as-a-Judge in Recommender Systems,” as poster A22 SHORT, with six named authors and an abstract describing simulated human-preference ratings, conformal uncertainty intervals, user-rating-variance stratification, three LLMs, and seven CP methods. The program identifies CIKM dates as Nov 7–11, 2026, still future at this observation; a listing is not proof of presentation or proceedings publication. The linked DOI `10.1145/3799682.3839966` returned HTTP 404 in the recorded retrieval, which is an access failure, not disproof of the paper. Source: `https://cikm2026.diag.uniroma1.it/program/`.
