@@ -7,7 +7,7 @@
 - Human direction explicitly requests continued Kaggle training while GPU time is available. Segment 10 remains the active remote job; it has not crossed exact step-631 artifact validation.
 - A Segment-11 builder and advancement gate are prepared. They permit one isolated Segment-10 download and exact validation only after remote `COMPLETE`; a fresh official owner-kernel inventory must then prove Segment 11 absent before one launch. Status, transport, validation, inventory or acknowledgement failure blocks without retry.
 - Proposed/authorized next bounded interval: resume 631→701 using the exact Segment-10 manifest, the same private bridge, and Segment 10 as sole predecessor. Preserve the already frozen evaluations at 187/374/561 and add no evaluation at 701; extra optimizer steps are not quality evidence.
-- Focused tests: 9 Segment-11 builder/advancement tests and 10 Segment-10 builder/ingester tests pass. Segment 11 is prepared, not launched; Segment-10 checkpoint and overall Stage-3 completion remain unverified. No later segment is automatically authorized by this handoff.
+- Focused tests: 11 Segment-11 builder/advancement tests and 10 Segment-10 builder/ingester tests pass. Segment 11 is prepared, not launched; Segment-10 checkpoint and overall Stage-3 completion remain unverified. No later segment is automatically authorized by this handoff.
 
 ## LEAD v172 — Segment 10 bounded continuation launched (2026-10-14)
 
