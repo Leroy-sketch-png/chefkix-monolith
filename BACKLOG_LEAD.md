@@ -46,6 +46,13 @@
 - **Canonical lag / correction:** the current root SSoT §15.2 explicitly names v171 (10/4/31) as its latest reviewed derivative; §15.1 also retains v170 history. Therefore LEAD v214's statement that the SSoT “still summarizes v170” is imprecise/stale: canonical §15.2 is v171, while the newer locally validated v197 remains a separate derivative not yet reconciled into canonical text. Do not silently replace v171 with v197 or treat v197's counts as a thesis score.
 - **L48 next / acceptance:** update the derived L48 row to name both states accurately. Canonicalize the newer overlay only through an authorized SSoT reconciliation that preserves v170/v171 provenance, row-level ceilings, and the actual R18–R20 evidence records; then rerun the validator on the exact promoted derivative. Until that happens, L48 and overall progress remain open/unscored.
 
+## LEAD v219 — Refresh Stage-3 and human-gate risk triggers (2026-10-14)
+
+- **L44 boundary:** root SESSION v169 validates Segment 9 at exact step 561 with `STAGE3_SEGMENT_9_COMPLETE`, pinned ancestry/source/selections, and the frozen evaluations at 187/374/561. LEAD v173 separately records a single Segment-10 v1 launch and a `RUNNING` poll at `2026-10-14T04:22:10Z`; that poll is historical, and no exact step-631 artifact boundary is recorded here. Neither the active run nor its loss is a validated successor boundary or Stage-3 quality/completion evidence.
+- **Risk-table correction:** K8's old early-warning trigger “No 327 by Nov 1” is superseded by the verified 561 boundary; it no longer monitors the current chain. Replace it with failure to obtain/validate the next authorized artifact boundary and require exact checkpoint/manifest gate evidence before updating risk status. Keep the Stage-2 adapter hedge as a fallback, not proof of Stage-3 completion.
+- **Human-gate / resource posture:** K1's Oct 15 rater target and K11's Oct 12 ethics target are proposed dates whose outcomes remain unconfirmed in local notes (LEAD v217). Reconcile actual status. SSoT §14 says ethics delay prompts escalation/resource/schedule action and does not automatically abolish H4; §18 says pursue ideal scope and resolve unknown capacity by acquiring resources or adjusting timing, including authorized overnight work. Its compression scenarios are human-decision alternatives, not automatic cuts. The risk/schedule sweep also removed obsolete §14.8, §18.1, and §18.4 pointers absent from the active SSoT. No sample shrink, H4 cancellation, or other scope fallback is inferred.
+- **Acceptance:** use the risk table as a live trigger map, not a stale calendar or automatic decision engine. Preserve the specific verified and last-observed timestamps above; refresh them only with new evidence. L44 and L41 remain open at their distinct evidence/human gates.
+
 ## LEAD v210 — Keep M-A evidence work moving without an invented HGAT decision (2026-10-14)
 
 - **Canonical-direction check:** active SSoT §1 says the R0 graph counts require fresh reconstruction and asserts no new graph statistics; §15/R39 quarantines the seed/runtime counts; §17 retains M-A graph/coverage truth. The old “HGAT v1 active” and four-model claims occur in Appendix Y, which the SSoT explicitly labels superseded, not active instructions. The active strategy therefore does not require a new HGAT serving commitment to continue M-A's evidence inventory.
@@ -563,15 +570,15 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 
 ## Work Packages (from SSoT §17.1 — Lead Items)
 
-| ID | Deliverable / Acceptance | Dependencies | Effort | Fallback |
+| ID | Deliverable / Acceptance | Dependencies | Effort | Fallback (proposal; HUMAN decision required) |
 |----|--------------------------|--------------|--------|----------|
 | **L13′** | Re-scope to shift-aware selector over frozen scorers; edited item text + link to §8 | None | 1h | None |
-| **L36** | 150-case audit: all independent labels/adjudication/cluster intervals/H1 table | Raters (L41), pools (M-B), PR01–03 resolved | 30–40h | Shrink to 100 cases |
+| **L36** | 150-case audit: all independent labels/adjudication/cluster intervals/H1 table | Raters (L41), pools (M-B), PR01–03 resolved | 30–40h | 100-case exploratory audit only if explicitly approved; label scope/evidence limits |
 | **L37** | Deterministic strata and interval-reported metrics; optional endpoint-frequency split | Identity/counts (M-B) | 10h | Drop frequency sub-split |
 | **L38** | Frozen calibration, all-cell status, diagnostics, cost-of-trust figure | Audit/judge/arms, PR04–08 resolved | 25h | Report only ok cells; label rest |
 | **L39** | Matched adjudicated allergen outputs; expansion to n≥299 or honestly bounded interval | API keys, reviewers (L41), rights | 30h | Report interval at n=208 |
 | **L40** | Frozen ~100-case native-reviewed Vietnamese pilot | Authors/raters/rights (L41), U8, U9 | 30h | Qualitative appendix only |
-| **L41** | Written ethics outcome; named raters; handbook + T0/T1 results | Human dependencies | 12h | Fallbacks per §14.8 |
+| **L41** | Written ethics outcome; named raters; handbook + T0/T1 results | Human dependencies | 12h | Resolve institution's written requirements before affected activity; no automatic H4 cancellation (§14) |
 | **L42** | Hashed novelty funnel; full-text/citation chase; independent adjudication | Sources, reviewer | 15h | Narrow claims |
 | **L43** | Frozen judge prompt + evaluated gates, or explicit unusable outcome | Leak-free human comparison (L36) | 12h | Humans only on smaller set |
 | **L44** | Validated Stage 3; 200-case timing; matched ranked outputs for val/test subsamples | Quota, adapter, arm construction | 12h + waiting | Stage-2 adapter arm |
@@ -596,8 +603,8 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 | Week | Dates | Lead Focus | Member Focus | Gates / Freezes |
 |------|-------|------------|--------------|-----------------|
-| **W0** | Oct 8–11 | Answer U1–U3, U7, U11 (hours, advisor, defense, quota, ethics). Back up SSoT. Start asking raters. | Start M-A, M-F | **Decision: compression level** |
-| **W1** | Oct 12–18 | L48 first pass. L42 query runs. Read Rita §3 + Fatemi data (U4). Check val scores + unseen share (U5). Draft rater handbook. | M-A recompute; M-B strata/identity; M-D GISMo/lookup outputs; M-F inventory | **Oct 15: two raters named. Ethics answer by Oct 12** |
+| **W0** | Oct 8–11 | Answer U1–U3, U7, U11 (hours, advisor, defense, quota, ethics). Back up SSoT. Start asking raters. | Start M-A, M-F | **Reconcile capacity/deadline; pursue resources and timing first; any fallback requires HUMAN decision** |
+| **W1** | Oct 12–18 | L48 first pass. L42 query runs. Read Rita §3 + Fatemi data (U4). Check val scores + unseen share (U5). Draft rater handbook. | M-A recompute; M-B strata/identity; M-D GISMo/lookup outputs; M-F inventory | **Proposed Oct 15: two raters named; proposed Oct 12 ethics target elapsed, outcome unconfirmed (LEAD v217/v219); reconcile actual state and reforecast** |
 | **W2** | Oct 19–25 | Obtain API keys; run API LLM #1 on 150 audit cases. Rater T0/T1. Draft allergen expansion. Write Ch2/Ch3 drafts. | Pool builder fixture test → real run. M-I runner fixture test. | **Oct 22: FREEZE A** (audit protocol, Δmin, arms, normalization). **Oct 23: Vietnamese raters/authors named, licenses checked** |
 | **W3** | Oct 26–Nov 1 | Audit labeling. Judge prompt dry run. 200-case timing (by Oct 29). Allergen cases frozen/hashed. | M-C Explorer build; M-G register paths/hashes | **Oct 29: allergen reviewers named; timing done. Nov 1: profiles complete** |
 | **W4** | Nov 2–8 | Adjudicate audit; κ with cluster CI; first H1 table. Judge calibration (L43). Allergen arms (GPT-4o, Gemini). Stage 3 check. | M-C Explorer T-03–T-09; M-E demo skeleton | **Nov 6: FREEZE B** (conformal protocol, §8.9) before any test coverage. Advisor interim. |
@@ -609,9 +616,9 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | **W10–12** | Dec 14–Jan 3 | ARR v1; internal review. ARR v2; limitations/datasheet. Final read, hashes. | Figures/tables regenerate. | Service-contributor registration ready (W10, W11, W12) |
 | **W13** | **Jan 4, 2027** | **ARR submission (AoE)** | | Registration form open until 48h post-deadline |
 
-**Capacity arithmetic (SSoT §18.1):** 225 MUST + 32 SHOULD + 70 COULD = 327 lead hours; 91 member hours. 8 weeks at 30h/week = 240h (short 87h). At 40h/week = 320h (fits). **Run arithmetic with real hours on Oct 12 (U1), pick compression level before starting.**
+**Capacity arithmetic (SSoT §18; source estimates, not confirmed capacity):** 225 MUST + 32 SHOULD + 70 COULD = 327 lead hours; 91 member hours. Eight weeks at 30h/week = 240h (short 87h); at 40h/week = 320h (still 7h short before reviewer time and estimate overlap/tiering checks). Reconcile actual hours and seek resources/timing before any human-approved scope revision.
 
-**Compression protocol (SSoT §18.4):** Level 0 (full), Level 1 (drop COULD except 20-case Vietnamese appendix), Level 2 (GISMo/lookup only calibration, no judge, n=208 allergen, minimal Explorer), Level 3 (collapse map + 100-case audit + allergen interval + bounded negatives + claims register). Gates never weakened.
+**Source compression scenarios (SSoT §18; human-decision alternatives, not active cuts):** Level 0 full plan; Level 1 postpones COULD except a qualitative native-language appendix; Level 2 limits calibration to rank arms/no judge, uses bounded n=208 allergen work and a minimal Explorer; Level 3 is the collapse/audit/allergen/negative/write-up floor. First seek additional people, compute, keys, time, and parallel work. If a fallback is explicitly approved, record removed proof, retained destination, and revisit trigger; never weaken scientific or ethics gates.
 
 ---
 
@@ -619,28 +626,28 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 | ID | Risk | Likelihood | Impact | Early Warning | Mitigation |
 |----|------|------------|--------|---------------|------------|
-| K1 | Raters not found | M | H | <2 named by Oct 15 | Ask earlier; shrink to 100; label exploratory |
-| K2 | Rater agreement too low (κ/kappa < 0.5 twice; kappa < 0.6 twice review trigger) | M | H | T1 failure | Rewrite handbook; negative anchors; shrink to audited subset |
-| K3 | H1 inconclusive (CI straddles Δmin) | M | M | CI straddles 15pp | Extend to 300 only if time; report inconclusive |
-| K4 | Judge fails gates (§7.5) | M | M | Gates fail | Humans-only on smaller calibration; state power loss |
+| K1 | Raters not found | M | H | Fewer than two named by proposed Oct 15 target; actual status unconfirmed (LEAD v217/v219) | Reconcile availability; seek resources/timing first (§18); any fallback requires explicit HUMAN decision and preserved gates |
+| K2 | Rater agreement too low (κ/kappa < 0.5 twice; kappa < 0.6 twice review trigger) | M | H | T1 failure | Rewrite handbook once; any reduced audit requires explicit HUMAN decision and bounded claims |
+| K3 | H1 inconclusive (CI straddles Δmin) | M | M | CI straddles 15pp | Expand only under predeclared analysis and explicit HUMAN approval before result review; otherwise report inconclusive |
+| K4 | Judge fails gates (§7.5) | M | M | Gates fail | Use humans-only smaller calibration only if explicitly approved; state power loss |
 | K5 | All cells vacuous | M | M | Early GISMo diagnostics | Report quantified limit; policy = abstain-by-default |
 | K6 | Calibration/test not exchangeable | M | H | KS diagnostic on gold rank | Merge cells or weighted conformal; state limit |
 | K7 | Validation scores missing | M | H | M-B check fails | Regenerate GISMo val (cheap); LLM arms on subsample |
-| K8 | Stage 3 late/fails | M | M | No 327 by Nov 1 | **OBSOLETE — 327 recorded verified.** Stage-2 adapter hedge exists |
+| K8 | Stage 3 late/fails | M | M | No next authorized artifact boundary validated after Segment 9 step 561; Segment 10 last recorded `RUNNING` at 2026-10-14T04:22:10Z, not a fresh poll (LEAD v169/v173/v219) | Require exact successor checkpoint/manifest validation; Stage-2 adapter hedge remains available |
 | K9 | Inference too slow | M | M | 200-case timing | Stratified subsample (§13.3) |
 | K10 | API keys/budget unavailable | M | H | No key by Oct 22 | Use free/open-weight LLM; pin version; say so |
-| K11 | Ethics blocks usefulness study | M | L | No answer by Oct 12 | Drop H4 |
+| K11 | Ethics blocks usefulness study | M | L | No written disposition recorded in local notes by proposed Oct 12 target; actual status unconfirmed (LEAD v217/v219) | Escalate resource/schedule; do not automatically cancel H4 (§14) |
 | K12 | Allergen n too small to certify | H | M | Arithmetic fixed | Expand to ≥299 or report interval |
 | K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24.2 audit; claims register |
-| K14 | Novelty duplicate found | L–M | H | L42 search | Re-scope C1 to Vietnamese+allergen+shift combo |
+| K14 | Novelty duplicate found | L–M | H | L42 search | Present scoped alternatives to HUMAN; re-scope C1 only with explicit direction |
 | K15 | Advisor says scope mismatch | L–M | H | U2 reply | Re-scope before more spend |
 | K16 | No qualified ARR contributor | M | M | None by Dec 1 | Thesis only or later cycle |
 | K17 | Licenses block release | M | L–M | M-F, §10.2 | Release code/aggregates only |
-| K18 | Scope creep | H | H | >MUST tier in progress | Cut from bottom, weekly |
+| K18 | Scope creep | H | H | Work exceeds confirmed MUST scope | Review weekly against the ideal scope; pursue resources/timing first (§18); any cut requires explicit HUMAN decision and recorded consequence |
 | K19 | Overnight job overspend | L | M | Receipt > cap | Per-job caps; refuse-to-start |
-| K20 | Teammate unavailable | M | M | Tasks slip 2 weeks | Reassign M-A, M-B to Lead; compress |
+| K20 | Teammate unavailable | M | M | Tasks slip 2 weeks | Reassign independent work; pursue resources/timing; any scope change requires explicit HUMAN decision (§18) |
 | K21 | R0 numbers leak into thesis | M | H | Figure without claim ID | Register rule (§15.2) |
-| K22 | Non-thesis workload | H | H | Weekly hours below plan | Compression level (§18.4) |
+| K22 | Non-thesis workload | H | H | Weekly hours below confirmed capacity plan | Reconcile actual hours; pursue resources or schedule adjustment (§18); use source scenarios only by explicit HUMAN decision |
 
 **Pre-mortem triggers (SSoT §19.3 — reopen architecture only on these):**
 - H1 lower Wilson bound ≥ Δmin → lead with benchmark validity
