@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v173 — Prepare gated Segment-11 training handoff (2026-10-14)
+
+- Human direction explicitly requests continued Kaggle training while GPU time is available. Segment 10 remains the active remote job; it has not crossed exact step-631 artifact validation.
+- A Segment-11 builder and advancement gate are prepared. They permit one isolated Segment-10 download and exact validation only after remote `COMPLETE`; a fresh official owner-kernel inventory must then prove Segment 11 absent before one launch. Status, transport, validation, inventory or acknowledgement failure blocks without retry.
+- Proposed/authorized next bounded interval: resume 631→701 using the exact Segment-10 manifest, the same private bridge, and Segment 10 as sole predecessor. Preserve the already frozen evaluations at 187/374/561 and add no evaluation at 701; extra optimizer steps are not quality evidence.
+- Focused tests: 9 Segment-11 builder/advancement tests and 10 Segment-10 builder/ingester tests pass. Segment 11 is prepared, not launched; Segment-10 checkpoint and overall Stage-3 completion remain unverified. No later segment is automatically authorized by this handoff.
+
 ## LEAD v172 — Segment 10 bounded continuation launched (2026-10-14)
 
 - Segment 9 was transactionally verified at exact step 561 (`STAGE3_SEGMENT_9_COMPLETE`): 12 checkpoint files/hashes, recursive pinned ancestry, frozen source/data selections, unchanged evaluation history at 187/374/561, and eight-file retained-best continuity. Segment-9 manifest SHA-256: `46f5b0f403f9840e07854ca4c1ce179e49d136b65cc5f319c56f3b2e626eb969`; retained-best adapter hash: `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814`.
