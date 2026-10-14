@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v179 — Make audience rehearsal acceptance measurable (2026-10-14)
+
+- Root `master` speaker notes define three neutral listener prompts, pass criteria for correctly restating the frozen rejection and its limits, exact answer/time capture, and a NOT PASSED response that changes only explanation/layout. Eleven focused checks pass.
+- No audience result is claimed. Q124 remains incomplete pending mobile visual review and an actual timed rehearsal.
+- Latest guarded Segment-10 observation: RUNNING at `2026-10-14T05:30:06.764162Z`; 0 artifact transfers / 0 Segment-11 launches.
+
 ## LEAD v178 — Clarify offline presenter handoff (2026-10-14)
 
 - Root `master` speaker notes now include a no-build/no-install/no-network preflight and ordered navigation cues. Ten exhibit/script tests pass. The notes do not claim that mobile rendering or audience comprehension was reviewed.
