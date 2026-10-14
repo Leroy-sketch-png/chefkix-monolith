@@ -610,7 +610,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | **W4** | Nov 2–8 | Adjudicate audit; κ with cluster CI; first H1 table. Judge calibration (L43). Allergen arms (GPT-4o, Gemini). Stage 3 check. | M-C Explorer T-03–T-09; M-E demo skeleton | **Nov 6: FREEZE B** (conformal protocol, §8.9) before any test coverage. Advisor interim. |
 | **W5** | Nov 9–15 | Judge-label val pools; per-cell calibration (rank arms); diagnostics §8.12; test-subsample eval. Vietnamese freeze. H4 prep if ethics. | M-E recorded Act 3 from frozen files | **Nov 10: usefulness participants recruited (or dropped)** |
 | **W6** | Nov 16–22 | Mistral inference + calibration (or Stage-2 adapter). Allergen adjudication. Vietnamese labeling. Cost-of-trust. | Explorer polish T-10–T-12 | **Nov 20: EXPERIMENT FREEZE.** No new runs. Analysis/writing only. |
-| **W7** | Nov 23–29 | Red-team claims (§24.2). Rebuild defense answers (§22). Chapters Ch5–Ch9. | M-H reproducibility kit; clean-machine reproduction | **Nov 27: register script exits 0; zero forbidden claims** |
+| **W7** | Nov 23–29 | Red-team claims against the forbidden-claims guidance (§24). Rebuild defense answers (§22). Chapters Ch5–Ch9. | M-H reproducibility kit; clean-machine reproduction | **Nov 27: register script exits 0; zero forbidden claims** |
 | **W8** | Nov 30–Dec 6 | Write Ch1, Ch4, Ch11, Ch13, Ch14. Defense dry run 1. | Demo hardening | **Dec 1: ARR service-contributor decision** |
 | **W9** | Dec 7–13 | **Dec 8: thesis freeze.** Start ARR draft from thesis artifacts. | Support | Thesis frozen |
 | **W10–12** | Dec 14–Jan 3 | ARR v1; internal review. ARR v2; limitations/datasheet. Final read, hashes. | Figures/tables regenerate. | Service-contributor registration ready (W10, W11, W12) |
@@ -638,7 +638,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K10 | API keys/budget unavailable | M | H | No key by Oct 22 | Use free/open-weight LLM; pin version; say so |
 | K11 | Ethics blocks usefulness study | M | L | No written disposition recorded in local notes by proposed Oct 12 target; actual status unconfirmed (LEAD v217/v219) | Escalate resource/schedule; do not automatically cancel H4 (§14) |
 | K12 | Allergen n too small to certify | H | M | Arithmetic fixed | Expand to ≥299 or report interval |
-| K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24.2 audit; claims register |
+| K13 | Claim breaks under review | M | H | Red-team finds forbidden | §24 forbidden-claims audit; claims register |
 | K14 | Novelty duplicate found | L–M | H | L42 search | Present scoped alternatives to HUMAN; re-scope C1 only with explicit direction |
 | K15 | Advisor says scope mismatch | L–M | H | U2 reply | Re-scope before more spend |
 | K16 | No qualified ARR contributor | M | M | None by Dec 1 | Thesis only or later cycle |
@@ -686,7 +686,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 ## Operating Rhythm (from SSoT §24)
 
-- **Daily (10 min):** Morning review of overnight jobs (§13.8)
+- **Daily (10 min):** Morning review of overnight-job receipts (§24 rhythm; §13.6 manifest details)
 - **Monday (30 min):** Claims register diff; overnight receipts; plan week against cut line
 - **Wednesday (15 min):** Check gates due; chase people
 - **Friday (30 min):** Update status block (generated); write one thesis paragraph from week's evidence; decide cuts
@@ -696,7 +696,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 **Freeze B (Nov 6):** Deployable cells, n floor, M, α grid, labeling function/selection, filter/rank/set semantics, infinity/missing, informativeness, diagnostics/sensitivities, evaluation access. **Neither freeze completed here — resolve §16 first.**
 
-**Forbidden claims (§24.2 — red-team every sentence):** No "zero/<1% violations" without n≥299; no "safe/safer/clinical"; no "human-valid coverage" from judge; no "first/novel" before 4.6+second reviewer; no Vietnamese guarantee; no "measured contamination"; no R0 figures without reconstruction; no cross-task rankings; no "four trained models/production-ready AI"; no "zero cost/local-only" without runtime proof; no user outcome claims; no untraceable numbers; no "calibrated" without cell/label/assumption (never claim "calibrated without" its cell, label, or assumption); no "hypothesis confirmed" when interval includes null.
+**Forbidden claims (SSoT §24 — red-team every sentence):** No "zero/<1% violations" without n≥299; no "safe/safer/clinical"; no "human-valid coverage" from judge; no "first/novel" before 4.6+second reviewer; no Vietnamese guarantee; no "measured contamination"; no R0 figures without reconstruction; no cross-task rankings; no "four trained models/production-ready AI"; no "zero cost/local-only" without runtime proof; no user outcome claims; no untraceable numbers; no "calibrated" without cell/label/assumption (never claim "calibrated without" its cell, label, or assumption); no "hypothesis confirmed" when interval includes null.
 
 ---
 
