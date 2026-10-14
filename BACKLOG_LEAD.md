@@ -16,6 +16,12 @@
 - **Prepared author question (not sent):** identify the immutable source commit/tree and script/configuration for the five Appendix C filtering runs; map each run to its numbered result artifact and identify which exact filtered artifact produced the selected 44,615-example Appendix D split. Also clarify the role of `_1`/`_2` versus `_3`–`_7`, the merged result/ID files, and whether the 10,000-row notebook was superseded. Request file hashes and the prompt/model/settings provenance, but no raw data or personal information.
 - **Next / acceptance:** use an approved contact channel only if authorized; until an answer or independently binding public metadata is available, keep this correspondence question unresolved, retain the results as author-reported/unreproduced, and exact novelty `UNKNOWN`. Do not repeat the rate-limited Bitbucket API call or use alternate access to evade it; continue independent L42/L48 and implementation work.
 
+## LEAD v214 — Separate strategy integration from claims-register completion (2026-10-14)
+
+- **Derived-row correction:** the Work Packages table below described L48 fallback as “This migration completes strategy.” That collapsed two different deliverables. The active SSoT §15 explicitly says the strategy migration supplied no completed claims register, and §17.1 defines L48 as strategy integration **plus** an evidence-bearing R01–R45 register. The strategy integration can be recorded complete while L48 remains open until the register and mappings meet their evidence contract.
+- **Current evidence reconciliation:** LEAD v212 records the latest locally validated 45-row derivative as 11 `VERIFIED`, 6 `PARTIAL`, 28 `UNVERIFIED`, with structural/local-hash validation only. The current SSoT §15 still summarizes v170 and older row coverage. Do not silently promote the generated v197 derivative into canonical doctrine; reconcile §15 through an authorized strategy edit, preserve its claim-by-claim ceilings, and retain L48 as open meanwhile.
+- **Acceptance / estimate:** the L48 table row now names both deliverables and the current evidence boundary. Re-estimate the original 10h proposal from remaining row-level mapping/review work; do not treat strategy integration or validator success as claims-register completion, a thesis percentage, or permission to weaken any evidence gate.
+
 ## LEAD v210 — Keep M-A evidence work moving without an invented HGAT decision (2026-10-14)
 
 - **Canonical-direction check:** active SSoT §1 says the R0 graph counts require fresh reconstruction and asserts no new graph statistics; §15/R39 quarantines the seed/runtime counts; §17 retains M-A graph/coverage truth. The old “HGAT v1 active” and four-model claims occur in Appendix Y, which the SSoT explicitly labels superseded, not active instructions. The active strategy therefore does not require a new HGAT serving commitment to continue M-A's evidence inventory.
@@ -548,7 +554,7 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | **L45** | 14 evidence-bound thesis chapters (§21) | All results/claims | 80+h | Cut by cut line (§3.6) |
 | **L46** | Source-bound defense answers; timed human rehearsal; zero forbidden claims | Thesis (L45) | 15h | None |
 | **L47** | ARR paper draft per §23 | Evidence + venue check | 40h | Thesis only |
-| **L48** | Integrated strategy + completed claims register | This migration completes strategy | 10h | None |
+| **L48** | Integrated strategy plus evidence-bearing R01–R45 register; preserve per-row source provenance, hashes, evidence ceilings, and explicit open/unknown dispositions | Strategy integration recorded complete; current v197 derivative is structurally valid at 11 VERIFIED / 6 PARTIAL / 28 UNVERIFIED (LEAD v212); canonical SSoT §15 still summarizes v170 and needs authorized reconciliation; row-level evidence audit remains open | Re-estimate; 10h was the source proposal | None |
 
 **Critical dependency path (SSoT §17.4):**
 ```
