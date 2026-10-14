@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v178 — Clarify offline presenter handoff (2026-10-14)
+
+- Root `master` speaker notes now include a no-build/no-install/no-network preflight and ordered navigation cues. Ten exhibit/script tests pass. The notes do not claim that mobile rendering or audience comprehension was reviewed.
+- Q124 remains incomplete pending mobile visual acceptance and timed human rehearsal.
+- Latest guarded Segment-10 observation: RUNNING at `2026-10-14T05:26:45.794952Z`; 0 transfers / 0 Segment-11 launch attempts.
+
 ## LEAD v177 — Add evidence-bounded committee challenge answers (2026-10-14)
 
 - Root `master` speaker notes now anticipate five questions on calibration versus selective rejection, the frozen threshold, benchmark-only cluster intervals, unsupported safety/usefulness claims, and future evidence needed to reopen a decision. Future independent evaluation is explicitly a proposed evidence bar, not an approved experiment. Ten focused tests pass.
