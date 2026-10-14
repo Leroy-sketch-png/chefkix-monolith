@@ -34,6 +34,12 @@
 - **Scope effect / distinction:** this is direct-adjacent prior art for uncertainty-exposing, nutrient-constrained recipe ranking and is the same Gim/Ko lineage as the NutriHeal lead in v215, not an independent research line. It makes broad claims that uncertainty-aware nutrient-constrained recipe serving is novel untenable. The abstract does not establish ingredient-substitute generation/selection, unseen-pair evaluation, per-goal validation-locked selective verification, selective risk/coverage for substitutions, or provenance-bearing substitute safety. Do not conflate “fill Top-N with visibly uncertain candidates” with NutriHeal's abstract-described selective endorsement/withholding policy; the operational outputs differ.
 - **L42 next / acceptance:** include this as one linked author-lineage prior-work row in the source map and screen the full article only through its ordinary publisher/KCI access route if available. Keep method details, metrics, exact novelty, and any transfer to substitution tasks `UNKNOWN` until the full text is reviewed and independently coded. No paper data/code was downloaded or run, and no author was contacted.
 
+## LEAD v217 — Surface elapsed L41 schedule gates without inventing outcomes (2026-10-14)
+
+- **Calendar reconciliation:** this derived backlog still carries the SSoT §18 snapshot `Today: 2026-10-12`, with a written-ethics target of Oct 12 and two named raters due Oct 15. The current workspace date is Oct 14: the ethics target has elapsed and the rater target is tomorrow. These are proposed schedule dates, not evidence that the gates passed or failed.
+- **Evidence boundary:** checked current root `SESSION.md`, `CLAIM.md`, `SCOPE.md`, and the strategy's active §14/§17–18 references; these local notes do not record a written ethics disposition or two named raters. That absence is not proof that no external response or arrangement exists. Do not mark L41 complete, assume reviewers are unavailable, or let the stale schedule imply current readiness.
+- **Critical-path effect / next acceptance:** L41 remains an explicit human dependency for L36/L43/L38. Reconcile the actual ethics/rater state with the human owner, then reforecast remaining dates and capacity against the real academic deadline before representing the schedule as current. Meanwhile continue independent L42/L48 and member work that does not require those human gates; do not lower evidence or safety criteria to recover dates.
+
 ## LEAD v210 — Keep M-A evidence work moving without an invented HGAT decision (2026-10-14)
 
 - **Canonical-direction check:** active SSoT §1 says the R0 graph counts require fresh reconstruction and asserts no new graph statistics; §15/R39 quarantines the seed/runtime counts; §17 retains M-A graph/coverage truth. The old “HGAT v1 active” and four-model claims occur in Appendix Y, which the SSoT explicitly labels superseded, not active instructions. The active strategy therefore does not require a new HGAT serving commitment to continue M-A's evidence inventory.
@@ -580,7 +586,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 
 ## Schedule & Capacity (from SSoT §18)
 
-**Today:** 2026-10-12. Defense assumed on/after Dec 8 (U3). All dates are proposals `[P]`.
+**Source schedule snapshot (SSoT §18; not refreshed):** `Today: 2026-10-12`. Defense assumed on/after Dec 8 (U3). All dates are proposals `[P]`; see LEAD v217 for the current calendar reconciliation and unresolved gate status.
 
 | Week | Dates | Lead Focus | Member Focus | Gates / Freezes |
 |------|-------|------------|--------------|-----------------|
