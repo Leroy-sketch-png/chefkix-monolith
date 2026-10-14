@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v183 — Harden offline exhibit print layout (2026-10-14)
+
+- Root `master` now declares letter-page geometry and print-specific table rules that avoid the interactive horizontal-scroll clipping path, with compact cells and a two-column walkthrough. A focused structural test protects the print contract; fifteen exhibit/script tests and Agent OS 124/124 pass.
+- This does not substitute for rendered print/mobile inspection or a real timed listener rehearsal. Q124 remains incomplete.
+- Latest guarded Segment-10 poll: RUNNING at `2026-10-14T05:45:43.916748Z`; zero artifact transfers and zero Segment-11 launches.
+
 ## LEAD v182 — Cross-check spoken values against the exhibit (2026-10-14)
 
 - Root `master` has a cross-surface test requiring spoken hit counts/rates/denominators and calibration/selective metrics to appear in the display. Fourteen focused exhibit/script tests pass.
