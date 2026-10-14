@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v234 — Extend the R16/R17 source check to the configured public origin (2026-10-14)
+
+- **Additional read-only resolution attempt:** a depth-1 fetch of the three reports' cited commit `2952c1a9ba2d7494981c72c49c4bae321de22e4c` from the configured public `chefkix-ai-service` origin returned `upload-pack: not our ref`; no source object was fetched. A direct GitHub commit-page read timed out. Together with LEAD v229's local object lookup and current-file hash, the exact source bytes remain unavailable through the checked local checkout and this ordinary public-origin attempt. This does not prove the commit never existed or that no private/archive copy exists.
+- **Disposition / next acceptance:** do not select a report based on its `final` filename or matching seed numerator. Keep the three policy hashes and competing counts visible; obtain the source at the exact cited commit from an authorized provenance source, or record that the historic policy cannot be recovered. R16/R17 remain `UNVERIFIED`; no alternate access path, source rewrite, report rerun, or register update occurred.
+
 ## LEAD v233 — Keep K10's resource response from becoming an automatic scope cut (2026-10-14)
 
 - **Alignment check:** K10's mitigation said “Use free/open-weight LLM,” which reads as an automatic substitute if API access/budget is late. Active SSoT §18 directs pursuit of the ideal scope through resource acquisition or timing adjustment; §19 allows no unlimited spend and no automatic paid retries. The mitigation now puts authorized key/quota/budget and schedule/resource resolution first; a different model arm requires explicit HUMAN/protocol approval, pinned identity, and revised claims boundary. This does not authorize spend or a provider call.
@@ -82,7 +87,7 @@
 | Register rows | Active lead/member package or disposition | Exact limit |
 |---|---|---|
 | R15 | No current package; L41 is an ethics/raters dependency, not a usefulness study | Human understanding/usefulness needs a separately scoped and authorized study before any result claim. |
-| R16–R17 | L48 maps candidate reports (LEAD v222) and confirms the historical source commit is absent from the current checkout (LEAD v229); no current package owns their reproduction | Retrieve/verify exact policy bytes at the cited commit, then independently reproduce; retain all competing numerators and keep unverified. Do not infer from L39. |
+| R16–R17 | L48 maps candidate reports (LEAD v222); LEAD v229/v234 records the cited commit absent locally and rejected by the configured public origin | Obtain exact policy bytes from an authorized provenance source, then independently reproduce; retain competing numerators and keep unverified. Do not infer from L39. |
 | R18 | LEAD v228 maps the exact bounded partition report/validator; L39 owns new matched/adjudicated allergen outputs | v197's `VERIFIED` scope is the frozen-snapshot partition only; new L39 outputs do not independently reproduce those counts or establish safety. |
 | R19–R20 | LEAD v230 maps the exact frozen protocol and raw Mistral record/validator receipts; L39 owns matched arms and adjudication, subject to L41 | R19/R20 remain `PARTIAL`; protocol readiness and one raw arm do not establish independent approval, matched model results, safety, or adjudication. |
 | R21–R24 | L39, gated by L41 and rights/API availability | Require actual GPT-4o/Gemini outputs, independent adjudication, and either expanded n or the prespecified bounded interval. |
