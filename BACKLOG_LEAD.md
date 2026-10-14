@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v181 — Prepare a privacy-limited rehearsal record (2026-10-14)
+
+- Root `master` speaker notes include a blank record for a real timed rehearsal: viewport, elapsed time, three exact anonymous listener answers, criteria, confusion/clipping, and outcome. It is explicitly NOT RUN and excludes identifying details. Thirteen focused tests pass.
+- The template is not audience evidence. Mobile review and rehearsal remain open; Q124 is incomplete.
+- Latest guarded Segment-10 observation: RUNNING at `2026-10-14T05:34:37.924109Z`; 0 artifact transfers / 0 Segment-11 launches.
+
 ## LEAD v180 — Bind narration to exact denominators (2026-10-14)
 
 - Root `master` speaker script now states numerator/case counts with each overall, repeated-pair, and unseen-pair hit rate. Twelve focused tests bind those values and other spoken metrics to the exhibit's frozen result.
