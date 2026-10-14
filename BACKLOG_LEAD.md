@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v267 — Align R26's crosswalk with its exact boundary receipt
+
+- **Overlay check:** the local v248-chain derivative `29-R26.csv` contains the exact L44 pointer and receipt/manifest hashes recorded in LEAD v253; its SHA-256 remains `10a93494678d988d5ea1d9e7f82d610485cd2e09c86629f0e5462eadea3c0643`. The row remains `UNVERIFIED`, with migration-checklist provenance; the receipt validates an artifact boundary, not the empirical R26 claim.
+- **Crosswalk correction:** the proposed v248 R26 value was stale/generic relative to the subsequently applied and validated one-row overlay. The current row map now names the Segment-9 boundary and LEAD v226/v253, while retaining the exact evidence ceiling and unresolved canonical-register authority gate.
+- **Disposition:** one mapping crosswalk is reconciled to an existing local overlay; no overlay was regenerated, no source row/status or SSoT changed, and the ignored derivative was not staged. L48 remains open; all other pending mappings and the v171/v197 authority decision remain separate.
+
 ## LEAD v266 — Refine L42's R28/R29 crosswalk without changing source claims (2026-10-14)
 
 - **Row-level semantic check:** R28 is a migration-checklist inventory row for the bounded prior-art review; R29 is the separate novelty-funnel/independent-review requirement; R42 is specifically the attributed Senath abstract metric. Their v197 evidence statuses remain `UNVERIFIED`, and their `LOCAL_MIGRATION_CHECKLIST_ONLY` provenance is not evidence that the claims or reported metric were reproduced.
@@ -127,7 +133,7 @@
 | R23 | `L39 independent allergen adjudication; gated by L41 and case rights.` | Independent reviewer records and adjudication artifact required. |
 | R24 | `L39 sample-size route; gated by explicit protocol choice and L41.` | HUMAN must choose/freeze ≥299 expansion or bounded n=208 interval route before execution or interpretation. |
 | R25 | `L44 verified Stage-1/Stage-2/preference/DPO chain; LEAD v225.` | Hash-linked execution lineage only; does not establish preference correctness, usefulness, or quality. |
-| R26 | `L44 segmented Stage-3 boundary; LEAD v226.` | Historical v197 wording is stale; require validated segment artifact/manifest chain and an approved overlay. |
+| R26 | `L44 validated Segment-9 boundary; exact receipt and manifest; LEAD v226/v253.` | Checkpoint/ancestry boundary only; no inference, scoring, quality, or Stage-3-completion claim (LEAD v253). |
 | R27 | `L44 inference and matched-scoring contract; LEAD v227.` | Resolve global-vs-segmented completion identity before materialization; then require independent hash-bound inference and matched scoring. |
 | R28 | `L42 prior-art review; LEAD v236/v247/v265.` | Bounded prior-art screen and rejected broad claims only; v197 remains UNVERIFIED pending authority/evidence reconciliation (LEAD v260). |
 | R29 | `L42 novelty funnel and independent review; LEAD v236/v247/v265.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
