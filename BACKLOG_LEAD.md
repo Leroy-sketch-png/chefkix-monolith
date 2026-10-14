@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v174 — Midterm evidence exhibit and continued training observation (2026-10-14)
+
+- Prepared `ai/demos/iron-chef-midterm-v26-exhibit.html` in the root default-branch worktree: a self-contained offline research exhibit of the frozen v26 negative result. It leads with `REJECT` and 0/10,747 retained cases, separates calibration improvements from failed selective-reliability gates, and shows seven hash-bound fixed-benchmark strata with recipe-cluster intervals.
+- Evidence checks: independent validation report is PASS with exact reconstruction and 4/4 corruptions rejected; fresh supplement generation is exactly equal to its saved report; all seven displayed rows match; 5 generator tests and 7 exhibit tests pass. Validation/evaluation/supplement SHA-256: `45492d30acdf46ef26fb443140a8bec2adf1c01e12e8e1049112a27029f217d5` / `293f0c9952d98d389bb3b7d23ee4f1f04b6ad675914e361de9102806f5539ea8` / `351230465cbf51a41378f42fd1c12e21ea936ebfa2bd616c31d76572460c9283`.
+- This is partial work toward SSoT §12, not a live product demo, population guarantee, or model-quality claim. No raw prediction rows/checkpoint were copied. Desktop capture is legible; mobile visual acceptance and timed rehearsal remain open after the sanctioned local-file browser view was blocked. Root `master` has no configured remote; the exhibit/docs are committed locally there, while this monolith record is pushed directly to `origin/master`.
+- Separately vaulted Segment-10 poll at `2026-10-14T05:06:03.543451Z` remained RUNNING; the guarded Segment-11 handoff saw 0 transfers and 0 launch attempts. Monitor cadence is five minutes to reduce post-completion idle time without changing the validation gate. No checkpoint validation or Segment-11 launch was claimed.
+
 ## LEAD v173 — Prepare gated Segment-11 training handoff (2026-10-14)
 
 - Human direction explicitly requests continued Kaggle training while GPU time is available. Segment 10 remains the active remote job; it has not crossed exact step-631 artifact validation.
