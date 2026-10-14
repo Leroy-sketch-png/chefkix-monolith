@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v175 — Rinse narrow-layout overflow in the midterm exhibit (2026-10-14)
+
+- The saved 390px capture showed horizontal clipping outside the intentionally wide table. Root `master` now constrains intrinsic grid-child sizing and makes the strata table's horizontal scroll region labeled and keyboard-focusable, with visible focus and a mobile scroll cue. Eight structure/accessibility/provenance tests pass; this is not rendered mobile acceptance.
+- The authorized browser path refused the local file URL. Mobile visual acceptance and timed audience rehearsal remain open; Q124 remains incomplete. Root `master`'s follow-up commit is local-only because that repository has no remote. This backlog update is pushed directly to `origin/master`.
+- Latest guarded secondary-account poll: Segment 10 RUNNING at `2026-10-14T05:10:38.181852Z`; 0 artifact transfers, 0 successor launches. Continue the existing five-minute monitor; no checkpoint or Segment-11 launch claim.
+
 ## LEAD v174 — Midterm evidence exhibit and continued training observation (2026-10-14)
 
 - Prepared `ai/demos/iron-chef-midterm-v26-exhibit.html` in the root default-branch worktree: a self-contained offline research exhibit of the frozen v26 negative result. It leads with `REJECT` and 0/10,747 retained cases, separates calibration improvements from failed selective-reliability gates, and shows seven hash-bound fixed-benchmark strata with recipe-cluster intervals.
