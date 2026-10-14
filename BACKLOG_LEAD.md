@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v182 — Cross-check spoken values against the exhibit (2026-10-14)
+
+- Root `master` has a cross-surface test requiring spoken hit counts/rates/denominators and calibration/selective metrics to appear in the display. Fourteen focused exhibit/script tests pass.
+- This is consistency evidence only. Mobile visual acceptance and human rehearsal remain open; Q124 is incomplete.
+- Latest guarded Segment-10 observation remains RUNNING at `2026-10-14T05:34:37.924109Z`; no artifact transfer or Segment-11 launch.
+
 ## LEAD v181 — Prepare a privacy-limited rehearsal record (2026-10-14)
 
 - Root `master` speaker notes include a blank record for a real timed rehearsal: viewport, elapsed time, three exact anonymous listener answers, criteria, confusion/clipping, and outcome. It is explicitly NOT RUN and excludes identifying details. Thirteen focused tests pass.
