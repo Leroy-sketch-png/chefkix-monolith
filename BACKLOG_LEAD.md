@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v220 — Correct SSoT pointers and bound the next L48 mapping pass (2026-10-14)
+
+- **Cross-reference correction:** the active SSoT puts the forbidden-claims list in §24, not §24.2, and explicitly identifies §13.6 (not §13.8) for job-manifest details. Corrected the W7/K13/rhythm pointers; the morning review now points to §24 for cadence and §13.6 for receipt contents.
+- **L48 mapping gap:** the hash-pinned v197 derivative (`44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`) still has generic `Candidate mapping in SSoT §15; reconcile against current Lead backlog` entries for multiple rows. The SSoT's candidate crosswalk names legacy L12/L15/L17/L20/L21/L23/L29 identifiers, while active §17.1 here exposes L13′ and L36–L48 plus member packages M-A–M-I. Those generic entries are not yet an auditable row-to-current-package mapping; no statuses or counts change.
+- **Next acceptance:** continue L48 by mapping each remaining generic-candidate row to a current lead/member package and its exact artifact or independent check, or explicitly record “no current package” with the missing work/dependency. Keep partial and unverified states intact; do not promote the crosswalk, infer completion, or modify the root-workspace register as part of this backlog update.
+
 ## LEAD v212 — Distinguish the final claims-register derivative from its intermediate snapshot (2026-10-14)
 
 - **Latest derivative confirmed:** the root-workspace `ai/out/iron-chef-lead-v197/claims-register-R01-R45-v197.csv` has SHA-256 `44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`. The read-only fail-closed validator passes all 45 unique rows and referenced local hashes; its status counts are 11 `VERIFIED`, 6 `PARTIAL`, and 28 `UNVERIFIED`. This corrects the older v191 register snapshot recorded below, not the underlying evidence boundary.
