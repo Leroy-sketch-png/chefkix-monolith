@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v200 — Recheck M-A runtime boundary after host listeners changed (2026-10-14)
+
+- **Fresh read-only observation (2026-10-14 07:23 UTC):** Docker Engine 28.5.1 is reachable. The listed containers include healthy infrastructure dependencies, but no ChefKix AI-service or monolith container; Keycloak is exited. Ports 3000 and 8080 now have generic `node` and `java` listeners, respectively, superseding v193's older no-listener observation for those ports only. The 8080 listener returns Tomcat 404 at `/actuator/health`; neither listener has been tied to a ChefKix service. Port 8000 has no listener.
+- **M-A disposition:** this is a changed host observation, not proof that the Java process is ChefKix, that an AI graph endpoint is loaded, or that any R0 graph/count is available. No graph endpoint was queried and no service was started. Keep the active runtime graph `UNKNOWN`; do not reuse the port listener or infrastructure state as graph evidence.
+- **Next:** identify the two host processes and their owning project/read-only health routes, then locate an authorized AI-service graph path and trace producer → exact artifact → loaded process. If that path remains unavailable, record the bounded unavailable state without starting services or promoting artifact counts to runtime truth.
+
 ## LEAD v199 — Resolve exact-model availability before matched-arm collection (2026-10-14)
 
 - **L22 / R21–R22 dependency sharpened from current official documentation:** OpenAI lists the frozen `gpt-4o-2024-08-06` snapshot for API shutdown on 2027-01-14; Google says Gemini 2.5 API access is limited to users who actively used those models previously, while `gemini-2.5-flash` remains served until further notice; Mistral's current model comparison still lists the frozen `mistral-small-2603` ID. Sources: [OpenAI deprecations](https://developers.openai.com/api/docs/deprecations/), [Google Gemini 2.5 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash), and [Mistral model comparison](https://docs.mistral.ai/getting-started/models/compare?models=mistral-small-4-0-26-03) (checked 2026-10-14).
