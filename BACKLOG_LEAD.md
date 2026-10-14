@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v177 — Add evidence-bounded committee challenge answers (2026-10-14)
+
+- Root `master` speaker notes now anticipate five questions on calibration versus selective rejection, the frozen threshold, benchmark-only cluster intervals, unsupported safety/usefulness claims, and future evidence needed to reopen a decision. Future independent evaluation is explicitly a proposed evidence bar, not an approved experiment. Ten focused tests pass.
+- No rehearsal or listener result is claimed; mobile visual acceptance and timed audience rehearsal remain open. Q124 is not complete.
+- Latest guarded Segment-10 poll at `2026-10-14T05:23:44.423544Z`: RUNNING; 0 artifact transfers / 0 Segment-11 launch attempts. Five-minute watcher remains active.
+
 ## LEAD v176 — Draft the midterm evidence narration (2026-10-14)
 
 - Root `master` now includes a timed three-minute speaker-notes draft and checklist at `ai/demos/iron-chef-midterm-v26-speaker-notes.md`. Nine focused tests bind its timing, decision, metrics, fit boundary, and limits to the exhibit. No audience rehearsal or listener-comprehension result is claimed.
