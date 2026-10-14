@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v266 — Refine L42's R28/R29 crosswalk without changing source claims (2026-10-14)
+
+- **Row-level semantic check:** R28 is a migration-checklist inventory row for the bounded prior-art review; R29 is the separate novelty-funnel/independent-review requirement; R42 is specifically the attributed Senath abstract metric. Their v197 evidence statuses remain `UNVERIFIED`, and their `LOCAL_MIGRATION_CHECKLIST_ONLY` provenance is not evidence that the claims or reported metric were reproduced.
+- **Crosswalk delta:** when a future validated overlay is prepared, R28 and R29 mappings should cite LEAD v265 in addition to v236/v247 because v265 records a newly accessible official KCI abstract and the related NutriHeal dataset metadata. R42 should remain mapped to the Senath-specific attributed report (v236/v247), not NutriHeal. The sources are separate author lineages and answer different claim boundaries; neither source substantiates the other's reported metric.
+- **Disposition:** this resolves only the mapping pointer for three L42-related rows. No CSV/claims-register row, evidence status, SSoT, artifact, or novelty decision changed; no overlay was regenerated. The other 25 mappings still require independent semantic review, and L48 remains open.
+
 ## LEAD v265 — Refresh L42's NutriHeal primary-record boundary (2026-10-14)
 
 - **Fresh primary-source check:** the official KCI record for Gim & Ko's 2026 *Operational Policies for Ensuring Top-N Recommendation under Incomplete Nutrient Data* is now accessible after the Oct 13 KCI timeout recorded in earlier L42 notes. Its cataloged abstract describes three recipe-candidate states (clearly satisfies, clearly violates, cannot confirm), Top-N filling with visibly unconfirmed items, and an optional feasibility ordering of those unconfirmed items. The source is a journal record/abstract, not a full-method review or reproduction: [KCI record](https://www.kci.go.kr/kciportal/ci/sereArticleSearch/ciSereArtiView.kci?sereArticleSearchBean.artiId=ART003319805).
@@ -123,8 +129,8 @@
 | R25 | `L44 verified Stage-1/Stage-2/preference/DPO chain; LEAD v225.` | Hash-linked execution lineage only; does not establish preference correctness, usefulness, or quality. |
 | R26 | `L44 segmented Stage-3 boundary; LEAD v226.` | Historical v197 wording is stale; require validated segment artifact/manifest chain and an approved overlay. |
 | R27 | `L44 inference and matched-scoring contract; LEAD v227.` | Resolve global-vs-segmented completion identity before materialization; then require independent hash-bound inference and matched scoring. |
-| R28 | `L42 prior-art review; LEAD v236/v247.` | Bounded prior-art screen and rejected broad claims only; retain partial status. |
-| R29 | `L42 novelty funnel and independent review; LEAD v236/v247.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
+| R28 | `L42 prior-art review; LEAD v236/v247/v265.` | Bounded prior-art screen and rejected broad claims only; v197 remains UNVERIFIED pending authority/evidence reconciliation (LEAD v260). |
+| R29 | `L42 novelty funnel and independent review; LEAD v236/v247/v265.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
 | R30 | `L48 overlay maps historical L29 evidence; LEAD v237.` | v43 supports bounded offline retrieval→graph figures only; no photo perception, ingredient detection, or usefulness inference. |
 | R31 | `L48 overlay maps historical L30 evidence; LEAD v237.` | v49 is a dated 100/100 unavailable-runtime observation, not a fresh endpoint check or current-capability claim. |
 | R32 | `L36 human audit and independent-label package.` | Requires the approved audit protocol, actual labels/adjudication, and unresolved PR01–03/10 gates. |
