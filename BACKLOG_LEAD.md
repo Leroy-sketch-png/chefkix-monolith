@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v231 — Refresh the current evidence summary against the latest row audit (2026-10-14)
+
+- **Stale summary corrected:** the “Current Evidence Boundary” table still said Mistral Stage 3 was only verified through 374/561 with Segment 7 running toward 444. Canonical SSoT §1.1 and the v226 hash-bound validation record now establish the Segment-9 artifact boundary at exact step 561. The summary now reports that boundary and keeps inference, scoring, quality, and overall Stage-3 completion explicitly open; the old dated Segment-7 `RUNNING` observation remains only in its historical entry.
+- **OFF figure qualified:** the summary's 400/408 and 22/40 values mirror SSoT §1, but LEAD v222 has three same-snapshot candidate reports with differing policy hashes and numerators. The summary now labels the SSoT figures as attributed/candidate pending policy-source reconciliation rather than a settled current reproduction; it preserves the SSoT snapshot and does not overwrite its canonical text.
+- **Boundary:** this is a lead-summary correction only. No scientific result, derivative status, SSoT, source artifact, or experiment was changed.
+
 ## LEAD v230 — Bind R19/R20 to protocol and raw-arm evidence (2026-10-14)
 
 - **R19 exact mapping:** frozen protocol `chefkix-ai-service/models/allergen_benchmark_protocol_v2.json` SHA-256 `0e97c829cccfd6b43bf1dd974db9ae54dd9b561d037ebbca18eb4fbd2bc14fc9`; validator `ai/tools/validate_allergen_benchmark_v2.py` SHA-256 `721242c17374f447837e943706ba3ff2599bcabd872f12a4b35f7bbefbd9211e`; report `ai/out/iron-chef-lead-v39/VALIDATION.json` SHA-256 `11eda985d1b070198555635dcba7de2ef2dab811f953fd3d688d2e11ecc1fce8`, state `PROTOCOL_READY_REVIEW_PENDING`.
@@ -623,10 +629,10 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 | Flavor pairing | 2,231,142 RecipeNLG rows, p=0.238095, not supported | VERIFIED NEGATIVE |
 | FooDB service | 971 foods, 206 dimensions, 125,992 links; 471,906 profile pairs, 0 mismatches | VERIFIED |
 | FooDB reach | Both endpoints: 1,162/10,747 (10.81%); unique endpoints 260/2,650 (9.81%) | MEASURED |
-| OFF concordance | 400/408 declared groups (98.04%, Wilson 96.18–99.00%); trace 22/40 (55%) | PARTIAL E2 |
+| OFF concordance | SSoT §1 reports 400/408 declared groups and 22/40 trace; LEAD v222 preserves three candidate reports with policy-hash/numerator conflicts | Attributed/candidate E2; not a settled current reproduction or clinical sensitivity/specificity |
 | OFF partition | 23 identities cover 760,877/767,780 tag occurrences (99.10%) | E3 |
 | Allergen protocol | 208 cases, 13 groups, direct/trace/multi/cross-contact; Mistral raw 208/208 | PARTIAL E2 |
-| Mistral Stage 3 | Verified through 374/561; Segment 7 launched, RUNNING toward 444 | PARTIAL E3 |
+| Stage-3 SFT | Segment 9 artifact boundary verified at exact step 561 (LEAD v226; 12 checkpoint files, 8 retained-best files; evaluations at 187/374/561) | E3 provenance boundary only; inference, scoring, model quality and overall Stage-3 completion remain open |
 | Novelty reviews | v8/v9: broad claims rejected; exhaustive re-attack open | PARTIAL |
 
 **No accepted IRON CHEF model exists.** No allergen comparison result (GPT-4o/Gemini unrun, no adjudication). No human usefulness evidence. Stage 3 incomplete.
