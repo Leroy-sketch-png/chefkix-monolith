@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v222 — Map the OFF concordance candidate without upgrading R16/R17 (2026-10-14)
+
+- **Candidate artifact:** `ai/out/iron-chef-lead-v7/off_policy_concordance_final.json` (SHA-256 `843e26bfa0af481c7ed932115b1dd6d2d2357af560ad2e62b7e087ba346045c8`) contains test declared-label 400/408 and Trace-label 22/40, matching the R16/R17 seed wording. It records source snapshot `2e4b392da792e2b9186e231be747b2ce2fb1e1a492d18152a651294499dd9072`, products `4ea5c7a7730ffdc7d3f8932b9a433d6f7f74cdba60dc41dae4f5ea7f729fcd1c`, repository commit `2952c1a9ba2d7494981c72c49c4bae321de22e4c`, and policy-source hash `84216cd3140905b8706482fc138b9d2f258bb5314aa8f308be0094206996334b`.
+- **Version conflict:** the same directory also has `off_policy_concordance.json` (SHA-256 `439901682270bcf5787e7588c270d1c08e87bedc7b03fb6c41af30738423f532`) and `off_policy_concordance_postfix.json` (SHA-256 `67de1f77deecf68ecc302b7eb3070678aa8102e9a53ada6a7668214c6e8b5cfd`). All three name the same source snapshot/products/repository commit but have different policy-source hashes and different test numerators (395, 399, 400 of 408; Trace 18, 21, 22 of 40). “Final” filename and seed agreement do not settle which policy artifact is authoritative.
+- **Validator ceiling:** `ai/tools/validate_off_allergen_evidence.py` rebuilds sampled products from cached source pages and checks report snapshot/product hashes, case totals, declared-label numerator/denominator arithmetic, and the stated no-specificity boundary. It does not recompute `detected_groups` through the recorded policy function or establish that `policy_source_sha256` matches the source bytes used for each report. Thus it supports source/stimulus integrity and arithmetic, not independent R16/R17 policy execution.
+- **Disposition / next acceptance:** refine the v221 crosswalk: map R16/R17 to this candidate set, keep them `UNVERIFIED`, and assign no current execution package as owner of the historical reproduction. Before promotion, reconcile the policy version, verify its source hash against the actual producer/repository state, and independently regenerate the hash-bound report; preserve the competing variants and external-label limits. L39 remains a separate future matched/adjudicated allergen task.
+
 ## LEAD v221 — Reconcile generic R15–R45 mappings to active packages (2026-10-14)
 
 - **Input / scope:** read-only inspection of the hash-pinned v197 derivative (`44689a1898dcbc09a7c40d3fa9c53ee2007540d5601eda8448c138213ea0cd9b`), active SSoT §§15 and 17.1, and this backlog's work-package table. This is a planning crosswalk, not a change to the register or evidence status.
@@ -10,7 +17,7 @@
 | Register rows | Active lead/member package or disposition | Exact limit |
 |---|---|---|
 | R15 | No current package; L41 is an ethics/raters dependency, not a usefulness study | Human understanding/usefulness needs a separately scoped and authorized study before any result claim. |
-| R16–R17 | L48 evidence mapping only; no current package owns reproducing OFF declared-group or Trace concordance | Bind exact source and denominator, then decide whether reproduction remains needed; do not infer from L39. |
+| R16–R17 | L48 maps candidate reports (LEAD v222); no current package owns their historical reproduction | Keep unverified until policy/source version is reconciled and report generation is independently reproduced; do not infer from L39. |
 | R18 | L48 preserves the historical OFF partition evidence; L39 owns new matched/adjudicated allergen outputs | The new L39 outputs do not independently reproduce the old taxonomy counts. |
 | R19–R20 | L39, with L41 dependencies; legacy L22 is protocol/raw-arm scope only | Protocol readiness and Mistral collection do not establish matched model arms or independent adjudication. |
 | R21–R24 | L39, gated by L41 and rights/API availability | Require actual GPT-4o/Gemini outputs, independent adjudication, and either expanded n or the prespecified bounded interval. |
