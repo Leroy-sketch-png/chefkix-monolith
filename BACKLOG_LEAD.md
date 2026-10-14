@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v268 — Reconcile R25/R27 crosswalks to applied row evidence
+
+- **Current derivative inspected:** `ai/out/iron-chef-lead-v248-row-overlays/31-R27.csv`, SHA-256 `dfdca7bbfd6faa73cc5cede59995799801265c84080cd645c9ae480114384dcb`, is the latest preserved 45-row chain after the R26, R25, and R27 mapping-only applications. Its R25 and R27 mappings include exact provenance/contract boundaries that the earlier v248 proposal table did not carry forward.
+- **R25 correction:** point to the exact Stage-1/preference/DPO/Stage-2 lineage in LEAD v225/v255, retaining that lineage does not establish preference correctness or quality and that the known length-format confound remains.
+- **R27 correction:** point to the exact Segment-9 manifest and inference/scoring mismatch in LEAD v227/v254; the resolved artifact boundary does not authorize materialization because the static `STAGE3_SEGMENT_9_COMPLETE` versus `STAGE3_COMPLETE` contract mismatch remains unresolved. Inference and matched scoring remain unrun/unverified.
+- **Disposition:** updated the backlog's proposed row map to match the already-applied, hash-pinned overlay semantics. No CSV was regenerated or staged; no source-row/status, SSoT, materialization, inference, or score changed. This closes crosswalk drift for R25–R27 and R28–R29 only; L48 remains open for the other rows, semantic adjudication, and canonical v171/v197 authority resolution.
+
 ## LEAD v267 — Align R26's crosswalk with its exact boundary receipt
 
 - **Overlay check:** the local v248-chain derivative `29-R26.csv` contains the exact L44 pointer and receipt/manifest hashes recorded in LEAD v253; its SHA-256 remains `10a93494678d988d5ea1d9e7f82d610485cd2e09c86629f0e5462eadea3c0643`. The row remains `UNVERIFIED`, with migration-checklist provenance; the receipt validates an artifact boundary, not the empirical R26 claim.
@@ -132,9 +139,9 @@
 | R22 | `L39 matched allergen study; gated by L41, rights, and API availability.` | Gemini arm output and adjudication; protocol approval and rights first. |
 | R23 | `L39 independent allergen adjudication; gated by L41 and case rights.` | Independent reviewer records and adjudication artifact required. |
 | R24 | `L39 sample-size route; gated by explicit protocol choice and L41.` | HUMAN must choose/freeze ≥299 expansion or bounded n=208 interval route before execution or interpretation. |
-| R25 | `L44 verified Stage-1/Stage-2/preference/DPO chain; LEAD v225.` | Hash-linked execution lineage only; does not establish preference correctness, usefulness, or quality. |
+| R25 | `L44 exact Stage-1/preference/DPO/Stage-2 lineage; LEAD v225/v255.` | Execution lineage only; chosen/rejected length-format confounding remains, and lineage does not establish preference correctness, usefulness, or quality. |
 | R26 | `L44 validated Segment-9 boundary; exact receipt and manifest; LEAD v226/v253.` | Checkpoint/ancestry boundary only; no inference, scoring, quality, or Stage-3-completion claim (LEAD v253). |
-| R27 | `L44 inference and matched-scoring contract; LEAD v227.` | Resolve global-vs-segmented completion identity before materialization; then require independent hash-bound inference and matched scoring. |
+| R27 | `L44 inference/scoring gate; exact Segment-9 manifest; LEAD v227/v254.` | Resolve `STAGE3_SEGMENT_9_COMPLETE` versus `STAGE3_COMPLETE` before materialization; inference and matched scoring remain unrun/unverified. |
 | R28 | `L42 prior-art review; LEAD v236/v247/v265.` | Bounded prior-art screen and rejected broad claims only; v197 remains UNVERIFIED pending authority/evidence reconciliation (LEAD v260). |
 | R29 | `L42 novelty funnel and independent review; LEAD v236/v247/v265.` | Exact novelty remains UNKNOWN until full methods/data/evaluation/code comparison and independent adjudication. |
 | R30 | `L48 overlay maps historical L29 evidence; LEAD v237.` | v43 supports bounded offline retrieval→graph figures only; no photo perception, ingredient detection, or usefulness inference. |
