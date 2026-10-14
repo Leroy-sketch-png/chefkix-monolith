@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v232 — Refresh K8's last-recorded Segment-10 timestamp (2026-10-14)
+
+- **Stale risk-table pointer corrected:** K8 still cited the Segment-10 `RUNNING` observation at `2026-10-14T04:22:10Z`, although LEAD v175 records a later poll at `2026-10-14T05:50:49.607985Z` with zero artifact transfers and zero Segment-11 launches. The K8 trigger now points to that later recorded observation and labels it historical, not fresh. The risk remains: no step-631 successor artifact boundary is validated after Segment 9 step 561.
+- **Boundary:** this is a timestamp/reference correction from existing lead evidence only; no status request, download, training, or successor launch occurred.
+
 ## LEAD v231 — Refresh the current evidence summary against the latest row audit (2026-10-14)
 
 - **Stale summary corrected:** the “Current Evidence Boundary” table still said Mistral Stage 3 was only verified through 374/561 with Segment 7 running toward 444. Canonical SSoT §1.1 and the v226 hash-bound validation record now establish the Segment-9 artifact boundary at exact step 561. The summary now reports that boundary and keeps inference, scoring, quality, and overall Stage-3 completion explicitly open; the old dated Segment-7 `RUNNING` observation remains only in its historical entry.
@@ -732,7 +737,7 @@ L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L4
 | K5 | All cells vacuous | M | M | Early GISMo diagnostics | Report quantified limit; policy = abstain-by-default |
 | K6 | Calibration/test not exchangeable | M | H | KS diagnostic on gold rank | Merge cells or weighted conformal; state limit |
 | K7 | Validation scores missing | M | H | M-B check fails | Regenerate GISMo val (cheap); LLM arms on subsample |
-| K8 | Stage 3 late/fails | M | M | No next authorized artifact boundary validated after Segment 9 step 561; Segment 10 last recorded `RUNNING` at 2026-10-14T04:22:10Z, not a fresh poll (LEAD v169/v173/v219) | Require exact successor checkpoint/manifest validation; Stage-2 adapter hedge remains available |
+| K8 | Stage 3 late/fails | M | M | No next authorized artifact boundary validated after Segment 9 step 561; Segment 10 last recorded `RUNNING` at 2026-10-14T05:50:49.607985Z (LEAD v175), historical and not a fresh poll | Require exact successor checkpoint/manifest validation; Stage-2 adapter hedge remains available |
 | K9 | Inference too slow | M | M | 200-case timing | Stratified subsample (§13.3) |
 | K10 | API keys/budget unavailable | M | H | No key by Oct 22 | Use free/open-weight LLM; pin version; say so |
 | K11 | Ethics blocks usefulness study | M | L | No written disposition recorded in local notes by proposed Oct 12 target; actual status unconfirmed (LEAD v217/v219) | Escalate resource/schedule; do not automatically cancel H4 (§14) |
