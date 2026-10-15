@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v339 — Segment 11 version 1 launched under newly usable primary access (2026-10-15)
+
+- Primary preflight now succeeds for the private bridge dataset and exact `tnvtrung` Segment-11 draft; the sole Segment-10 predecessor reports `COMPLETE` and its source pull succeeds. The saved draft code differed from the validated package, so the already-prepared 631→701 package was used without changing metadata, owner, input, predecessor, or evaluation contract.
+- Exact pushed script SHA-256 `1926e2b2e8bf785f12d4d40a8fd9a481d8f9b43a06a709b32b7d06d5a3410f2b`; metadata SHA-256 `7b89c5528a50b7aeb007d71347e97b7888961e3a12d792afcc9f10815304b2d3`. Official primary CLI positively acknowledged version 1; immediate status `RUNNING`. The hourly quota-retry watcher was replaced with a quiet primary-account Segment-11 monitor.
+- **Claim boundary:** no step-701 artifact validation yet; do not claim inference, scoring, quality, or overall Stage-3 completion. No later segment is authorized by this handoff. Q124 browser-render review is complete; timed human listener rehearsal remains open.
+
 ## LEAD v338 — Recheck primary access before any training push (2026-10-15)
 
 - After the human said primary access was granted, the official `phanphutho` CLI was rechecked. The exact private Segment-11 status returned HTTP 404 Not Found, `datasets files tnvtrung/chefkix-senath-stage3-verified-input` returned HTTP 403 Forbidden, and the primary owned-kernel inventory still did not list Segment 11.
