@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v338 — Recheck primary access before any training push (2026-10-15)
+
+- After the human said primary access was granted, the official `phanphutho` CLI was rechecked. The exact private Segment-11 status returned HTTP 404 Not Found, `datasets files tnvtrung/chefkix-senath-stage3-verified-input` returned HTTP 403 Forbidden, and the primary owned-kernel inventory still did not list Segment 11.
+- No push was attempted: access to both the exact kernel and bridge input is required before launch. The existing secondary quota-recovery monitor remains the lineage-preserving fallback. Do not interpret the primary-owned `CANCEL_ACKNOWLEDGED` checkpoint as Segment 10.
+- Required unblock: make both exact resources accessible to `phanphutho` and confirm with fresh official CLI reads; alternatively approve a distinct primary-owned chain after validating its own predecessor/artifacts. Segment 11 remains unlaunched and step 701 unachieved.
+
 ## LEAD v337 — Primary fallback is also non-runnable and non-lineage-compatible (2026-10-15)
 
 - The exact primary-owned Stage-3 checkpoint notebook `phanphutho/chefkix-senath-stage-3-sft-checkpoint` reports `CANCEL_ACKNOWLEDGED` via the official CLI. This is a distinct owner-bound kernel and has not been validated as the pinned Segment-10 step-631 predecessor. It is not safe to restart or relabel it as Segment 11.
