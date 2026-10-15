@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v335 — Segment-11 push rejected by owner GPU quota (2026-10-15)
+
+- Segment 10 remains validated at exact step 631; manifest `24b297105fda76720d9d080e4f0cb102dc08fb151acaf39aa7356609acc6a581`. The prepared Segment-11 package is pinned to it and targets step 701, with Segment 10 as sole predecessor.
+- The existing Segment-11 notebook is visible in the human architect's Kaggle screenshot as a saved draft, version 0. The latest official CLI push was explicitly rejected with `Maximum weekly GPU quota of 30.00 hours reached.`; it returned no version acknowledgement and created no version. Two total push calls have returned no positive acknowledgement; the latest was a definitive quota rejection.
+- Secondary credential identity is `tnvtrung`; primary credential identity is `phanphutho`, so the latter cannot be substituted for this owner-bound kernel. Do not claim that Segment-11 training has started or that step 701 exists.
+- Next action: after the `tnvtrung` GPU quota replenishes, perform a fresh owner-state duplicate check and push the already validated package once. No quota bypass, additional account, or third push is authorized by the current evidence.
+- Root durable state and technical diagnostics are recorded in `SESSION.md`, `academic_vision_and_strategy.md`, `implementation_plan.md`, and `ai/out/iron-chef-lead-v99/secondary_stage3_segment11_advancement_state.json` in the ChefKix workspace.
+
 ## LEAD v334 — Segment 10 validated; preserve ambiguous Segment-11 launch boundary (2026-10-15)
 
 - **Verified Segment-10 boundary:** the original preserved transfer was revalidated offline without another Kaggle download. Exact step 631, terminal state, 12/12 checkpoint hashes, pinned Segment-9 manifest `46f5b0f403f9840e07854ca4c1ce179e49d136b65cc5f319c56f3b2e626eb969`, recursive ancestry, frozen scientific/data selections, unchanged 187/374/561 evaluations (none at 631), and eight-file retained-best continuity passed. Segment-10 manifest: `24b297105fda76720d9d080e4f0cb102dc08fb151acaf39aa7356609acc6a581`.
