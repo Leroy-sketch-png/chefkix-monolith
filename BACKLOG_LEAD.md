@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v341 — L42 direct conformal-recommender prior art (2026-10-15)
+
+- Followed S35's citation trail and screened the official PLOS full text for Ayyaz et al. (2018), plus official publisher records/abstracts for Kagita et al.'s 2017 conformal recommender, 2018 conformal matrix factorization, and 2022 inductive conformal recommender. These establish direct generic prior art for conformal recommendation sets, rating confidence, and per-item confidence filtering; broad “first conformal/reliable recommender” claims are not defensible.
+- The reviewed methods target movie/user-item ratings or implicit-feedback precedence. They do not establish ingredient-substitute correctness, the frozen single-gold rescue estimand, unseen-pair rescue, or allergen-specific validity. This narrows L42 but does not resolve thesis novelty.
+- The PLOS article's “initiates” framing conflicts with the earlier work it cites; the SSoT records this rather than adopting that novelty wording. Only its full text was reviewed here; the three ScienceDirect records were abstract/metadata screens, not implementation replications.
+- Evidence and limits: root `SCOPE.md` L42 follow-up; canonical SSoT §4 and Appendix C entries S36–S39; root docs commit `67cb51d`. L42 remains OPEN: hashed query/response funnel, broader citation/duplicate review, independent adjudication, and claims-register review are still required. No novelty conclusion or status-count change.
+- Segment 11 was freshly observed `RUNNING` through the official primary CLI during this update. No step-701 artifact validation or later-segment authorization is implied.
+
 ## LEAD v340 — L42 recommender reliability prior art narrowed (2026-10-15)
 
 - Screened Angelopoulos et al., *Recommendation Systems with Distribution-Free Reliability Guarantees* (PMLR 204, 2023) from the official proceedings page and full PDF. The paper controls FDR for variable-size learning-to-rank recommendation slates and optimizes diversity under that constraint on Yahoo! Learning to Rank and MS MARCO. This is direct prior art against broad “first reliable/conformal recommender” language, but it does not answer the thesis's culinary-valid-substitute, single-gold rescue, unseen-pair, or allergen-specific estimands.
