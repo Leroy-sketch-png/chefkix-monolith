@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v336 — Confirm account-boundary block; render-check Q124 exhibit (2026-10-15)
+
+- **Training fallback check:** on the human architect's authorization, the official primary Kaggle credential was checked against the exact existing Segment-11 slug. It authenticates as `phanphutho`, does not list that slug in its owned-kernel inventory, and receives HTTP 403 Forbidden for `tnvtrung/chefkix-senath-stage-3-sft-segment-11`. No primary push, ownership rewrite, or predecessor substitution was attempted. The secondary `tnvtrung` quota rejection remains the blocker; the active hourly quota monitor remains the only provenance-preserving path unless access to the same private kernel/input is granted.
+- **Q124 visual pass:** repaired the desktop verdict badge/copy collision and inspected rendered 1440 px desktop, 390 px mobile (document width equals viewport), and all four pages of letter print output. No clipping or page overflow found in those states. Render files are ignored local review evidence at `ai/out/lead-q124-visual-review-20261015/` in the ChefKix workspace. This does not satisfy Q124's real timed listener rehearsal or establish audience comprehension; Q124 remains incomplete.
+- **Claim boundary:** Segment 11 is not running, step 701 is not achieved, and no overall Stage-3 completion/model-quality claim follows. The exhibit remains a frozen-evaluation research artifact, not a live product demo.
+
 ## LEAD v335 — Segment-11 push rejected by owner GPU quota (2026-10-15)
 
 - Segment 10 remains validated at exact step 631; manifest `24b297105fda76720d9d080e4f0cb102dc08fb151acaf39aa7356609acc6a581`. The prepared Segment-11 package is pinned to it and targets step 701, with Segment 10 as sole predecessor.
