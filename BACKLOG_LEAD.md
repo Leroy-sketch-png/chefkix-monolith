@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v271 — Keep R42's Senath metric separate from NutriHeal prior art
+
+- **Row-level check:** v197 R42 is titled “Senath journal abstract22.04% and weaker Hit@3/10,” is `UNVERIFIED`, and has `LOCAL_MIGRATION_CHECKLIST_ONLY` provenance. LEAD v236/v247 record the Senath-specific attributed report and adjacent recommender-conformal comparison; LEAD v265 records the separate Gim/Ko NutriHeal/KCI/Zenodo lineage.
+- **Crosswalk refinement:** R42 must map only to the attributed Senath metric and its source/evidence boundary. NutriHeal's incomplete-nutrition abstract is relevant to R28/R29's broad prior-art funnel, but it does not verify or support the Senath number.
+- **Disposition:** made the current proposed R42 mapping lineage-specific and cited LEAD v266. The row's status, provenance, metric, source register, and existing ignored overlay were not changed. This is pointer clarification only; no reported result was reproduced and L42/L48 remain open.
+
 ## LEAD v270 — Bind R32–R35 to the active human-evidence gates
 
 - **Row/source check:** the v197 R32–R35 entries are all `UNVERIFIED` with `LOCAL_MIGRATION_CHECKLIST_ONLY` provenance; their labels (“Human audit150/two raters,” “H1 frozen decision result,” “Per-cell calibration on frozen protocol,” and “Human-validated judge”) are inventory seeds, not findings. The current 44-R31 derivative retains those statuses and maps the four rows to L36/L38/L43.
@@ -168,7 +174,7 @@
 | R39 | `M-A reconstructs R0 seed/runtime graph statistics.` | Reconstruct exact producer→artifact→runtime path and denominator/identity/directionality before unquarantining. |
 | R40 | `M-A reconstructs R0 coverage curves and source columns.` | Reconstruct exact source-column and coverage definitions; keep historical R0 numbers quarantined until reproduced. |
 | R41 | `No current package; PR15 blocks reuse of Appendix A as a validated synthetic self-test.` | Preserve author claim only; independent implementation validation needs a separately scoped task. |
-| R42 | `L42 attributed literature evidence; LEAD v236/v247.` | Prior-art report only, not local reproduction; retain reported-number attribution and bounded scope. |
+| R42 | `L42 Senath-specific attributed metric; LEAD v236/v247/v266/v271.` | Prior-art report only, not local reproduction; NutriHeal is a separate author lineage and does not support this metric; retain attribution and bounded scope. |
 | R43 | `L46 source-bound defense answers and timed rehearsal.` | Rebuilt answers plus observed human rehearsal; written answers alone do not pass. |
 | R44 | `L41 written institutional ethics classification/approval.` | Record actual institutional disposition; absence from local notes is not a rejection. |
 | R45 | `L47 ARR service-contributor gate; LEAD v238/v245/v246.` | Requires named candidate, current qualification evidence, written consent/capacity, accurate profile, and cycle-specific deadlines. |
