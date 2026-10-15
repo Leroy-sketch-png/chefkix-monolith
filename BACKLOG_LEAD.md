@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v343 — L42 direct substitution rankers full-text screened (2026-10-15)
+
+- Added two publisher full-text screens to the canonical prior-art inventory: S44, Shirai et al.'s FoodKG/DIISH ranker evaluated on target→substitute pairs with MAP/MRR/RR@k, and S45, ONFOODS' recipe-specific alternative-beef-cut prototype with nutrition/sensory scoring, quantity and inventory context, and user-adjustable ranking.
+- S44 directly defeats broad “first ingredient-substitution ranker” and “first pair-based substitution evaluation” language; it permits multiple substitutes and notes subjective validity. S45 is system/ranking prior art, but its prototype lacked sensory inputs and used equally weighted nutritional attributes. Neither establishes the exact frozen same-candidate human-validity/single-gold rescue/unseen-pair/allergen evidence protocol.
+- L42 remains OPEN. No complete hashed §25.4 funnel, dataset/code-lineage adjudication, independent review, claims-register promotion, or novelty conclusion; no status count changed. See root `SCOPE.md` L42 and SSoT §4 / Appendix C S44–S45; root commit `a5fa29a`.
+- The official primary Kaggle CLI freshly observed Segment 11 `RUNNING` toward step 701. This is remote status only; no artifact validity or downstream authorization is implied.
+
 ## LEAD v342 — L42 culinary substitution/evaluation prior art mapped (2026-10-15)
 
 - Added four direct culinary-domain sources to the SSoT and evidence log: PACIS 2018 alternative-ingredient recommendation (suitability, category diversity, combination novelty); WebMedia 2021 context-conditioned allergy-safe recipe generation (abstract-level, qualitative analysis); a 2022 substitution ontology pattern (conditions, goals, quantities, transformations); and AdaptaFood (2025), a full-text-screened dietary recipe adaptation system with top-k substitutes, a 13,056-pair benchmark, and human-rated adaptation study (66 recipes, 20 users, 194 annotations).
