@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v342 — L42 culinary substitution/evaluation prior art mapped (2026-10-15)
+
+- Added four direct culinary-domain sources to the SSoT and evidence log: PACIS 2018 alternative-ingredient recommendation (suitability, category diversity, combination novelty); WebMedia 2021 context-conditioned allergy-safe recipe generation (abstract-level, qualitative analysis); a 2022 substitution ontology pattern (conditions, goals, quantities, transformations); and AdaptaFood (2025), a full-text-screened dietary recipe adaptation system with top-k substitutes, a 13,056-pair benchmark, and human-rated adaptation study (66 recipes, 20 users, 194 annotations).
+- AdaptaFood explicitly says pair collections do not identify the best candidate among a presented set and that multiple valid substitutes can exist. This is relevant to the thesis's single-recorded-gold limitation, but it also means broad “first ingredient substitution evaluation,” “first human-rated adaptation,” or generic top-k novelty language is unsupported. No allergen-specific experiment was found in the screened AdaptaFood text; the WebMedia abstract does not establish safety validation.
+- **Current research boundary:** the possible distinction is the exact frozen same-candidate validity protocol, gold-record rescue, unseen-pair strata, and a separately evidenced allergen endpoint. Whether this exact combination or any component is new remains `UNKNOWN`; L42 is OPEN. No novelty claim, register promotion, or status-count change.
+- Evidence/access grades and citations: root `SCOPE.md` L42 follow-up; canonical SSoT §4 and Appendix C S40–S43; root docs commit `f32d8cf`. S40/S41 were abstract-only, S42 conceptual-source record/content only, S43 full text. No independent reproduction or complete hashed §25.4 funnel.
+- The primary Kaggle CLI freshly observed Segment 11 `RUNNING` toward step 701. This is status only; no artifact validity or downstream authorization is implied.
+
 ## LEAD v341 — L42 direct conformal-recommender prior art (2026-10-15)
 
 - Followed S35's citation trail and screened the official PLOS full text for Ayyaz et al. (2018), plus official publisher records/abstracts for Kagita et al.'s 2017 conformal recommender, 2018 conformal matrix factorization, and 2022 inductive conformal recommender. These establish direct generic prior art for conformal recommendation sets, rating confidence, and per-item confidence filtering; broad “first conformal/reliable recommender” claims are not defensible.
