@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v337 — Primary fallback is also non-runnable and non-lineage-compatible (2026-10-15)
+
+- The exact primary-owned Stage-3 checkpoint notebook `phanphutho/chefkix-senath-stage-3-sft-checkpoint` reports `CANCEL_ACKNOWLEDGED` via the official CLI. This is a distinct owner-bound kernel and has not been validated as the pinned Segment-10 step-631 predecessor. It is not safe to restart or relabel it as Segment 11.
+- Reaffirm v336's exact Segment-11 HTTP 403: no primary push, owner rewrite, or predecessor substitution. Secondary quota remains the only current route preserving the verified tnvtrung chain; its explicit quota watcher remains active.
+- Q124's rendered desktop/mobile/letter-print review remains completed as browser evidence only; human listener rehearsal remains required.
+- **Actionable dependency:** grant `phanphutho` access to the same private Segment-11 kernel and required bridge input, or explicitly approve a separate primary-owned training chain after that chain's predecessor and artifact provenance are independently validated. No progress claim is made for Segment 11/step 701.
+
 ## LEAD v336 — Confirm account-boundary block; render-check Q124 exhibit (2026-10-15)
 
 - **Training fallback check:** on the human architect's authorization, the official primary Kaggle credential was checked against the exact existing Segment-11 slug. It authenticates as `phanphutho`, does not list that slug in its owned-kernel inventory, and receives HTTP 403 Forbidden for `tnvtrung/chefkix-senath-stage-3-sft-segment-11`. No primary push, ownership rewrite, or predecessor substitution was attempted. The secondary `tnvtrung` quota rejection remains the blocker; the active hourly quota monitor remains the only provenance-preserving path unless access to the same private kernel/input is granted.
