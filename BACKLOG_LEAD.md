@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v344 — L42 human-evaluated substitution prior art screened (2026-10-15)
+
+- Added S46–S48 to the canonical SSoT/SCOPE: pair-level ingredient/substitute human correctness labels (S46), contextual substitution ratings by 10 annotators (S47), and adjacent food-swap plausibility/acceptance evidence (S48, abstract-level).
+- Broad “first human-evaluated substitution,” “first independently annotated pair validity,” and “first context-aware human-rated substitution” language is unsupported. S47 states 150 items but enumerates 50+50+100; preserve this source inconsistency. The proposed shared-pool, blinded A/C/N/U audit remains a design distinction to test, not an accepted novelty claim.
+- L42 remains OPEN: no complete hashed §25.4 funnel, dataset/code-lineage adjudication, external independent review, claims-register promotion, or novelty conclusion. No status count changed. See root `SCOPE.md` L42 and SSoT §4 / Appendix C S46–S48; root commit `bce4003`.
+
 ## LEAD v343 — L42 direct substitution rankers full-text screened (2026-10-15)
 
 - Added two publisher full-text screens to the canonical prior-art inventory: S44, Shirai et al.'s FoodKG/DIISH ranker evaluated on target→substitute pairs with MAP/MRR/RR@k, and S45, ONFOODS' recipe-specific alternative-beef-cut prototype with nutrition/sensory scoring, quantity and inventory context, and user-adjustable ranking.
