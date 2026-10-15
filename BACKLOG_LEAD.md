@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v345 — L42 crowdsourced substitute-ranking prior art screened (2026-10-15)
+
+- Citation-chased S46 to S49, Achananuparp & Weber (2016): 100 food-entry targets, two methods' separate top-10 lists, 2,000 candidate-pair judgments by three crowd workers each, and thresholded P@k/MAP/NDCG.
+- “First human-evaluated substitute ranking” and generic “first crowdsourced pair validity” claims are unsupported. The study evaluates diary food entries in meal co-occurrence context, not ingredient replacement inside a fixed recipe or a shared candidate pool across systems. This narrows comparison but does not prove novelty of the proposed protocol.
+- L42 remains OPEN: full hashed §25.4 funnel, lineage/duplicate adjudication, independent review, and claims-register review remain outstanding; no status count changed. See root `SCOPE.md` L42 and SSoT §4 / Appendix C S49; root commit `144c9c3`.
+
 ## LEAD v344 — L42 human-evaluated substitution prior art screened (2026-10-15)
 
 - Added S46–S48 to the canonical SSoT/SCOPE: pair-level ingredient/substitute human correctness labels (S46), contextual substitution ratings by 10 annotators (S47), and adjacent food-swap plausibility/acceptance evidence (S48, abstract-level).
