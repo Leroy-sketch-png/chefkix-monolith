@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v340 — L42 recommender reliability prior art narrowed (2026-10-15)
+
+- Screened Angelopoulos et al., *Recommendation Systems with Distribution-Free Reliability Guarantees* (PMLR 204, 2023) from the official proceedings page and full PDF. The paper controls FDR for variable-size learning-to-rank recommendation slates and optimizes diversity under that constraint on Yahoo! Learning to Rank and MS MARCO. This is direct prior art against broad “first reliable/conformal recommender” language, but it does not answer the thesis's culinary-valid-substitute, single-gold rescue, unseen-pair, or allergen-specific estimands.
+- Also checked the official ACL abstract for SConU: it concerns selective conformal uncertainty/outlier handling in high-stakes QA; full text was not screened in this pass. Senath et al. remains the direct ingredient-substitution comparator already indexed in SSoT.
+- **Boundary:** one targeted full-text screen plus one abstract-only screen is not the §25.4 novelty funnel. Query/response hashes, citation chase, duplicate resolution, and independent human adjudication remain open; L42 stays OPEN, no novelty conclusion or register status promotion. Evidence: root `SCOPE.md` dated L42 follow-up and SSoT S35 (commit `12f4f13`).
+
 ## LEAD v339 — Segment 11 version 1 launched under newly usable primary access (2026-10-15)
 
 - Primary preflight now succeeds for the private bridge dataset and exact `tnvtrung` Segment-11 draft; the sole Segment-10 predecessor reports `COMPLETE` and its source pull succeeds. The saved draft code differed from the validated package, so the already-prepared 631→701 package was used without changing metadata, owner, input, predecessor, or evaluation contract.
