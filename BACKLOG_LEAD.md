@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v360 — Bound AdaptaFood artifact-discovery result (2026-10-20)
+
+- The S43 publisher page promises code/models/data on GitHub “upon acceptance” but supplies no repository URL in that footnote; its linked Zenodo record lists the paper PDF only. Bounded unauthenticated GitHub repository searches found no exact title/author-variant match; the University of Granada record request timed out.
+- This is a query- and date-bounded discovery record, not proof artifacts do not exist elsewhere, not an access/licensing conclusion, and not evidence of dataset/case overlap. L42 remains OPEN and no novelty conclusion follows.
+- Derived sync only; no source key, study count, claims-register entry, experiment, or status-score change. Canonical detail: root S43 and §4 in `academic_vision_and_strategy.md`, plus L42 follow-up in `SCOPE.md`.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
