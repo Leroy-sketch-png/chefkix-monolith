@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v371 — Bound Recipe1MSubs rights evidence; keep release gate open (2026-10-20)
+
+- Official-source inspection found the Recipe1M site exposes an access route but no license text on the rendered page inspected; the official GISMo README requires Recipe1M registration and licenses project code/components, not the dataset by that statement. Recipe1M paper provenance points to multiple recipe websites. None establishes per-case Recipe1MSubs reuse or redistribution permission.
+- Keep per-case `license_tag` as `UNKNOWN`; no rights claim or M-F completion is promoted. The finding is not proof permission is absent. Do not distribute source recipe text/case content from this evidence.
+- Next acceptance: inspect and preserve the actual terms for the accessed dataset/version, map them to research, derived-case, storage, and redistribution use; otherwise obtain explicit permission or exclude case-level release. Evidence and limits: root `SCOPE.md` / audit note `ai/evidence/senath-inference/recipe1msubs-license-source-audit-20261020.md`.
+
 ## LEAD v370 — Reproduce FooDB presence strata for both frozen Senath splits (2026-10-20)
 
 - Hash-pinned the full-split case/label frames, installed `CompoundIndex.get` source, provenance sidecar, and official profile artifact. Both-profiled endpoint pairs: validation 1,121/10,729 (10.448318%); test 1,162/10,747 (10.812320%). Both/partial/none pair counts and endpoint-occurrence denominators are kept distinct.
