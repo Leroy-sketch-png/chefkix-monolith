@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### Q124 / LEAD v430 browser-rendered exhibit inspection (2026-10-21)
+
+Read-only browser inspection of the local offline exhibit (source SHA-256 `47D9AA1D7F5E1F3F704D43EA32AF5773EF2CF94AA906D94AFF232457E11C15FF`) found the desktop hierarchy legible and metric cards stacked/readable at a narrow-width zoom stress approximation (~320 CSS px; not device emulation). The evidence table scrolls horizontally and exposes a named region/instruction. No screenshot was saved. Keyboard/focus validation remains inconclusive; actual handset/breakpoint checks and timed human rehearsal/listener responses remain NOT RUN. Q124 stays open; no accessibility, comprehension, or demo-acceptance claim. This later observation supplements, but does not erase, the historical v416 source-contract record.
+
 ### L45 / LEAD v429 evidence-bounded introduction draft (2026-10-21)
 
 Added `research/chapters/01-introduction.md` to the research checkout's default `master`, commit `6eeac1a77e99e45a1df5a830c2cb7de898bbfcdf`, SHA-256 `3a9e9402b593d54de46d9e2ac35642a681cdeed5afd78580386b6cb09ee829a`. The 76-line v0.1 draft follows active §21 and §§2–3: it defines the question and H1–H5 boundaries, separates the intended C1–C5 contributions, and explicitly rejects unsupported safety, usefulness, superiority, and novelty claims. It uses 8 resolving Markdown links, has no duplicate headings, and passes `git diff --check`. No new source verification or empirical result is claimed; chapter acceptance remains open, and the research checkout has no remote.

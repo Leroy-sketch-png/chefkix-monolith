@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v430 — Browser-rendered exhibit inspection; accessibility and rehearsal gates remain (2026-10-21)
+
+- Read-only visual inspection of the local offline exhibit `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\ai\demos\iron-chef-midterm-v26-exhibit.html` (SHA-256 `47D9AA1D7F5E1F3F704D43EA32AF5773EF2CF94AA906D94AFF232457E11C15FF`) showed a legible desktop hierarchy and, at a narrow-width stress approximation (~320 CSS px via browser zoom, not device emulation), stacked metric cards remained readable. The evidence table could be scrolled horizontally; its named scroll region and visible narrow-screen instruction were present.
+- This is a browser-rendered inspection, not stored screenshot evidence, physical-device/breakpoint verification, a complete keyboard/focus test, offline revalidation, or audience acceptance. The keyboard-focus attempt was inconclusive (browser focus stayed ambiguous); no timed rehearsal or listener responses were observed. **Q124 remains open**; do not infer accessibility acceptance, comprehension, or demo success. No exhibit content, benchmark result, or strategy authority changed.
+- The earlier v416 source-contract statement (“browser-level navigation/focus check did not run”) records the earlier state. This later observation supersedes only the claim that no browser visual inspection occurred; it does not close the remaining gates.
+
 ## LEAD v429 — Draft the thesis introduction from active, bounded doctrine (2026-10-21)
 
 - Added `research/chapters/01-introduction.md` to research-default-branch `master`, commit `6eeac1a77e99e45a1df5a830c2cb7de898bbfcdf`, SHA-256 `3a9e9402b593d54de46d9e2ac35642a681cdeed5afd78580386b6cb09ee829a`. The 76-line v0.1 draft states the active research question, H1–H5 maturity, C1–C5 intent, task/identity/evidence boundaries, and chapter map from §21; it avoids importing unverified harm statistics or novelty claims from the archived v3 material.
