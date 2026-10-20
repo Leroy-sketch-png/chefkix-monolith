@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v440 — Bound M-F source discovery before any rights count (2026-10-21)
+
+- Scanned the current monolith tree, including hidden/ignored files but excluding generated/dependency directories, for static recipe/cookbook/sample/seed/dataset files and first-party/private-Western corpus references. No matching data files or source-corpus declarations were located beyond the backlog itself.
+- This is **not** a zero-recipe finding: the product database, authorized external sources, and data outside the repository were not queried. Recipe count is `UNKNOWN`; license status is `NOT_ASSESSED`; M-F remains open. The exact bounded search and limitations are in `evidence/member-mf-repository-source-inventory-20261021.json`.
+- Next acceptance is authorized app/data-source access, stable per-recipe inventory and provenance, license/permission scope, and legal review as required. No data content was accessed or exported, and no rights claim changed.
+
 ## LEAD v439 — Reconcile M-A graph representation counts without conflation (2026-10-21)
 
 - Cross-checked the four preserved local-runtime receipts and their arithmetic. The rebuilt API surface records 92 ingredients and 25 exact-canonical directed edges; the embedded substitution statements separately total 109, decomposed into 25 direct canonical, 3 alias-only, and 81 unresolved literal targets. The analyst statement graph keeps all 109 arcs (28 resolved including unique aliases + 81 unmatched literals) and passes `in-degree sum = out-degree sum = 109` with one self-loop and no duplicate arc excess.
