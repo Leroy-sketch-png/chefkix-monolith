@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v398 graph artifact deserialization and provenance blocker (2026-10-21)
+
+The tracked AI-service loader reads the ignored, untracked PyG subgraph with `weights_only=False`; a replacement artifact could execute pickle code. The local bytes were inspected only with a restricted loader, but provenance is missing and runtime serving is not ready. Preserve the files; M-A remains open until artifact provenance and safe loading are established. See LEAD v398 and its evidence JSON.
+
 ### M-A / LEAD v397 AI-service graph artifact and readiness boundary (2026-10-21)
 
 The registry marks `graph-rag` active but not serving-ready; a restricted local inspection counted 195,600 nodes and 7,247 serialized arcs without establishing that the artifact is loaded or usable. The 4,591-arc historical claim remains unreconciled. M-A stays open; R39/R40 stay quarantined. See LEAD v397 and its evidence JSON.

@@ -1,0 +1,50 @@
+{
+  "record_type": "ai_service_graph_artifact_deserialization_and_lineage_audit",
+  "observed_on": "2026-10-21",
+  "source": {
+    "repository": "chefkix-ai-service",
+    "head_at_observation": "067520856b44597e59bb1e8464dd41ea4de624e0",
+    "file": "src/ml_loader.py",
+    "file_sha256": "48b65fb95b088276bd4a0d5db19e3dcbc7e74df4a0f37c9f1a09ad20cba6a617",
+    "line": 110,
+    "line_commit": "6dfa21ee61e81ad7fc9f0c64ee8ffb86ee710d15",
+    "line_content": "torch.load(str(subgraph_path), weights_only=False)",
+    "loader_behavior": "The model loader derives substitution_subgraph.pt beside the registry-selected hgat_weights.pt and loads it as a PyG HeteroData object.",
+    "adjacent_hgat_state_dict_load": "torch.load(..., weights_only=True)"
+  },
+  "artifact_tracking": {
+    "subgraph_path": "models/substitution_subgraph.pt",
+    "subgraph_git_status": "ignored by models/.gitignore; not in tracked-file inventory",
+    "hgat_weights_path": "models/hgat_weights.pt",
+    "hgat_weights_git_status": "tracked",
+    "producer_or_install_script_found": false,
+    "loader_documented_install_script": "install_kaggle_weights.py",
+    "documented_install_script_found_in_scanned_tree": false,
+    "interpretation": "No checked-in producer/install path was found in the scanned AI-service tree; this does not prove no external or historical producer exists."
+  },
+  "security_assessment": {
+    "finding": "Unrestricted pickle deserialization is an unsafe trust boundary if the artifact can be replaced or supplied by an untrusted source.",
+    "current_artifact_malicious": "not assessed; no maliciousness claim",
+    "runtime_execution_observed": false,
+    "local_artifact_inspection_method": "Restricted torch.load(weights_only=True) with narrowly explicit PyG state-container allowlisting; unrestricted pickle load was not used.",
+    "runtime_serving_ready": false,
+    "recommended_gate": "Before deployment or inference, establish authenticated producer provenance and exact artifact hash verification, constrain deserialization to an audited safe load, and test the real serving path."
+  },
+  "systemic_sweep": {
+    "torch_load_calls_found_in_scanned_workspace_python_sources": 2,
+    "unrestricted_torch_load_calls_found": 1,
+    "restricted_torch_load_calls_found": 1,
+    "additional_pickle_load_call_sites_in_research_tooling": 9,
+    "research_scripts_with_pickle_loads": 7,
+    "one_observed_preflight_guard": "run_recipe_context_dual_encoder.py checks pickle globals before load; this was noted but not fully security-reviewed.",
+    "research_tooling_followup": "Vocabulary and split data loads in local research scripts were identified; the other call sites were not audited for equivalent guards or fully assessed for source trust."
+  },
+  "disposition": {
+    "model_files_modified": false,
+    "registry_modified": false,
+    "loader_modified": false,
+    "m_a_status": "OPEN",
+    "r39_r40_status": "QUARANTINED",
+    "inference_or_quality_claim": false
+  }
+}
