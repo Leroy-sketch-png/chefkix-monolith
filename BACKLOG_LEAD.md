@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v386 — Verify replayable Senath validation showcase (2026-10-20)
+
+- The recovered bundle's `showcase.html` is generated from ingested saved outputs, not hard-coded metrics. Its renderer revalidates the benchmark bundle and receipt/predictions hashes before writing; it includes all 200 case rows, displays method failures as misses, and preserves provenance plus the diagnostic-only boundary.
+- Exact showcase SHA-256: `44706f279cd4be6bc719313b28b0870c89435bb435c2a2ac7da3123dc8d85451`. The focused renderer/ingester regression suite passes 15/15, including method-failure replay and receipt-tamper rejection.
+- This verifies a replayable evidence artifact, not human usefulness, independent test/generalization, model quality, method superiority, or full L44/M-D completion. No new Kaggle call/output or claim/training/method-choice status change.
+- Evidence: `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/out/senath-validation-benchmark-v4-recovery-20261020/showcase.html`; exact-worktree `ai/tools/test_senath_validation_benchmark.py`.
+
 ## LEAD v385 — Integrate validated 200-case Senath comparison (2026-10-20)
 
 - Fresh official Kaggle CLI status: the existing `phanphutho/chefkix-senath-validation-benchmark-v1` kernel is `COMPLETE` at saved version 4. The exact recovery helper receipt records one transfer; independent rehashing verifies all 14 recovered output files, with no extras or mismatches. No second download or retry was made.
