@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / LEAD v436 split and identity recount (2026-10-21)
+
+The research-default-branch local recheck reproduced validation/test case-frame counts (10,729/10,747) and GISMo-primary/Senath-sensitivity partitions from the hash-pinned identity map. Available training/validation CSV row counts and hashes matched the audit manifest. The raw test CSV is not in the designated clean-room folder, and the original GISMo joins were not rerun. Evidence note: `ai/evidence/claims-register/r04-r05-split-identity-recheck-20261021.md`, research commit `03ab020`, SHA-256 `57bb6d4ca2f22485f2a8926fcaecc643144ecf14c93e3db21c91b430d5011974`. This is interim local count/integrity evidence; M-B acceptance and R04/R05 claim verification remain open. Research checkout has no remote.
+
 ### L48 / LEAD v433 synchronized active register status (2026-10-21)
 
 The active LEAD summary now points to the v4.2 R01–R45 inventory (research commit `d6341cf`, SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`), with all 45 rows still `UNVERIFIED`. The old 11/6/28 overlay and v171/v197 pointers remain historical only. M-G's evidence contract was corrected in LEAD v432; no claim-by-claim mapping or reproduction has been accepted. L48 remains open; the research checkout has no remote.
@@ -209,7 +213,7 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 | ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
 |----|--------------------------|--------------|--------------|
 | **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed-graph degree-sum check passes; every Round 0 number reproduced or struck. | Real seed arrays, runtime artifact access | 10h |
-| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
+| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Interim v3 split/identity recount exists (LEAD v436; note in research commit `03ab020`), but raw test CSV/source-join reproduction and remaining M-B acceptance are open. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
 | **M-C** | **Explorer & evidence endpoint (flagged, shadow):** §12.4–12.5 implementation. T-03 to T-09 pass. Feature flag OFF by default. Real artifact only; tampered artifact refuses render. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
 | **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. | M-B case frames; official GISMo checkpoint | 8h |
 | **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10, T-11, T-12 pass. Act 3 recorded from frozen files (not live API). Clean checkout, network disabled except API arms. | M-C Explorer; L38/L39 results | 12h |
