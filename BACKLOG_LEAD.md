@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v390 — Check runtime knowledge-graph route availability (2026-10-21)
+
+- The same local service still returns HTTP 200 for `/api/v1/knowledge/ingredients` (92 records) and `/api/v1/knowledge/techniques` (25 records), but `/api/v1/knowledge/graph?limit=500` returns HTTP 404 (`Not Found`). The captured graph-route error body at `2026-10-21T00:12:23.429+07:00` hashes to `40d6085656256f8c3cf6c89992faa8dc12333c2071ca3009d5e1bb8f2f8628f7`.
+- The checked-out controller source in this repository declares `GET /knowledge/graph`, and the local process is listening on port 8080. The response demonstrates a local code/runtime route mismatch; it does not identify the runtime artifact/build, prove deployment provenance, or establish whether a graph is served through another route. The listener is Java PID 30696 with a Java argument-file reference (hash recorded), but sanitized inspection did not resolve the served application artifact. No graph-output counts are claimed.
+- M-A remains OPEN; R39/R40 remain quarantined. Evidence is recorded in `evidence/lead-ma-graph-route-check-20261021.json`; next diagnostic is to resolve the Java launch argument/artifact without exposing command-line secrets, then compare its exact build to this checked-out source before any runtime interpretation.
+
 ## LEAD v389 — Measure local knowledge API snapshot (2026-10-21)
 
 - Two sequential read-only GETs to the local monolith knowledge endpoints returned HTTP 200 on 2026-10-21 00:01 ICT. The observed responses contain 92 ingredient records / 92 unique nonempty canonical names and 25 technique records. Response SHA-256s: ingredients `1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3`, techniques `73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf4`; canonical combined payload `3c4b2b615716b686744bf2af0441a4ef63aa01516d0c7a4d51afb598b6268edf`.

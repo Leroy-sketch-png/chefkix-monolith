@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v390 graph route check (2026-10-21)
+
+Local ingredient and technique collection GETs return 200, while the source-declared graph GET returns 404. This is evidence of route availability mismatch, not proof of the running artifact’s identity or of any graph source. M-A remains OPEN; see LEAD v390 and `evidence/lead-ma-graph-route-check-20261021.json`.
+
 ### M-A / LEAD v389 local knowledge API snapshot (2026-10-21)
 
 Read-only local knowledge endpoints returned HTTP 200 and yielded 92 ingredient and 25 technique records. Seed-name overlap is 17/25 ingredients and 3/16 techniques, not lineage proof. In the analyst interpretation, all 109 embedded substitution statements are retained as arcs (28 exact-name resolutions; 81 literal unmatched targets). This does not prove persisted graph edges, seeder provenance, deployment state, or reconcile the quarantined Round-0/HGAT claims. M-A stays OPEN and R39/R40 stay quarantined. See LEAD v389 and `evidence/lead-ma-local-runtime-snapshot-20261021.json` for hashes and scope limits.
