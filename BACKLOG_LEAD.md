@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v418 — Add a freeze-gated allergen methods draft to L45 (2026-10-21)
+
+- Chapter 8 now has an internal v0.1 methods draft in the separate local research checkout: commit `fbacb3a`, SHA-256 `A5CF4B235329D000ABF82F1F0CD0D7F4786E5F4E968A2DAECA5E633834BDD10C`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\08-allergen-methods.md`.
+- It is explicitly a proposed, not approved, methods account. It records the 208-case/13-group frame and one Mistral raw arm as historical ledger state, with no comparison, independent adjudication, human/clinical result, or approved analysis freeze. It carries PR02/03/05/09/10/13 and separate guardrail PR04–08 forward as blockers; no protocol resolution or safety claim is made.
+- The research checkout still has no configured remote. This draft is local-only and not yet fetchable by collaborators. L45 remains OPEN; the entry records preparation progress only and does not change any acceptance gate or completion percentage.
+
 ## LEAD v417 — Advance L45 manuscript with bounded working drafts (2026-10-21)
 
 - **Concrete L45 movement:** five internal v0.1 chapter drafts now exist in the separate research checkout: Chapter 12 bounded negatives (`89e0661`, SHA-256 `E5EFE0BF53B1B8C5C08A4502C01AC3FC6D0E381D0A87E67A7A3B2B86277129CA`); Chapter 5 Senath clean-room inference (`0b1dceb`, `C3349F3AF817F70DB283C3DC86F7F0491E81B083CFDB15CBADFE4228BD31A32D`); Chapter 2 related work (`ae4482b`, `C21F7BD27693A02DC07A3CB797D452CBDC0C8022F189918C89687BA05F63030C`); Chapter 10 bounded compound presence (`7fb3097`, `C9C542FD22EB93B8DA2DA57AF2CF1B36D668CC38157A17926B3EAB418984AE63`); and Chapter 3 data/graph provenance (`c05983e`, `BAFD687C52E012E20FD0457C3FE11FD6A50B26B7896085D715359DC55EA94366`). Exact local paths and evidence ceilings are recorded in the corresponding files under `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\`.
