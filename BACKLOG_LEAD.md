@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v404 — Exercise the source-only GISMo pool builder/verifier tests (2026-10-21)
+
+- **Area cleared:** the focused pytest suite for source-frame construction, candidate ranking and fail-closed pool verification passes **15/15** on the existing research checkout. Coverage includes label-field rejection, source-hash mismatch, split identity, candidate-count/ID/score validation, manifest substitution, target-key rejection, and graph ID/name catalog checks.
+- **AoE boundary:** these are focused synthetic contract tests plus the separately recorded full validation/test artifact verification (LEAD v403); they do not prove GPU execution, benchmark behavior, license clearance, or user value. The source checkout is dirty and its changes were not committed here.
+- **Disposition:** M-B input-preparation confidence improves only; M-B, M-D and L44 remain OPEN under their existing protocol/rights/output gates. No inference or quality claim is promoted. Evidence: `evidence/lead-mb-full-split-gismo-pool-replay-20261021.json` (test command, checkout HEAD, test-source hashes and result).
+
 ## LEAD v403 — Independently verify full-split GISMo pool replay identity (2026-10-21)
 
 - **Validation preparation:** reran the source-only pool verifier over the complete 10,729-case validation pool and its replay. Both contain 536,450 candidates (50 per case), and both the pool payload and manifest hashes match: `0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255` and `a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147`.

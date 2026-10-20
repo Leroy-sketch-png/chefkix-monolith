@@ -7,6 +7,16 @@
     "sha256": "b9c7e7baa9634657760d1e119239996f5a959295ce701b330efe7b5ad392bc1e",
     "purpose": "read-only validation of prepared source-only GISMo top-50 pools against frozen case frames and hash-pinned graph candidate identities"
   },
+  "focused_tests": {
+    "checkout_head": "740e85fff30eac762521eeb5f60d841e216700c5",
+    "command": "python -m pytest -q test_build_senath_source_only_pools.py test_verify_senath_source_only_pools.py",
+    "working_directory": "ai/tools",
+    "exit_code": 0,
+    "passed": 15,
+    "failed": 0,
+    "test_build_senath_source_only_pools_sha256": "51478df711165ce2ec577414dfdecfd7622d44028d093fe8ee3d18515ffc54d4",
+    "test_verify_senath_source_only_pools_sha256": "9115548edc3cf2cea620ccfe050a256720e5cc44d4e00ce05fab91960b685769"
+  },
   "shared_inputs": {
     "validation_case_frame_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
     "test_case_frame_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",

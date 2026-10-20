@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / LEAD v404 focused pool-builder and verifier tests (2026-10-21)
+
+The focused pytest suite for source-only case construction, GISMo candidate ranking, and fail-closed pool verification passes 15/15, covering label-key exclusion, identity/hash checks, candidate validation, and graph catalog mapping. This supplements LEAD v403's full-split artifact verification but is still synthetic-contract/input-preparation evidence, not inference, evaluation, rights clearance, or M-B completion. M-B/M-D/L44 remain open. See LEAD v404 and the shared evidence JSON.
+
 ### M-B / L44 full-split pool replay verification (2026-10-21; derived from LEAD v403)
 
 Independent verification confirms deterministic full validation and test source-only GISMo top-50 pools: 10,729/10,747 cases and 536,450/537,350 candidates, with matching pool and manifest hashes across each original/replay pair. All candidate IDs match the pinned graph catalog; target labels were not read and no evaluation or selection occurred. This is input-preparation evidence, not M-B completion, Senath inference, or model-quality evidence. Rights/protocol and blinded-fixture gates remain open. See LEAD v403 and its evidence JSON.
