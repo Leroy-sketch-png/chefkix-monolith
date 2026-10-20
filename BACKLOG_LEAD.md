@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v380 — Verify full-split GISMo candidate identity (2026-10-20)
+
+- Extended the independent source-only pool verifier with an optional hash-pinned ingredient-catalog check. All 536,450 validation and 537,350 test candidates resolve to the correct name at the released GISMo helper's 1-based catalog-row ID across the pinned 6,653-ingredient catalog. The separate FlavorGraph CSV `node_id` is not this identity; the first mistaken mapping failed closed before correction, with no pool-byte changes.
+- Added regressions for wrong ID/name, non-ingredient IDs, duplicate names, and row-position-vs-CSV-ID confusion. The focused builder/verifier/benchmark suite passes 30/30. Detailed evidence and source/test hashes: root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
+- Structural source-integrity only: no label read, inference, evaluation, method selection, metric, or quality result. This advances preparation but does not complete M-B/M-D/L44 or Stage 3. Outputs and source assets remain local-only; Recipe1MSubs redistribution rights remain UNKNOWN.
+
 ## LEAD v379 — Prepare full-validation GISMo candidate pools (2026-10-20)
 
 - Generalized the source-only candidate builder/verifier to explicit validation and test splits while preserving the test default. Built all 10,729 frozen validation source rows × 50 released-GISMo candidates (536,450 entries); the independent verifier passed frame/source joins, exact output inventory, 50 unique candidates per case, finite scores, deterministic tie order, and target/label-key exclusion.

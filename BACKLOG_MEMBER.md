@@ -6,6 +6,10 @@
 > **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
 > This replaces the historical member backlog, preserved in Git history. A checked engineering task means code exists with the cited checks; it does **not** certify a model, deployment, clinical safety or thesis result.
 
+### M-B / L44 preparation update (2026-10-20; derived from LEAD v380)
+
+The local-only full validation/test GISMo top-50 pools now pass an independent candidate ID/name check against the pinned 6,653-item ingredient catalog, using the released helper's 1-based row-position ID semantics. All 1,073,800 candidate entries passed; focused source-pool and benchmark tests pass 30/30. This closes a structural input-integrity subtask only. M-B acceptance remains open (including its blinded adversarial fixture and protocol prerequisites), and no inference or evaluation result is claimed. Evidence: root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
+
 ## Current handoff
 
 The v4 thesis demonstrates **measurement, not models**. Your work makes the measurement visible:
