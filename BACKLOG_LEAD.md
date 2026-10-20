@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v395 — Run full Culinary reactor suite after graph-route source proof (2026-10-21)
+
+- Offline `mvnw.cmd -o -pl culinary -am test` completed successfully on source commit `c5750a7056a7264708430ae7bef13e6804d20f6b`: 140 tests, 0 failures, 0 errors, 0 skipped across the reactor. The 2 `KnowledgeGraphControllerTest` cases and 6 `KnowledgeGraphServiceTest` cases passed within that suite.
+- This broadens source/test confidence beyond the route-specific run; it still does not establish the older running process's route surface, runtime graph lineage, deployed artifact provenance, or the M-A acceptance gate. No tracked source changed; only ignored Maven test/build outputs were generated.
+- M-A remains OPEN; R39/R40 remain quarantined. Evidence: `evidence/lead-ma-culinary-reactor-test-20261021.json`.
+
 ## LEAD v394 — Reproduce current graph-controller artifact offline (2026-10-21)
 
 - On monolith `master` commit `c5750a7056a7264708430ae7bef13e6804d20f6b`, `mvnw.cmd -o -pl culinary -am -DskipTests package` succeeded without network access. The ignored `culinary/target/culinary-1.0.0-SNAPSHOT.jar` hashes to `88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1`; its controller class hash is `336752d565228e65cd1eb0dfdd328a78a72fd974e5d2b2b854b3c54aa6967710` and bytecode includes `GET /graph`.

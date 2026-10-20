@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v395 full Culinary reactor suite (2026-10-21)
+
+Offline reactor tests pass 140/140 (including graph controller 2/2 and graph service 6/6). This validates current source tests, not live artifact lineage or runtime graph truth; M-A remains open. See LEAD v395 and evidence JSON.
+
 ### M-A / LEAD v394 reproducible source build (2026-10-21)
 
 Current monolith `master` builds offline with the graph route present; the focused controller test passes 2/2. This does not prove the running process uses that artifact; no install/restart occurred. See LEAD v394 and its evidence JSON.
