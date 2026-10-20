@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v427 — Draft the discussion around recorded evidence boundaries (2026-10-21)
+
+- Added `research/chapters/13-discussion-and-threats.md` on the separate research `master` at commit `9a19f6d`; SHA-256 `2144a89d948bfd12ee046e08618e70e8cedfcb4f862b30746922f7264812383a`. The 72-line v0.1 scaffold synthesizes only claims already present in the canonical evidence ledger, including the validation-only Senath diagnostic, untested human-validity hypothesis, rejected selective operating point, partial allergen evidence, bounded model negatives, and local runtime limits.
+- Every interpretation preserves its evidence ceiling: no human-validity, safety, usefulness, model-superiority, novelty, production-readiness, or overall thesis-completion claim is added. The §21/legacy-§8 chapter-map conflict remains flagged for resolution.
+- Structural review: all nine local Markdown links resolve, including the frozen benchmark recovery receipt; no duplicate headings or trailing whitespace; `git diff --check` passes. L45 remains open. The research checkout has no remote, so this discussion draft is local-only and not yet fetchable by collaborators.
+
 ## LEAD v426 — Draft the guardrail chapter without promoting unvalidated guarantees (2026-10-21)
 
 - Added `research/chapters/07-guardrail-design-and-assumptions.md` on the separate research `master` at commit `fdd7caa`; SHA-256 `b1b0db055607c8a1766292fdcd19a8ebffbac10a1363793f55ef200d7fca0e05`. The 85-line v0.1 scaffold integrates the proposed rank-conformal construction, descriptive-cell boundary, status/cost-of-trust semantics, filtering/abstention failure modes, diagnostics, and acceptance evidence.

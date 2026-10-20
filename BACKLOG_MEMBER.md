@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L45 / LEAD v427 evidence-bound discussion chapter scaffold (2026-10-21)
+
+A twelfth internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/13-discussion-and-threats.md`, commit `9a19f6d`, SHA-256 `2144a89d948bfd12ee046e08618e70e8cedfcb4f862b30746922f7264812383a`. It synthesizes the canonical result ledger while preserving the validation-only, partial, negative, and unresolved boundaries; it introduces no independent analysis or new claim. All nine linked sources resolve. The source checkout has no remote; L45 review, final evidence reconstruction, and chapter acceptance remain open.
+
 ### L45 / LEAD v426 bounded guardrail chapter scaffold (2026-10-21)
 
 An eleventh internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/07-guardrail-design-and-assumptions.md`, commit `fdd7caa`, SHA-256 `b1b0db055607c8a1766292fdcd19a8ebffbac10a1363793f55ef200d7fca0e05`. It records the proposed rank-conformal construction and failure semantics while leaving PR02/04–08/15 unresolved and treating Appendix A as non-executable reference only. No calibration result, coverage guarantee, safety claim, or deployment readiness is claimed. The source checkout has no remote; L45 acceptance, independent protocol/code validation, and thesis review remain open.
