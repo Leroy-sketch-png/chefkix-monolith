@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v355 — Add SHARE direct substitution/editing evidence to L42 (2026-10-20)
+
+- Canonical SSoT now screens SHARE (Li et al., EMNLP 2022) from the official ACL full text: hierarchical ingredient substitution plus recipe-direction generation, an 83K-pair dietary RecipePairs dataset, a 336-recipe human constraint-violation study (two judges per recipe), and 21 real-world cooking trials with seven home cooks.
+- This is close direct prior art for recipe-context substitution, human review and cooking execution. Its unit is the edited whole recipe, not a common ranked candidate pool with per-substitute validity labels. The paper reports 4.5–6.5% prohibited-ingredient mentions in directions and says residual risk is unacceptable for production; do not claim allergen safety or first recipe-context substitution/human-review trials.
+- L42 remains OPEN; the exact frozen candidate-level estimand and any separate safety contribution are `UNKNOWN` pending the complete §25.4 funnel, lineage comparison and independent review. No experiment, claim-register, or progress-scoreboard change.
+- Derived synchronization only. Canonical study boundary and official PDF hash are in root `academic_vision_and_strategy.md` Appendix C S64 and `SCOPE.md` L42 follow-up dated 2026-10-20.
+
 ## LEAD v354 — Add counterfactual recipe-generation boundary to L42 (2026-10-20)
 
 - Canonical SSoT now screens Liu et al. (2022), “Counterfactual Recipe Generation,” from the official ACL full text: 50 Chinese dish pairs / 2,500 recipe instances, ingredient and action-level measures, and best-worst human comparisons of generated versus expert-written whole recipes on grammar, correctness, and preservation.
