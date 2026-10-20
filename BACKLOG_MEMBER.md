@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v410 recovered validation benchmark and replayable showcase (2026-10-21)
+
+This monitor's v4 output recovery and local validator passed for all 200 fixed validation cases with 0 method failures per arm; ingestion recomputed identity-separated Hit@1/5/10 and latency, and a saved-output HTML showcase was rendered. A previous validated recovery already existed; both 14-file hash inventories match, so this retransfer was redundant and adds no independent benchmark result. Measured process wall time was about 4h50m. These are validation diagnostics, not product-quality evidence. Outputs remain local; a compact hash receipt is committed. Do not recover/download again. See LEAD v410.
+
 ### M-A / LEAD v409 live runtime/default-master artifact drift (2026-10-21)
 
 The existing port-8080 service returns 404 for the graph endpoint and loads a culinary JAR byte-identical to the dirty nested checkout's target, not the clean default-master artifact whose controller contains `/graph`. Its loaded controller bytecode lacks the mapping. No process was changed; producer lineage remains unknown and M-A stays open. See LEAD v409 and its evidence receipt.

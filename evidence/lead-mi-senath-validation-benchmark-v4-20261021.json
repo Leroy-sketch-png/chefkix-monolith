@@ -1,0 +1,84 @@
+{
+  "record_type": "recovered_and_locally_validated_senath_validation_benchmark",
+  "observed_on": "2026-10-21",
+  "kernel": {
+    "slug": "phanphutho/chefkix-senath-validation-benchmark-v1",
+    "version": 4,
+    "terminal_status": "KernelWorkerStatus.COMPLETE",
+    "official_cli_output_recovery_invocations": 1,
+    "recovery_helper": "ai/tools/recover_senath_validation_benchmark_once.py",
+    "recovery_helper_sha256": "1cf9e3a288b7d73cd87ee27ad5cd2c1077827e65f2365ed250d2eed26dcd92c9",
+    "script_sha256": "87131d0ab4e7283bea3669622249a07300ff5bf165998d3fc91782c053e8946e",
+    "kernel_metadata_sha256": "cbcaf154446943360a46b57da7ea20694654302689aae8f39ffcfc5c96673763",
+    "execution_manifest_sha256": "507a35e03ce1521b62d8dcc8980f52527b27b1f1a2f021893f87cde2ac699679",
+    "evaluation_spec_sha256": "628794719833804aeae54cc0df83dfdf86de3b08ca5f68bc81794a6a36dfc303",
+    "case_ids_sha256": "147ee2f21e7b11a9e7e64ca63494f9a0d0818c2b6910957225a6b06fec41df43",
+    "candidate_pools_sha256": "5d4fe8ab4b6d190be8cb1d8bcf483dbe994869cc1c639bddf60391ea9eafb96a",
+    "stage3_manifest_sha256": "7a3c3768b7b83ae2d922dfb2275808be08c02142e670b3607b20f69b1c71a2d3",
+    "adapter_model_sha256": "d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814"
+  },
+  "recovery": {
+    "state": "OUTPUTS_VALIDATED_AND_PROMOTED",
+    "this_monitor_transaction_download_invocations": 1,
+    "prior_validated_recovery": {
+      "local_directory": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/out/senath-validation-benchmark-v4-recovery-20261020",
+      "recovery_receipt_sha256": "ba19e47371d49027d97ec162c34fa48a07c6d922ae34c0c2e4d1c9eee1966677",
+      "output_file_count": 14,
+      "same_14_file_inventory_and_hashes": true,
+      "same_manifest_sha256": true,
+      "same_raw_output_sha256": true
+    },
+    "transfers_across_the_two_local_recoveries": 2,
+    "redundant_retransfer_discovered_after_completion": true,
+    "file_count": 14,
+    "recovery_receipt_sha256": "90da69d9157203bef144ef6cf191d75398c593212fc6255fb6ca02a4e6686b81",
+    "output_manifest_sha256": "2bc2e500c2cc244d5683ed0a5a593f0dd40b8400344fb00fbe50d6f98959b9ea",
+    "raw_output_sha256": "75024e51d73b7379fdcb006af9308306f72d24ea8ad4e6b2efd48e75ddfdea96",
+    "phase_log_sha256": "3d688fa9a7eb91cac08b99c4d76bb3216c1cab38f95c85998a4dcaeb4fdf6cef",
+    "output_file_hashes": {
+      "chefkix-senath-validation-benchmark-v1.log": "eb3bc6c02a708f0aebb36153bcf87d087f427e2a8737011e05b133701e2ae48b",
+      "materialized-input/stage3_adapter/README.md": "9592701bd60cd464b40633d282d3a8e8c84018ce8b7a6651fdcd9403976f503b",
+      "materialized-input/stage3_adapter/adapter_config.json": "05e7e41cb3dd883daa689af70620ad0a0021e105776419c0893e6270be468d83",
+      "materialized-input/stage3_adapter/adapter_model.safetensors": "d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814",
+      "materialized-input/stage3_adapter/special_tokens_map.json": "4452b845ab9ca2afa863f59f1411a959e8a32bb4334e264b0e71d5d17dd4dcb9",
+      "materialized-input/stage3_adapter/tokenizer.json": "ee73056557bc254a341e39dbcc002985e42f57544ce7b12640b0ec0c8d48ba32",
+      "materialized-input/stage3_adapter/tokenizer.model": "dadfd56d766715c61d2ef780a525ab43b8e6da4de6865bda3d95fdef5e134055",
+      "materialized-input/stage3_adapter/tokenizer_config.json": "b716066bcb2ede0a1057f3c36f9d2c07d64190d8fd3d92a660424a80672b2834",
+      "materialized-input/stage3_adapter/training_args.bin": "a4fb7ebe61a124db398949f8c7a8c52bb38e838e1a3d17f6c8b1c20dd0413d98",
+      "senath_execution_phases.jsonl": "3d688fa9a7eb91cac08b99c4d76bb3216c1cab38f95c85998a4dcaeb4fdf6cef",
+      "senath_validation_benchmark_manifest.json": "2bc2e500c2cc244d5683ed0a5a593f0dd40b8400344fb00fbe50d6f98959b9ea",
+      "senath_validation_benchmark_raw.jsonl": "75024e51d73b7379fdcb006af9308306f72d24ea8ad4e6b2efd48e75ddfdea96",
+      "senath_validation_benchmark_state.json": "99cb76adc6f4b6e59ae7c6760e5f05e1358177c896b8d7f5247e47365482d3b6",
+      "senath_validation_smoke_outputs.jsonl": "aae073ea51b5e0059f0ad624b59d7f060341177a5c7b826ccde8c93ed4e7c737"
+    }
+  },
+  "validation": {
+    "state": "OUTPUTS_VALIDATED_DIAGNOSTIC_ONLY",
+    "ingestion_receipt_sha256": "89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600",
+    "predictions_csv_sha256": "2a458bba4b3bf1331f34ca609bbfc820212a6614e24f559dfdf4a614906debff",
+    "showcase_html_sha256": "44706f279cd4be6bc719313b28b0870c89435bb435c2a2ac7da3123dc8d85451",
+    "cases": 200,
+    "senath_pair_strata": {"seen": 100, "unseen": 100},
+    "gismo_identity_strata": {"seen": 105, "unseen": 95},
+    "test_split_used": false,
+    "method_failures": {"senath_top20_generation": 0, "gismo_top50_senath_rerank": 0},
+    "overall_diagnostic_hits": {
+      "senath_top20_generation": {"denominator": 200, "gismo_identity_hit_at_1_5_10": [6, 23, 28], "raw_string_sensitivity_hit_at_1_5_10": [7, 24, 29]},
+      "gismo_top50_senath_rerank": {"denominator": 200, "gismo_identity_hit_at_1_5_10": [3, 15, 29], "raw_string_sensitivity_hit_at_1_5_10": [3, 14, 28]}
+    },
+    "latency_seconds": {
+      "senath_top20_generation": {"median": 30.8596299975, "p90": 31.5153596999, "mean": 30.8976113810},
+      "gismo_top50_senath_rerank": {"median": 54.9143225, "p90": 56.8501406694, "mean": 54.9755378085}
+    },
+    "observed_process_wall_seconds": 17407.0209150314,
+    "projected_full_200_case_two_arm_mean_seconds": 17385.9380662441,
+    "stratified_per_case_p90_cost_scenario_seconds": 17892.7844893120,
+    "six_hour_cap_seconds": 21600,
+    "runtime_projection_caveat": "The per-stratum p90-cost sum is not a statistical p90 for total job duration; per-case latency excludes downloads and initialization.",
+    "claim_boundary": "Validation-split diagnostic and execution evidence only. These hit metrics do not establish test performance, comparative model quality, product quality, or human usefulness."
+  },
+  "local_artifact_locations": {
+    "recovered_bundle": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/senath-inference/validation-benchmark-v1-recovered",
+    "ingestion_and_showcase": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/out/senath-validation-benchmark-v1-recovery-20261021"
+  }
+}
