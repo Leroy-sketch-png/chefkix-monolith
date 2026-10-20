@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v420 — Add local graph-runtime evidence boundary to L45 (2026-10-21)
+
+- Chapter 11 now has an internal v0.1 draft in the separate local research checkout: content commit `a76a9c508f9ad9d9e6e81ec91b2bb74424a79f20`, metadata-format correction `4a56cae84d75e5b1551b688253c544769df400da`, final SHA-256 `66BD0A601D69D82CEE55B12A0D8E1B4816684E115E0351B0E9F69D928A716FD5`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\11-system-and-demonstration.md`.
+- It binds a local source-built route check and a repeated local graph response while keeping old-JAR skew, graph representation, producer/rights lineage, Explorer behavior, and human value separate. M-A, M-E, R38–R40, and L45 remain open; no product-quality or public-deployment claim is promoted.
+- The research checkout still has no remote; the draft is local-only. This entry records preparation and evidence-bounded writing, not a backlog acceptance or percentage change. Existing unrelated dirty files were not staged.
+
 ## LEAD v419 — Add a bounded instrument/identity contract draft to L45 (2026-10-21)
 
 - Chapter 4 now has an internal v0.1 draft in the separate local research checkout: commit `d92382e34d0e4f7edd6a064fa9dc7ca94eef0534`, SHA-256 `8B01FB7BEDD0DA5852A250DFB96866C534DB3FEA1301525F41AAE2EEEDDE7EB6`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\04-instrument-and-identity-contract.md`.
