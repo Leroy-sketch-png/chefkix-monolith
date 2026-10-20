@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v357 — Bound SHARE artifact-discovery claim for L42 (2026-10-20)
+
+- The official SHARE repository currently shows only `.gitignore`, `LICENSE`, and README; its README describes code/data as a future public release, and no release is listed in the repository view.
+- This is a bounded snapshot, not proof that artifacts are unavailable elsewhere, not an access/licensing conclusion, and not evidence of dataset overlap or independence. L42 remains OPEN.
+- If lineage artifacts become available through authorized sources, compare recipe IDs/URLs, pairs, targets, splits, and human-label reuse; a missing repository payload is not an absence finding. No claim-register, experiment, or progress-scoreboard change.
+- Canonical evidence is in root `academic_vision_and_strategy.md` Appendix C S66 and `SCOPE.md` L42 follow-up dated 2026-10-20.
+
 ## LEAD v356 — Flag Food.com / Recipe1M case-lineage audit for L42 (2026-10-20)
 
 - SHARE's RecipePairs is sourced from Food.com; Recipe1MSubs is described by its source paper as an extension of Recipe1M; the official Recipe1M paper says its corpus was scraped from 24+ cooking websites but does not enumerate them in the screened dataset description.
