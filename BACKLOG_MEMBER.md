@@ -1,7 +1,7 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
-### L45 / LEAD v417 manuscript drafting progress (2026-10-21)
+### L45 / LEAD v419 manuscript drafting progress (2026-10-21)
 
-Six internal v0.1 drafts now exist on the separate local research `master`: Chapters 12, 5, 2, 10, 3, and 8. Chapter 8 preserves the allergen protocol holds and claims no comparison or safety result. These are bounded working drafts, not accepted chapters or evidence of thesis completion; the full L45 writing, review, citation reconstruction, evidence gates, and defense work remain open. The research checkout has no configured remote, so these files are not yet shared/fetchable. See LEAD v417–v418 for exact commit IDs, hashes, paths, and per-chapter limitations. This derived status note changes no member-package acceptance criteria and does not claim a member package complete.
+Seven internal v0.1 drafts now exist on the separate local research `master`: Chapters 12, 5, 2, 10, 3, 8, and 4. Chapter 4 is a bounded instrument/identity contract draft; it explicitly leaves PR01–03/05/09/10 unresolved and approves no human protocol. Chapter 8 preserves the allergen protocol holds and claims no comparison or safety result. These are working drafts, not accepted chapters or evidence of thesis completion; full L45 writing, review, citation reconstruction, evidence gates, and defense work remain open. The research checkout has no configured remote, so these files are not yet shared/fetchable. See LEAD v417–v419 for exact commit IDs, hashes, paths, and per-chapter limitations. This derived status note changes no member-package acceptance criteria and does not claim a member package complete.
 
 ### Q124 / LEAD v416 offline exhibit source-contract recheck (2026-10-21)
 

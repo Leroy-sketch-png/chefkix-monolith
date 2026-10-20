@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v419 — Add a bounded instrument/identity contract draft to L45 (2026-10-21)
+
+- Chapter 4 now has an internal v0.1 draft in the separate local research checkout: commit `d92382e34d0e4f7edd6a064fa9dc7ca94eef0534`, SHA-256 `8B01FB7BEDD0DA5852A250DFB96866C534DB3FEA1301525F41AAE2EEEDDE7EB6`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\04-instrument-and-identity-contract.md`.
+- The draft makes source/case provenance, GISMo-primary versus Senath-sensitivity identities, candidate and failure records, blinded-audit fields, leakage boundaries, and unknowns explicit. It does not freeze or approve the human instrument: PR01–03/05/09/10 remain unresolved, and no labeling, safety, validity, or novelty result is claimed.
+- The research checkout remains local-only with no configured remote. This entry records a writing artifact, not accepted L45 completion, a score/percentage change, or collaborator availability. Existing local dirty strategy/session/evidence files were not included.
+
 ## LEAD v418 — Add a freeze-gated allergen methods draft to L45 (2026-10-21)
 
 - Chapter 8 now has an internal v0.1 methods draft in the separate local research checkout: commit `fbacb3a`, SHA-256 `A5CF4B235329D000ABF82F1F0CD0D7F4786E5F4E968A2DAECA5E633834BDD10C`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\08-allergen-methods.md`.
