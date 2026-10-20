@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v385–v386 recovered validation execution and replayable showcase (2026-10-20)
+
+The one-shot v4 output recovery and local ingester validated 200/200 records for each arm with no method failures; the showcase is regenerated from saved outputs and receipt-bound. This advances M-I's execution slice but does not settle its separately listed PR15 reference-code defects or complete M-I's acceptance. Full-split validation/test, protocol, rights, and human-evidence gates remain separate. L44 and M-I stay open; no method choice or product-quality claim follows. See LEAD v385–v386 and the canonical strategy's L44 boundary.
+
 ### M-A / LEAD v398 graph artifact deserialization and provenance blocker (2026-10-21)
 
 The tracked AI-service loader reads the ignored, untracked PyG subgraph with `weights_only=False`; a replacement artifact could execute pickle code. The local bytes were inspected only with a restricted loader, but provenance is missing and runtime serving is not ready. Preserve the files; M-A remains open until artifact provenance and safe loading are established. See LEAD v398 and its evidence JSON.
