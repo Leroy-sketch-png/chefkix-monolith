@@ -50,6 +50,23 @@
       "parser order and duplicate-candidate handling are tested"
     ]
   },
+  "one_shot_recovery_tests": {
+    "checkout_head": "740e85fff30eac762521eeb5f60d841e216700c5",
+    "command": "python -m pytest -q test_recover_senath_validation_benchmark_once.py",
+    "working_directory": "ai/tools",
+    "exit_code": 0,
+    "passed": 6,
+    "failed": 0,
+    "test_source_sha256": "be23cd638920343331f894f92acda96ac51fcd1e164b06f25bb9ca43dc928e5d",
+    "exercised_contracts": [
+      "RUNNING status causes no download",
+      "COMPLETE uses exactly one download invocation then validates before promotion",
+      "transfer errors and partial evidence are preserved without retry",
+      "validation failure preserves the downloaded bundle without redownload",
+      "existing destination is refused before any remote call"
+    ],
+    "remote_calls_made_by_tests": false
+  },
   "shared_inputs": {
     "validation_case_frame_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
     "test_case_frame_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",

@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v407 — Exercise one-shot benchmark recovery failure controls (2026-10-21)
+
+- **Area cleared:** six synthetic tests pass for the benchmark's one-shot recovery helper. They verify RUNNING makes no download call; COMPLETE invokes download once before local validation; transport exceptions/nonzero exits and validation failures preserve partial/downloaded evidence without retry; and an existing destination is refused before any remote call.
+- **Risk boundary:** these tests use mocked CLI calls and temporary directories. They prove recovery-helper control flow, not the actual remote transfer or current Kaggle artifact contents. The real one-time receipt/recovery remains the separate executed evidence already recorded in LEAD v385–v386; the helper was not rerun in this check.
+- **Disposition:** no new GPU action. M-I recovery control confidence improves; M-B/M-D/L44 acceptance remains open. Evidence: `evidence/lead-mb-full-split-gismo-pool-replay-20261021.json`.
+
 ## LEAD v406 — Recheck Senath benchmark execution contracts on CPU (2026-10-21)
 
 - **Trigger finding:** full-split preparation tests did not exercise both inference methods together. The focused benchmark suite now passes **15/15**, including both arms on a tiny CPU Mistral, 20 finite beam-score requirements, raw-source alias joins separate from graph identity, Unicode-log recovery, explicit method-failure records, the fixed 200-case denominator, parser order, duplicate handling, and the target-label firewall.

@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v407 one-shot recovery failure-control tests (2026-10-21)
+
+Six mocked/temporary-directory tests pass for the no-retry recovery helper: no download while RUNNING, exactly one download after COMPLETE, preserved partial/invalid bundles, and refusal to overwrite an existing destination. No remote call occurred. This validates helper control flow only; the already-recovered real bundle remains separate evidence. See LEAD v407 and the shared evidence JSON.
+
 ### M-I / LEAD v406 CPU benchmark-contract tests (2026-10-21)
 
 The 15-test benchmark suite passes on CPU, including both inference arms on a tiny Mistral and the score/parser/failure/logging contracts. This validates harness behavior only; it is not the real GPU smoke, another validation run, or quality evidence. No retry or new Kaggle launch occurred. See LEAD v406 and its shared evidence receipt.
