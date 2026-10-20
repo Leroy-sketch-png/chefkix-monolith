@@ -8,6 +8,18 @@
 - This is a query- and date-bounded discovery record, not proof artifacts do not exist elsewhere, not an access/licensing conclusion, and not evidence of dataset/case overlap. L42 remains OPEN and no novelty conclusion follows.
 - Derived sync only; no source key, study count, claims-register entry, experiment, or status-score change. Canonical detail: root S43 and §4 in `academic_vision_and_strategy.md`, plus L42 follow-up in `SCOPE.md`.
 
+## LEAD v361 — Verify DIGIBUG mirror; flag rights metadata (2026-10-20)
+
+- The University of Granada record now resolves to a DIGIBUG item with one article-PDF attachment; its bytes match the already-hashed Zenodo paper exactly. No code/model/data link was exposed in either publication record.
+- DIGIBUG item metadata labels the article copy CC BY-NC-ND while Springer identifies the published paper as CC BY. This repository-metadata discrepancy is unresolved; it creates no license conclusion for the copy and no permission for code/data.
+- Bounded evidence update only: S43/L42 remain open, with no artifact-absence, novelty, lineage, or case-overlap conclusion. Canonical detail is root S43 and the L42 SCOPE follow-up.
+
+## LEAD v362 — Reconcile AdaptaFood repository-copy provenance (2026-10-20)
+
+- A direct DIGIBUG item fetch confirmed the record has one attached article PDF and no linked code/model/data release; the PDF is byte-identical to the already-hashed Zenodo copy. The prior browser timeout was transient, not an access denial.
+- DIGIBUG's CC BY-NC-ND item metadata conflicts with Springer's CC BY article notice. This remains unresolved for the article copy and cannot establish software/data rights.
+- L42 remains OPEN; this provides no global artifact-absence, novelty, dataset-lineage, or case-overlap finding. Canonical record: root S43 and `SCOPE.md` L42 follow-up.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
