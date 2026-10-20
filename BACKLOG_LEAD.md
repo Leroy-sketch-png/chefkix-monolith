@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v369 — Advance full-split identity/case-frame preparation (2026-10-20)
+
+- Reproducible local audit now rejoins all 49,044 train, 10,729 validation, and 10,747 test rows to the pinned GISMo pickle by split/index/recipe/source/context, without requiring canonical-name equality. It emits label-free validation/test case frames and keeps labels/identity maps/strata in `local-only-evaluation/`.
+- Both distinct identity contracts reproduce: GISMo graph-pair val 6,827/3,902 and test 6,932/3,815; separate Senath-normalized val 6,771/3,958 and test 6,866/3,881. Two builds are byte-identical; the 30-test focused suite passes.
+- Evidence: root builder SHA-256 `dd692e077ad5eea44c2749641f8b1dcc66a3491707efe98e34c71976f2bceba9`; ignored audit manifest `ai/out/senath-full-split-audit-20261020-v3/manifest.json` SHA-256 `a5d1fafa4b6f0078330693a433487f69f66eb771de7804699caeed5101036bca`.
+- This advances an M-B/L44 preparation slice only. FooDB both-endpoint evidence coverage, the blinded 40-case adversarial fixture, all-arm outputs, inference results, latency, Hit@k, method choice, and human usefulness remain open/unmeasured. The running Kaggle benchmark was not changed or polled.
+
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
