@@ -32,6 +32,12 @@
 - This verifies the exact S60 artifact and its 2021 pipeline use, not identity with the 267,071-record count in S59 or row/case/code/response reuse by 2025 AdaptaFood. L42 remains OPEN; no permissions, independent-data, novelty, or case-overlap conclusion.
 - Derived sync only, no new source key or study count. Canonical details: root S60/S43 in `academic_vision_and_strategy.md` and L42 follow-up in `SCOPE.md`.
 
+## LEAD v365 — Corroborate predecessor author/profile association (2026-10-20)
+
+- The `andreamorgar` GitHub profile links to a same-name academic site identifying UGR and listing AdaptaFood; UGR's official staff directory independently lists Andrea Morales Garzón. This strengthens—but does not authenticate—the account-to-author association for the S60 2021 predecessor repository.
+- Keep the profile association `INFERRED`; the publisher and UGR directory do not link that GitHub account. No upgrade to corpus/case reuse, release provenance, rights, independence, novelty, or L42 completion.
+- Derived evidence-only sync. Canonical details: root S43/S60 in `academic_vision_and_strategy.md` and L42 follow-up in `SCOPE.md`.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
