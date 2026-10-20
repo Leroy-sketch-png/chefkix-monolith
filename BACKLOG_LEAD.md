@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v378 — Prepare dual-contract Senath full-split partitions (2026-10-20)
+
+- Deterministic CPU plans cover validation (10,729 cases) and test (10,747) in 54 jobs each, with exact once-only coverage and ≤200 rows/job. Each job balances the two existing identity contracts together and accounts for both-arm cost plus repeated startup.
+- Highest projected mean / summed-stratum-p90-cost scenario per job: validation 17,295.18/17,796.02 s (4.80/4.94 h), test 17,380.53/17,883.48 s (4.83/4.97 h). These are benchmark-derived estimates, not measured executions or statistical total p90 intervals. All 13 focused tests pass, including row/recipe joins and fail-closed partition-budget checks.
+- Plans carry case IDs and target-derived strata and remain local-only; do not upload them. This is CPU preparation, not a frozen method/protocol, execution authorization, full inference, test result, method choice, or quality claim. Evidence: root `ai/evidence/senath-inference/full-split-partition-plan-v1-20261020.md`.
+
 ## LEAD v377 — Bound full-split inference capacity and partition requirement (2026-10-20)
 
 - Added a deterministic CPU runtime projector based on the validated 200-case v4 timing sample and the hash-pinned full-split identity audit. Two-arm validation (10,729 cases) projects 255.91 h mean / 263.41 h summed-stratum-p90-cost scenario; test (10,747 cases) projects 256.33 h / 263.84 h. The p90-cost scenario is not a statistical total p90.
