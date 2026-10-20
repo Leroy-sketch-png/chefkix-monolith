@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v373 — Prepare full-test GISMo candidate pools without labels (2026-10-20)
+
+- Built 50 released-GISMo candidates for each of the 10,747 frozen test source cases (537,350 entries) from the source-only frame. Pinned case frame, GISMo model/vocabulary/helper, and immutable FlavorGraph node/edge sources; local graph copies mismatched the hashes and were excluded.
+- The builder never reads test/validation target pickles or local label files. Exact two-file output inventory, all case joins, candidate-ID uniqueness, finite logits, 50-per-case count, ordering/tie rule, and label-key exclusion verified; 8 focused tests pass. Candidate pool SHA-256 `844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512`; manifest SHA-256 `9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f`.
+- Evidence: root `ai/evidence/senath-inference/test-source-only-gismo-pools-20261020.md`; output is ignored/local-only. This is candidate-pool preparation only—no Senath inference, benchmark, method selection, quality claim, or M-B/L44 completion. Recipe1MSubs rights remain `UNKNOWN`; no pool content is cleared for distribution.
+
 ## LEAD v372 — Revalidate the frozen 200-case Kaggle payload locally (2026-10-20)
 
 - Read-only preflight passes for the prepared `validation-benchmark` package: 200 case IDs, 15 receipt-hashed payload files, closed dataset inventory, exact execution-manifest/receipt bindings, and no target labels in the GPU dataset. The command made zero network requests; the printed upload suggestion was not executed.
