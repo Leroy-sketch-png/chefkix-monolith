@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "observed_date": "2026-10-21",
+  "scope": "Structural cross-reference check of the current internal thesis chapter drafts; not source verification, chapter acceptance, or thesis completion.",
+  "research_checkout": {
+    "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "head": "03ab0203e57c44ea07ced12a8b18b8edb3d3be19",
+    "strategy_path": "academic_vision_and_strategy.md",
+    "strategy_worktree_sha256": "863363a488530cac76279cd7f4c9dd92edee079d6e321f87f2e3c8c4e683d2ce",
+    "strategy_worktree_modified": true,
+    "chapter_files_modified": false
+  },
+  "checks": {
+    "chapter_drafts": 13,
+    "broken_relative_markdown_targets": 0,
+    "duplicate_heading_texts_within_files": 0,
+    "distinct_source_keys_referenced_by_chapters": 12,
+    "appendix_c_source_keys_detected": 66,
+    "referenced_keys_missing_from_appendix_c_inventory": 0,
+    "anchor_fragments_validated": false,
+    "source_claims_independently_verified": false,
+    "chapter_acceptance_changed": false
+  },
+  "chapter_sha256": {
+    "research/chapters/01-introduction.md": "3a9e9402b593d54de46d9e2ac35642a681cdeed5afdf78580386b6cb09ee829a",
+    "research/chapters/02-related-work.md": "c21f7bd27693a02dc07a3cb797d452cbdc0c8022f189918c89687ba05f63030c",
+    "research/chapters/03-data-and-graph-provenance.md": "dbe09d11b3ee3b5d25e99a4087342338e2468b974636b1dc676dddd81b5089db",
+    "research/chapters/04-instrument-and-identity-contract.md": "8b01fb7bedd0da5852a250dfb96866c534db3fea1301525f41aae2eeedde7eb6",
+    "research/chapters/05-senath-clean-room-inference.md": "9049f5ec8299cd994bbe2a30727eee0347f3849639d0767afb879456706e20d9",
+    "research/chapters/06-human-validity-audit.md": "1b62b33df4330bd57e4135188e09703005e723c53564c1805e1c0cbaac778c7b",
+    "research/chapters/07-guardrail-design-and-assumptions.md": "bed6756f73265ef246f3ff2c2addfb9760a2be0abd6df3ed5880e9738f31bfb2",
+    "research/chapters/08-allergen-methods.md": "a5cf4b235329d000abf82f1f0cd0d7f4786e5f4e968a2daeca5e633834bdd10c",
+    "research/chapters/09-vietnamese-pilot-design-and-limits.md": "a088c045c0b7c781354c2100a2d963bf45c7467cc9d53bbadc74bec0eb34e09b",
+    "research/chapters/10-compound-presence-and-explanation.md": "c9c542fd22eb93b8da2da57af2cf1b36d668cc38157a17926b3eab418984ae63",
+    "research/chapters/11-system-and-demonstration.md": "ac8d2d273276f2b4d43dc3e1c409b1d163aba45c5e7c7947520ba911344bb9b2",
+    "research/chapters/12-bounded-negatives.md": "e5efe0bf53b1b8c5c08a4502c01ac3fc6d0e381d0a87e67a7a3b2b86277129ca",
+    "research/chapters/13-discussion-and-threats.md": "3135cf5c9bf8a68f11b7e84d8192814d518876328ffa612b23fd68e8072213ca"
+  },
+  "limits": [
+    "Relative link targets were checked for file existence only; Markdown anchors and rendered navigation were not tested.",
+    "Source-key presence in Appendix C does not verify attribution, source version, quotation, or the claim made in context.",
+    "The strategy file was modified in the separate research worktree at measurement time; this receipt does not make or imply a commit of those changes.",
+    "No chapter text, scientific claim, backlog acceptance status, or progress percentage was changed."
+  ]
+}

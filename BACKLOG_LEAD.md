@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v437 — Structural cross-reference check of current thesis drafts (2026-10-21)
+
+- Audited the 13 tracked internal chapter drafts at research `master` `03ab0203e57c44ea07ced12a8b18b8edb3d3be19`. Relative Markdown file targets resolve, no duplicate heading text occurs within a chapter, and all 12 distinct source keys cited by the drafts appear in the 66-key Appendix C inventory.
+- This is structural QA only: link anchors/rendering, citation-to-claim accuracy, source-version verification, independent literature review, and chapter acceptance were not checked. The source strategy is modified in its separate research worktree; this check neither stages nor commits that work.
+- No thesis claim, percentage, chapter acceptance, or backlog completion status changed. L45 remains open for evidence reconciliation, citation verification, review, and chapter acceptance.
+- Evidence receipt, including the exact chapter hashes and check limits: `evidence/lead-l45-chapter-structure-check-20261021.json`.
+
 ## LEAD v436 — Recount split and identity outputs for R04/R05 (2026-10-21)
 
 - Local read-only recount of the hash-pinned v3 audit outputs reproduced the 10,729 validation and 10,747 test case frames and all four GISMo-primary/Senath-sensitivity seen/unseen partitions. The identity map has 21,476 rows and unique case IDs; its SHA-256 is `b0fd6ac10e17edbaa73686e1c3bc03539b42b08406f178e101d2718756f062f0` and its manifest SHA-256 is `a5d1fafa4b6f0078330693a433487f69f66eb771de7804699caeed5101036bca`.
