@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v424 regression expansion across both showcase methods (2026-10-21)
+
+Extended the v423 cell-order regression to verify both method rows—not only generation—against the receipt's grouped GISMo-primary and raw-string-sensitivity metrics. The combined Senath renderer and existing midterm-exhibit suites pass 30/30. This is static/contract evidence; it does not complete browser visual QA, timed listener rehearsal, L44, or any quality/usefulness gate. See LEAD v424 and the research-local evidence note `ai/evidence/senath-inference/showcase-column-order-fix-20261021.md` (note SHA-256 `e71fe95cceb2f03035e2d8829c58e5f77d2b4d786e7593a38db66e7b34d40269`). The research checkout remains local-only.
+
 ### M-I / LEAD v423 saved-output showcase metric-column correction (2026-10-21)
 
 AoE review found that the generated HTML interleaved primary GISMo-identity and raw-string-sensitivity metrics beneath grouped headers. The renderer now places the two Hit@1/5/10 groups in header order, and the 15-test focused suite compares rendered values with the validated receipt. The 200-case outputs and metrics did not change; this repairs their presentation only. The corrected local HTML is structurally checked, but browser visual QA and timed human rehearsal remain NOT RUN. This is not a quality claim, human-usefulness result, or L44 completion. See LEAD v423 and `ai/evidence/senath-inference/showcase-column-order-fix-20261021.md` in the research checkout; that checkout remains local-only with no remote.
