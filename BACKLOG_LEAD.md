@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v347 — L42 follows HeASe citations to S53–S54 (2026-10-20)
+
+- Screened HeASe's cited Teng et al. (2012) and Elsweiler et al. (2017) from full-text PDFs. Teng mines weighted ingredient-replacement links from recipe reviews, but evaluates recipe-rating prediction using those network features; this is direct substitution-knowledge prior art, not the frozen candidate-validity estimand. Elsweiler studies replacing whole recipe recommendations with healthier dishes and user choice/nudging; its own related work acknowledges ingredient-level substitution.
+- This closes only the targeted HeASe citation chase. S51's cited adaptation methods, the wider hashed §25.4 funnel, data/code/case lineage and duplicate reconciliation, independent second review, and claims-register review remain open. No novelty conclusion or status promotion; L42 stays OPEN and exact novelty stays UNKNOWN.
+- See root `SCOPE.md` L42 follow-up (2026-10-20) and `academic_vision_and_strategy.md` §4, §17, Appendix C S50–S54. No claim of validated system quality or independent replication.
+
 ## LEAD v346 — L42 first-pass screen of three additional leads (2026-10-20)
 
 - Screened HeASe (S50), AI2Cuisine (S51), and the SHARS thesis listing (S52) at explicitly different evidence depths. HeASe is adjacent whole-meal retrieval/ranking but acknowledges prior ingredient replacement and cites two not-yet-screened works. AI2Cuisine is direct recipe-adaptation/ingredient-replacement prior art from publisher-indexed text; its authors overlap with AdaptaFood (S43), so do not count it as an independent lineage. SHARS remains unresolved from its title listing only.
