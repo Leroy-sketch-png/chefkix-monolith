@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v416 — Recheck Q124 offline exhibit contracts; human/browser gates remain (2026-10-21)
+
+- The focused exhibit suite passes 15/15 on research checkout `740e85fff30eac762521eeb5f60d841e216700c5`. Source and structural assertions cover no external URLs/remote assets or fetch/XHR hooks, visible `:focus-visible` styling, and a named keyboard-focusable horizontal table region. Exhibit SHA-256 `47d9aa1d7f5e1f3f704d43ea32af5773ef2cf94aa906d94aff232457e11c15ff`; test SHA-256 `7305909c6262871ff2661db9549b60a87fc85b4c910ff59ddae07d59b4ded5e2`.
+- This is static/source-contract evidence, not a runtime network capture or actual browser keyboard traversal. The sanctioned Windows computer-use attempt stopped before navigation because it could not determine the current browser URL confidently enough to enforce policy. No local exhibit page or focus state was observed in that attempt.
+- **Disposition:** Q124 remains READY/open. Existing desktop/mobile/print renders are separate evidence; browser focus/runtime-offline inspection and the timed human rehearsal/listener answers remain outstanding. No audience comprehension, product-value, or Q124 completion claim. Receipt: `evidence/lead-q124-offline-contract-check-20261021.json`.
+
 ## LEAD v415 — Bound unfiltered v10 output stall; no checkpoint recovered (2026-10-21)
 
 - A single unfiltered, exact-version `kaggle kernels output phanphutho/chefkix-hgat-epic-1-training/v10 --path <disposable-temp-dir>` was attempted using the official CLI source at pinned commit `30540b45a5eb85c319d3247907d5f8162917093b`. The 17-file preflight reported a sum of 15,452 bytes, below the 50 MB cap. While the same process remained live for more than two minutes, its temporary directory contained 9 files (28,590 bytes total): eight small code/pycache files plus `codebase/processed/food_graph.pt` at 0 bytes. The directory and sizes were unchanged at two subsequent observations; Docker reported 0 B network block I/O in the later snapshot. No `hgat_weights.pt` appeared.

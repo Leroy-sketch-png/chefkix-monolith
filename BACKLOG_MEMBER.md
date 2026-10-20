@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### Q124 / LEAD v416 offline exhibit source-contract recheck (2026-10-21)
+
+Focused suite passes 15/15. Static assertions and source inspection confirm the exhibit has no external URL/remote asset or fetch/XHR patterns and includes visible focus styling plus a named, keyboard-focusable table region. The browser-level navigation/focus check did not run: the computer-use policy stopped before navigation because the Windows browser URL was not sufficiently determined. The timed human rehearsal and listener answers remain NOT RUN. This does not close Q124 or prove rendered accessibility/runtime offline behavior. See LEAD v416 and `evidence/lead-q124-offline-contract-check-20261021.json`.
+
 ### M-I / LEAD v410 recovered validation benchmark and replayable showcase (2026-10-21)
 
 This monitor's v4 output recovery and local validator passed for all 200 fixed validation cases with 0 method failures per arm; ingestion recomputed identity-separated Hit@1/5/10 and latency, and a saved-output HTML showcase was rendered. A previous validated recovery already existed; both 14-file hash inventories match, so this retransfer was redundant and adds no independent benchmark result. Measured process wall time was about 4h50m. These are validation diagnostics, not product-quality evidence. Outputs remain local; a compact hash receipt is committed. Do not recover/download again. See LEAD v410.
