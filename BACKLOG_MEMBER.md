@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L45 / LEAD v425 human-validity audit chapter scaffold (2026-10-21)
+
+A tenth internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/06-human-validity-audit.md`, commit `b3163a8`, SHA-256 `88ee3f1ed0f209a9467908724bb17a6bef1f19b96226af6c0ad06924e0448314`. It integrates the proposed audit question, identity/rubric/sampling/reliability boundaries, and evidence needs while preserving PR01–03/05/09/10/13 and the §21-versus-legacy-§8 chapter-number conflict. No human audit, protocol approval, or result is claimed. The research checkout has no remote, so the source remains local-only; L45 review, citations, evidence gates, and chapter acceptance remain open.
+
 ### M-I / LEAD v424 regression expansion across both showcase methods (2026-10-21)
 
 Extended the v423 cell-order regression to verify both method rows—not only generation—against the receipt's grouped GISMo-primary and raw-string-sensitivity metrics. The combined Senath renderer and existing midterm-exhibit suites pass 30/30. This is static/contract evidence; it does not complete browser visual QA, timed listener rehearsal, L44, or any quality/usefulness gate. See LEAD v424 and the research-local evidence note `ai/evidence/senath-inference/showcase-column-order-fix-20261021.md` (note SHA-256 `e71fe95cceb2f03035e2d8829c58e5f77d2b4d786e7593a38db66e7b34d40269`). The research checkout remains local-only.

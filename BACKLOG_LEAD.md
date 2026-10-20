@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v425 — Draft the human-validity audit chapter with protocol holds explicit (2026-10-21)
+
+- Added `research/chapters/06-human-validity-audit.md` on the separate research `master` at commit `b3163a8`; SHA-256 `88ee3f1ed0f209a9467908724bb17a6bef1f19b96226af6c0ad06924e0448314`. The 90-line v0.1 scaffold integrates the research question, candidate identity, proposed A/C/N/U rubric, sample/estimand distinction, blinding/reliability, claim boundaries, and evidence required for acceptance.
+- The draft explicitly leaves PR01–03/05/09/10/13 unresolved, prohibits treating proposed values as approved procedure, and makes the §21-versus-legacy-§8 Chapter-6 numbering conflict visible. It records no human labels, adjudication, agreement, approval, or audit result. The existing 200-case Senath benchmark is cited only as validation-diagnostic evidence, not human validity or usefulness.
+- Structural review: all three local Markdown links resolve; no duplicate headings or trailing whitespace; `git diff --check` passes. The separate research checkout has no remote, so this draft is local-only and not yet fetchable by collaborators. L45 remains open; this is writing progress, not chapter acceptance, a percentage change, or thesis completion.
+
 ## LEAD v424 — Extend showcase metric-order regression across both methods (2026-10-21)
 
 - The v423 renderer fix used a shared metric loop for both methods, but its new assertion initially exercised only the generation row. Expanded the regression to extract and compare all six ordered metric cells for **both** generation and rerank rows against the saved validated receipt.
