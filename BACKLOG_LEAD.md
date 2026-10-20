@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v374 — Confirm byte-identical full-test pool replay (2026-10-20)
+
+- A second complete CPU rebuild of the frozen 10,747-case source-only test frame produced the same GISMo candidate JSONL and manifest hashes byte-for-byte as LEAD v373. Both outputs contain 537,350 candidates; the replay remains ignored/local-only.
+- This verifies deterministic pool preparation, not inference, scoring against targets, benchmark performance, method choice, or quality. Receipt and boundaries: root `ai/evidence/senath-inference/test-source-only-gismo-pools-20261020.md`.
+
 ## LEAD v373 — Prepare full-test GISMo candidate pools without labels (2026-10-20)
 
 - Built 50 released-GISMo candidates for each of the 10,747 frozen test source cases (537,350 entries) from the source-only frame. Pinned case frame, GISMo model/vocabulary/helper, and immutable FlavorGraph node/edge sources; local graph copies mismatched the hashes and were excluded.
