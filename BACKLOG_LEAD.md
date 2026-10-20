@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v382 — Prepare fail-closed full-split output collection (2026-10-20)
+
+- Added a local structural collector for future ≤200-case partition outputs. It requires independently supplied input-manifest and execution-manifest SHA-256 pins, exact frozen partition membership and case coverage, source identity joins, per-case records for both methods, and GISMo candidate IDs/names within each case's pinned top-50 pool.
+- Explicit method failures remain visible denominator misses. The collector rejects missing/duplicate/reassigned cases, changed source identities, altered/unpinned files, target-derived keys, invalid ranks/nonfinite scores, and overwriting existing collection artifacts; merged output preserves runner/model/kernel provenance fields.
+- Collector + synthetic regressions and the existing partition/pool/catalog/benchmark suites pass 46/46. Both real local source-only input manifests still load with exact validation/test coverage (10,729/10,747) and unchanged root hashes.
+- Collection preparation only. No actual partition receipts/results exist; no labels, metrics, inference, upload, kernel poll/launch, method choice, or quality result. Recipe1MSubs rights and protocol freeze remain unresolved. Evidence: root `ai/evidence/senath-inference/full-split-output-collector-v1-20261020.md`.
+
 ## LEAD v381 — Prepare label-free full-split inference input shards (2026-10-20)
 
 - Materialized the validated source frames and GISMo pools into 54 ≤200-case shards per split: 10,729 validation cases / 536,450 candidate entries and 10,747 test cases / 537,350 entries. Each shard contains only source-prompt fields and its 50 candidates; target/gold fields, labels, identity strata, and target-derived partition plans are excluded.
