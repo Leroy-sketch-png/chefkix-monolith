@@ -3,6 +3,7 @@
 
 - Generalized the source-only candidate builder/verifier to explicit validation and test splits while preserving the test default. Built all 10,729 frozen validation source rows × 50 released-GISMo candidates (536,450 entries); the independent verifier passed frame/source joins, exact output inventory, 50 unique candidates per case, finite scores, deterministic tie order, and target/label-key exclusion.
 - A second full build to a fresh local-only path reproduced the pool SHA-256 `0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255` and manifest SHA-256 `a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147` byte-for-byte. Validation frame SHA-256: `db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c`. Thirteen focused tests pass.
+- Cross-split compatibility: with its unchanged default, the verifier still accepts the preserved full-test pool at pool/manifest SHA-256 `844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512` / `9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f`; the combined focused suite passes 28/28.
 - This advances M-B/M-D/L44 input preparation only. It is not inference, evaluation, method selection, a quality finding, or completion of L44/M-I/M-B/Stage 3. Target labels and local-only artifacts were not uploaded; Recipe1MSubs rights remain UNKNOWN. No Kaggle request or launch occurred. Evidence: root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
 
 ## LEAD v378 — Prepare dual-contract Senath full-split partitions (2026-10-20)
