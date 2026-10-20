@@ -1,0 +1,41 @@
+{
+  "observed_at_utc": "2026-10-20T19:26:29Z",
+  "scope": "Read-only inspection of the locally installed official Kaggle CLI and its bundled generated kernel SDK. No authenticated API request, kernel status query, artifact listing/download, source pull, kernel edit, or launch occurred in this check.",
+  "installed_cli_distribution": {
+    "name": "kaggle",
+    "version": "1.7.4.5",
+    "extended_api_source_sha256": "6a1a3171f346aea79650f528f74e875be1b5745b4391d3ae00b87fc74de9c8d8"
+  },
+  "generated_kernel_service": {
+    "source": "kagglesdk.kernels.services.kernels_api_service.KernelsApiClient",
+    "source_sha256": "b91b166f81459a43ca8901aa6a34128baa11702524b8cef4c4c11b5967dfc690",
+    "methods": [
+      "download_kernel_output",
+      "download_kernel_output_zip",
+      "get_kernel",
+      "get_kernel_session_status",
+      "list_kernel_files",
+      "list_kernel_session_output",
+      "list_kernels",
+      "save_kernel"
+    ],
+    "session_related_methods": [
+      "download_kernel_output",
+      "download_kernel_output_zip",
+      "get_kernel_session_status",
+      "list_kernel_session_output"
+    ],
+    "method_surface_observation": "The installed generated service exposes latest-session status, latest-session output listing, and output-download calls (including a ZIP call addressed by kernel_session_id). It exposes no method to enumerate kernel sessions or retrieve session history/IDs."
+  },
+  "interpretation": {
+    "verified": "This exact installed official SDK surface provides no session-history/list method for binding current outputs to a historical run/version.",
+    "not_established": [
+      "That Kaggle's web UI or another authenticated/documented API surface has no run history.",
+      "Which completed session produced any previously listed HGAT output.",
+      "A source, selected input dataset version/content hash, output digest, or loaded runtime artifact bound to the same run."
+    ],
+    "m_a_disposition": "OPEN; artifact lineage remains UNKNOWN and R39/R40 remain QUARANTINED."
+  },
+  "official_source": "https://github.com/Kaggle/kaggle-cli",
+  "prior_context": "Extends LEAD v401-v402; those observations remain bounded to their previously queried API responses."
+}

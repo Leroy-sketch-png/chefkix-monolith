@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v411 — Inventory official Kaggle SDK session-history surface (2026-10-21)
+
+- Read-only inspection of the locally installed official Kaggle CLI 1.7.4.5 and bundled generated kernel SDK found eight kernel-service methods. The session-related methods are latest-session status, latest-session output listing, and output-download calls; the ZIP download takes a `kernel_session_id`, but this service exposes no method to enumerate sessions or retrieve run history/session IDs.
+- This closes only the question "does this installed official SDK expose a session-history/list method?": no. It does not establish that Kaggle's web UI or another authenticated/documented API surface lacks run history, nor bind any HGAT output to a specific source, input version/hash, run, or output digest. No authenticated request, output download, source pull, kernel change, or inference occurred.
+- **Disposition:** M-A remains OPEN; artifact lineage remains UNKNOWN and R39/R40 remain QUARANTINED. Next, identify another documented/authenticated run-history surface or obtain a version-bound producer receipt; do not probe undocumented endpoints or infer provenance from the output-download session-ID parameter. Evidence: `evidence/lead-ma-kaggle-sdk-session-surface-20261021.json`.
+
 ## LEAD v410 — Recover and validate the frozen Senath 200-case run (2026-10-21)
 
 - Kaggle reports the already-launched `phanphutho/chefkix-senath-validation-benchmark-v1` version 4 as `COMPLETE`. The prescribed helper ran once in this monitor transaction, recovered 14 files, validated the output manifest and frozen inputs, and promoted the bundle only after validation. **A pre-existing validated recovery was already present; comparison after this transfer showed its complete 14-file inventory and hashes, manifest, and raw-output digest were identical. This second transfer was redundant and adds no independent benchmark result; do not recover/download again.** The recovered adapter hash matches the pinned Segment-9 export. Both recovery receipts and all file digests are bound in the evidence record.
