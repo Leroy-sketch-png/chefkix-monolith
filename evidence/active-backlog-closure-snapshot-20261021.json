@@ -1,0 +1,57 @@
+{
+  "snapshot_date": "2026-10-21",
+  "scope": "Explicit full-acceptance closure of active work-package rows in the current Lead and Member backlog tables; not thesis completion, effort, value, or evidence-quality percentage.",
+  "method": {
+    "numerator": "Rows explicitly documented as meeting their complete active-table acceptance criteria.",
+    "denominator": "All active package IDs in the current Lead or Member table.",
+    "partial_work": "Counted as not closed; no fractional credit is assigned.",
+    "overlap": "Lead and Member rows can cover overlapping work. The pooled row ratio is descriptive only and is not an independent or effort-weighted overall score."
+  },
+  "lead": {
+    "active_rows": 14,
+    "explicitly_closed_rows": 2,
+    "closure_percent": 14.2857,
+    "closed_ids": ["L13′", "L37"],
+    "qualification": "L13′ closes a scope edit only, not scientific L13. L37 closes only its fixed-benchmark interval subdeliverable, not L38 or the full v4 case/pool work."
+  },
+  "member": {
+    "active_rows": 9,
+    "explicitly_closed_rows": 0,
+    "closure_percent": 0.0,
+    "unclosed_ids": ["M-A", "M-B", "M-C", "M-D", "M-E", "M-F", "M-G", "M-H", "M-I"],
+    "qualification": "Some packages have substantial partial artifacts (including M-B, M-D, and M-I), but their active table acceptance remains unmet; partial progress is not scored as completion."
+  },
+  "pooled_rows": {
+    "active_rows": 23,
+    "explicitly_closed_rows": 2,
+    "raw_row_closure_percent": 8.6957,
+    "qualification": "Do not report this pooled ratio as thesis progress: package overlap, unequal effort, dependencies, and different acceptance scopes make that interpretation invalid."
+  },
+  "not_scored": [
+    "Overall academic_vision_and_strategy completion: no defensible exhaustive denominator is defined.",
+    "Midterm/endterm target attainment: milestones have not been mapped to this package-closure denominator.",
+    "Partial completion: no fractional package weights or complete subdeliverable ledger was used."
+  ],
+  "source_files": [
+    {
+      "path": "BACKLOG_LEAD.md",
+      "sha256_before_snapshot_entry": "42bb6151af144acd1691b08386bffa8a42c6df2390b997682676275f3ae23176"
+    },
+    {
+      "path": "BACKLOG_MEMBER.md",
+      "sha256": "de6139b148fde9fda06b3b3afd0cc5b5abe4cdc27091d31c1e01ff533505ae28"
+    },
+    {
+      "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/academic_vision_and_strategy.md",
+      "sha256": "863363a488530cac76279cd7f4c9dd92edee079d6e321f87f2e3c8c4e683d2ce",
+      "working_tree_only": true,
+      "note": "Research checkout is dirty and has no configured remote; this is a local inspected source snapshot, not a clean shared revision."
+    }
+  ],
+  "verification": {
+    "lead_active_row_count": "L13′ plus L36–L48 = 14",
+    "member_active_row_count": "M-A through M-I = 9",
+    "calculation": "2/14 = 14.2857%; 0/9 = 0%; pooled descriptive rows 2/23 = 8.6957%",
+    "evidence_ceiling": "Documented closure states in backlog text only; not a fresh audit of every underlying scientific artifact or result."
+  }
+}

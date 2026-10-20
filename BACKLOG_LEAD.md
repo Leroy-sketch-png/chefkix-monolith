@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v438 — Add an explicit active-package closure snapshot (2026-10-21)
+
+- Recorded a conservative row-closure snapshot from the current active Lead and Member tables: Lead 2/14 (14.3%; L13′ scope edit and the bounded L37 interval deliverable); Member 0/9 (0%; partial evidence does not meet any package's full acceptance). Raw pooled rows are 2/23 (8.7%) but are **not** thesis progress because package scopes overlap and have unequal effort.
+- This is a dated, documented-closure metric only. It is not an overall strategy-completion percentage, quality score, effort estimate, or midterm target score. Partial subdeliverables receive no guessed fractional credit; overall thesis and milestone denominators remain undefined.
+- Source hashes, arithmetic, scope limits, and the dirty/local-only research-source caveat are preserved in `evidence/active-backlog-closure-snapshot-20261021.json`. The research strategy was not modified. No claims-register status, experiment, or scientific acceptance changed.
+
 ## LEAD v437 — Structural cross-reference check of current thesis drafts (2026-10-21)
 
 - Audited the 13 tracked internal chapter drafts at research `master` `03ab0203e57c44ea07ced12a8b18b8edb3d3be19`. Relative Markdown file targets resolve, no duplicate heading text occurs within a chapter, and all 12 distinct source keys cited by the drafts appear in the 66-key Appendix C inventory.
