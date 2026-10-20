@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v358 — Bound Senath validation benchmark claims to their split (2026-10-20)
+
+- Full-text re-screen of existing source S02 confirms the published Senath paper uses the same 49,044/10,729/10,747 Recipe1MSubs split as GISMo and selects SFT checkpoints by validation loss; the downloaded arXiv PDF is hash-bound in canonical Appendix C and SCOPE.
+- The already-running L44 200-case comparison is a validation diagnostic, not an independent held-out test. Preserve the frozen cohort and labels; do not infer independent generalization or product quality from its outputs.
+- L44 remains OPEN pending one-shot recovery and complete output validation. No new launch, method decision, scorecard/claims-register change, or training authorization.
+- Derived synchronization only. Canonical evidence: root `academic_vision_and_strategy.md` S02 / §17 L44 and `SCOPE.md` L42/L44 follow-up dated 2026-10-20.
+
 ## LEAD v357 — Bound SHARE artifact-discovery claim for L42 (2026-10-20)
 
 - The official SHARE repository currently shows only `.gitignore`, `LICENSE`, and README; its README describes code/data as a future public release, and no release is listed in the repository view.
