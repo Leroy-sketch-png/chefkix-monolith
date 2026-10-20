@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v381 — Prepare label-free full-split inference input shards (2026-10-20)
+
+- Materialized the validated source frames and GISMo pools into 54 ≤200-case shards per split: 10,729 validation cases / 536,450 candidate entries and 10,747 test cases / 537,350 entries. Each shard contains only source-prompt fields and its 50 candidates; target/gold fields, labels, identity strata, and target-derived partition plans are excluded.
+- Fresh-process verification passed for all 108 shards: exact inventory and hashes, candidate ID/name alignment to the pinned 6,653-item GISMo catalog, source-pool joins, and complete once-only case coverage. The focused source-shard/pool/benchmark suite passes 35/35.
+- Local-only input preparation, not a Kaggle-ready package or upload authorization. No inference, evaluation, method choice, or quality claim; rights remain UNKNOWN. Evidence: root `ai/evidence/senath-inference/full-split-source-only-partitions-v1-20261020.md`.
+
 ## LEAD v380 — Verify full-split GISMo candidate identity (2026-10-20)
 
 - Extended the independent source-only pool verifier with an optional hash-pinned ingredient-catalog check. All 536,450 validation and 537,350 test candidates resolve to the correct name at the released GISMo helper's 1-based catalog-row ID across the pinned 6,653-ingredient catalog. The separate FlavorGraph CSV `node_id` is not this identity; the first mistaken mapping failed closed before correction, with no pool-byte changes.

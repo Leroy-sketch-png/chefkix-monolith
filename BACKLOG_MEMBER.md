@@ -6,6 +6,10 @@
 > **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
 > This replaces the historical member backlog, preserved in Git history. A checked engineering task means code exists with the cited checks; it does **not** certify a model, deployment, clinical safety or thesis result.
 
+### M-I / L44 input-preparation update (2026-10-20; derived from LEAD v381)
+
+The full validation and test source-only candidate inputs are now reproducibly partitioned into 54 ≤200-case local-only shards per split. All 108 shards passed independent hash, coverage, join, firewall, and pinned GISMo catalog-identity checks; focused preparation tests pass 35/35. This prepares an input-materialization subtask only; protocol/rights gates remain, shards are not uploadable/runnable packages, and no new inference/evaluation or M-I/L44 acceptance is claimed. Evidence: root `ai/evidence/senath-inference/full-split-source-only-partitions-v1-20261020.md`.
+
 ### M-B / L44 preparation update (2026-10-20; derived from LEAD v380)
 
 The local-only full validation/test GISMo top-50 pools now pass an independent candidate ID/name check against the pinned 6,653-item ingredient catalog, using the released helper's 1-based row-position ID semantics. All 1,073,800 candidate entries passed; focused source-pool and benchmark tests pass 30/30. This closes a structural input-integrity subtask only. M-B acceptance remains open (including its blinded adversarial fixture and protocol prerequisites), and no inference or evaluation result is claimed. Evidence: root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
