@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v399 installer retrieval trace and scope correction (2026-10-21)
+
+The broader workspace contains a tracked installer for a separate HGAT Kaggle kernel, and its ignored local mirror is byte-identical to the current service files. The installer records no output version, manifest, or expected digests and does no post-download hash check, so it does not establish Senath provenance or runtime readiness. This narrows LEAD v398's “not found” observation to the AI-service subtree; the unsafe deserialization finding remains. M-A stays open. See LEAD v399 and its evidence JSON.
+
 ### M-I / LEAD v385–v386 recovered validation execution and replayable showcase (2026-10-20)
 
 The one-shot v4 output recovery and local ingester validated 200/200 records for each arm with no method failures; the showcase is regenerated from saved outputs and receipt-bound. This advances M-I's execution slice but does not settle its separately listed PR15 reference-code defects or complete M-I's acceptance. Full-split validation/test, protocol, rights, and human-evidence gates remain separate. L44 and M-I stay open; no method choice or product-quality claim follows. See LEAD v385–v386 and the canonical strategy's L44 boundary.

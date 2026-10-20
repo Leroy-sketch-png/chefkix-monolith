@@ -1,0 +1,57 @@
+{
+  "record_type": "workspace_hgat_installer_retrieval_trace",
+  "observed_on": "2026-10-21",
+  "scope": "read-only source and local-byte inspection; no Kaggle request, download, model load, service start, or file mutation",
+  "installer": {
+    "path": "install_kaggle_weights.py",
+    "git_status": "tracked at workspace root",
+    "sha256": "5158cd0dec7e0e0c44ec4944e1ca56fd9660a5e4bdb44afea8f59db1d3a9fcba",
+    "kernel_slug": "phanphutho/chefkix-hgat-epic-1-training",
+    "retrieval_paths": [
+      "codebase/processed/hgat_weights.pt",
+      "codebase/processed/substitution_subgraph.pt"
+    ],
+    "behavior_observed_in_source": [
+      "checks status with a substring test for COMPLETE",
+      "lists kernel session output through Kaggle SDK internal client",
+      "downloads selected URL streams directly to final mirror paths",
+      "skips download when a mirror file already exists",
+      "copies mirror files into chefkix-ai-service/models",
+      "does not bind an expected kernel version, output manifest, or expected SHA-256 values",
+      "does not verify downloaded/copy hashes before registry update"
+    ]
+  },
+  "local_files": [
+    {
+      "mirror_path": "personal/projects/chefkix/kaggle_weights_install/codebase/processed/hgat_weights.pt",
+      "service_path": "chefkix-ai-service/models/hgat_weights.pt",
+      "bytes": 253163,
+      "sha256": "05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f",
+      "mirror_storage": "excluded by root .git/info/exclude"
+    },
+    {
+      "mirror_path": "personal/projects/chefkix/kaggle_weights_install/codebase/processed/substitution_subgraph.pt",
+      "service_path": "chefkix-ai-service/models/substitution_subgraph.pt",
+      "bytes": 438262421,
+      "sha256": "70005b57e835b9d18a4445d05c83bfdfeb44c8e4fcc73b03cc74944688f0125f",
+      "mirror_storage": "excluded by root .git/info/exclude"
+    }
+  ],
+  "provenance_limits": {
+    "mirror_receipt_or_manifest_found": false,
+    "version_or_remote_digest_recorded_by_installer": false,
+    "byte_identity_established_only_between_local_mirror_and_service_copies": true,
+    "kaggle_output_version_established": false,
+    "senath_segment_lineage_established": false,
+    "runtime_loading_established": false,
+    "current_artifacts_claimed_malicious": false
+  },
+  "relationship_to_lead_v398": "LEAD v398 search was scoped to the AI-service repository; this broader workspace finding narrows only the no-installer statement. The unrestricted deserialization risk remains unchanged.",
+  "disposition": {
+    "m_a_status": "OPEN",
+    "r39_r40": "QUARANTINED",
+    "model_or_registry_modified": false,
+    "kaggle_operation_performed": false,
+    "quality_or_provenance_claim_promoted": false
+  }
+}
