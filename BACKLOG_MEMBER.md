@@ -1,4 +1,12 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v394 reproducible source build (2026-10-21)
+
+Current monolith `master` builds offline with the graph route present; the focused controller test passes 2/2. This does not prove the running process uses that artifact; no install/restart occurred. See LEAD v394 and its evidence JSON.
+
+### M-A / LEAD v393 artifact provenance metadata (2026-10-21)
+
+The loaded Maven artifact has no sources JAR, SCM/commit metadata, or Maven build timestamp/number in the inspected POM/metadata. Its source revision remains unknown; see LEAD v393 and its evidence JSON.
+
 ### M-A / LEAD v392 loaded graph-controller artifact (2026-10-21)
 
 The live Java classpath resolves a local Maven `culinary:1.0.0-SNAPSHOT` jar whose controller bytecode has no graph route, explaining the 404 despite the current worktree source declaring it. The artifact’s build-source commit remains unknown; M-A stays OPEN. See LEAD v392 and its evidence JSON.

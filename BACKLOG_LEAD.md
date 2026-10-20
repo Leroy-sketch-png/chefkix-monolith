@@ -1,4 +1,16 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v394 — Reproduce current graph-controller artifact offline (2026-10-21)
+
+- On monolith `master` commit `c5750a7056a7264708430ae7bef13e6804d20f6b`, `mvnw.cmd -o -pl culinary -am -DskipTests package` succeeded without network access. The ignored `culinary/target/culinary-1.0.0-SNAPSHOT.jar` hashes to `88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1`; its controller class hash is `336752d565228e65cd1eb0dfdd328a78a72fd974e5d2b2b854b3c54aa6967710` and bytecode includes `GET /graph`.
+- The focused offline `KnowledgeGraphControllerTest` passes 2/2; `bindsBoundedGraphQueryAndSerializesCounts` explicitly exercises `GET /knowledge/graph`. This verifies the checked-out source package/test contract, not the currently running service.
+- Compared with the loaded local Maven jar `ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b`, the newly built artifact hash and route surface differ. No code was changed; generated targets remain ignored. No artifact was installed and no service was restarted.
+- M-A remains OPEN; R39/R40 remain quarantined. Evidence: `evidence/lead-ma-current-source-build-check-20261021.json`. Any install/restart is a separate operational change and was not performed.
+## LEAD v393 — Bound local Maven artifact provenance metadata (2026-10-21)
+
+- Inspected only metadata for the loaded `com.chefkix:culinary:1.0.0-SNAPSHOT` artifact. Its POM SHA-256 is `f908ad665e57c84b3e30511db4169eeb380e3c480a4de94c80efc47548408797`; it has no SCM block or revision/commit/build-number field. The local Maven metadata SHA-256 is `0972bd06c7e2e3731cfe9df181ca373a54c18e445897393a26e3fa32c3d38151` and contains no timestamp/build number. No sources JAR or embedded controller source is present.
+- This confirms the local artifact directory cannot identify its source commit from the inspected POM/metadata. It does not prove the artifact was never built from the current checkout or identify the actual build process. No metadata was modified and no reinstall/restart occurred.
+- M-A remains OPEN; R39/R40 remain quarantined. Evidence: `evidence/lead-ma-maven-provenance-check-20261021.json`; next acceptance requires a build/install receipt or reproducible rebuild from a pinned source revision.
+
 ## LEAD v392 — Bind local graph-route 404 to loaded Maven artifact (2026-10-21)
 
 - Sanitized `jcmd` inspection of the port-8080 Java process's `java.class.path` found the loaded `com.chefkix:culinary:1.0.0-SNAPSHOT` library in the Windows user's local Maven repository. Jar SHA-256: `ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b`; the contained `KnowledgeGraphController.class` SHA-256 is `c7dba59f3a83fa67c9353a856020c55e9bfb387d18d5178d7c9c67221a9fe92c`.
