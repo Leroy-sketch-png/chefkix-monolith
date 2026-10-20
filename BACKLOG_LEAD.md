@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v362 — Pin S46 release artifacts and refine the 13,056-count hypothesis (2026-10-20)
+
+- Correction to v361: the cited S46 repository's current `master` omits the ground-truth JSON files and says they are available on request, but historical public tag `0.1` (commit `d7cc2c131bcd03be5fc02d8dab467cea4b2d4296`) contains three aligned artifacts: 42 source ingredients and 708 unique substitute pairs. These are byte- and hash-pinned in root SCOPE L42; do not generalize current-branch availability across versions.
+- The same tag separately contains a Food2Vec-Text prediction export with exactly 13,056 rows; its tagged evaluator treats these as predictions, and the linked TUM thesis table reports 13,056 as Food2Vec total predictions. This makes count conflation the leading explanation for S43's attribution of 13,056 pairs to S46, but it does not prove the authors' source path or exclude a later distinct dataset/version.
+- L42 remains OPEN pending an authorized/versioned S43 input or author clarification and row-level lineage comparison. No novelty, rights, dataset-overlap, study-count, claim-status, experiment, or progress-score change. Canonical details: root `academic_vision_and_strategy.md` §4/Appendix C and `SCOPE.md` L42 follow-up.
+
 ## LEAD v361 — Reconcile AdaptaFood/S46 ground-truth count (2026-10-20)
 
 - S43 reports a 13,056-pair benchmark attributed to S46; S46's official paper describes 708 unique pairs over 42 source ingredients. The official S46 repository says its ground truth is not publicly released and is available on request. A linked TUM thesis table uses 13,056 for Food2Vec's total predictions, suggesting—but not proving—a count/column transposition. Keep this as an unresolved source/version contradiction; do not assert a typo, verified 13,056-row artifact, or row overlap.
