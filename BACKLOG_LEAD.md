@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v372 — Revalidate the frozen 200-case Kaggle payload locally (2026-10-20)
+
+- Read-only preflight passes for the prepared `validation-benchmark` package: 200 case IDs, 15 receipt-hashed payload files, closed dataset inventory, exact execution-manifest/receipt bindings, and no target labels in the GPU dataset. The command made zero network requests; the printed upload suggestion was not executed.
+- Regression checks: 6 package-preflight tests and 21 benchmark/recovery tests pass. This proves local package integrity and test behavior only—not remote launch identity/status, output recovery, benchmark results, model quality, or human usefulness. Do not relaunch or alter the active Kaggle run.
+- Evidence note: root `ai/evidence/senath-inference/validation-benchmark-package-preflight-20261020.md`; prepared package receipt SHA-256 `9ec954418c327bc36884037cac0b4d16318f75d48708d895163fb001368372e3`; candidate pool SHA-256 `5d4fe8ab4b6d190be8cb1d8bcf483dbe994869cc1c639bddf60391ea9eafb96a`.
+
 ## LEAD v371 — Bound Recipe1MSubs rights evidence; keep release gate open (2026-10-20)
 
 - Official-source inspection found the Recipe1M site exposes an access route but no license text on the rendered page inspected; the official GISMo README requires Recipe1M registration and licenses project code/components, not the dataset by that statement. Recipe1M paper provenance points to multiple recipe websites. None establishes per-case Recipe1MSubs reuse or redistribution permission.
