@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v346 — L42 first-pass screen of three additional leads (2026-10-20)
+
+- Screened HeASe (S50), AI2Cuisine (S51), and the SHARS thesis listing (S52) at explicitly different evidence depths. HeASe is adjacent whole-meal retrieval/ranking but acknowledges prior ingredient replacement and cites two not-yet-screened works. AI2Cuisine is direct recipe-adaptation/ingredient-replacement prior art from publisher-indexed text; its authors overlap with AdaptaFood (S43), so do not count it as an independent lineage. SHARS remains unresolved from its title listing only.
+- The findings further rule out broad “first recipe substitution/adaptation” language, but do not establish overlap or novelty for the frozen shared-candidate, blinded ingredient-validity protocol, single-gold rescue, unseen-pair strata, or allergen evidence gate. Do not infer safety validation from dietary restrictions or user selection.
+- L42 remains OPEN. No complete hashed §25.4 funnel, local source-byte hashes, cited-reference chase, dataset/code lineage adjudication, independent second review, claim-register review, or status-count change. See root `SCOPE.md` L42 follow-up (2026-10-20) and `academic_vision_and_strategy.md` §4, §17, Appendix C S50–S52. No novelty conclusion or claims-register promotion.
+
 ## LEAD v345 — L42 crowdsourced substitute-ranking prior art screened (2026-10-15)
 
 - Citation-chased S46 to S49, Achananuparp & Weber (2016): 100 food-entry targets, two methods' separate top-10 lists, 2,000 candidate-pair judgments by three crowd workers each, and thresholded P@k/MAP/NDCG.
