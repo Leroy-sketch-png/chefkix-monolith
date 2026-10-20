@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v388 — Recheck M-A static graph/coverage artifacts (2026-10-20)
+
+- Fresh runs of the local M-A graph-truth and coverage-curve builders completed; focused tests pass 8/8 and the Agent OS verifier passes. The source-family coverage CSV reproduces its prior SHA-256 exactly: `560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac`.
+- The current graph-truth CSV hashes to `920f0c9ff8d1fcf89ea531429cc65cd5eddc2b0a83f0f17872739ff660b437d7` (manifest `a02ef8548b31e7a75ebed3d2992e4817529d7937f17e24f3999e1d0528a57215`), while the historical output is `5e2ee30381a1cf1f79368fc9b069349acf743cde94ca9e132b39d64e4e1a4b65`. The current workspace generator has a different hash/schema and adds a bounded source-only seed-literal interpretation; this is not byte-identical reproduction of the older graph CSV.
+- All input hashes match the pinned seeder and sample. Outputs are preserved in the root worktree's ignored `ai/out/iron-chef-lead-m-a-recheck-20261020/`. The current graph builder is untracked in the dirty root checkout; this recheck is not a committed implementation. Deployed runtime remains `UNKNOWN_NOT_OBSERVED`; no runtime counts or Round-0 claim reconciliation were promoted. M-A stays OPEN, with no thesis percentage change.
+- Canonical detail: root `SCOPE.md` LEAD v388; root `SESSION.md` and `implementation_plan.md` LEAD v388 notes.
+
 ## LEAD v387 — Reverify full-split source-only GISMo pools (2026-10-20)
 
 - Fresh graph-aware verification passed for the existing source-only validation pool: 10,729 cases / 536,450 candidates, pool SHA-256 `0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255`, manifest SHA-256 `a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147`. Test pool: 10,747 cases / 537,350 candidates, pool SHA-256 `844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512`, manifest SHA-256 `9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f`.
