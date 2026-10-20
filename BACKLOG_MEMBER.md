@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v401 Kaggle output-list schema check (2026-10-21)
+
+The official SDK output-list response exposes filenames and signed URLs, but no file hashes or explicit run/version binding. URLs were not printed or fetched. This confirms the queried inventory endpoint cannot close M-A provenance; it does not rule out another run-history source. See LEAD v401 and evidence JSON.
+
 ### M-A / LEAD v400 current Kaggle HGAT inventory (2026-10-21)
 
 The official CLI reports the separate HGAT kernel COMPLETE and lists expected producer outputs. Its currently saved notebook source hashes to `45e44b7e01b02bb4593e5bf88e49abab8b00d356014a6dcc6eb88cc73e8e9e0b` and shows a RecipeNLG-based graph/HGAT pipeline. The interface did not bind that source to a completed run version or expose output hashes, so provenance remains partial and these files are not Senath artifacts. No outputs were downloaded; see LEAD v400 and evidence JSON.

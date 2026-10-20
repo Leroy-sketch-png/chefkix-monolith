@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v401 — Inspect Kaggle output-list API schema without fetching artifacts (2026-10-21)
+
+- **AoE follow-up to v400:** checked the configured official Kaggle SDK's `list_kernel_session_output` response schema for the same HGAT kernel after the CLI table failed to expose provenance fields. The response exposes `files`, `log`, and pagination token; each file object exposes only `file_name` and a signed `url`. Signed URLs were not printed or followed.
+- **What this adds:** the SDK inventory endpoint itself does not return a per-file digest, explicit kernel run/version ID, or input/source manifest in its response object. Combined with v400's current-source pull and CLI file table, this confirms the queried surfaces cannot furnish the required artifact receipt. It does not establish that no other authenticated run-history endpoint exists.
+- **Disposition:** M-A remains OPEN; R39/R40 remain QUARANTINED. Do not use a signed URL as a version/hash substitute; next viable path is a version-bound session/artifact manifest or an independently pinned producer rerun. No file outputs were downloaded and no run was launched or changed. Evidence: `evidence/lead-ma-kaggle-output-api-schema-20261021.json`.
+
 ## LEAD v400 — Trace Kaggle HGAT producer to current output inventory (2026-10-21)
 
 - **New bounded source/remote evidence:** official Kaggle CLI reports `phanphutho/chefkix-hgat-epic-1-training` as `KernelWorkerStatus.COMPLETE`. `kaggle kernels files` lists the expected `hgat_weights.pt` and `substitution_subgraph.pt` plus `food_graph.pt`, source CSVs, and pipeline files; all listed outputs carry creation date 2026-07-22 04:15 UTC. This is a current inventory observation, not a version pin or content verification.

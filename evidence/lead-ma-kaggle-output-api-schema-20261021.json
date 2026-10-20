@@ -1,0 +1,37 @@
+{
+  "record_type": "kaggle_kernel_output_list_api_schema_check",
+  "observed_on": "2026-10-21",
+  "kernel_slug": "phanphutho/chefkix-hgat-epic-1-training",
+  "client": "configured official Kaggle Python SDK internal kernels API client",
+  "operation": "list_kernel_session_output",
+  "scope": "authenticated read-only metadata request; no artifact URL opened and no output downloaded",
+  "response_object_fields": [
+    "files",
+    "log",
+    "nextPageToken",
+    "next_page_token"
+  ],
+  "file_object_fields": [
+    "file_name",
+    "url"
+  ],
+  "sensitive_handling": {
+    "signed_url_values_printed": false,
+    "signed_url_values_followed": false,
+    "credential_values_read_or_printed": false
+  },
+  "not_exposed_by_this_response_schema": [
+    "per-file content digest",
+    "explicit completed-session or kernel-version identifier",
+    "input dataset identity/version/hash manifest",
+    "source-code digest bound to the listed output session"
+  ],
+  "interpretation_limit": "This queried endpoint cannot by itself provide a version-bound artifact receipt. This does not establish that no separate authenticated session-history endpoint exists.",
+  "disposition": {
+    "m_a_status": "OPEN",
+    "r39_r40": "QUARANTINED",
+    "outputs_downloaded": false,
+    "kernel_launched_or_changed": false,
+    "provenance_or_quality_claim_promoted": false
+  }
+}
