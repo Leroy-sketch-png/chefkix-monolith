@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v392 loaded graph-controller artifact (2026-10-21)
+
+The live Java classpath resolves a local Maven `culinary:1.0.0-SNAPSHOT` jar whose controller bytecode has no graph route, explaining the 404 despite the current worktree source declaring it. The artifact’s build-source commit remains unknown; M-A stays OPEN. See LEAD v392 and its evidence JSON.
+
 ### M-A / LEAD v391 substitution endpoint spot check (2026-10-21)
 
 For `butter`, the dedicated substitutions endpoint returns 2 items, matching the ingredient record’s embedded count. This is a one-record API contract cross-check only; M-A remains OPEN. See LEAD v391 and the compact evidence JSON.

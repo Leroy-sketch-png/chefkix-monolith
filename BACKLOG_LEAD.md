@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v392 — Bind local graph-route 404 to loaded Maven artifact (2026-10-21)
+
+- Sanitized `jcmd` inspection of the port-8080 Java process's `java.class.path` found the loaded `com.chefkix:culinary:1.0.0-SNAPSHOT` library in the Windows user's local Maven repository. Jar SHA-256: `ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b`; the contained `KnowledgeGraphController.class` SHA-256 is `c7dba59f3a83fa67c9353a856020c55e9bfb387d18d5178d7c9c67221a9fe92c`.
+- `javap -v` of that loaded controller shows mappings for ingredient and technique reads, but no `GET /graph`. The checked-out master worktree's controller source SHA-256 is `77ca939aa972a39bb382cb7b8a1e8df38f48bccd8d04ddca447b41f1789ea9b8` and declares the graph mapping. Thus the observed 404 is explained by a loaded local Maven artifact whose route surface differs from the checked-out source; it is not evidence that graph data is absent.
+- The jar was last written 2026-10-16. Its build-source commit is not established; do not call this source-commit lineage or general deployment behavior. No launch args or credential-bearing values were exposed. M-A remains OPEN; R39/R40 remain quarantined.
+- Evidence: `evidence/lead-ma-loaded-artifact-route-check-20261021.json`. Next acceptance: recover the artifact's build provenance, then verify whether the intended current build is actually used by the local runtime.
+
 ## LEAD v391 — Cross-check ingredient substitution read route (2026-10-21)
 
 - A fresh local read returned HTTP 200 for the ingredient collection and for `/api/v1/knowledge/ingredients/butter/substitutions`. The `butter` record embeds two substitutions, and the dedicated endpoint returned the same count (2); response-body SHA-256 for the dedicated endpoint is `5e096cd9fe58c8ea3bc49e3ba96a649e5c527ef8f6583471b0f95b19e2121fbf`.
