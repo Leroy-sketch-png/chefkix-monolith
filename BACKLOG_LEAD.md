@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v375 — Reverify Senath inference harness contracts (2026-10-20)
+
+- The focused local runner/ingester/showcase suite passes 15 tests (`python -m pytest ai/tools/test_senath_validation_benchmark.py -q`), including synthetic method-failure ingestion under the fixed denominator and label-isolation contract checks. The exact source-only test-pool verifier also reproduces 10,747 cases / 537,350 candidates and the recorded pool/manifest hashes.
+- This is M-I/L44 harness-readiness evidence only. No remote outputs, GPU timing, Hit@k, method choice, quality, or M-I/M-B/L44 acceptance is established. Existing Kaggle work remains under its one-shot monitor; no poll or relaunch was made during this test.
+- Keep the local outputs and label frames private. Next: recover the existing benchmark only under its terminal-status one-shot contract, then validate the output bundle before reporting any measured result.
+
 ## LEAD v374 — Confirm byte-identical full-test pool replay (2026-10-20)
 
 - A second complete CPU rebuild of the frozen 10,747-case source-only test frame produced the same GISMo candidate JSONL and manifest hashes byte-for-byte as LEAD v373. Both outputs contain 537,350 candidates; the replay remains ignored/local-only.
