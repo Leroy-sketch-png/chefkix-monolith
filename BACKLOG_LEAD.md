@@ -20,6 +20,18 @@
 - DIGIBUG's CC BY-NC-ND item metadata conflicts with Springer's CC BY article notice. This remains unresolved for the article copy and cannot establish software/data rights.
 - L42 remains OPEN; this provides no global artifact-absence, novelty, dataset-lineage, or case-overlap finding. Canonical record: root S43 and `SCOPE.md` L42 follow-up.
 
+## LEAD v363 — Separate AdaptaFood from its predecessor repository (2026-10-20)
+
+- A public GitHub profile matching the AdaptaFood corresponding author's name and self-listed UGR affiliation exposes `recipe-adaptation`; its README and 2021 commit identify it as materials for the linked 2021 IEEE Access paper (already S60), not as the 2025 AdaptaFood release.
+- This creates a testable predecessor code/corpus/case reuse question, but neither author-profile identity nor reuse is independently established here. The large corpus remains an unverified Git-LFS object; no new study/source key or independent replication count.
+- L42 remains OPEN. No novelty, rights, corpus identity, case-overlap, or claim-register conclusion. Canonical S43/S57–S60 correction is in root `academic_vision_and_strategy.md` and `SCOPE.md`.
+
+## LEAD v364 — Verify predecessor corpus bytes and bound the reuse question (2026-10-20)
+
+- Retrieved the pinned S60 Git-LFS object and verified SHA-256 `221a32576d87fced58e8493f20f02b924bc39025c58cd9eb2e047a6d0c691762` and exact size 211,522,652 bytes against its pointer. Streaming CSV validation found 264,310 records with sequential unique IDs; the pinned Word2Vec script reads the preprocessed cooking-step column. Sixty-one preprocessed and sixty original-text fields are empty.
+- This verifies the exact S60 artifact and its 2021 pipeline use, not identity with the 267,071-record count in S59 or row/case/code/response reuse by 2025 AdaptaFood. L42 remains OPEN; no permissions, independent-data, novelty, or case-overlap conclusion.
+- Derived sync only, no new source key or study count. Canonical details: root S60/S43 in `academic_vision_and_strategy.md` and L42 follow-up in `SCOPE.md`.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
