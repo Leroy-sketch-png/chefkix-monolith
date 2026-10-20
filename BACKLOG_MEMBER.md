@@ -18,6 +18,8 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 | **C4 Human Evidence** | Rater agreement dashboard (κ with cluster CI), judge calibration report | §6.8, §7.5, §14.6 |
 | **C5 Product Proof** | `/explore/graph` (real artifact), `/api/v1/graph/evidence` (shadow), 5-min recorded demo | §12.4–12.8, §25.7 |
 
+**Progress boundary (2026-10-20; derived, not a completion score):** an L44-supporting M-B slice has now been rebuilt locally: 10,729 validation joins, 200 frozen cases, 10,000 top-50 candidates, GISMo-primary 105/95 strata, byte-identical pool and identity-map outputs, 27 focused tests passing, and a label-free 15-file package preflight. This does **not** satisfy M-B's complete validation/test strata and blinded 40-case adversarial fixture acceptance; M-B remains open. See LEAD v368 for the evidence receipt and limits.
+
 **No VLM/CLIP camera integration.** No "four trained models" UI. No behavioral learning dashboard. The bounded negatives chapter covers what didn't work.
 
 ## EPIC 1: Graph explorer infrastructure — IMPLEMENTED, coverage partial

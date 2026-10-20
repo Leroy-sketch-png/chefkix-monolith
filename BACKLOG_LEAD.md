@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v368 — Reverify L44/M-B CPU preparation boundary (2026-10-20)
+
+- A fresh local rebuild rejoined all 10,729 GISMo/validation rows using split, row index, recipe ID, raw source, target pair, and ingredient context; rebuilt 10,000 candidates for the same 200 frozen cases; and reproduced the packaged candidate-pool and identity-map bytes exactly. GISMo-primary strata remain 105 seen / 95 unseen. Focused tests pass 27/27; label-free package preflight validates 15 payload files and confirms labels remain local-only.
+- Evidence receipt: `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/out/senath-mb-rebuild-20261020/progress-receipt.json` (SHA-256 `d80c47111f0e22a928aa9bedc24e42223ca3efa7096caf72d0877deda4999199`). This is a bounded L44/M-B preparation subdeliverable, not the 200-case inference result, a method comparison, quality result, or full M-B completion.
+- The live monitor's last recorded observation for benchmark kernel version 4 was `RUNNING`; no output bundle has been validated. Leave L44 and M-B acceptance open. Do not relaunch or infer results from status.
+- This entry changes evidence synchronization only; no thesis-wide status count or completion percentage is declared.
+
 ## LEAD v363 — Verify S43’s numbered S46 citation (2026-10-20)
 
 - S43's Europe PMC full-text XML resolves reference [12] directly to Pellegrini et al., “Exploiting food embeddings for ingredient substitution” (HEALTHINF 2021; S46). Thus S43 explicitly attributes the 13,056-pair claim to S46; this is now verified, not inferred from a matching title in the bibliography.
