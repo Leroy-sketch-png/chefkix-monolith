@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v402 — Pin current HGAT kernel metadata and attached dataset identity (2026-10-21)
+
+- **New bounded metadata:** authenticated official Kaggle SDK `get_kernel` reports current saved `version_number=10`, `last_run_time=2026-10-17T18:28:36.361000`, and one attached dataset source, `paultimothymooney/recipenlg`. The source notebook pull hash and output inventory remain as recorded in LEAD v400.
+- **Boundary:** these are current kernel metadata fields, not an explicit completed-session/version binding. The dataset reference has no pinned dataset version or content digest; notebook code still selects the first recursive CSV match. The listed output files' creation date and current `last_run_time` differ, and the API provides no output digests/session version to reconcile them. Do not infer which input bytes produced the outputs or that current source version 10 produced the current files.
+- **Disposition:** this narrows the candidate input identity but does not close M-A's producer→artifact chain. Keep R39/R40 QUARANTINED and artifact lineage `UNKNOWN` pending explicit version/session/source/input/output hash binding. No outputs were downloaded, no run changed, and no graph statistics or quality claims were promoted. Evidence: `evidence/lead-ma-kaggle-hgat-kernel-metadata-20261021.json`.
+
 ## LEAD v401 — Inspect Kaggle output-list API schema without fetching artifacts (2026-10-21)
 
 - **AoE follow-up to v400:** checked the configured official Kaggle SDK's `list_kernel_session_output` response schema for the same HGAT kernel after the CLI table failed to expose provenance fields. The response exposes `files`, `log`, and pagination token; each file object exposes only `file_name` and a signed `url`. Signed URLs were not printed or followed.

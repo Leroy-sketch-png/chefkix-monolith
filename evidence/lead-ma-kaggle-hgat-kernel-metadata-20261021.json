@@ -1,0 +1,34 @@
+{
+  "record_type": "kaggle_hgat_current_kernel_metadata",
+  "observed_on": "2026-10-21",
+  "kernel_slug": "phanphutho/chefkix-hgat-epic-1-training",
+  "client": "configured official Kaggle Python SDK internal kernels API client",
+  "operation": "get_kernel",
+  "scope": "authenticated read-only kernel metadata request; no source blob, signed URL, output, or credential value printed",
+  "observed_metadata": {
+    "current_version_number": 10,
+    "last_run_time": "2026-10-17T18:28:36.361000",
+    "dataset_data_sources": [
+      "paultimothymooney/recipenlg"
+    ],
+    "competition_data_sources": [],
+    "kernel_data_sources": [],
+    "model_data_sources": []
+  },
+  "not_observed_or_bound": {
+    "dataset_version_observed": false,
+    "dataset_content_hash_observed": false,
+    "completed_session_version_observed": false,
+    "source_hash_bound_to_completed_session": false,
+    "output_hashes_observed": false,
+    "output_session_id_observed": false
+  },
+  "interpretation": "Current saved-kernel metadata narrows the declared input source identity, but does not establish which exact dataset bytes or source version produced the listed output files. Current version 10 is not assumed to be the completed output session version.",
+  "disposition": {
+    "m_a_status": "OPEN",
+    "r39_r40": "QUARANTINED",
+    "outputs_downloaded": false,
+    "kernel_changed": false,
+    "runtime_or_quality_claim_promoted": false
+  }
+}

@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v402 current HGAT kernel metadata (2026-10-21)
+
+The official SDK reports current saved kernel version 10, last-run time Oct 17, and attached source `paultimothymooney/recipenlg`. It provides no dataset version/hash or binding between version 10 and the listed outputs, so this narrows input identity only. M-A remains open; see LEAD v402 and evidence JSON.
+
 ### M-A / LEAD v401 Kaggle output-list schema check (2026-10-21)
 
 The official SDK output-list response exposes filenames and signed URLs, but no file hashes or explicit run/version binding. URLs were not printed or fetched. This confirms the queried inventory endpoint cannot close M-A provenance; it does not rule out another run-history source. See LEAD v401 and evidence JSON.
