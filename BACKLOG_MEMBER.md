@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / LEAD v405 wider data-preparation test sweep (2026-10-21)
+
+Six focused local modules covering identity/join audit, source-only pools, partition packaging, output collection, and scoring contracts pass 44/44. These are CPU contract tests on the dirty research checkout, not GPU inference, benchmark quality, rights clearance, or M-B acceptance. See LEAD v405 and its shared evidence JSON.
+
 ### M-B / LEAD v404 focused pool-builder and verifier tests (2026-10-21)
 
 The focused pytest suite for source-only case construction, GISMo candidate ranking, and fail-closed pool verification passes 15/15, covering label-key exclusion, identity/hash checks, candidate validation, and graph catalog mapping. This supplements LEAD v403's full-split artifact verification but is still synthetic-contract/input-preparation evidence, not inference, evaluation, rights clearance, or M-B completion. M-B/M-D/L44 remain open. See LEAD v404 and the shared evidence JSON.

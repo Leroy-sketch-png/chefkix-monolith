@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v405 — Sweep Senath source-only data preparation contracts (2026-10-21)
+
+- **Area cleared:** the wider local CPU contract suite for split identity/join audit, source-only case construction, deterministic pool verification, ≤200-case partition preparation, partition-output collection, and label-local scoring passes **44/44** on research checkout `740e85fff30eac762521eeb5f60d841e216700c5`.
+- **Blast-radius boundary:** passing fixtures support these local contracts only; this does not attest GPU runtime, full-data inference, benchmark quality, license/ethics clearance, protocol resolution, or human usefulness. The checkout contains unrelated dirty files; none were included in this monolith commit.
+- **Disposition:** preparation reliability improves, while M-B remains OPEN on rights/protocol and blinded-fixture gates; M-D/L44 remain OPEN on authorized inference/output gates. Evidence receipt adds the exact command, test-file hashes, and result to `evidence/lead-mb-full-split-gismo-pool-replay-20261021.json`.
+
 ## LEAD v404 — Exercise the source-only GISMo pool builder/verifier tests (2026-10-21)
 
 - **Area cleared:** the focused pytest suite for source-frame construction, candidate ranking and fail-closed pool verification passes **15/15** on the existing research checkout. Coverage includes label-field rejection, source-hash mismatch, split identity, candidate-count/ID/score validation, manifest substitution, target-key rejection, and graph ID/name catalog checks.

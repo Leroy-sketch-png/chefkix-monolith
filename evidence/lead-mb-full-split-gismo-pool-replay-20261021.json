@@ -17,6 +17,22 @@
     "test_build_senath_source_only_pools_sha256": "51478df711165ce2ec577414dfdecfd7622d44028d093fe8ee3d18515ffc54d4",
     "test_verify_senath_source_only_pools_sha256": "9115548edc3cf2cea620ccfe050a256720e5cc44d4e00ce05fab91960b685769"
   },
+  "broader_cpu_test_sweep": {
+    "checkout_head": "740e85fff30eac762521eeb5f60d841e216700c5",
+    "command": "python -m pytest -q test_audit_senath_full_split_identity.py test_build_senath_source_only_pools.py test_verify_senath_source_only_pools.py test_prepare_senath_source_only_partitions.py test_collect_senath_partition_outputs.py test_score_senath_full_split_outputs.py",
+    "working_directory": "ai/tools",
+    "exit_code": 0,
+    "passed": 44,
+    "failed": 0,
+    "test_source_sha256": {
+      "test_audit_senath_full_split_identity.py": "5e58bea2aeea9a57d92adaf44a7bb6b32c6291d8a94e7859a8c58f2293be559e",
+      "test_build_senath_source_only_pools.py": "51478df711165ce2ec577414dfdecfd7622d44028d093fe8ee3d18515ffc54d4",
+      "test_verify_senath_source_only_pools.py": "9115548edc3cf2cea620ccfe050a256720e5cc44d4e00ce05fab91960b685769",
+      "test_prepare_senath_source_only_partitions.py": "e8a0a91d4c64048cf56e658b3ec531310d489b597e5894add69f0d50b07aa4bf",
+      "test_collect_senath_partition_outputs.py": "8234decd1c1e4e11e580c9f4b9cc167003be72bf7c0917da519b91712855dad1",
+      "test_score_senath_full_split_outputs.py": "5b71a0bcd7adc42c50faf3485e4cf4091283f35b8e3b26e6970f6031463fbcd7"
+    }
+  },
   "shared_inputs": {
     "validation_case_frame_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
     "test_case_frame_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",
