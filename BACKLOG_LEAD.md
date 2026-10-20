@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v403 — Independently verify full-split GISMo pool replay identity (2026-10-21)
+
+- **Validation preparation:** reran the source-only pool verifier over the complete 10,729-case validation pool and its replay. Both contain 536,450 candidates (50 per case), and both the pool payload and manifest hashes match: `0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255` and `a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147`.
+- **Test preparation:** reran verification over all 10,747 test cases and its replay: 537,350 candidates, same pool hash `844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512`, same manifest hash `9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f`.
+- **Integrity boundary:** the verifier checked frozen source-frame and manifest pins, exactly 50 unique candidates per case, finite scores and deterministic ordering, closed output inventory, target-key exclusion, and candidate ID/name identity against the hash-pinned 6,653-item graph catalog. Both reports state `graph_identity_verified=true`, `target_labels_read=false`, and `selection_or_evaluation_performed=false`.
+- **Disposition:** deterministic local input-preparation subtask only; no labels were read/uploaded, no inference or evaluation was performed, and no method/quality claim follows. M-B remains OPEN pending rights/protocol and blinded-fixture gates; M-D/L44 remain OPEN pending authorized outputs and downstream acceptance. Evidence: `evidence/lead-mb-full-split-gismo-pool-replay-20261021.json`.
+
 ## LEAD v402 — Pin current HGAT kernel metadata and attached dataset identity (2026-10-21)
 
 - **New bounded metadata:** authenticated official Kaggle SDK `get_kernel` reports current saved `version_number=10`, `last_run_time=2026-10-17T18:28:36.361000`, and one attached dataset source, `paultimothymooney/recipenlg`. The source notebook pull hash and output inventory remain as recorded in LEAD v400.

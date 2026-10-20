@@ -1,0 +1,56 @@
+{
+  "record_type": "senath_full_split_gismo_pool_replay_verification",
+  "observed_on": "2026-10-21",
+  "mission": "M-B deterministic identity and candidate-pool preparation supporting L44",
+  "verifier": {
+    "path": "ai/tools/verify_senath_source_only_pools.py",
+    "sha256": "b9c7e7baa9634657760d1e119239996f5a959295ce701b330efe7b5ad392bc1e",
+    "purpose": "read-only validation of prepared source-only GISMo top-50 pools against frozen case frames and hash-pinned graph candidate identities"
+  },
+  "shared_inputs": {
+    "validation_case_frame_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
+    "test_case_frame_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",
+    "pinned_graph_nodes_sha256": "ea59d1858ae3a41de14aeabda32e6274693ea7897eb6ae1a3b7262bac5526d5a"
+  },
+  "validation": {
+    "source_only_case_count": 10729,
+    "candidate_count": 536450,
+    "candidates_per_case": 50,
+    "candidate_pool_sha256": "0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255",
+    "manifest_sha256": "a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147",
+    "pool_output_file_sha256": "0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255",
+    "replay_output_file_sha256": "0866a13ce9b6adfed41882b3d981638a54f56084848a914d56ca8d0578ae5255",
+    "replay_manifest_sha256": "a5d2d94b8522ccc07da6119b3dca1b431b6227344c6d0806e32e812de7d79147",
+    "graph_identity_verified": true,
+    "target_labels_read": false,
+    "selection_or_evaluation_performed": false,
+    "output_inventory": ["gismo_top50_val_pools.jsonl", "manifest.json"]
+  },
+  "test": {
+    "source_only_case_count": 10747,
+    "candidate_count": 537350,
+    "candidates_per_case": 50,
+    "candidate_pool_sha256": "844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512",
+    "manifest_sha256": "9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f",
+    "pool_output_file_sha256": "844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512",
+    "replay_output_file_sha256": "844a54612330da978e32084275f26620d2a7b1a38e8b2a2fb4e5a69844608512",
+    "replay_manifest_sha256": "9c394ee351b80b873898aa449eea38f24b5b25df08bc8b97b5f2691b3180c96f",
+    "graph_identity_verified": true,
+    "target_labels_read": false,
+    "selection_or_evaluation_performed": false,
+    "output_inventory": ["gismo_top50_test_pools.jsonl", "manifest.json"]
+  },
+  "interpretation": "Both full source-only split artifacts and their replay directories have matching pool and manifest hashes; the verifier accepts the complete case coverage and 50 graph-identity-verified candidates per case. This is deterministic input-preparation evidence only, not Senath inference, label evaluation, method selection, or model-quality evidence.",
+  "limitations": [
+    "Outputs and model/source assets remain local-only; no package upload or GPU run was performed.",
+    "M-B still has unresolved rights/protocol prerequisites and its blinded adversarial fixture/acceptance gates.",
+    "M-D/L44 still require authorized inference outputs and downstream evaluation acceptance."
+  ],
+  "disposition": {
+    "m_b_acceptance_complete": false,
+    "m_d_l44_complete": false,
+    "inference_performed": false,
+    "labels_read_or_uploaded": false,
+    "quality_claim_promoted": false
+  }
+}

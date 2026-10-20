@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / L44 full-split pool replay verification (2026-10-21; derived from LEAD v403)
+
+Independent verification confirms deterministic full validation and test source-only GISMo top-50 pools: 10,729/10,747 cases and 536,450/537,350 candidates, with matching pool and manifest hashes across each original/replay pair. All candidate IDs match the pinned graph catalog; target labels were not read and no evaluation or selection occurred. This is input-preparation evidence, not M-B completion, Senath inference, or model-quality evidence. Rights/protocol and blinded-fixture gates remain open. See LEAD v403 and its evidence JSON.
+
 ### M-A / LEAD v402 current HGAT kernel metadata (2026-10-21)
 
 The official SDK reports current saved kernel version 10, last-run time Oct 17, and attached source `paultimothymooney/recipenlg`. It provides no dataset version/hash or binding between version 10 and the listed outputs, so this narrows input identity only. M-A remains open; see LEAD v402 and evidence JSON.
