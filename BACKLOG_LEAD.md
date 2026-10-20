@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
+
+- A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
+- This is direct prior art for contextual top-k candidate ratings. The paper does not describe one shared cross-method candidate pool, blinded method/rank, or equivalent categorical validity adjudication; it is not proof the proposed protocol is novel, and its study is not allergen validation.
+- L42 remains OPEN; broad first top-k/user-rated substitution claims remain unsupported. No new source key, independent-study count, experiment, claims-register or scoreboard change.
+- Derived sync only. Canonical paper hash and bounded study comparison: root `academic_vision_and_strategy.md` Appendix C S43 and `SCOPE.md` L42 follow-up dated 2026-10-20.
+
 ## LEAD v358 — Bound Senath validation benchmark claims to their split (2026-10-20)
 
 - Full-text re-screen of existing source S02 confirms the published Senath paper uses the same 49,044/10,729/10,747 Recipe1MSubs split as GISMo and selects SFT checkpoints by validation loss; the downloaded arXiv PDF is hash-bound in canonical Appendix C and SCOPE.
