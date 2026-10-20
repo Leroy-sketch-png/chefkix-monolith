@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v361 — Reconcile AdaptaFood/S46 ground-truth count (2026-10-20)
+
+- S43 reports a 13,056-pair benchmark attributed to S46; S46's official paper describes 708 unique pairs over 42 source ingredients. The official S46 repository says its ground truth is not publicly released and is available on request. A linked TUM thesis table uses 13,056 for Food2Vec's total predictions, suggesting—but not proving—a count/column transposition. Keep this as an unresolved source/version contradiction; do not assert a typo, verified 13,056-row artifact, or row overlap.
+- L42 remains OPEN. This is evidence reconciliation only: no novelty claim, contribution-status change, experiment, or progress percentage. Canonical detail: root SSoT §4 / Appendix C S43/S46 and SCOPE L42 follow-up.
+
 ## LEAD v360 — Bound AdaptaFood artifact-discovery result (2026-10-20)
 
 - The S43 publisher page promises code/models/data on GitHub “upon acceptance” but supplies no repository URL in that footnote; its linked Zenodo record lists the paper PDF only. Bounded unauthenticated GitHub repository searches found no exact title/author-variant match; the University of Granada record request timed out.
