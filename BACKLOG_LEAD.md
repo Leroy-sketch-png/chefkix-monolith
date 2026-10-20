@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v432 — Align M-G with the canonical claims-register evidence contract (2026-10-21)
+
+- AoE review found the active MEMBER M-G summary and task card still described 16 seed rows as `VERIFIED` and required `register_scoreboard.py`, conflicting with current SSoT §15: the v4.2 R01–R45 list is a migration checklist; legacy statuses/placeholders are not evidence; the fail-closed `validate_claims_register.py` checks structure/local bytes but does not reproduce claims or authorize a scoreboard.
+- Corrected both active M-G copies to require row-level provenance/artifact reconciliation, preserve unsupported rows as `UNVERIFIED`/`OPEN`/`PARTIAL`, reserve `VERIFIED` for rows with matching artifact bytes plus hashed reproduction path/value, log mismatches separately, and use the canonical validator without treating its pass as truth. The v431 45-row inventory is only a structurally valid UNVERIFIED baseline; M-G/L48 remain open. Historical strategy/session snapshots and superseded Appendix A scoreboard code remain provenance, not active task authority.
+- No empirical claim, register status, progress score, or protocol decision changed. `git diff --check` is the acceptance check for this backlog-contract correction; full M-G acceptance still requires actual claim-by-claim artifacts and reproductions.
+
 ## LEAD v431 — Instantiate the R01–R45 claims inventory without upgrading evidence (2026-10-21)
 
 - Materialized the §15.1 migration checklist as `ai/evidence/claims-register/claims-register-r01-r45-unverified-seed-20261021.csv` in research-default-branch `master`, commit `d6341cf`. The 45 unique IDs all remain `UNVERIFIED`; source provenance is `LOCAL_MIGRATION_CHECKLIST_ONLY`, and reproduction fields remain empty. Inventory SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`; source strategy SHA-256 `863363a488530cac76279cd7f4c9dd92edee079d6e321f87f2e3c8c4e683d2ce`.

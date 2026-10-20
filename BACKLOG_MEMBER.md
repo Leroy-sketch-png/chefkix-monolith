@@ -210,7 +210,7 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 | **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. | M-B case frames; official GISMo checkpoint | 8h |
 | **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10, T-11, T-12 pass. Act 3 recorded from frozen files (not live API). Clean checkout, network disabled except API arms. | M-C Explorer; L38/L39 results | 12h |
 | **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
-| **M-G** | **Fill artifact paths & hashes for 16 flagged register rows:** Updated register where `register_scoreboard.py` exits 0. Real hashes, not placeholders. | All evidence artifacts | 6h |
+| **M-G** | **Reconstruct the R01–R45 claims register from §15.1:** reconcile claim provenance and current Lead-item mappings; preserve unsupported rows as UNVERIFIED/OPEN/PARTIAL. No statuses inherit from the migration seed. | SSoT §15; source artifacts and reproductions | 6h |
 | **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
 | **M-I** | **Job manifests & runner (fixture-tested):** §13.6–13.7 scripts + fixture. Fail-closed path and happy path both tested before any real run. | PR15 (reference code defects) | 6h |
 
@@ -314,10 +314,11 @@ L39 (allergen) → L45
 ### M-G: Claims Register Artifact Reconstruction (6h) — **START WEEK 4**
 > SSoT §15, §25.5 (P5), §17.2 M-G
 
-- [ ] For each of 16 flagged VERIFIED rows in seed register (R01, R02, R03, R05, R06, R08, R09, R10, R11, R12, R13, R14, R18, R19, R25, R31): find artifact, compute real SHA256, reproduce claimed value
-- [ ] Write claim/evidence mismatches to `EVIDENCE_VS_CLAIM.csv` (do not silently rewrite)
-- [ ] Update register copy with real paths/hashes; run `register_scoreboard.py` → exit 0
-- [ ] **Acceptance:** Register script exits 0; mismatches documented separately
+- [ ] Start from the current 45-row §15.1 migration inventory; do not inherit the old seed's statuses, dates, dummy hashes, L-item mappings, or self-test claims.
+- [ ] Reconcile each row's claim wording, source provenance, citation, and actual Lead-item boundary. Find the primary local artifact where applicable, hash its actual bytes, and reproduce the claimed value before marking VERIFIED. Keep citations separate from local artifact hashes.
+- [ ] Write claim/evidence mismatches to `EVIDENCE_VS_CLAIM.csv`; never silently rewrite the empirical claim to fit a convenient artifact. Preserve unresolved items as UNVERIFIED/OPEN/PARTIAL and leave reproduction fields empty unless the row is VERIFIED under §15.
+- [ ] Run `python ai/tools/validate_claims_register.py <register.csv>` and record its output. A pass establishes schema/local-byte integrity only; it does not execute reproductions or prove claim truth. Do not generate a progress scoreboard from the seed or validator output.
+- [ ] **Acceptance:** all R01–R45 IDs are unique and complete; required fields, provenance, citations, paths, hashes, and status-specific reproduction requirements validate; every mismatch is documented; no status exceeds its actual evidence. L48 stays open until lead review accepts the reconciled register.
 
 ### M-H: README & Reproducibility Kit (8h) — **START WEEK 6**
 > SSoT §17.2 M-H, §24.3
