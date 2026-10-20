@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v389 — Measure local knowledge API snapshot (2026-10-21)
+
+- Two sequential read-only GETs to the local monolith knowledge endpoints returned HTTP 200 on 2026-10-21 00:01 ICT. The observed responses contain 92 ingredient records / 92 unique nonempty canonical names and 25 technique records. Response SHA-256s: ingredients `1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3`, techniques `73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf4`; canonical combined payload `3c4b2b615716b686744bf2af0441a4ef63aa01516d0c7a4d51afb598b6268edf`.
+- Against the checked-in seed by trimmed Unicode-casefolded name, 17/25 ingredient names and 3/16 technique names overlap. This is name overlap only, not evidence of seeder lineage. The inspected seeder skips populated collections; the two sequential requests are not a transactionally consistent snapshot.
+- Analyst interpretation of the observed embedded ingredient substitutions retains all 109 statements as directed arcs: 28 resolve to observed canonical names and 81 remain literal unmatched targets; none were ambiguous under the exact-name rule. The resulting 172 vertices, 74 weak components, 9 isolates and degree summary describe this local response snapshot only. They do not establish persisted graph edges, producer lineage, deployment state, equivalence to the quarantined Round-0 or HGAT claims, model quality, or human usefulness.
+- M-A remains OPEN; R39/R40 remain quarantined; no thesis percentage or claim status changes. Corrected an initial scratch tally that omitted unmatched literal arcs before recording this result. A compact evidence record is `evidence/lead-ma-local-runtime-snapshot-20261021.json`; raw API bodies are not copied into the repository.
+
 ## LEAD v388 — Recheck M-A static graph/coverage artifacts (2026-10-20)
 
 - Fresh runs of the local M-A graph-truth and coverage-curve builders completed; focused tests pass 8/8 and the Agent OS verifier passes. The source-family coverage CSV reproduces its prior SHA-256 exactly: `560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac`.

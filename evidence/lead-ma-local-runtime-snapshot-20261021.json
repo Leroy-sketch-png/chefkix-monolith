@@ -1,0 +1,62 @@
+{
+  "record_type": "bounded_local_runtime_observation",
+  "observed_at": "2026-10-21T00:01:40.786653+07:00",
+  "observer": "local read-only inspection",
+  "requests": [
+    {
+      "endpoint": "/api/v1/knowledge/ingredients",
+      "method": "GET",
+      "http_status": 200,
+      "record_count": 92,
+      "unique_nonempty_canonical_name_count": 92,
+      "response_body_sha256": "1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3"
+    },
+    {
+      "endpoint": "/api/v1/knowledge/techniques",
+      "method": "GET",
+      "http_status": 200,
+      "record_count": 25,
+      "response_body_sha256": "73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf4"
+    }
+  ],
+  "snapshot_caveat": "Two sequential requests, not a transactionally consistent snapshot. Raw response bodies were not retained.",
+  "canonical_combined_payload_sha256": "3c4b2b615716b686744bf2af0441a4ef63aa01516d0c7a4d51afb598b6268edf",
+  "seed_name_overlap": {
+    "normalization": "trim and Unicode casefold",
+    "ingredient_names_found": 17,
+    "ingredient_seed_names_total": 25,
+    "technique_names_found": 3,
+    "technique_seed_names_total": 16,
+    "interpretation": "Name overlap only; not producer or seeder lineage evidence."
+  },
+  "source_sha256": {
+    "KnowledgeGraphController.java": "264a4a729414f3d6f5cccda853bc911088532ecb1f3d60abb2a3f12e22596b6c",
+    "KnowledgeGraphService.java": "cec82b969b1636068b90f2c250c4901e0177f773374a81bc73c3ef4ee46aab1f",
+    "KnowledgeIngredient.java": "24cb96876d4c49201f085105fcee17f1bc27a8810d8d152c0e102129e7c177b1",
+    "KnowledgeTechnique.java": "a2df2e89c7f62bd72ecf52d0e09148e469b43f57ba5752483eedf7056a6b3264",
+    "KnowledgeIngredientRepository.java": "7b961595d14a237b0d3f74fc73ba97a58a85a5acf7cec8d43ac5ae7dd42a0501",
+    "KnowledgeGraphSeeder.java": "cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174",
+    "application.yml": "0695ef5df0de67210b96a9c18e081f151b76104e7fed136ef8a2906381fcba59"
+  },
+  "substitution_interpretation": {
+    "rule": "Treat every embedded substitution statement as a directed analyst arc. Resolve a target only when trimmed Unicode-casefolded exact name matching yields one canonical name; otherwise retain its literal target. This is not evidence that the runtime persists or serves graph edges.",
+    "statement_count": 109,
+    "exact_name_resolved_arcs": 28,
+    "literal_unmatched_target_arcs": 81,
+    "ambiguous_targets": 0,
+    "unique_canonical_plus_literal_vertices": 172,
+    "unique_directed_pairs": 109,
+    "self_loops": 1,
+    "reciprocal_nonself_pairs": 9,
+    "isolates": 9,
+    "weak_components": 74,
+    "largest_weak_component_vertices": 6
+  },
+  "claim_boundary": [
+    "Does not establish seeder lineage or why live collections differ from checked-in seed names.",
+    "Does not establish persistence of substitution edges, public/production deployment, or a transactionally consistent database state.",
+    "Does not validate or refute quarantined Round-0 or HGAT claims or establish graph equivalence.",
+    "Does not establish model quality, user value, or thesis completion. M-A remains OPEN; R39/R40 remain quarantined."
+  ],
+  "scratch_correction": "An initial scratch tally counted only exact-name-resolved arcs; the recorded graph interpretation was corrected to retain all 109 statements, including 81 literal unmatched-target arcs."
+}
