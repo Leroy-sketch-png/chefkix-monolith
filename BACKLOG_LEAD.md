@@ -2,6 +2,14 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v351 — Extend L42 corpus/reproduction lineage through 2020 and pinned code (2026-10-20)
+
+- Canonical §4 / §17 / Appendix C and root `SCOPE.md` now extend S57–S58 through S59 (the cited 2020 corpus/mapping precursor) and S60 (the authors' pinned 2021 reproduction repository). Together they support one linked 2020→2021→2022 method/data lineage, not three independent replications.
+- S59's four source counts total 267,071. S58's three named sources total 256,392, exactly short by S59's 10,679 BBC Food rows. An omitted BBC entry is a plausible reconciliation, but exact archive version, rows, preprocessing and case overlap remain `UNKNOWN`. The repository's corpus LFS pointer declares a 211,522,652-byte object and hash; the object itself was not fetched or verified.
+- Repository code corresponds to the published 2021 validation workflow, but is not proof of deployed MongoDB contents, case selection, response completeness, exclusions, data rights, or reproduction. Do not upgrade that evidence ceiling.
+- L42 remains OPEN. Broad replacement/context/human-evaluation novelty remains rejected; exact frozen-protocol novelty, corpus identity and case reuse remain unresolved. No claim-register or progress-scoreboard change. Next work is authorized artifact/record matching where access permits, then the complete hashed §25.4 funnel and independent second review.
+- Derived backlog synchronization only. Evidence and hashes: root `SCOPE.md` L42 follow-up dated 2026-10-20; canonical SSoT Appendix C S59–S60. No experiment or novelty conclusion was authorized by this update.
+
 ## LEAD v350 — Reconcile Morales-Garzón 2021/2022 adaptation lineage (2026-10-20)
 
 - Canonical SSoT §4 / §17 / Appendix C and root `SCOPE.md` now include S57–S58: the 2021 Food.com adaptation study's 80 cases and 590 reviews (8 comprehension exclusions), and the cited 2022 BERT/SBERT continuation's 100-ingredient syntactic lower-bound comparison, which leaves user/expert adaptation evaluation for future work.
