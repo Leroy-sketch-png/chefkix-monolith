@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v408 source-family coverage curve (2026-10-21)
+
+Recomputed the frozen GISMo-v23 top-N source-family support curve and independently matched all 35 emitted family/tier records; focused tests pass 2/2. The 2+ independent-family source-linkage tier reaches 57,641/141,040 endpoint occurrences at top-5,000 (40.87%). This is not live graph coverage, semantic equivalence, rights clearance, safety, or M-A completion; R39/R40 remain open/quarantined. The generator and aggregate stay local-only. See LEAD v408 and its receipt.
+
 ### M-I / LEAD v407 one-shot recovery failure-control tests (2026-10-21)
 
 Six mocked/temporary-directory tests pass for the no-retry recovery helper: no download while RUNNING, exactly one download after COMPLETE, preserved partial/invalid bundles, and refusal to overwrite an existing destination. No remote call occurred. This validates helper control flow only; the already-recovered real bundle remains separate evidence. See LEAD v407 and the shared evidence JSON.

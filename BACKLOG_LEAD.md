@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v408 — Reconstruct M-A source-family support curve (2026-10-21)
+
+- Rebuilt the seven requested top-N tiers from the hash-pinned, independently validated GISMo-v23 identity matrix. The independent-family (FlavorDB/FlavorGraph collapsed) curve covers 31,974 of 45,988 endpoint occurrences at top-50 (69.53%), 38,840/63,030 at top-100 (61.62%), 49,260/87,737 at top-250 (56.15%), 54,181/106,672 at top-500 (50.79%), 56,693/122,628 at top-1,000 (46.23%), 57,309/134,040 at top-2,000 (42.76%), and 57,641/141,040 at top-5,000 (40.87%). A separate oracle matched all 35 source-family/top-N rows; the focused tests pass 2/2.
+- This is a reproducible source-linkage support curve over the frozen exact-name matrix, not actual graph/runtime coverage, semantic equivalence, safety, rights clearance, or a closure of M-A/R39/R40. The generator, test and CSV remain local-only; no source data or code was committed.
+- No model, runtime, or Kaggle action. Evidence receipt: `evidence/lead-ma-source-family-coverage-curve-20261021.json`; local aggregate CSV SHA-256 `560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac`.
+
 ## LEAD v407 — Exercise one-shot benchmark recovery failure controls (2026-10-21)
 
 - **Area cleared:** six synthetic tests pass for the benchmark's one-shot recovery helper. They verify RUNNING makes no download call; COMPLETE invokes download once before local validation; transport exceptions/nonzero exits and validation failures preserve partial/downloaded evidence without retry; and an existing destination is refused before any remote call.
