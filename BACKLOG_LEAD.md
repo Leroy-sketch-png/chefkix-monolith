@@ -38,6 +38,12 @@
 - Keep the profile association `INFERRED`; the publisher and UGR directory do not link that GitHub account. No upgrade to corpus/case reuse, release provenance, rights, independence, novelty, or L42 completion.
 - Derived evidence-only sync. Canonical details: root S43/S60 in `academic_vision_and_strategy.md` and L42 follow-up in `SCOPE.md`.
 
+## LEAD v366 — Bound the author's public-repository inventory (2026-10-20)
+
+- GitHub's public user-repository API returned all 26 repositories shown for the corroborated profile. The list contains the S60 2021 predecessor but no AdaptaFood-named repository; this is not a search of private, organizational, differently named, or globally indexed releases.
+- L42 remains OPEN. Do not state global code/model/data absence, novelty, or no reuse from this owner-profile check.
+- Dated, bounded evidence-only sync; no source key, independent-study count, or scorecard change. Canonical detail: root S43/S60 and SCOPE L42 follow-up.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
