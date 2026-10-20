@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v353 — Add CulturalRecipes human-adaptation boundary to L42 (2026-10-20)
+
+- Canonical SSoT now screens Cao et al.'s 2024 CulturalRecipes work from the official ACL full text: a Chinese↔English cross-cultural recipe-adaptation task with human-written gold adaptations (25 Chinese→English, 41 English→Chinese) and recipe-level human ratings for grammar, executable-recipe consistency, preservation, and cultural appropriateness.
+- This is direct human-evaluated cultural recipe-adaptation prior art. It does not evaluate a shared candidate pool or per-candidate ingredient validity, and it is not allergen-safety evidence. The single-evaluator-per-pair design is not an inter-rater-agreement study.
+- Together with RecipeCrit, broad recipe-adaptation/human-evaluation novelty is untenable. L42 stays OPEN; exact frozen candidate-validity protocol novelty remains `UNKNOWN`. No claim-register or progress-scoreboard change.
+- Derived synchronization only. Canonical source, study boundary and official PDF hash are in root `academic_vision_and_strategy.md` Appendix C S62 and `SCOPE.md` L42 follow-up dated 2026-10-20.
+
 ## LEAD v352 — Add RecipeCrit human-evaluated editing boundary to L42 (2026-10-20)
 
 - Canonical prior-art map now includes S61, Antognini et al.'s EACL 2023 RecipeCrit paper, screened from the official full-text PDF. It evaluates ingredient-constrained recipe edits and reports 800 whole-recipe human best-worst judgments across serendipity, correctness, coherence and relevance.
