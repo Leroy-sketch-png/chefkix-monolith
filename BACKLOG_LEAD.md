@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v352 — Add RecipeCrit human-evaluated editing boundary to L42 (2026-10-20)
+
+- Canonical prior-art map now includes S61, Antognini et al.'s EACL 2023 RecipeCrit paper, screened from the official full-text PDF. It evaluates ingredient-constrained recipe edits and reports 800 whole-recipe human best-worst judgments across serendipity, correctness, coherence and relevance.
+- This is direct prior art for ingredient-focused recipe editing and human-evaluated adaptation. It is not a fixed shared-candidate ranking benchmark, per-candidate culinary-validity audit, or allergen-safety validation. The authors warn that generated free text does not guarantee full ingredient removal and advise severe-allergy users to review outputs.
+- L42 remains OPEN; exact frozen-protocol novelty is UNKNOWN. No claim-register or progress-scoreboard change. Continue the full §25.4 funnel, source/data/case-lineage adjudication, and independent second review.
+- Derived backlog synchronization only. Canonical evidence and downloaded-PDF hash: root `academic_vision_and_strategy.md` Appendix C S61 and `SCOPE.md` L42 follow-up dated 2026-10-20. No quality or novelty conclusion is promoted.
+
 ## LEAD v351 — Extend L42 corpus/reproduction lineage through 2020 and pinned code (2026-10-20)
 
 - Canonical §4 / §17 / Appendix C and root `SCOPE.md` now extend S57–S58 through S59 (the cited 2020 corpus/mapping precursor) and S60 (the authors' pinned 2021 reproduction repository). Together they support one linked 2020→2021→2022 method/data lineage, not three independent replications.
