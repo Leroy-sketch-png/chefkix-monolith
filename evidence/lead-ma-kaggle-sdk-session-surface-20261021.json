@@ -27,8 +27,37 @@
     ],
     "method_surface_observation": "The installed generated service exposes latest-session status, latest-session output listing, and output-download calls (including a ZIP call addressed by kernel_session_id). It exposes no method to enumerate kernel sessions or retrieve session history/IDs."
   },
+  "broader_sdk_sweep": {
+    "scope": "Enumerated every generated non-transport service client under the installed kagglesdk */services/*.py modules and scanned the complete installed Python package for session/history/run-list terms.",
+    "service_client_count": 10,
+    "service_clients": [
+      "AccountClient",
+      "BlobApiClient",
+      "CompetitionApiClient",
+      "DatasetApiClient",
+      "EducationApiClient",
+      "InboxFileClient",
+      "KernelsApiClient",
+      "ModelApiClient",
+      "ModelClient",
+      "OAuthClient"
+    ],
+    "service_module_inventory": {
+      "admin/services/inbox_file_service.py": "75b36a0ce6428535a896df5e3f7f4cf1d3e0ec05c45d62308232e057cb61b229",
+      "blobs/services/blob_api_service.py": "d684ecf30202f1fa7bc672d8c54b88c6abf930f28b49a6126f91aae295e693ff",
+      "competitions/services/competition_api_service.py": "3f708f3c9e26d3c1118e4060c1b4f8e84337f1cbfede85b165431bcef7c4cc6b",
+      "datasets/services/dataset_api_service.py": "ca1151918c915b97da751e9faeaa19c1dced54971444c49166d8f7c6da9ebd05",
+      "education/services/education_api_service.py": "c9d56dd7891102e646404f9bd4ad1275f7326369cbb845f0baf8bf4be1a70912",
+      "kernels/services/kernels_api_service.py": "b91b166f81459a43ca8901aa6a34128baa11702524b8cef4c4c11b5967dfc690",
+      "models/services/model_api_service.py": "d33f513a6e4b7f837e951dbcfcd0274a025a3ccf9fff0c6553b96dce8fd60c9d",
+      "models/services/model_service.py": "f8a33ae2b9d804ef0bdad7a7e55121416ece8596bbc9a21ce1d39844eb49bd85",
+      "security/services/oauth_service.py": "82d36734fd4894a48af1cdb3c31499382f96407a3902c6657fe87b83c9ea760a",
+      "users/services/account_service.py": "a52b2fff96b555627d8417293a886342eaa8a0bf34f3ac2d0a1312166a39440f"
+    },
+    "finding": "Only KernelsApiClient contains kernel-run/session methods. The only session-ID-like fields outside Kernels are an Education fork-parent reference and a Users account kernel_session_id field; the latter's client exposes only generate_access_token. Neither is a session-history/list operation. Other session matches are HTTP-client transport state."
+  },
   "interpretation": {
-    "verified": "This exact installed official SDK surface provides no session-history/list method for binding current outputs to a historical run/version.",
+    "verified": "This exact installed official SDK surface provides no session-history/list method for binding current outputs to a historical run/version; all ten generated non-transport service clients were inventoried and no such method exists outside the Kernels service.",
     "not_established": [
       "That Kaggle's web UI or another authenticated/documented API surface has no run history.",
       "Which completed session produced any previously listed HGAT output.",

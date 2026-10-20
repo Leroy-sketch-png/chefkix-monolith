@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v412 — Complete installed Kaggle SDK session-history sweep (2026-10-21)
+
+- Expanded v411 from the Kernels service to every generated non-transport client in the installed `kagglesdk` package: ten were found across ten hash-pinned service files (including Account, InboxFile, OAuth, and Model clients that the first suffix-only enumeration would miss). A package-wide session/history/run-list source scan found no session-history enumerator outside the Kernels client; the non-kernel session-ID fields are an Education fork-parent reference and a Users account field, not run-history APIs.
+- This strengthens the bounded conclusion to the entire locally installed SDK source at the inspected version. It still does not exclude Kaggle web-UI history, another separately distributed/documented client, or an authenticated server interface absent from this SDK. No network request, output retrieval, kernel change, or inference occurred.
+- **Disposition:** M-A remains OPEN; artifact lineage remains UNKNOWN; R39/R40 remain QUARANTINED. Preserve the exact SDK/version/source hashes in the v411 evidence receipt; next use only a documented and authorized external history surface if available. No undocumented endpoint probing.
+
 ## LEAD v411 — Inventory official Kaggle SDK session-history surface (2026-10-21)
 
 - Read-only inspection of the locally installed official Kaggle CLI 1.7.4.5 and bundled generated kernel SDK found eight kernel-service methods. The session-related methods are latest-session status, latest-session output listing, and output-download calls; the ZIP download takes a `kernel_session_id`, but this service exposes no method to enumerate sessions or retrieve run history/session IDs.
