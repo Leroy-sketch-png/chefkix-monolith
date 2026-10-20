@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v350 — Reconcile Morales-Garzón 2021/2022 adaptation lineage (2026-10-20)
+
+- Canonical SSoT §4 / §17 / Appendix C and root `SCOPE.md` now include S57–S58: the 2021 Food.com adaptation study's 80 cases and 590 reviews (8 comprehension exclusions), and the cited 2022 BERT/SBERT continuation's 100-ingredient syntactic lower-bound comparison, which leaves user/expert adaptation evaluation for future work.
+- Treat these as one linked author/method lineage, not independent replications. Both state 267,071 recipe-instruction records, but their listed source sets differ; equal counts and citation do not prove identical corpus rows, snapshots, cases, code, participants, or reviews. No artifact-level data/case matching was available.
+- L42 remains OPEN; broad recipe-context/human-evaluation novelty is rejected, exact frozen-protocol novelty and corpus/case overlap remain `UNKNOWN`. No claim-register, experiment, or progress-scoreboard changes.
+- This is derived backlog synchronization. Evidence/source access limits are in root `SCOPE.md` L42 follow-up dated 2026-10-20 and canonical `academic_vision_and_strategy.md` S57–S58. L42's response-hashed §25.4 funnel, cross-lineage artifact adjudication, independent second review, and claim-register review remain.
+
 ## LEAD v349 — Align L42 acceptance with the canonical S50–S56 map (2026-10-20)
 
 - The root strategy's active §17 L42 row now names the current S50–S56 source inventory and the remaining acceptance gates: response-hashed §25.4 funnel, method/data/case lineage and duplicate adjudication, independent second review, and claim-register review.
