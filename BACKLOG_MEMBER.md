@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v396 live route on source-built artifact (2026-10-21)
+
+After a backed-up local Maven install and guarded monolith restart, the graph route returns 200 from the exact source-built JAR. It exposes 92 nodes/25 canonical edges, not all 109 embedded statements (3 alias-only, 81 unresolved). Local runtime binding improved; producer lineage, AI-service artifact, and Round-0 reconciliation remain open. See LEAD v396 and evidence JSON.
+
 ### M-A / LEAD v395 full Culinary reactor suite (2026-10-21)
 
 Offline reactor tests pass 140/140 (including graph controller 2/2 and graph service 6/6). This validates current source tests, not live artifact lineage or runtime graph truth; M-A remains open. See LEAD v395 and evidence JSON.

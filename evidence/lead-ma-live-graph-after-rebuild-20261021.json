@@ -1,0 +1,90 @@
+{
+  "record_type": "local_live_graph_route_after_source_build_restart",
+  "observed_on": "2026-10-21",
+  "source_revision": "c5750a7056a7264708430ae7bef13e6804d20f6b",
+  "build_install": {
+    "command": "mvnw.cmd -o -pl culinary -am install",
+    "result": "BUILD SUCCESS",
+    "tests_run": 140,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "installed_culinary_jar_sha256": "88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1",
+    "rollback_copy": {
+      "location_class": "user TEMP directory, outside repository",
+      "snapshot_directories": ["shared", "identity-api", "culinary-api", "social-api", "culinary"],
+      "all_copied_file_sha256_values_verified": true
+    }
+  },
+  "runtime": {
+    "service": "checkout-owned local monolith",
+    "port": 8080,
+    "pid": 25232,
+    "process_started": "2026-10-21T00:45:39.9328693+07:00",
+    "loaded_culinary_jar_sha256": "88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1",
+    "loaded_jar_matches_installed_source_build": true,
+    "restart_method": "guarded dev.bat -StopMonolith then dev.bat -BackendOnly",
+    "infrastructure": "already healthy; no infrastructure shutdown or reset"
+  },
+  "api_observations": {
+    "graph": {
+      "route": "/api/v1/knowledge/graph?limit=500",
+      "status": 200,
+      "response_bytes": 10918,
+      "response_sha256": "9e442b920a369300a589cc6c601dfb65a334ddcbf9fd9598713448b5cef1b88c",
+      "repeat_reads": 2,
+      "repeat_response_byte_identical": true,
+      "nodes": 92,
+      "unique_node_ids": 92,
+      "edges": 25,
+      "unique_directed_pairs": 25,
+      "duplicate_edge_excess": 0,
+      "self_loops": 0,
+      "reciprocal_pairs": 9,
+      "weak_components": 76,
+      "largest_weak_component": 5,
+      "isolates": 65,
+      "total_degree_min_median_mean_max": [0, 0, 0.543478, 5],
+      "max_in_degree": 3,
+      "max_out_degree": 2,
+      "categories": {
+        "baking": 9,
+        "condiment": 16,
+        "dairy": 10,
+        "grain": 11,
+        "produce": 21,
+        "protein": 13,
+        "spice": 12
+      }
+    },
+    "ingredient_collection": {
+      "status": 200,
+      "count": 92,
+      "response_sha256": "1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3",
+      "pre_restart_hash_unchanged": true
+    },
+    "technique_collection": {
+      "status": 200,
+      "count": 25,
+      "response_sha256": "73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf",
+      "pre_restart_hash_unchanged": true
+    }
+  },
+  "embedded_statement_crosscheck": {
+    "ingredient_documents": 92,
+    "unique_canonical_names": 92,
+    "embedded_substitution_statements": 109,
+    "direct_canonical_targets": 25,
+    "unique_alias_only_targets": 3,
+    "unresolved_literal_targets": 81,
+    "empty_targets": 0,
+    "sources_with_statements": 83,
+    "interpretation": "The graph service emits canonical-name-resolved edges only. Alias-only and unresolved literal targets remain visible in embedded substitution data but are not emitted as graph edges. This is a representation boundary, not proof that statements are absent from the database."
+  },
+  "limitations": [
+    "Sequential API reads are not a transactionally consistent database snapshot.",
+    "This is local runtime evidence only; it does not establish public deployment behavior, producer/seeder lineage, or the separate AI-service graph artifact.",
+    "No model inference or quality claim follows from graph counts.",
+    "M-A remains OPEN; R39/R40 remain quarantined."
+  ]
+}

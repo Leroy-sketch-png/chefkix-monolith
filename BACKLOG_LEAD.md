@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v396 — Rebind live graph API to source-built artifact (2026-10-21)
+
+- Backed up and hash-verified the five reactor module snapshot directories in the local Maven repository, installed the tested offline reactor build, then stopped only the verified checkout-owned monolith and restarted it through `dev.bat -BackendOnly`; infrastructure was already healthy. The new port-8080 JVM classpath resolves the Culinary JAR SHA-256 `88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1`, matching the source-built artifact.
+- After restart, `/api/v1/knowledge/graph?limit=500`, `/ingredients`, and `/techniques` returned HTTP 200. Two graph reads were byte-identical (10,918 bytes; SHA-256 `9e442b920a369300a589cc6c601dfb65a334ddcbf9fd9598713448b5cef1b88c`). The graph response contains 92 unique ingredient nodes and 25 unique directed substitution edges: 76 weak components, largest size 5, 65 isolates, no duplicate pairs or self-loops, and 9 reciprocal pairs. Ingredient and technique payload hashes match the pre-restart observations.
+- Cross-checking the 92 ingredient records finds 109 embedded statements: 25 direct canonical targets, 3 unique alias-only targets, and 81 unresolved literal targets. The current graph service resolves emitted edges against canonical-name nodes only. These are distinct representations; the 25 graph edges must not be reported as the total embedded-substitution inventory or as producer/seed lineage.
+- This binds the local route and loaded artifact for this runtime session, not the data producer, a transactionally consistent DB snapshot, public deployment, or the separate AI-service graph artifact. M-A remains OPEN; R39/R40 remain quarantined. Evidence: `evidence/lead-ma-live-graph-after-rebuild-20261021.json`; the verified Maven rollback copy is local-only.
+
 ## LEAD v395 — Run full Culinary reactor suite after graph-route source proof (2026-10-21)
 
 - Offline `mvnw.cmd -o -pl culinary -am test` completed successfully on source commit `c5750a7056a7264708430ae7bef13e6804d20f6b`: 140 tests, 0 failures, 0 errors, 0 skipped across the reactor. The 2 `KnowledgeGraphControllerTest` cases and 6 `KnowledgeGraphServiceTest` cases passed within that suite.
