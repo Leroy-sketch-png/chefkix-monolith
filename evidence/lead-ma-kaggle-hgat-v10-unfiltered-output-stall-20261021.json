@@ -1,0 +1,65 @@
+{
+  "observed_on": "2026-10-20",
+  "target": "phanphutho/chefkix-hgat-epic-1-training/v10",
+  "command": "kaggle kernels output phanphutho/chefkix-hgat-epic-1-training/v10 --path <disposable-temp-dir>",
+  "client": {
+    "official_source_commit": "30540b45a5eb85c319d3247907d5f8162917093b",
+    "reported_cli_version": "2.2.4",
+    "runtime": "Python 3.11 slim Docker container",
+    "container_image_digest": "sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+    "credential_mount": "read-only configured Kaggle directory; no credential values exposed"
+  },
+  "preflight": {
+    "command": "kaggle kernels files phanphutho/chefkix-hgat-epic-1-training/v10 --page-size 200 --csv",
+    "exit_code": 0,
+    "file_count": 17,
+    "api_reported_size_sum_bytes": 15452,
+    "safety_limit_bytes": 50000000,
+    "preflight_passed": true
+  },
+  "process_observation": {
+    "status_before_stop": "still running after more than two minutes; no stdout/stderr was returned because the wrapper captured it until completion",
+    "temporary_files_observed": [
+      {"name": "codebase/processed/food_graph.pt", "bytes": 0},
+      {"name": "codebase/knowledge_graph/download_features.py", "bytes": 2568},
+      {"name": "codebase/knowledge_graph/parse_recipe_nlg.py", "bytes": 4006},
+      {"name": "codebase/knowledge_graph/hgat_model.py", "bytes": 3349},
+      {"name": "codebase/knowledge_graph/requirements.txt", "bytes": 131},
+      {"name": "codebase/knowledge_graph/build_heterodata.py", "bytes": 6065},
+      {"name": "codebase/knowledge_graph/train_hgat.py", "bytes": 5273},
+      {"name": "codebase/knowledge_graph/extract_substitutions.py", "bytes": 3519},
+      {"name": "codebase/knowledge_graph/__pycache__/hgat_model.cpython-312.pyc", "bytes": 3679}
+    ],
+    "observed_file_count": 9,
+    "observed_total_bytes": 28590,
+    "network_block_io_later_snapshot": "0 B / 49.7 MB",
+    "second_snapshot": "same 9 paths and sizes; no change"
+  },
+  "termination": {
+    "action": "Stopped only the disposable Docker container created for this read-only retrieval after observed stall.",
+    "docker_stop_succeeded": true,
+    "cli_process_exit_code_after_stop": 1,
+    "container_auto_removed": true,
+    "partial_bytes_retained": false,
+    "hashes_for_partial_files": false
+  },
+  "result": {
+    "hgat_weights_pt_retrieved": false,
+    "complete_output_set_retrieved": false,
+    "inference_run": false,
+    "remote_kernel_modified": false,
+    "retry_or_relaunch": false,
+    "interpretation": "A transport stall after a partial temporary file set. It does not prove any listed Kaggle artifact is absent, damaged, or invalid, and does not resolve producer/source/input/output lineage."
+  },
+  "provenance_context": {
+    "version_pinned_source_sha256": "4758635e793a9cb4e98f09124e344b288b4d7b1547bcfbef2cd5f645c73886fd",
+    "version_pinned_metadata_sha256": "a8362f28afa87d5d407ca23371b1c5390a8034ac3fe434fbafe78c22dcdb5df8",
+    "filtered_output_log_only_sha256": "4e7639031d844df7b20bd810988a720ab0dd87239bf2037c09b7f1dd48d6217b"
+  },
+  "disposition": {
+    "m_a": "OPEN",
+    "artifact_lineage": "UNKNOWN",
+    "r39_r40": "QUARANTINED",
+    "next_action": "No further CLI output-transfer attempts for this target until a documented producer/session route or separately supported recovery method is established."
+  }
+}
