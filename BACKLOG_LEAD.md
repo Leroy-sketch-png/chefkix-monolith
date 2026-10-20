@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v383 — Prepare fail-closed full-split score recomputation (2026-10-20)
+
+- Added a label-local evaluator for future collected full-split output bundles. It checks independent input/collection/audit/identity-map pins, source and audit lineage, exact source-label-identity joins and coverage, frozen GISMo pool membership for reranked candidate IDs, and separately recomputes Hit@1/5/10 for GISMo graph-pair identity and Senath-normalized raw-string sensitivity. Explicit method failures remain denominator misses; ambiguous generation names remain unmapped for primary GISMo identity scoring.
+- Six synthetic regressions pass; actual local-only source packages also load and validate: validation 10,729 cases / 536,450 candidates and test 10,747 / 537,350. The benchmark kernel was not polled or changed; no collected full-split output was scored and no result/method/quality claim is made.
+- This is analysis-preparation only, not M-D/L44 completion or transfer authorization. Rights and protocol gates remain open. Evidence and source hashes: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
+
 ## LEAD v382 — Prepare fail-closed full-split output collection (2026-10-20)
 
 - Added a local structural collector for future ≤200-case partition outputs. It requires independently supplied input-manifest and execution-manifest SHA-256 pins, exact frozen partition membership and case coverage, source identity joins, per-case records for both methods, and GISMo candidate IDs/names within each case's pinned top-50 pool.
