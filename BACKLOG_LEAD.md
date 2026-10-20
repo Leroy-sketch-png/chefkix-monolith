@@ -44,6 +44,12 @@
 - L42 remains OPEN. Do not state global code/model/data absence, novelty, or no reuse from this owner-profile check.
 - Dated, bounded evidence-only sync; no source key, independent-study count, or scorecard change. Canonical detail: root S43/S60 and SCOPE L42 follow-up.
 
+## LEAD v367 — Reconcile generator code with the verified corpus artifact (2026-10-20)
+
+- The pinned `obtain_corpus.py` expects 264,310 texts and writes the same preprocessed/original cooking-step columns as the hash-verified S60 LFS CSV. It reads `../recipes/`, which is not included in the pinned repository tree; this supports pipeline consistency, not an exact reproduced build or identity with S59's 267,071 records.
+- Corrected a prior source-hash filename transposition in SCOPE: `11706427...` belongs to `obtain_corpus.py`, while `create_plain_recipe_text.py` is `5F665BDB...`. A six-file pinned-source hash sweep found no other filename/hash mismatch.
+- L42 remains OPEN; no change to corpus/case reuse, rights, independence, novelty, or scorecard. Canonical detail: root S60/S43 and SCOPE L42 follow-up.
+
 ## LEAD v359 — Sharpen AdaptaFood candidate-rating boundary (2026-10-20)
 
 - A hash-verified full-text re-screen of existing S43 found AdaptaFood's 20 users rated model-provided top-five replacements in recipe context with compatibility scores shown; the paper itself says pair datasets do not identify the best option from a candidate set and multiple substitutes may be valid.
