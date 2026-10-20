@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v429 — Draft the thesis introduction from active, bounded doctrine (2026-10-21)
+
+- Added `research/chapters/01-introduction.md` to research-default-branch `master`, commit `6eeac1a77e99e45a1df5a830c2cb7de898bbfcdf`, SHA-256 `3a9e9402b593d54de46d9e2ac35642a681cdeed5afd78580386b6cb09ee829a`. The 76-line v0.1 draft states the active research question, H1–H5 maturity, C1–C5 intent, task/identity/evidence boundaries, and chapter map from §21; it avoids importing unverified harm statistics or novelty claims from the archived v3 material.
+- Structural checks: all 8 Markdown links resolve, 8 headings are unique, and `git diff --check` passes. This is an internal writing draft, not independent source verification, a completed literature review, or chapter acceptance. The research checkout still has no remote; existing unrelated dirty strategy/session/evidence files were not staged.
+
 ## LEAD v428 — Correct false chapter-map conflict from archived v3 text (2026-10-21)
 
 - Rechecked the active chapter map in `academic_vision_and_strategy.md` §21 against its archive boundaries: the v3 table labeled `§8 — Thesis Chapters` sits inside Appendix Y's fenced, explicitly superseded strategy archive. It is provenance, not competing authority; §21 is the active map.

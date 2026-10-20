@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L45 / LEAD v429 evidence-bounded introduction draft (2026-10-21)
+
+Added `research/chapters/01-introduction.md` to the research checkout's default `master`, commit `6eeac1a77e99e45a1df5a830c2cb7de898bbfcdf`, SHA-256 `3a9e9402b593d54de46d9e2ac35642a681cdeed5afd78580386b6cb09ee829a`. The 76-line v0.1 draft follows active §21 and §§2–3: it defines the question and H1–H5 boundaries, separates the intended C1–C5 contributions, and explicitly rejects unsupported safety, usefulness, superiority, and novelty claims. It uses 8 resolving Markdown links, has no duplicate headings, and passes `git diff --check`. No new source verification or empirical result is claimed; chapter acceptance remains open, and the research checkout has no remote.
+
 ### L45 / LEAD v428 archive-boundary correction (2026-10-21)
 
 Rechecked the active chapter map against the canonical document's archive delimiters: the older `§8 — Thesis Chapters` table is inside fenced Appendix Y, explicitly marked superseded v3 text, while §21 is the active chapter map. Updated the Chapter 6, 7, and 13 draft cautions to use §21 without implying an unresolved conflict. Research-default-branch commit `ebb1a1404e1823c37ed42b4c6cc2b08b397a0ef2`; hashes: `1b62b33df4330bd57e4135188e09703005e723c53564c1805e1c0cbaac778c7b`, `bed6756f73265ef246f3ff2c2addfbb9760a2be0abd6df3ed5880e9738f31bfb2`, `3135cf5c9bf8a68f11b7e84d8192814d518876328ffa612b23fd68e8072213ca`. Research checkout has no remote; chapter acceptance and overall L45 completion remain open.
