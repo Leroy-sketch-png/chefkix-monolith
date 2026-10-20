@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v348 — Reconcile AI2Cuisine citation chase into the canonical L42 source map (2026-10-20)
+
+- Root SSoT §4 / Appendix C and `SCOPE.md` now carry the detailed S55–S56 crosswalk for Yamanishi et al. (2015) and the Shidochi 2008/2009/2011 version-linked replacement study. These are reconciliation of already screened L42 sources (including the earlier LEAD v302–v316 evidence), not newly independent experiments or a novelty determination.
+- The joined record rejects broad “first recipe-context replacement,” “first cooking-action context,” and “first human-evaluated substitute” claims. Yamanishi's 12 cooked replacements and five-subject ratings are a small demonstration; Shidochi's 40-case evaluation is one likely shared version lineage. Neither establishes allergen safety or the frozen pooled/blinded per-case validity estimand.
+- L42 remains OPEN; exact novelty remains UNKNOWN. The hashed §25.4 funnel, source-byte capture, lineage/case reconciliation, candidate-vs-estimand crosswalk, independent second review, and claims-register review remain. No status-count or claim-register promotion.
+- Updated derived row/history only. Canonical evidence is in root `academic_vision_and_strategy.md` §4 / Appendix C S55–S56 and `SCOPE.md` L42 follow-up (2026-10-20); do not count S55/S56 twice against the existing backlog's v302–v316 records.
+
 ## LEAD v347 — L42 follows HeASe citations to S53–S54 (2026-10-20)
 
 - Screened HeASe's cited Teng et al. (2012) and Elsweiler et al. (2017) from full-text PDFs. Teng mines weighted ingredient-replacement links from recipe reviews, but evaluates recipe-rating prediction using those network features; this is direct substitution-knowledge prior art, not the frozen candidate-validity estimand. Elsweiler studies replacing whole recipe recommendations with healthier dishes and user choice/nudging; its own related work acknowledges ingredient-level substitution.
