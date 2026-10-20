@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v409 live runtime/default-master artifact drift (2026-10-21)
+
+The existing port-8080 service returns 404 for the graph endpoint and loads a culinary JAR byte-identical to the dirty nested checkout's target, not the clean default-master artifact whose controller contains `/graph`. Its loaded controller bytecode lacks the mapping. No process was changed; producer lineage remains unknown and M-A stays open. See LEAD v409 and its evidence receipt.
+
 ### M-A / LEAD v408 source-family coverage curve (2026-10-21)
 
 Recomputed the frozen GISMo-v23 top-N source-family support curve and independently matched all 35 emitted family/tier records; focused tests pass 2/2. The 2+ independent-family source-linkage tier reaches 57,641/141,040 endpoint occurrences at top-5,000 (40.87%). This is not live graph coverage, semantic equivalence, rights clearance, safety, or M-A completion; R39/R40 remain open/quarantined. The generator and aggregate stay local-only. See LEAD v408 and its receipt.

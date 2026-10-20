@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v409 — Reconcile live graph runtime with default-master artifact (2026-10-21)
+
+- Read-only inspection found the existing port-8080 listener (PID 31152) returns 404 for `/api/v1/knowledge/graph?limit=500`, while the ingredients and techniques collections remain 200 with the previously observed response hashes.
+- The loaded Maven culinary JAR SHA-256 `c2ebe26bfa61eb7993ed773f24b970f04b115d978082b9edcaf538b141ce3067` is byte-identical to the dirty nested checkout's target JAR, but differs from dedicated `master`'s target JAR (`88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1`). The loaded controller bytecode lacks graph mapping strings; the dirty checkout source likewise lacks `/graph`, while dedicated `master` source SHA-256 `77ca939aa972a39bb382cb7b8a1e8df38f48bccd8d04ddca447b41f1789ea9b8` contains `@GetMapping("/graph")`.
+- This explains why a clean-master graph artifact is not reflected by the already-running service, but does not prove the precise source tree that produced the loaded JAR or any producer/data provenance. No service was restarted or changed.
+- **Disposition:** M-A remains OPEN; R39/R40 remain QUARANTINED. Establish and document the dev run/build checkout contract, then use a guarded, explicitly approved runtime activation and re-check the graph endpoint before claiming the master route is live. Receipt: `evidence/lead-ma-live-runtime-source-drift-20261021.json`.
+
 ## LEAD v408 — Reconstruct M-A source-family support curve (2026-10-21)
 
 - Rebuilt the seven requested top-N tiers from the hash-pinned, independently validated GISMo-v23 identity matrix. The independent-family (FlavorDB/FlavorGraph collapsed) curve covers 31,974 of 45,988 endpoint occurrences at top-50 (69.53%), 38,840/63,030 at top-100 (61.62%), 49,260/87,737 at top-250 (56.15%), 54,181/106,672 at top-500 (50.79%), 56,693/122,628 at top-1,000 (46.23%), 57,309/134,040 at top-2,000 (42.76%), and 57,641/141,040 at top-5,000 (40.87%). A separate oracle matched all 35 source-family/top-N rows; the focused tests pass 2/2.
