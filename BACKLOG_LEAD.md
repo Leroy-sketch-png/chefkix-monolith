@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v422 — Reconcile Chapter 11's historical graph success with current route failure (2026-10-21)
+
+- A read-only localhost recheck at `2026-10-20T20:31:49.667Z` observed `/api/v1/knowledge/graph?limit=500` returning 404, while `/ingredients` and `/techniques` still return their previously recorded response hashes. The listener's loaded Maven `culinary` JAR is `9b3d217ac3dd721e63c6138e39003e72d531a8f6fcc6d29ddb6f75238c4594f`; its controller bytecode lacks the graph route. The research worktree target JAR remains `88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1` and contains it. No restart, install, or replacement was performed.
+- Durable receipt: `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\ai\evidence\lead-ma-graph-route-recheck-20261021.json`, SHA-256 `194DFEA9960B120A31AADBFBAC76D15B0065084074EEBE0026393AA899BDA1BA`, research commit `aa9e6f37ec9ef41e096b83cb2196168e6fa85dec`. Chapter 11 was corrected to distinguish the earlier successful restart session from the later failed recheck; final SHA-256 `AC8D2D273276F2B4D43DC3E1C409B1D163ABA45C5E7C7947520BA911344BB9B2`.
+- This is local artifact/runtime-skew evidence only; graph-data absence, lineage, public availability, product value, and M-A/L45 acceptance remain unproven. The research checkout remains local-only with no configured remote. No other dirty research files were staged.
+
 ## LEAD v421 — Add a rights- and human-gated Vietnamese pilot scaffold to L45 (2026-10-21)
 
 - Chapter 9 now has an internal v0.1 planning draft in the separate local research checkout: commit `a184166f832a1adfdebbc052a3be17c933ddc6a5`, SHA-256 `A088C045C0B7C781354C2100A2D963BF45C7467CC9D53BBADC74BEC0EB34E09B`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\09-vietnamese-pilot-design-and-limits.md`.
