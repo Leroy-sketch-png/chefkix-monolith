@@ -2,6 +2,13 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v354 — Add counterfactual recipe-generation boundary to L42 (2026-10-20)
+
+- Canonical SSoT now screens Liu et al. (2022), “Counterfactual Recipe Generation,” from the official ACL full text: 50 Chinese dish pairs / 2,500 recipe instances, ingredient and action-level measures, and best-worst human comparisons of generated versus expert-written whole recipes on grammar, correctness, and preservation.
+- This is direct prior art for ingredient-change generation and human assessment of recipe-level cooking correctness. It does not use L42's proposed shared ranked candidate pool with per-candidate substitute-validity labels, and it is not allergen-safety evidence. Do not claim first human evaluation of ingredient-change recipe outputs.
+- L42 stays OPEN; exact frozen-protocol novelty, lineage/overlap, and safety novelty remain UNKNOWN. No claim-register, experiment, or progress-scoreboard change.
+- Derived synchronization only. Canonical study boundary and official PDF hash are in root `academic_vision_and_strategy.md` Appendix C S63 and `SCOPE.md` L42 follow-up dated 2026-10-20.
+
 ## LEAD v353 — Add CulturalRecipes human-adaptation boundary to L42 (2026-10-20)
 
 - Canonical SSoT now screens Cao et al.'s 2024 CulturalRecipes work from the official ACL full text: a Chinese↔English cross-cultural recipe-adaptation task with human-written gold adaptations (25 Chinese→English, 41 English→Chinese) and recipe-level human ratings for grammar, executable-recipe consistency, preservation, and cultural appropriateness.
