@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L48 / LEAD v431 unverified R01–R45 inventory (2026-10-21)
+
+Created and locally committed `ai/evidence/claims-register/claims-register-r01-r45-unverified-seed-20261021.csv` (research commit `d6341cf`, inventory SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`). It contains 45 unique checklist rows, all `UNVERIFIED`, with migration-checklist-only provenance and no reproduction values. Builder tests pass 4/4; validator tests pass 8/8; the produced file validates structurally but this is not verification of claims, source findings, or reproduction. L48 remains open for artifact/provenance reconciliation; no scoreboard or progress percentage is authorized by this artifact. Research `master` has no configured remote, so the file is not yet fetchable by collaborators.
+
 ### Q124 / LEAD v430 browser-rendered exhibit inspection (2026-10-21)
 
 Read-only browser inspection of the local offline exhibit (source SHA-256 `47D9AA1D7F5E1F3F704D43EA32AF5773EF2CF94AA906D94AFF232457E11C15FF`) found the desktop hierarchy legible and metric cards stacked/readable at a narrow-width zoom stress approximation (~320 CSS px; not device emulation). The evidence table scrolls horizontally and exposes a named region/instruction. No screenshot was saved. Keyboard/focus validation remains inconclusive; actual handset/breakpoint checks and timed human rehearsal/listener responses remain NOT RUN. Q124 stays open; no accessibility, comprehension, or demo-acceptance claim. This later observation supplements, but does not erase, the historical v416 source-contract record.

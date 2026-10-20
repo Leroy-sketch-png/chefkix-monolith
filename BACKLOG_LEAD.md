@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v431 — Instantiate the R01–R45 claims inventory without upgrading evidence (2026-10-21)
+
+- Materialized the §15.1 migration checklist as `ai/evidence/claims-register/claims-register-r01-r45-unverified-seed-20261021.csv` in research-default-branch `master`, commit `d6341cf`. The 45 unique IDs all remain `UNVERIFIED`; source provenance is `LOCAL_MIGRATION_CHECKLIST_ONLY`, and reproduction fields remain empty. Inventory SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`; source strategy SHA-256 `863363a488530cac76279cd7f4c9dd92edee079d6e321f87f2e3c8c4e683d2ce`.
+- The builder tests pass 4/4 and the register-validator tests pass 8/8. The fail-closed validator accepts all 45 rows and reports only `UNVERIFIED`; it verifies structural/local-byte integrity, not empirical truth, reproduction, or L-item mapping. **L48 remains open** pending row-by-row provenance reconciliation, primary-artifact recovery, and reproduction where required. Research `master` has no configured remote, so this artifact is committed locally but not yet shared through GitHub. No scoreboard or percentage is inferred.
+
 ## LEAD v430 — Browser-rendered exhibit inspection; accessibility and rehearsal gates remain (2026-10-21)
 
 - Read-only visual inspection of the local offline exhibit `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\ai\demos\iron-chef-midterm-v26-exhibit.html` (SHA-256 `47D9AA1D7F5E1F3F704D43EA32AF5773EF2CF94AA906D94AFF232457E11C15FF`) showed a legible desktop hierarchy and, at a narrow-width stress approximation (~320 CSS px via browser zoom, not device emulation), stacked metric cards remained readable. The evidence table could be scrolled horizontally; its named scroll region and visible narrow-screen instruction were present.
