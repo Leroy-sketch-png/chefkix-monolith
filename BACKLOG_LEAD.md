@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v391 — Cross-check ingredient substitution read route (2026-10-21)
+
+- A fresh local read returned HTTP 200 for the ingredient collection and for `/api/v1/knowledge/ingredients/butter/substitutions`. The `butter` record embeds two substitutions, and the dedicated endpoint returned the same count (2); response-body SHA-256 for the dedicated endpoint is `5e096cd9fe58c8ea3bc49e3ba96a649e5c527ef8f6583471b0f95b19e2121fbf`.
+- This verifies one example of the per-ingredient read contract only. It does not resolve the aggregate graph route’s 404, identify the serving build, validate all records, or prove graph lineage/quality. M-A remains OPEN; R39/R40 remain quarantined.
+- Evidence: `evidence/lead-ma-substitution-route-check-20261021.json`.
+
 ## LEAD v390 — Check runtime knowledge-graph route availability (2026-10-21)
 
 - The same local service still returns HTTP 200 for `/api/v1/knowledge/ingredients` (92 records) and `/api/v1/knowledge/techniques` (25 records), but `/api/v1/knowledge/graph?limit=500` returns HTTP 404 (`Not Found`). The captured graph-route error body at `2026-10-21T00:12:23.429+07:00` hashes to `40d6085656256f8c3cf6c89992faa8dc12333c2071ca3009d5e1bb8f2f8628f7`.

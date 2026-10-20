@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v391 substitution endpoint spot check (2026-10-21)
+
+For `butter`, the dedicated substitutions endpoint returns 2 items, matching the ingredient record’s embedded count. This is a one-record API contract cross-check only; M-A remains OPEN. See LEAD v391 and the compact evidence JSON.
+
 ### M-A / LEAD v390 graph route check (2026-10-21)
 
 Local ingredient and technique collection GETs return 200, while the source-declared graph GET returns 404. This is evidence of route availability mismatch, not proof of the running artifact’s identity or of any graph source. M-A remains OPEN; see LEAD v390 and `evidence/lead-ma-graph-route-check-20261021.json`.
