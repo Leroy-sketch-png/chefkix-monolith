@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v421 — Add a rights- and human-gated Vietnamese pilot scaffold to L45 (2026-10-21)
+
+- Chapter 9 now has an internal v0.1 planning draft in the separate local research checkout: commit `a184166f832a1adfdebbc052a3be17c933ddc6a5`, SHA-256 `A088C045C0B7C781354C2100A2D963BF45C7467CC9D53BBADC74BEC0EB34E09B`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\09-vietnamese-pilot-design-and-limits.md`.
+- It preserves the strategy's approximately 100-case planning target and distinguishes culinary validity from allergen evidence; source rights, native review, institutional authorization, language/identity rules, and PR01–03/09/10/13 remain gates. No pilot data, translation, human contact, ethics approval, or result was created or claimed.
+- The research checkout remains local-only with no remote. This is preparation, not R36/L36/L45 acceptance or a percentage change; unrelated dirty workspace files were not staged.
+
 ## LEAD v420 — Add local graph-runtime evidence boundary to L45 (2026-10-21)
 
 - Chapter 11 now has an internal v0.1 draft in the separate local research checkout: content commit `a76a9c508f9ad9d9e6e81ec91b2bb74424a79f20`, metadata-format correction `4a56cae84d75e5b1551b688253c544769df400da`, final SHA-256 `66BD0A601D69D82CEE55B12A0D8E1B4816684E115E0351B0E9F69D928A716FD5`, path `D:\code\chefkix\.git-worktrees\root-master-segment10-20261014\research\chapters\11-system-and-demonstration.md`.
