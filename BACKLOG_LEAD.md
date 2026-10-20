@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v384 — Close label/identity row-join gap in local scorer (2026-10-20)
+
+- AoE review of the v383 evaluator found that identity rows were joined by case ID and target graph ID but did not independently match split, row index, and recipe ID against the audited label row. The scorer now enforces that complete row identity join.
+- Added a regression that deliberately changes an identity-map recipe ID, then recomputes the linked manifest pins; scoring rejects the internally consistent but cross-frame-mismatched package. Focused scorer suite passes 10/10.
+- Structural local-analysis preparation only; no full-split predictions were scored, and no evaluation, method, quality, or rights conclusion changed. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
+
 ## LEAD v383 — Prepare fail-closed full-split score recomputation (2026-10-20)
 
 - Added a label-local evaluator for future collected full-split output bundles. It checks independent input/collection/audit/identity-map pins, source and audit lineage, exact source-label-identity joins and coverage, frozen GISMo pool membership for reranked candidate IDs, and separately recomputes Hit@1/5/10 for GISMo graph-pair identity and Senath-normalized raw-string sensitivity. Explicit method failures remain denominator misses; ambiguous generation names remain unmapped for primary GISMo identity scoring.

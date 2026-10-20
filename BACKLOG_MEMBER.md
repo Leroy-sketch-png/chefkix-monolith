@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-D / L44 scorer join-integrity update (2026-10-20; derived from LEAD v384)
+
+AoE review tightened the local evaluator to require label and identity-map rows to agree on split, row index, recipe ID, and case ID, in addition to the target graph ID check. A resealed adversarial identity row is rejected; the focused scorer suite passes 10/10. This only strengthens future local analysis; no collected full-split outputs were scored and M-D/L44 remain open. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
+
 ### M-D / L44 analysis-preparation update (2026-10-20; derived from LEAD v383)
 
 A new label-local evaluator is ready for future collected validation/test outputs. It validates independent provenance pins, exact source/label/identity joins and full case coverage; verifies GISMo reranker candidates against each frozen top-50 pool; and recomputes Hit@1/5/10 under GISMo graph identity and a separately reported Senath-normalized raw-string sensitivity. Explicit method failures remain in the denominator and ambiguous generated names do not receive a GISMo identity. Nine synthetic tests pass, and the real local-only source-only shard packages load at their frozen 10,729/10,747 case denominators. No collected output has been scored, no inference is claimed, and this does not complete M-D/L44. Rights/protocol gates remain open. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
