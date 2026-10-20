@@ -1,0 +1,95 @@
+{
+  "record_type": "local_ai_service_graph_registry_and_artifact_census",
+  "observed_on": "2026-10-21",
+  "scope": "Read-only local workspace observation; AI-service graph artifact bytes are not evidence of runtime loading or serving.",
+  "registry": {
+    "status_route_unauthenticated": 401,
+    "authenticated_status_route": 200,
+    "credential_handling": "Configured local AI_SERVICE_API_KEY was read in memory for the request; no credential value was logged or persisted.",
+    "total_registered_models": 8,
+    "bridge_models_active": 3,
+    "custom_models_active": 0,
+    "graph_rag": {
+      "active": true,
+      "configured_version": "hgat-v1",
+      "serving_version": null,
+      "configured_model_path": "local:models/hgat_weights.pt",
+      "reported_health": "healthy",
+      "serving_ready": false,
+      "readiness_reason": "no_verified_health_check"
+    },
+    "openapi": {
+      "status": 200,
+      "path_count": 35,
+      "graph_endpoint_present": false,
+      "substitution_endpoint_present": true,
+      "model_registry_endpoints_present": true
+    },
+    "interpretation": "Registry active/health metadata does not constitute a verified serving health check, a loaded-model observation, or an inference result."
+  },
+  "local_model_directory": {
+    "workspace_relative_path": "chefkix-ai-service/models",
+    "files": {
+      "hgat_weights.pt": {
+        "present": true,
+        "bytes": 253163,
+        "sha256": "05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f"
+      },
+      "substitution_subgraph.pt": {
+        "present": true,
+        "bytes": 438262421,
+        "sha256": "70005b57e835b9d18a4445d05c83bfdfeb44c8e4fcc73b03cc74944688f0125f"
+      },
+      "ingredient_vocab.json": {
+        "present": true,
+        "bytes": 335,
+        "entries": 19,
+        "unique_ids": 19,
+        "id_min": 0,
+        "id_max": 18,
+        "sha256": "dcc5f03e537755f447e4e5205c031f61458bb6fef58c77acfcc7ddff8fd737ab"
+      },
+      "food_graph.pt": {
+        "present": false,
+        "note": "Named by the inspected source default path; the active registry metadata instead reports hgat_weights.pt. This configuration/artifact discrepancy is unresolved."
+      }
+    }
+  },
+  "restricted_tensor_inspection": {
+    "loader": "torch.load with weights_only=true and an explicit allowlist of the exact required PyG state-container classes",
+    "unrestricted_pickle_load_used": false,
+    "torch_version": "2.9.0+cpu",
+    "pyg_version": "2.8.0.post1",
+    "object_type": "torch_geometric.data.HeteroData",
+    "node_type": "ingredient",
+    "node_count": 195600,
+    "edge_type": "ingredient|substitutes|ingredient",
+    "directed_arc_count": 7247,
+    "feature_dtype": "torch.float32",
+    "feature_shape": [195600, 560],
+    "degree": {
+      "minimum": 0,
+      "median": 0,
+      "mean": 0.0741002044989775,
+      "maximum": 288,
+      "isolated_node_count": 191814
+    }
+  },
+  "discrepancy_and_disposition": {
+    "historical_arc_count": 4591,
+    "current_local_artifact_arc_count": 7247,
+    "reconciled": false,
+    "m_a_status": "OPEN",
+    "r39_r40_status": "QUARANTINED",
+    "quality_or_inference_claim": false,
+    "producer_lineage_established": false,
+    "runtime_loading_established": false
+  },
+  "limitations": [
+    "No model inference was executed.",
+    "The serialized artifact census does not prove the object is loaded by an AI-service process.",
+    "Registry readiness is false and the OpenAPI surface has no graph endpoint.",
+    "Source-to-artifact lineage and the 4,591-versus-7,247 arc discrepancy remain unresolved.",
+    "No artifacts, registry values, or source files were modified."
+  ]
+}

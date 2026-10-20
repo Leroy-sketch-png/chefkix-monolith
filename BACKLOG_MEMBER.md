@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v397 AI-service graph artifact and readiness boundary (2026-10-21)
+
+The registry marks `graph-rag` active but not serving-ready; a restricted local inspection counted 195,600 nodes and 7,247 serialized arcs without establishing that the artifact is loaded or usable. The 4,591-arc historical claim remains unreconciled. M-A stays open; R39/R40 stay quarantined. See LEAD v397 and its evidence JSON.
+
 ### M-A / LEAD v396 live route on source-built artifact (2026-10-21)
 
 After a backed-up local Maven install and guarded monolith restart, the graph route returns 200 from the exact source-built JAR. It exposes 92 nodes/25 canonical edges, not all 109 embedded statements (3 alias-only, 81 unresolved). Local runtime binding improved; producer lineage, AI-service artifact, and Round-0 reconciliation remain open. See LEAD v396 and evidence JSON.
