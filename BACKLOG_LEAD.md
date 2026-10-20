@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v370 — Reproduce FooDB presence strata for both frozen Senath splits (2026-10-20)
+
+- Hash-pinned the full-split case/label frames, installed `CompoundIndex.get` source, provenance sidecar, and official profile artifact. Both-profiled endpoint pairs: validation 1,121/10,729 (10.448318%); test 1,162/10,747 (10.812320%). Both/partial/none pair counts and endpoint-occurrence denominators are kept distinct.
+- Root-owned auditor SHA-256 `cbe67015ab68ae52cb9a1d6953a92debb4945900210f2267815de57af864c80c`; durable report `ai/evidence/senath-inference/foodb-split-coverage-v1.json` SHA-256 `f086fa3e195b85924475a1484536adf281719dd47886e60ea113611aaceb9a4d`; four synthetic fail-closed tests pass.
+- This is presence-only reproduction, not chemistry, equivalence, validity, usefulness, safety, rights, or model quality. M-B remains open; PR03/PR09 still gate the blinded 40-case fixture. No scientific protocol or inference run was changed.
+
 ## LEAD v369 — Advance full-split identity/case-frame preparation (2026-10-20)
 
 - Reproducible local audit now rejoins all 49,044 train, 10,729 validation, and 10,747 test rows to the pinned GISMo pickle by split/index/recipe/source/context, without requiring canonical-name equality. It emits label-free validation/test case frames and keeps labels/identity maps/strata in `local-only-evaluation/`.
