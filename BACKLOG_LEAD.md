@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v439 — Reconcile M-A graph representation counts without conflation (2026-10-21)
+
+- Cross-checked the four preserved local-runtime receipts and their arithmetic. The rebuilt API surface records 92 ingredients and 25 exact-canonical directed edges; the embedded substitution statements separately total 109, decomposed into 25 direct canonical, 3 alias-only, and 81 unresolved literal targets. The analyst statement graph keeps all 109 arcs (28 resolved including unique aliases + 81 unmatched literals) and passes `in-degree sum = out-degree sum = 109` with one self-loop and no duplicate arc excess.
+- These are distinct representation layers, not competing counts. The older Round-0 25-node/59-edge statement remains unreconciled to the current runtime artifact and must not be inferred from it. Detailed arithmetic, hashes, and the local-only source boundary are in `evidence/lead-ma-graph-representation-boundary-20261021.json`.
+- This advances M-A's evidence crosswalk only. M-A remains open for producer/source lineage, Round-0 number reproduction or strike, and accepted `GRAPH_TRUTH.csv`/`COVERAGE_CURVES.csv`; the detailed source JSONs remain untracked in a dirty research checkout without a remote. No product graph, public deployment, safety, model-quality, or thesis-completion claim is made.
+
 ## LEAD v438 — Add an explicit active-package closure snapshot (2026-10-21)
 
 - Recorded a conservative row-closure snapshot from the current active Lead and Member tables: Lead 2/14 (14.3%; L13′ scope edit and the bounded L37 interval deliverable); Member 0/9 (0%; partial evidence does not meet any package's full acceptance). Raw pooled rows are 2/23 (8.7%) but are **not** thesis progress because package scopes overlap and have unequal effort.

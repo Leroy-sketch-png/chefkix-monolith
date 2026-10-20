@@ -1,0 +1,62 @@
+{
+  "record_type": "evidence_consistency_recheck_and_representation_crosswalk",
+  "observed_on": "2026-10-21",
+  "scope": "Reconciles the preserved same-day local-runtime snapshots for M-A; this is not a fresh runtime observation or a full M-A acceptance audit.",
+  "evidence_sources": [
+    {
+      "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/lead-ma-current-source-build-check-20261021.json",
+      "sha256": "c4d0312c63e69492686735df1c53b52ebe795087a5de5e5bc81cdf0c988c79d8",
+      "note": "Source-build/route-test receipt; source revision is in the monolith repository."
+    },
+    {
+      "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/lead-ma-live-graph-after-rebuild-20261021.json",
+      "sha256": "590d8daed0a0b35c969ec1a0234793805cec68a1a4c3e035348c46e5fb4d9e90"
+    },
+    {
+      "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/lead-ma-loaded-artifact-route-check-20261021.json",
+      "sha256": "d6e3509db05aeea9ccfb3f6ae28ca2099bb87ae838d137a30fc875119773164c"
+    },
+    {
+      "path": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/lead-ma-local-runtime-snapshot-20261021.json",
+      "sha256": "45c271c29f35540e73f1cf6d33d90e8ea536d4d775776fb6040fde70a84e9eb6"
+    }
+  ],
+  "reconciled_objects": {
+    "current_source_build_api_graph": {
+      "ingredients": 92,
+      "canonical_only_directed_edges": 25,
+      "duplicate_edge_excess": 0,
+      "observed_route": "GET /api/v1/knowledge/graph?limit=500",
+      "recorded_repeat_reads_byte_identical": true
+    },
+    "embedded_substitution_statements": {
+      "statements": 109,
+      "exact_direct_canonical_targets": 25,
+      "alias_only_targets": 3,
+      "unresolved_literal_targets": 81,
+      "analyst_interpreted_unique_identity_arcs": 109,
+      "resolved_arcs_including_unique_aliases": 28,
+      "unmatched_literal_arcs": 81,
+      "in_degree_sum": 109,
+      "out_degree_sum": 109,
+      "duplicate_arc_excess": 0,
+      "self_loop_arcs": 1
+    },
+    "historical_round0_seed_graph": {
+      "status": "NOT_RECONCILED_TO_THESE_RUNTIME_OBJECTS",
+      "note": "The old 25-node/59-edge statement is a separate historical claim with an unidentified artifact/node universe in the currently inspected evidence."
+    }
+  },
+  "consistency_checks": {
+    "direct_plus_alias_plus_unresolved_equals_statement_count": true,
+    "resolved_plus_unmatched_equals_interpreted_arc_count": true,
+    "indegree_sum_equals_outdegree_sum_equals_arc_count": true,
+    "api_canonical_only_edge_count_is_not_substituted_for_all_embedded_statements": true
+  },
+  "interpretation": "These are distinct representation layers, not conflicting estimates of one graph. The HTTP graph route emitted 25 exact-canonical edges; the 109 embedded statements include 3 alias-only and 81 unresolved literal targets, which the analyst-level statement graph preserves. The historical Round-0 seed graph is a separate unresolved identity/artifact question.",
+  "remaining_acceptance": [
+    "M-A remains open: identify producer and source-artifact lineage, reconcile or strike each Round-0 number, finish the required GRAPH_TRUTH.csv and COVERAGE_CURVES.csv with provenance labels, and prove their acceptance tests against the intended frozen source universe.",
+    "No conclusion about public deployment, current runtime beyond the recorded observation time, user value, safety, or model quality is made."
+  ],
+  "sharing_limit": "The four detailed root-worktree JSON evidence sources are currently untracked in a dirty research checkout with no configured remote. Their hashes and captured facts are bound here, but collaborators cannot independently fetch those source files from this monolith repository."
+}
