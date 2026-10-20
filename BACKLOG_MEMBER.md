@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-D / L44 full-split source-only candidate pools (2026-10-20; derived from LEAD v387)
+
+Existing GISMo top-50 candidate pools are freshly verified for all validation/test source-only cases (10,729/10,747; 50 candidates each; exact pinned graph ID/name identity). The verifier confirms target labels were not read and no evaluation or method selection occurred. These are local input-preparation artifacts, not model outputs; rights, protocol, partition and execution gates remain open. See canonical SSoT §17, SCOPE/SESSION v387 and the LEAD evidence note.
+
 ### M-D / L44 recovered 200-case validation comparison (2026-10-20; derived from LEAD v385–v386)
 
 The frozen 200-case validation run is recovered and locally ingested: both arms have 200/200 records and zero method failures. GISMo-identity Hit@1/5/10 is 3.0/11.5/14.0% for generation and 1.5/7.5/14.5% for top-50 likelihood reranking; raw-string sensitivity is reported separately. Latency and case-level outputs are preserved in the local recovery bundle. LEAD v386 verifies its replayable 200-case saved-output showcase (hash-pinned HTML; focused renderer/ingester suite 15/15). This is a bounded validation diagnostic, not full deterministic GISMo/lookup outputs for every case, an independent test, method choice, quality, or human-usefulness evidence. M-D and L44 remain open. See canonical SSoT §§1.2/17 and LEAD v385–v386.
