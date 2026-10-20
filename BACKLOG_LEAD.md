@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v377 — Bound full-split inference capacity and partition requirement (2026-10-20)
+
+- Added a deterministic CPU runtime projector based on the validated 200-case v4 timing sample and the hash-pinned full-split identity audit. Two-arm validation (10,729 cases) projects 255.91 h mean / 263.41 h summed-stratum-p90-cost scenario; test (10,747 cases) projects 256.33 h / 263.84 h. The p90-cost scenario is not a statistical total p90.
+- At the existing six-hour job cap and ≤200 cases/job, each split requires at least 54 partitions. Exact partitioning must preserve both the GISMo and Senath identity contracts, account for repeated startup and validate every partition's runtime budget. This is scheduling/preparation evidence only; no full-split inference or method selection is established.
+- Six fail-closed tests pass. Evidence: root `ai/evidence/senath-inference/full-split-runtime-projection-v1-20261020.md`; machine projection receipt is local-only. The new lead increment is a bounded L44/M-I preparation step, not completion of L44, M-I, M-B or Stage 3.
+
 ## LEAD v376 — Validate and replay Senath 200-case inference comparison (2026-10-20)
 
 - Official primary Kaggle CLI observed validation-benchmark v4 COMPLETE. The prescribed one-shot recovery helper was verified in its exact worktree and invoked once; it transactionally recovered 14 files and promoted only after the frozen ingester passed. Bundle manifest SHA-256 `2bc2e500c2cc244d5683ed0a5a593f0dd40b8400344fb00fbe50d6f98959b9ea`; raw output SHA-256 `75024e51d73b7379fdcb006af9308306f72d24ea8ad4e6b2efd48e75ddfdea96`; 200 fixed IDs SHA-256 `147ee2f21e7b11a9e7e64ca63494f9a0d0818c2b6910957225a6b06fec41df43`; exact Segment-9 manifest pin `7a3c3768b7b83ae2d922dfb2275808be08c02142e670b3607b20f69b1c71a2d3`; adapter model SHA-256 `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814`.
