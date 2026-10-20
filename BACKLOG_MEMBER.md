@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-D / L44 recovered 200-case validation comparison (2026-10-20; derived from LEAD v385)
+
+The frozen 200-case validation run is recovered and locally ingested: both arms have 200/200 records and zero method failures. GISMo-identity Hit@1/5/10 is 3.0/11.5/14.0% for generation and 1.5/7.5/14.5% for top-50 likelihood reranking; raw-string sensitivity is reported separately. Latency and case-level outputs are preserved in the local recovery bundle. This is a bounded validation diagnostic, not full deterministic GISMo/lookup outputs for every case, an independent test, method choice, quality, or human-usefulness evidence. M-D and L44 remain open. See canonical SSoT §§1.2/17 and LEAD v385.
+
 ### M-D / L44 scorer join-integrity update (2026-10-20; derived from LEAD v384)
 
 AoE review tightened the local evaluator to require label and identity-map rows to agree on split, row index, recipe ID, and case ID, in addition to the target graph ID check. A resealed adversarial identity row is rejected; the focused scorer suite passes 10/10. This only strengthens future local analysis; no collected full-split outputs were scored and M-D/L44 remain open. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
