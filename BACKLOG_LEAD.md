@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v406 — Recheck Senath benchmark execution contracts on CPU (2026-10-21)
+
+- **Trigger finding:** full-split preparation tests did not exercise both inference methods together. The focused benchmark suite now passes **15/15**, including both arms on a tiny CPU Mistral, 20 finite beam-score requirements, raw-source alias joins separate from graph identity, Unicode-log recovery, explicit method-failure records, the fixed 200-case denominator, parser order, duplicate handling, and the target-label firewall.
+- **Scope:** this is local behavioral evidence for the harness and its failure contracts only. It is not the real pinned GPU smoke, a validation benchmark rerun, a method choice, or model-quality evidence.
+- **Disposition:** retain the prior single recovered validation run; do not launch/retry based on these tests. M-B/M-D/L44 stay open pending their distinct human, protocol, rights, and output gates. Evidence: `evidence/lead-mb-full-split-gismo-pool-replay-20261021.json` (test command/result and suite hash).
+
 ## LEAD v405 — Sweep Senath source-only data preparation contracts (2026-10-21)
 
 - **Area cleared:** the wider local CPU contract suite for split identity/join audit, source-only case construction, deterministic pool verification, ≤200-case partition preparation, partition-output collection, and label-local scoring passes **44/44** on research checkout `740e85fff30eac762521eeb5f60d841e216700c5`.

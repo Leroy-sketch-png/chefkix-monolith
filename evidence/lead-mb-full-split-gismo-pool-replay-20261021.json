@@ -33,6 +33,23 @@
       "test_score_senath_full_split_outputs.py": "5b71a0bcd7adc42c50faf3485e4cf4091283f35b8e3b26e6970f6031463fbcd7"
     }
   },
+  "benchmark_execution_contract_tests": {
+    "checkout_head": "740e85fff30eac762521eeb5f60d841e216700c5",
+    "command": "python -m pytest -q test_senath_validation_benchmark.py",
+    "working_directory": "ai/tools",
+    "exit_code": 0,
+    "passed": 15,
+    "failed": 0,
+    "test_source_sha256": "5c5427f2e927b78bdf48e2f58cdd3a4a055c2584a6bcfd23de8537abcd192839",
+    "exercised_contracts": [
+      "both inference arms execute on a tiny CPU Mistral",
+      "generation requires exactly 20 finite beam scores",
+      "GISMo aliases join by raw source while graph identity remains distinct",
+      "Unicode log recovery and explicit per-method failure records are retained",
+      "fixed 200-case denominator and target-label firewall are explicit",
+      "parser order and duplicate-candidate handling are tested"
+    ]
+  },
   "shared_inputs": {
     "validation_case_frame_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
     "test_case_frame_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",

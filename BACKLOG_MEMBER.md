@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v406 CPU benchmark-contract tests (2026-10-21)
+
+The 15-test benchmark suite passes on CPU, including both inference arms on a tiny Mistral and the score/parser/failure/logging contracts. This validates harness behavior only; it is not the real GPU smoke, another validation run, or quality evidence. No retry or new Kaggle launch occurred. See LEAD v406 and its shared evidence receipt.
+
 ### M-B / LEAD v405 wider data-preparation test sweep (2026-10-21)
 
 Six focused local modules covering identity/join audit, source-only pools, partition packaging, output collection, and scoring contracts pass 44/44. These are CPU contract tests on the dirty research checkout, not GPU inference, benchmark quality, rights clearance, or M-B acceptance. See LEAD v405 and its shared evidence JSON.
