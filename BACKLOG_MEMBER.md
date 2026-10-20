@@ -22,6 +22,8 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 
 **No VLM/CLIP camera integration.** No "four trained models" UI. No behavioral learning dashboard. The bounded negatives chapter covers what didn't work.
 
+**Rights boundary (2026-10-20; M-F remains open):** official Recipe1M/GISMo pages inspected so far do not establish dataset-specific or per-case Recipe1MSubs reuse/redistribution permission. GISMo's code-license statement is not a dataset grant; per-case rights remain `UNKNOWN`. Preserve the actual registered access terms for the dataset/version used and map them to research, derived data, storage, and release—or keep case-level content out of release. See LEAD v371 and the bounded audit note in root `ai/evidence/senath-inference/`.
+
 ## EPIC 1: Graph explorer infrastructure — IMPLEMENTED, coverage partial
 
 ## Member Work Packages (from SSoT §17.2)
