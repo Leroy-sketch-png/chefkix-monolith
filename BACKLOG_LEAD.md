@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v428 — Correct false chapter-map conflict from archived v3 text (2026-10-21)
+
+- Rechecked the active chapter map in `academic_vision_and_strategy.md` §21 against its archive boundaries: the v3 table labeled `§8 — Thesis Chapters` sits inside Appendix Y's fenced, explicitly superseded strategy archive. It is provenance, not competing authority; §21 is the active map.
+- Corrected the caution in Chapters 6, 7, and 13 so these internal drafts point to §21 without asking for a nonexistent conflict resolution. Research-default-branch commit `ebb1a1404e1823c37ed42b4c6cc2b08b397a0ef2`; chapter hashes: Ch6 `1b62b33df4330bd57e4135188e09703005e723c53564c1805e1c0cbaac778c7b`, Ch7 `bed6756f73265ef246f3ff2c2addfbb9760a2be0abd6df3ed5880e9738f31bfb2`, Ch13 `3135cf5c9bf8a68f11b7e84d8192814d518876328ffa612b23fd68e8072213ca`.
+- `git diff --check` passed for the three-file change. The research checkout has no configured remote, so the correction is committed locally but not yet fetchable by collaborators. No strategy migration, chapter acceptance, or progress percentage is claimed.
+
 ## LEAD v427 — Draft the discussion around recorded evidence boundaries (2026-10-21)
 
 - Added `research/chapters/13-discussion-and-threats.md` on the separate research `master` at commit `9a19f6d`; SHA-256 `2144a89d948bfd12ee046e08618e70e8cedfcb4f862b30746922f7264812383a`. The 72-line v0.1 scaffold synthesizes only claims already present in the canonical evidence ledger, including the validation-only Senath diagnostic, untested human-validity hypothesis, rejected selective operating point, partial allergen evidence, bounded model negatives, and local runtime limits.
