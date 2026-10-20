@@ -2,6 +2,12 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v349 — Align L42 acceptance with the canonical S50–S56 map (2026-10-20)
+
+- The root strategy's active §17 L42 row now names the current S50–S56 source inventory and the remaining acceptance gates: response-hashed §25.4 funnel, method/data/case lineage and duplicate adjudication, independent second review, and claim-register review.
+- HeASe refs. [5]/[6] are chased; AI2Cuisine's Yamanishi citation is screened. The separate Shidochi lineage is cross-referenced, not attributed to AI2Cuisine or counted again as a new independent study. The exact frozen-protocol question remains `UNKNOWN`; L42 remains OPEN.
+- This is a scope/authority synchronization only. No empirical claim, novelty conclusion, register status, or progress scoreboard was promoted. Canonical row: root `academic_vision_and_strategy.md` §17; evidence: root `SCOPE.md` L42 follow-ups dated 2026-10-20.
+
 ## LEAD v348 — Reconcile AI2Cuisine citation chase into the canonical L42 source map (2026-10-20)
 
 - Root SSoT §4 / Appendix C and `SCOPE.md` now carry the detailed S55–S56 crosswalk for Yamanishi et al. (2015) and the Shidochi 2008/2009/2011 version-linked replacement study. These are reconciliation of already screened L42 sources (including the earlier LEAD v302–v316 evidence), not newly independent experiments or a novelty determination.
