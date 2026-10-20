@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L48 / LEAD v433 synchronized active register status (2026-10-21)
+
+The active LEAD summary now points to the v4.2 R01–R45 inventory (research commit `d6341cf`, SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`), with all 45 rows still `UNVERIFIED`. The old 11/6/28 overlay and v171/v197 pointers remain historical only. M-G's evidence contract was corrected in LEAD v432; no claim-by-claim mapping or reproduction has been accepted. L48 remains open; the research checkout has no remote.
+
 ### L48 / LEAD v431 unverified R01–R45 inventory (2026-10-21)
 
 Created and locally committed `ai/evidence/claims-register/claims-register-r01-r45-unverified-seed-20261021.csv` (research commit `d6341cf`, inventory SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`). It contains 45 unique checklist rows, all `UNVERIFIED`, with migration-checklist-only provenance and no reproduction values. Builder tests pass 4/4; validator tests pass 8/8; the produced file validates structurally but this is not verification of claims, source findings, or reproduction. L48 remains open for artifact/provenance reconciliation; no scoreboard or progress percentage is authorized by this artifact. Research `master` has no configured remote, so the file is not yet fetchable by collaborators.
