@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v426 — Draft the guardrail chapter without promoting unvalidated guarantees (2026-10-21)
+
+- Added `research/chapters/07-guardrail-design-and-assumptions.md` on the separate research `master` at commit `fdd7caa`; SHA-256 `b1b0db055607c8a1766292fdcd19a8ebffbac10a1363793f55ef200d7fca0e05`. The 85-line v0.1 scaffold integrates the proposed rank-conformal construction, descriptive-cell boundary, status/cost-of-trust semantics, filtering/abstention failure modes, diagnostics, and acceptance evidence.
+- PR02/04–08/15 remain explicit holds. The appendix code is still labeled non-executable; no calibration run, coverage guarantee, safety result, deployment certification, or new experiment is claimed. The draft also flags the §21 versus legacy-§8 chapter-number conflict.
+- Structural review: all three local Markdown links resolve; no duplicate headings or trailing whitespace; `git diff --check` passes. The research checkout has no remote, so the draft remains local-only. L45 remains open; this is bounded writing progress, not chapter acceptance or a percentage change.
+
 ## LEAD v425 — Draft the human-validity audit chapter with protocol holds explicit (2026-10-21)
 
 - Added `research/chapters/06-human-validity-audit.md` on the separate research `master` at commit `b3163a8`; SHA-256 `88ee3f1ed0f209a9467908724bb17a6bef1f19b96226af6c0ad06924e0448314`. The 90-line v0.1 scaffold integrates the research question, candidate identity, proposed A/C/N/U rubric, sample/estimand distinction, blinding/reliability, claim boundaries, and evidence required for acceptance.
