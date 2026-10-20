@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v400 current Kaggle HGAT inventory (2026-10-21)
+
+The official CLI reports the separate HGAT kernel COMPLETE and lists expected producer outputs. Its currently saved notebook source hashes to `45e44b7e01b02bb4593e5bf88e49abab8b00d356014a6dcc6eb88cc73e8e9e0b` and shows a RecipeNLG-based graph/HGAT pipeline. The interface did not bind that source to a completed run version or expose output hashes, so provenance remains partial and these files are not Senath artifacts. No outputs were downloaded; see LEAD v400 and evidence JSON.
+
 ### M-A / LEAD v399 installer retrieval trace and scope correction (2026-10-21)
 
 The broader workspace contains a tracked installer for a separate HGAT Kaggle kernel, and its ignored local mirror is byte-identical to the current service files. The installer records no output version, manifest, or expected digests and does no post-download hash check, so it does not establish Senath provenance or runtime readiness. This narrows LEAD v398's “not found” observation to the AI-service subtree; the unsafe deserialization finding remains. M-A stays open. See LEAD v399 and its evidence JSON.
