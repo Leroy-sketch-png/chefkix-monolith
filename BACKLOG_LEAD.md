@@ -2,6 +2,11 @@
 > **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §3 (C1–C5), §17 (Work Packages), §18 (Schedule), §19 (Risks), and §16 (Protocol Resolutions). When they conflict, the strategy file wins.
 > **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" and "nine contributions" structure retired. See Appendix Y of SSoT for superseded v3 text.
 
+## LEAD v363 — Verify S43’s numbered S46 citation (2026-10-20)
+
+- S43's Europe PMC full-text XML resolves reference [12] directly to Pellegrini et al., “Exploiting food embeddings for ingredient substitution” (HEALTHINF 2021; S46). Thus S43 explicitly attributes the 13,056-pair claim to S46; this is now verified, not inferred from a matching title in the bibliography.
+- This does not resolve the count: pinned S46 materials show 708 ground-truth pairs and a separate Food2Vec prediction export with 13,056 rows. Count conflation is plausible but not proven. L42 remains OPEN pending S43 input/version lineage or author clarification; no novelty, rights, overlap, claim-status, or score change. Details: root SCOPE L42 follow-up and SSoT §4/Appendix C.
+
 ## LEAD v362 — Pin S46 release artifacts and refine the 13,056-count hypothesis (2026-10-20)
 
 - Correction to v361: the cited S46 repository's current `master` omits the ground-truth JSON files and says they are available on request, but historical public tag `0.1` (commit `d7cc2c131bcd03be5fc02d8dab467cea4b2d4296`) contains three aligned artifacts: 42 source ingredients and 708 unique substitute pairs. These are byte- and hash-pinned in root SCOPE L42; do not generalize current-branch availability across versions.
