@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v486 — Verify M-I runner regression suite on Windows and Ubuntu WSL (2026-10-21)
+
+- The current research-local runner suite passes 43/43 on native Windows (Python 3.12; 20.812 s) and 43/43 on Ubuntu WSL2/Linux (Python 3.12.3; final repeat 10.820 s). The suite includes timeout, operator-interrupt, and unexpected-runner-error cleanup tests on both OS process-tree branches, alongside reservation/receipt regressions. Research source commit `6ea0464a5cb8c3d67b8c939a0343e914091e6871`; report and machine receipt are at `ai/evidence/member-backlog/mi-runner-cross-platform-20261021.md` / `.json` in that checkout.
+- The first WSL attempt exposed a test-only monkeypatch coupling: patching `research_job_runner.time.sleep` modified the shared module and intercepted `subprocess.wait()` internals. Polling now uses a separately imported `poll_sleep` alias, and the test patches only that alias. The first failure and correction remain documented; it was a harness failure, not a production-run result.
+- **Boundary:** two local environments are not a broad compatibility guarantee or independent review. This does not add sandboxing, hostile-child containment, provider-side hard caps, or forced-crash recovery; **M-I and L44 remain OPEN; C1–C5 remain 0/5 accepted.** No real job, API, GPU, paid service, or credential was used. The research checkout has no remote, so its source and detailed evidence remain local-only.
+
 ## LEAD v485 — Add read-only M-I reservation inspection (2026-10-21)
 
 - The research runner now has `--inspect-reservation <sha256>` to inspect one persisted idempotency ledger, output inventory, and referenced receipt without launching or mutating a job. New ledger records preserve the intended output directory; terminal receipts are checked against ledger identity/state and actual output hashes. A `RESERVED` or incomplete/legacy record is surfaced as `MANUAL_REVIEW_REQUIRED`, never automatically reclaimed or retried.

@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-I / LEAD v486 cross-platform local regression (2026-10-21)
+
+The runner's existing 43-test suite passes on native Windows and Ubuntu WSL/Linux, covering timeout, operator-interrupt, and unexpected-error process-tree cleanup paths on both platforms. A first WSL run exposed test-harness coupling from patching the shared `time.sleep`; the runner/test now isolate the polling hook, and the failure/correction is retained in the T15 receipt. Research source commit `6ea0464a5cb8c3d67b8c939a0343e914091e6871`; detailed note and JSON receipt are local-only at `ai/evidence/member-backlog/mi-runner-cross-platform-20261021.md` / `.json`. This is two-environment regression evidence only—not independent review, general platform certification, sandboxing, provider cap, or forced-crash recovery. M-I remains OPEN; no real job or external service ran.
+
 ### L48 / LEAD v478 mapping-only register overlay
 
 LEAD v221/v241 had explicit bounded mappings for 14 rows that were left unresolved by the fresh v3 register builder. A hash-bound overlay applies those existing mappings to the v4 derivative, changing only the 14 named `L_item_mapping` cells; statuses and all evidence fields are preserved. Receipt SHA-256 `5f9c1f5912fbb9dd10b073b1bd4045b782556d73c388ff8a31e94b0a9e13f59c`; v4 register SHA-256 `8b9e652d4b2ed8254c6c24b192f2bc0c66cacb7ab97c55d29e35ee361347d9f7`. This corrects v477's wording: the gap was in v3's overlay, not the historical Lead crosswalk. R18 remains a narrow partition result only; 44 claims remain UNVERIFIED. L48/M-G and package acceptance remain open. Research artifacts are local-only because that checkout has no remote.
