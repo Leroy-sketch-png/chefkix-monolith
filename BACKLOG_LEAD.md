@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v474 — Recheck the original Segment-9 checkpoint bytes for R26 (2026-10-21)
+
+- Found the original Segment-9 output under the dirty root checkout at `ai/out/iron-chef-lead-v99/segment-9-output/` (read-only; no model artifacts staged). The exact `checkpoint-561/` inventory has 12/12 files and every SHA-256 matches `stage3_segment_manifest.json` SHA-256 `46f5b0f403f9840e07854ca4c1ce179e49d136b65cc5f319c56f3b2e626eb969`. The separate `best_adapter/` has 8/8 files matching the manifest, including adapter hash `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814` and recorded best loss `0.19342221319675446`.
+- The dated receipt SHA-256 `07922fb02457319e2db85b94dc255671a980a1ba21c89287a821e0e80655fd7d` records the exact 561 boundary, all three frozen evaluations, source/ancestry checks and retained-best rule. Local rehash confirms checkpoint, best-adapter and manifest bytes; it does not repeat the Kaggle transaction/remote ancestry checks or establish inference, scoring, substitution quality, or human usefulness.
+- Updated R26 evidence note SHA-256 `b6feea712b8441eeeda026c90088441da017dd1aed662b16b3ed105c3607ca90`; the 45-row register/ledger were regenerated and validated from the updated local evidence map (their current hashes are recorded in the research evidence README and receipt to avoid a circular backlog↔receipt hash pointer). The builder now records the stronger local evidence and points to claim-specific reproduction/owner resolution. All 45 rows remain `UNVERIFIED`, zero reproductions; this is not a status promotion or quality finding. M-G/L48 remain **OPEN**.
+
 ## LEAD v473 — Bind R26 to the locally rechecked Segment-9 export (2026-10-21)
 
 - The R26 inventory now points to a tracked, hash-bound recheck note at research `ai/evidence/claims-register/instantiated-r01-r45-v1/r26-segment9-export-recheck-20261021.md` (SHA-256 `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52`). It records the exact local receipt and Segment-9 manifest bytes and an 8/8 retained-best adapter-file hash match. The original 12-file checkpoint is absent from the local smoke package; that part remains receipt-attested, not freshly rechecked.

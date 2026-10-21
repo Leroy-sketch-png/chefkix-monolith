@@ -1,6 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
-### L48 / LEAD v473 R26 export evidence ceiling (2026-10-21)
+### L48 / LEAD v474 original Segment-9 checkpoint recheck (2026-10-21)
+
+The original `checkpoint-561/` was found in the dirty root checkout and read-only checked at 12/12 files against the Segment-9 manifest; the separate retained-best adapter matches 8/8 manifest hashes. Updated R26 evidence note SHA-256 `b6feea712b8441eeeda026c90088441da017dd1aed662b16b3ed105c3607ca90`; register SHA-256 `28c12b8a81755d497114ae9b233076ecdfda2b567da342af9e12985656f6a988`; mismatch ledger SHA-256 `4c4ebd4db785ffd7958a3dbb007d05da57d0d859dbe7be0ae960abec7d2b5a91`. This hash-bound local evidence does not establish R26's downstream outcome, inference quality, or human value. All 45 rows remain UNVERIFIED; M-G/L48 remain OPEN.
 
 R26 now references the tracked local recheck note (SHA-256 `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52`) binding the Segment-9 receipt/manifest and eight retained-best adapter files. The full 12-file checkpoint is not locally present and remains receipt-attested; R26 stays UNVERIFIED. Register SHA-256 `09ef8466ff35e4a76cbbf25cde8361ac2aee42f9c1469735a5e16ab525d44cdd`; mismatch ledger `0103e1e832746e8b23d3635d74a67222b83851f5c7d46f38b463601a7cc988a0`. M-G/L48 remain OPEN.
 
