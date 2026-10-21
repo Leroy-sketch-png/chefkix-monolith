@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v454 source-family coverage revalidation (2026-10-21)
+
+The shared receipt binds the GISMo-v23 matrix and records an independent 35/35 arithmetic reconstruction; the focused test was rerun and passed 2/2. The ≥2-family tier covers 31,974/45,988 top-50 occurrences and 57,641/141,040 full-vocabulary occurrences. This is source-linkage support only, not runtime graph coverage, semantic equivalence, rights, or safety. Generator/test/CSV remain local-only. **M-A stays OPEN; R39/R40 stay UNVERIFIED.** Receipt: `evidence/lead-ma-source-family-coverage-curve-20261021.json`.
+
 ### L45 / LEAD v453 Chapter 14 internal draft (2026-10-21)
 
 Chapter 14 now exists as an internal v0.1 evidence-bound conclusion/future-work draft on research `master` (`94a0f253`; SHA-256 `bc786827…ef8583395fa`). All 14 §21 chapter slots have draft files, but this does not imply advisor acceptance or L45 completion. The research repository has no remote; the chapter is local-only. See `evidence/lead-l45-chapter14-draft-20261021.json`.

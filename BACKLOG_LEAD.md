@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v454 — Revalidate the M-A source-family coverage subdeliverable (2026-10-21)
+
+- Rechecked the shared receipt and its pinned matrix/generator/test/output identities; the local coverage CSV SHA-256 is `560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac`. The focused generator test passed **2/2** in the research checkout. The receipt records a separate arithmetic reconstruction matching all 35 family-by-top-N rows.
+- At the ≥2-independent-family tier, linked endpoint support is 31,974/45,988 within top-50 occurrences and 57,641/141,040 across the full eligible 6,632-class vocabulary. This remains exact-name source-family linkage over the frozen GISMo-v23 matrix—not graph runtime coverage, semantic equivalence, product value, safety, or rights clearance.
+- Generator, test, and CSV remain local-only; the shared receipt preserves their hashes but does not make those inputs/artifacts independently reproducible from this monolith checkout. **M-A remains OPEN; R39/R40 remain UNVERIFIED.** Receipt: `evidence/lead-ma-source-family-coverage-curve-20261021.json`.
+
 ## LEAD v453 — Add Chapter 14 internal conclusion draft (2026-10-21)
 
 - The research `master` now has a v0.1 internal conclusion/future-work draft at `research/chapters/14-conclusion-and-future-work.md` (commit `94a0f253857be728f1e51b3fea4729eb2d58673b`, SHA-256 `bc786827f9105f22b29a31b91c73b29639cac4f42a32ce7a83a87ef8583395fa`). The full §21 chapter-file inventory is now 14/14, but this means draft files exist—not that chapters are accepted or publication-ready.
