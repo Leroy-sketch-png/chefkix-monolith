@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v477 — Reproduce the bounded OFF taxonomy partition for R18 (2026-10-21)
+
+- Recounted allergen/trace tags row-by-row from the pinned 351,351-row derived snapshot and matched both manifest maps exactly; rebuilt the partition against the preserved later taxonomy and passed 8/8 semantic mutation checks. The frozen snapshot has 3,377 distinct union tags / 767,780 occurrences: 23 exact positives / 760,877; `en:none` / 564; 17 review-only alias candidates / 32; and 3,336 unrecognized / 6,307. Unknown values are not negatives, and the snapshot/taxonomy dates differ.
+- Research-local evidence: `ai/evidence/claims-register/instantiated-r01-r45-v1/r18-bounded-reproduction-20261021.md` (SHA-256 `0055df06e2af4299b64ef882de79cf14d6e4d7eae32dbec719d5e605c52aec32`); current derivative register v3 SHA-256 `6153d70c6ca522292bec037c0aa2616c203790ad1c94b08a34ac3d2092d1c574`; snapshot recount receipt `df4845a7109603ba2e07b56646aa086353948a951b6f5aba67d00281db6afed7`; taxonomy validator receipt `a5f97d1caacec550178ab2dd94c03aa7fd3847e7626893398e1f19798185cdb7`. The exact report and supporting artifacts are currently local-only because research `master` has no configured remote.
+- The v3 register marks **R18 VERIFIED only for this deterministic, frozen-snapshot taxonomy partition**; the other 44 rows remain UNVERIFIED. R18 maps to L20 only for the bounded partition subdeliverable; L48 owns reconciliation; L39 matched/adjudicated outputs remain separate. This does not close L20, L39, M-G/L48, C3, or any allergen-safety/clinical claim. No L48 owner is inferred for the other rows; 14 exact row mappings remain unresolved. No thesis completion percentage changes.
+
 ## LEAD v476 — Preserve the R26 crosswalk delta without rewriting prior review (2026-10-21)
 
 - Added a separate research crosswalk addendum at `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-r26-addendum-20261021.md` (SHA-256 `2e0eac9f9974e7b454103abe3b6f7f68627d15426a0550579e4376da74897816`; research commit `7f3f8e3c28b17d20f92d45f8e8031a57dc781439`). The original dated crosswalk note is left byte-identical so its prior hash references remain meaningful.

@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v477 bounded R18 reproduction (2026-10-21)
+
+The pinned OFF snapshot's tag-count maps were independently recounted and matched, then partitioned against the preserved later taxonomy with 8/8 semantic mutation checks. Research-local report SHA-256 `0055df06e2af4299b64ef882de79cf14d6e4d7eae32dbec719d5e605c52aec32`; v3 register SHA-256 `6153d70c6ca522292bec037c0aa2616c203790ad1c94b08a34ac3d2092d1c574`. This supports only R18's named deterministic partition, not allergen safety or L20/L39/C3 acceptance. R18 maps to the L20 subdeliverable; L48 reconciliation continues, 44 claims remain UNVERIFIED and 14 mappings remain unresolved. Research artifacts remain local-only because that checkout has no remote.
+
 ### L48 / LEAD v476 crosswalk addendum and current register bind (2026-10-21)
 
 The earlier row-by-row crosswalk remains unchanged; a separate R26 addendum (SHA-256 `2e0eac9f9974e7b454103abe3b6f7f68627d15426a0550579e4376da74897816`; research commit `7f3f8e3c28b17d20f92d45f8e8031a57dc781439`) captures Segment-7 launch/promotion provenance and keeps claim ownership/status bounded. The register was regenerated against Lead v476: SHA-256 `d8f7965af834ba06c9f935643b5a67d5918d1288c426678384d2f3c48eff91a4`; ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; receipt `235f62ebb8a839237c8f9491b85d5b0bcc04b70fbf58805a6a50ba0694007893` (research commit `b45eeba2a6bdbc1b3aa7c36c6ee6206ff0873079`). All 45 rows remain UNVERIFIED, zero reproductions; 15 owner mappings unresolved; M-G/L48 remain OPEN.
