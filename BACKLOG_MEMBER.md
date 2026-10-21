@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-D / LEAD v465 GISMo full-split top-20 materialization (2026-10-21)
+
+Research `master` commit `f0282c4` materializes the deterministic GISMo arm by taking the first 20 candidates from each pinned, verified source-only top-50 row: 10,729 validation and 10,747 test cases. A fresh build replay is byte-identical; all output rows match their source-pool top-20 prefix with exact case order/ranks and no label fields. The 21-test focused source-pool/builder suite passes. This does not rerun GISMo, read labels, score/evaluate, establish rights, or select a method. Lookup-frequency is still missing a pinned executable contract; **M-D and L44 remain open**. Details and hashes: `evidence/lead-md-gismo-top20-preparation-20261021.json`.
+
 ### L44 / LEAD v464 showcase regression suite rerun (2026-10-21)
 
 Fresh rerun of the source-bound benchmark and midterm-exhibit test suites passes 30/30, including receipt-to-table-order assertions for both arms. The test/source hashes and renderer commit are in `evidence/lead-l44-showcase-regression-rerun-20261021.md`. The corrected HTML remains a local-only artifact; no browser visual review or listener rehearsal was performed, so L44 stays open.
@@ -376,10 +380,10 @@ L39 (allergen) → L45
 ### M-D: GISMo & Lookup Arm Outputs (8h) — **START WEEK 2**
 > SSoT §5.7, §13.3
 
-- [ ] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases
+- [x] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases — local-only outputs in `ai/out/senath-m-d-gismo-top20-v1`; provenance in LEAD v465
 - [ ] Generate lookup-frequency baseline ranked lists on same cases
 - [ ] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl`
-- [ ] Verify determinism: two runs produce identical outputs
+- [x] Verify determinism: two runs produce identical outputs — fresh replay and hashes in LEAD v465
 - [ ] **Acceptance:** Every case present; deterministic across runs
 
 ### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**

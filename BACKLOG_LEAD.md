@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v465 — Materialize deterministic GISMo top-20 arms for both frozen splits (2026-10-21)
+
+- Research `master` commit `f0282c460e2c8d57444c119d481932f4b0f302ca` adds a fail-closed builder that binds the verified source-only GISMo top-50 pools and emits `gismo_val.jsonl` / `gismo_test.jsonl`: 10,729 + 10,747 cases, 20 candidates each. Both outputs and the manifest are byte-identical on a fresh replay; every row matches the exact top-20 prefix of its pinned pool.
+- The focused builder/verifier suite passes **21/21**. No label file was opened, no target-label field entered the outputs, and no evaluation or method selection occurred. Full local-only artifact/source details: `evidence/lead-md-gismo-top20-preparation-20261021.json`.
+- This advances only the GISMo arm of M-D. Lookup-frequency remains ungenerated because its exact executable reproduction/tie contract is not pinned; the GISMo checkpoint was not rerun. Rights remain unknown, outputs remain local-only, and **M-D/L44 remain OPEN**. Research `master` has no configured remote, so its commit is local-only.
+
 ## LEAD v464 — Re-run the saved-output showcase regression suite (2026-10-21)
 
 - Research `master` HEAD `42f1111` reran the benchmark + midterm-exhibit suites: **30 passed in 21.06 s**. The regression checks that primary-identity and raw-string metric cells align with the grouped table headings for both arms.
