@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v460 — Align Chapter 3 with the full raw-split join rerun (2026-10-21)
+
+- Research `master` commit `42f11119ced56cd81034c957ee2c1c511fd5a280` preserves the audit receipt at `ai/evidence/lead-mb-full-split-source-join-20261021.json` (SHA-256 `c2429fbad69d5ffc83d62fbd118c9c26bed6868511cb71c49c5dae4e9165d6420`) and updates Chapter 3 (SHA-256 `57b2086f607e8163bdc238f783bfdfc60175bf44593d3012c00103d7bc6b04bc`). It explicitly limits the earlier missing-test-file observation to the designated clean-room directory and records the later hash-pinned full-split join result.
+- The matching monolith receipt remains `evidence/lead-mb-full-split-source-join-20261021.json`. The research repository has no configured remote; this commit is local-only. **M-B remains OPEN; R04/R05 remain UNVERIFIED.** This is a provenance/chapter correction, not rights clearance, independent evaluation, inference, or quality evidence.
+
 ## LEAD v459 — Re-run complete pinned split joins and resolve the local test-source gap (2026-10-21)
 
 - The full-split audit now finds the exact pinned test CSV in the local archive outside the designated clean-room folder; all seven required GISMo assets were assembled and hash-checked. After an initial fail-closed attempt stopped on the missing node table without writing outputs, the audit passed train CSV↔pickle joins (49,044 rows), and validation/test joins and identity partitions (10,729/10,747 rows). GISMo graph-pair identity and Senath-normalized sensitivity remain separate.

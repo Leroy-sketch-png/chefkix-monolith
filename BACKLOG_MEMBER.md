@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / LEAD v460 Chapter 3 and local receipt synchronized (2026-10-21)
+
+Research `master` commit `42f1111` commits the full-split receipt (SHA-256 `c2429fbad69d5ffc83d62fbd118c9c26bed6868511cb71c49c5dae4e9165d6420`) and corrects Chapter 3 (SHA-256 `57b2086f607e8163bdc238f783bfdc60175bf44593d3012c00103d7bc6b04bc`) to distinguish the old clean-room-directory observation from the later wider-archive source discovery. The research checkout has no remote; the matching receipt and backlog update are shared in this monolith. M-B remains open; R04/R05 remain unverified.
+
 ### M-B / LEAD v459 complete raw-split join and identity-frame rerun (2026-10-21)
 
 The exact pinned test CSV was found outside the previously designated clean-room directory, and all pinned GISMo assets were assembled and verified. Full train/validation/test CSV↔pickle joins pass; validation/test identity counts are 10,729/10,747 with GISMo-primary and Senath-normalized strata recorded separately. The machine receipt `evidence/lead-mb-full-split-source-join-20261021.json` binds inputs, outputs, hashes, and limitations. This resolves the scoped join gap only: M-B acceptance and R04/R05 remain open/unverified; no rights, human-label, independent-evaluation, or model-quality claim is made.
