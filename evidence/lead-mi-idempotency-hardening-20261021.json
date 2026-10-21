@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "1681c66d36dea801f43daf35591a20c377bac788",
+    "prior_runner_and_suite_commit": "ac4c9893c9d0fc60e0eed62d0f2c80b164a449da",
+    "remote_configured": false,
+    "runner_sha256": "DE5F94E7780A55C4FF5D8D07C89738AD2C1D947057440D7E66D1820A439B8B1E",
+    "tests_sha256": "2E2B0AC4631B9830CECFF496F88139AB56C39DC786B2AF9AE36344028D4AF4FC"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py -v",
+    "consecutive_runs": 3,
+    "tests_per_run": 22,
+    "failures": 0,
+    "also_passed": [
+      "python -m py_compile ai/tools/research_job_runner.py ai/tools/test_research_job_runner.py",
+      "git diff --check -- ai/tools/research_job_runner.py ai/tools/test_research_job_runner.py"
+    ]
+  },
+  "newly_verified_contracts": [
+    "idempotency key is recomputed from canonical script hash, path-sorted input hashes, and canonical runtime parameters",
+    "changing runtime parameters without changing the key is refused before reservation or launch",
+    "equivalent input/parameter mappings derive the same key independent of mapping order",
+    "a duplicate key cannot overwrite its earlier durable ledger or receipt",
+    "parallel same-key attempts start at most one successful child",
+    "invalid preflight does not consume the derived key",
+    "output-collision refusals do not write into the pre-existing output directory"
+  ],
+  "limitations": [
+    "M-I remains OPEN; the runner is a local prototype with no real API job or collaborator-accessible remote.",
+    "Usage and spending are child-reported and cooperative, not provider-enforced hard caps.",
+    "The runner is not a process sandbox; hostile child behavior is outside the verified boundary.",
+    "An unsigned local HUMAN_APPROVED JSON record is hash/shape checked but is not authenticated authority and never grants confirmatory-claim permission.",
+    "Broader malformed-manifest, recovery, platform, and independent-review acceptance remain outstanding."
+  ],
+  "scope": "No model, scientific protocol, evaluation, or claim status changed. This receipt records software-contract tests only."
+}

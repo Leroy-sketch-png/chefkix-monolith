@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v443 — Bind runner idempotency to parameters and test collision controls (2026-10-21)
+
+- AoE follow-up to v442: the active §13.1 template says the idempotency identity derives from inputs, script, and parameters. The prototype previously accepted any syntactically valid key; that left different jobs able to reuse an identity. It now recomputes a canonical SHA-256 over script hash, path-sorted input hashes, and canonical runtime parameters, and refuses mismatches before reservation or launch.
+- Additional fixes prevent invalid preflight from burning an idempotency key, prevent a duplicate request from replacing its earlier ledger, and prevent output-collision refusal from writing into a pre-existing directory. The focused 22-test suite passed three consecutive runs; it includes parameter binding/order stability, concurrent same-key single launch, and preservation checks. Exact commit, hashes, and command evidence: `evidence/lead-mi-idempotency-hardening-20261021.json`.
+- **M-I remains OPEN.** Implementation is local to research `master`, which has no configured remote; provider-hard budgets, OS isolation, fuller malformed-manifest/recovery/platform tests, and independent review remain unverified. No real API work, scientific result, or training change occurred.
+
 ## LEAD v442 — Build and fixture-test an independent M-I runner prototype (2026-10-21)
 
 - Implemented the §13.1–13.2 job-manifest boundary in the separate research repository's local `master` (`136e5bd`, `bebe02a`, `ac4c989`): checked script/input hashes, repository-contained non-symlink paths, fresh output directories, idempotency reservation, bounded time/call/reported-spend stops, error/invalid-output thresholds, failure-preserving receipts, and output-hash inventories.

@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v443 idempotency binding and collision controls (2026-10-21)
+
+Follow-up review found that merely accepting a hash-shaped idempotency key did not meet the active §13.1 identity contract. The research-local runner now derives the key from canonical script hash, sorted input identities, and runtime parameters; it refuses mismatches before launch. Regression coverage also exercises concurrent same-key execution, preflight not consuming the key, prior-ledger preservation, and output-collision non-overwrite. The 22-test suite passed three consecutive runs. M-I remains open: the source is local to research `master` without a remote, and provider hard caps, sandboxing, broader platform/recovery tests, and independent review remain. Receipt: `evidence/lead-mi-idempotency-hardening-20261021.json`.
+
 ### M-I / LEAD v442 local runner prototype and refusal fixtures (2026-10-21)
 
 An independently implemented Python runner on the research repository's local `master` now passes 18 focused fixtures for hash-bound manifests/inputs, fresh outputs, idempotency, time/call/cooperatively reported spend limits, stop thresholds, receipts, freeze-record shape, and failure preservation. The runner explicitly does not provide an OS sandbox or provider-side hard budget, and a local unsigned approval record grants no confirmatory-claim permission. The implementation commits are local-only because that repository has no configured remote; no real API job ran. M-I remains open for broader invalid-manifest, concurrency, recovery, platform and independent-review coverage. Receipt: `evidence/lead-mi-runner-prototype-20261021.json`.
