@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v473 — Bind R26 to the locally rechecked Segment-9 export (2026-10-21)
+
+- The R26 inventory now points to a tracked, hash-bound recheck note at research `ai/evidence/claims-register/instantiated-r01-r45-v1/r26-segment9-export-recheck-20261021.md` (SHA-256 `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52`). It records the exact local receipt and Segment-9 manifest bytes and an 8/8 retained-best adapter-file hash match. The original 12-file checkpoint is absent from the local smoke package; that part remains receipt-attested, not freshly rechecked.
+- Updated 45-row register SHA-256 `09ef8466ff35e4a76cbbf25cde8361ac2aee42f9c1469735a5e16ab525d44cdd`; mismatch-ledger SHA-256 `0103e1e832746e8b23d3635d74a67222b83851f5c7d46f38b463601a7cc988a0`. R26 and all other rows remain `UNVERIFIED`, with zero reproductions. The structural validator passes; it does not establish claim truth. M-G/L48 remain **OPEN**.
+
 ## LEAD v472 — Record bounded historical-register source search (2026-10-21)
 
 - Updated review note: `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-review-20261021.md` (research-local SHA-256 `0cce3de5ee6643b4952db2ab376aec6bd57898c695dc30c7be332a8c838c3bd4`; research commit `f989a5f52356c8c3bff36001ac03b958ac36eeeb`). The worktree file inventory and available Git history contain the migration seed and v1 register but no v171/v197 register bytes. This bounded negative search cannot exclude external/archive copies.

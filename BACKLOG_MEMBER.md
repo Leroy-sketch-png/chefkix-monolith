@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v473 R26 export evidence ceiling (2026-10-21)
+
+R26 now references the tracked local recheck note (SHA-256 `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52`) binding the Segment-9 receipt/manifest and eight retained-best adapter files. The full 12-file checkpoint is not locally present and remains receipt-attested; R26 stays UNVERIFIED. Register SHA-256 `09ef8466ff35e4a76cbbf25cde8361ac2aee42f9c1469735a5e16ab525d44cdd`; mismatch ledger `0103e1e832746e8b23d3635d74a67222b83851f5c7d46f38b463601a7cc988a0`. M-G/L48 remain OPEN.
+
 ### L48 / LEAD v472 bounded historical-register search (2026-10-21)
 
 The updated crosswalk-review note (SHA-256 `0cce3de5ee6643b4952db2ab376aec6bd57898c695dc30c7be332a8c838c3bd4`; research commit `f989a5f52356c8c3bff36001ac03b958ac36eeeb`) records that the available worktree file inventory/Git history has no v171/v197 register bytes. This does not exclude an external/archive copy. All 45 statuses remain UNVERIFIED; M-G/L48 remain OPEN.
