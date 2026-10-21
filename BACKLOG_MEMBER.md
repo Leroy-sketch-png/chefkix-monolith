@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-I / LEAD v510 — Abrupt runner-termination fail-closed regression (2026-10-21)
+
+T49 adds a synthetic regression that launches the actual local runner CLI, waits until its child has started and reserved its idempotency key, forcibly terminates only that runner, and verifies the reservation remains `RESERVED`, no terminal receipt is fabricated, inspection is read-only/`MANUAL_REVIEW_REQUIRED`, and same-key execution is refused. The 53-test runner suite passes on Windows (49 pass; four pre-existing symlink-privilege skips) and Ubuntu WSL (53/53); the independent review is PASS narrowly for the final source/evidence hashes. Research evidence is local-only at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-abrupt-runner-interruption-20261021/acceptance.md`; monolith summary receipt: `evidence/lead-mi-abrupt-runner-interruption-20261021.md`. This tests one synthetic process-termination boundary only—not power-loss durability, machine-crash recovery, sandboxing, provider hard caps, automated recovery, or scientific validity. `UNKNOWN` remains do-not-retry. No real job ran; M-I/L44 remain OPEN and C1–C5 remain 0/5 accepted.
+
 ### M-D/L44 — Correct standalone ingestion receipt locator (2026-10-21)
 
 Follow-up inspection confirmed the standalone ingestion receipt exists locally at `ai/out/senath-validation-benchmark-v1-recovery-20261021/ingestion_receipt.json`, SHA-256 `89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600`, but `.git/info/exclude` keeps the path untracked and local-only. Chapter 5 now identifies that boundary; its final corrected SHA-256 is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. No output, metric, or claim changed. M-D/L44 remain OPEN.

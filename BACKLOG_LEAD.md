@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v510 — Record narrowly reviewed abrupt-runner interruption evidence (2026-10-21)
+
+- T49 adds a synthetic regression around the actual local research-runner CLI: after a child has started and the idempotency reservation exists, the test forcibly terminates only its runner process, confirms the ledger stays `RESERVED` with no fabricated terminal receipt, verifies direct/CLI inspection is read-only and returns `MANUAL_REVIEW_REQUIRED`, and confirms same-key execution is refused. Final test SHA-256 `aa0b4210b5dcd78273fc42b098839baaedb268188f0a659f53e10a14b0c266b`; runner operator-guide SHA-256 `5228ede7e32bf3104e93e1e4bd4b87a2dcdef577cb1b608cea9100aec36c211f`.
+- Windows runner suite: 53 tests, 49 pass and four pre-existing symlink-privilege skips; Ubuntu WSL: 53/53 pass. Independent review is PASS narrowly against the final test, operator guide, task card and acceptance evidence; review SHA-256 `bc2bc838c368777e2b2b4b19f6326d9b1c6de5e3b7f4c772c19e1a592e3cf951`. The runner production source is unchanged.
+- Detailed test/evidence/review remain local-only in research checkout `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014` (no remote). Summary receipt: `evidence/lead-mi-abrupt-runner-interruption-20261021.md`.
+- **Boundary:** one synthetic forced-process-termination boundary only. No power-loss/machine-crash or filesystem-durability guarantee, concurrency/stale-process protection, sandbox, provider hard cap, or automated recovery. `UNKNOWN` remains do-not-retry. No real job, credential, API, network, paid resource, scientific protocol/data/label, inference or quality claim occurred. M-I/L44 remain OPEN; C1–C5 remain 0/5 accepted.
+
 ## LEAD v509 — Refresh L47 official ARR timing and policy boundary (2026-10-21)
 
 - T48 checked the current official ARR Dates and Venues page and the September 11, 2026 sustainable-reviewing announcement. For October 2026, the date table labels Oct 14 **reviewer registration**; the October policy separately sets the designated contributor form and Responsible NLP Checklist at 48 hours after the Oct 12 submission deadline, and all-author OpenReview/ORCID profile completion within one week (Oct 19 grace date for non-submitting authors). These are conditional on an actual timely submission and do not prove compliance. The new policy is explicitly still work in progress.
