@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+
+## LEAD v463 — Record the recovered 200-case validation diagnostics for L44 (2026-10-21)
+
+- Added `evidence/lead-l44-validation-benchmark-results-20261021.md`, derived from the existing one-shot version-4 receipt (`90da69d…6686b81`). A fresh local inventory comparison confirms 14/14 recovered files still match the receipt; no download or relaunch was made.
+- Saved-output validation covers 200 fixed validation cases, with zero method failures. GISMo identity Hit@1/5/10 is 1.5%/7.5%/14.5% for GISMo top-50 + Senath reranking and 3.0%/11.5%/14.0% for Senath top-20 generation; raw-string sensitivity is separately reported. Median/p90 latency is 54.914/56.850 s and 30.860/31.515 s respectively.
+- These are descriptive fixed-validation diagnostics, not an independent test, human-usefulness result, superiority claim, or L44 completion. Candidate methods differ; zero failures preserves denominator 200. **L44 remains OPEN** for independent evaluation, human-usefulness evidence, full-split work, and showcase review.
+
 ## LEAD v462 — Reconcile local reproduction evidence for claims-seed rows R04/R05 (2026-10-21)
 
 - Mapped the full-split source/identity audit to the seed's two directly matching rows. R04's GISMo-primary and Senath-sensitivity seen/unseen values reproduce separately for validation and test; R05's train/validation/test row counts and raw-CSV↔released-pickle joins pass. Details: `evidence/lead-l48-r04-r05-reproduction-20261021.md`; source hashes and output identities remain bound by `evidence/lead-mb-full-split-source-join-20261021.json`.

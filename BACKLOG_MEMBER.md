@@ -1,4 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+
+### L44 / LEAD v463 recovered validation-benchmark diagnostics (2026-10-21)
+
+The existing one-shot Kaggle version-4 recovery receipt is bound to a 14-file inventory that was rechecked against disk with zero missing, extra, or mismatched files. Saved-output validation covers 200 fixed validation cases with zero method failures. GISMo identity Hit@1/5/10 is 1.5%/7.5%/14.5% for GISMo top-50 + Senath reranking and 3.0%/11.5%/14.0% for Senath top-20 generation; raw-string sensitivity and per-case latency are separately recorded in `evidence/lead-l44-validation-benchmark-results-20261021.md`. This is descriptive fixed-validation diagnostic evidence only, not an independent test, human-usefulness result, superiority claim, or L44 completion. No new Kaggle operation was performed.
+
 ### L48 / LEAD v462 R04/R05 source-reproduction crosswalk (2026-10-21)
 
 The local full-split audit now maps to the two matching seed claims: R04 identity counts and R05 split row counts/raw CSV-to-GISMo-pickle joins. The note `evidence/lead-l48-r04-r05-reproduction-20261021.md` records exact values and limitations, linked to the hash-bound M-B receipt. The migration seed's provenance remains checklist-only; no register row is promoted or verified, and L48 remains open.
