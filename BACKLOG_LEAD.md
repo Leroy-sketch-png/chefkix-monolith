@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v506 — Add reviewed R07 provenance answer to L46 preparation (2026-10-21)
+
+- T46 added a source-bound examiner answer to the existing T38 preparation sheet, now seven answers (research-worktree SHA-256 `a8e206b1e884b899f42c56a3e62b5760fe2e5b8961f16720e1a9cf52d0b9e6d1`). Independent review `1b52cfe8018e1b4e5d57636ba15948b455c17cec6e6f12ecf38dc6304b4468f6` accepted it after clarifying that exact source bytes plus immutable run identity are minimum crosswalk prerequisites, not sufficient for R07 verification.
+- The answer preserves the evidence ceiling: six candidate-file hashes identify current bytes, two benchmark hashes identify inputs, and the 209-line log has 0 valid standalone JSON lines under strict parsing; the earlier NDJSON-envelope assertion was withdrawn. These scoped findings neither invalidate nor authenticate the candidate outputs and do not establish global absence or producer lineage.
+- Shared summary receipt: `evidence/lead-l46-r07-provenance-answer-20261021.md`, SHA-256 `b5330968cd856fa8700e5e35a1644766b45f204f83d7805f42a5e3843e1196e3`. Detailed T44/T45 reports remain in the local research worktree, which has no remote.
+- **Boundary:** written L46 preparation only. No rehearsal, advisor/committee acceptance, R07 verification, claim promotion, Member package completion, or thesis-progress percentage change. R07 stays `UNVERIFIED`; L46 remains OPEN.
+
 ## LEAD v505 — Record supplemental R07 local candidate inventory without upgrading evidence (2026-10-21)
 
 - The accepted T44 supplemental read-only inventory found six non-weight files in the separately searched main-checkout path `ai/out/iron-chef-miskg-v9/kaggle-v11-output/`; independent review confirmed their byte sizes/SHA-256 values and ignored/untracked status. Three filenames are result/log-named candidates; three are supporting/index-named artifacts. No payload contents, weights, labels, or targets were inspected.
