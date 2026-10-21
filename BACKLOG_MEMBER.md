@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v457 legacy producer source trace (2026-10-21)
+
+Found the committed legacy subgraph extractor (`59e8560`): it emits only features and directed edges, with a random-feature fallback if optional feature inputs are absent. The local production inputs and any output-binding receipt are missing; the current source fail-fast retirement guard was not bypassed. Candidate producer identified, lineage still unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-legacy-producer-trace-20261021.json`.
+
 ### M-A / LEAD v456 direct serialized-edge count recheck (2026-10-21)
 
 The pinned graph edge tensor was rechecked with the restricted, hash-pinned inspector; direct set construction confirms 4,591 unordered pairs including four self-loops (4,587 excluding them), alongside 4,883 unique directed pairs and 7,247 arc entries. This supports a count-convention hypothesis only; historical convention and provenance remain unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.

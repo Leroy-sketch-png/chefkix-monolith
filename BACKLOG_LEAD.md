@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v457 — Locate the legacy HGAT subgraph extractor; preserve the artifact boundary (2026-10-21)
+
+- The root Git history contains a candidate generator at `personal/projects/chefkix/knowledge_graph/build_heterodata.py`; commit `59e8560` added the lean extraction that saves only `ingredient.x` and `ingredient|substitutes|ingredient.edge_index` as `substitution_subgraph.pt`. Its inputs are four CSVs plus an optional feature CSV. The pre-retirement code falls back to random 560-dimensional features when that feature CSV is absent.
+- This locates a plausible producer, not a verified artifact lineage: production inputs are absent locally, only small `test_processed` fixtures remain, the ignored 438 MB AI-service artifact has no generation receipt/hash binding, and the graph stores no ingredient mapping. The current source now immediately raises a retirement `RuntimeError`; it was not run or bypassed. **M-A remains OPEN; R39/R40 remain UNVERIFIED.** Receipt: `evidence/lead-ma-legacy-producer-trace-20261021.json`.
+
 ## LEAD v456 — Recompute the M-A unordered count from raw serialized edges (2026-10-21)
 
 - Independently rebuilt unique directed and sorted unordered endpoint-pair sets from the pinned serialized `edge_index`, after the restricted inspector verified the artifact hash, `weights_only=True`, explicit PyG class allowlist, and pinned PyG source hashes. The direct tensor check reproduces `4,883` unique directed pairs, `292` reciprocal non-self pairs, `4` self-loops, and `4,591` unordered pairs including loops (`4,587` excluding them); no model inference or artifact mutation occurred.
