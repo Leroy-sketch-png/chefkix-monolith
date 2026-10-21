@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-G/L48 / LEAD v494 owner-boundary reconciliation
+
+T26 found bounded candidates for portions of the targeted claims, but not exact current owners of each complete empirical outcome. R18's v9 pointer to L20 is historical-only relative to the active Lead table; L48 remains the register-reconciliation owner, not an R18 outcome owner. Research v10 corrects only the R18 mapping field; evidence statuses and package states are unchanged. This is backlog/crosswalk maintenance, not claim progress or thesis acceptance. See research commit `ea8c21e` and T26 report SHA-256 `2f77189ab806f97849e3f6879acb3de6acf85496bc1896f94113f491f6590ee7`.
+
 ### M-G/L48 / LEAD v493 local R26 hash representation trace
 
 T25 traced the Segment-7 builder/runtime hash functions. The local advancement receipt matches the package's raw CRLF bytes (`0b553…`); the manifest hash matches the same local source normalized CRLF→LF (`3568e…`). This makes upload-time newline normalization plausible but does not verify the remote executed bytes. The dated R26 package still has pinned-note and exact-receipt-path gaps, so R26 remains UNVERIFIED and no register row changed. No Kaggle, labels, inference, model loading, or quality analysis occurred; details and report hash are in LEAD v493.
