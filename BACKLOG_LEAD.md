@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v450 — Add fail-closed claims-register validator (2026-10-21)
+
+- Implemented the missing M-G structural/local-byte validator in the research checkout (`ai/tools/validate_claims_register.py`) with 21 passing tests and a successful compile check. It enforces the exact register schema/IDs, complete rows, provenance constraints, repository-relative byte hashes, and evidence requirements for a `VERIFIED` row; it deliberately does not establish whether any research claim is true.
+- The v4.2 migration seed is rejected because its provenance is checklist-only: exit 2 and no success summary. Receipt: `evidence/lead-mg-validator-implementation-20261021.json`.
+- Boundary: no claims register has been instantiated, no claim has been independently reproduced, and no progress scoreboard was generated. **M-G and L48 remain OPEN.** Research source commit `5b6e5322b40e4ee337e0e14d8986c8d1775cad3d` is local-only; no research remote is configured.
+
 ## LEAD v449 — Preserve M-I run evidence on operator interrupt (2026-10-21)
 
 - Closed a concrete runner failure path: Ctrl+C during the child-poll loop now records `OPERATOR_INTERRUPTED`, terminates/reaps the direct child, finalizes cooperative usage, and writes the existing blocked receipt and ledger; the idempotency key remains consumed to prevent blind retry.

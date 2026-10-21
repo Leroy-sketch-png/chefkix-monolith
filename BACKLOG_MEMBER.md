@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-G / LEAD v450 fail-closed claims-register validator (2026-10-21)
+
+Added the missing structural/local-byte claims-register validator in the research checkout. Its 21 tests and compile check pass; it rejects the migration seed's checklist-only provenance with no success summary. This is a validator/tooling increment only: no register was instantiated, no claim verified, and no scoreboard generated. M-G and L48 remain open; the research commit is local-only because that checkout has no remote. Receipt: `evidence/lead-mg-validator-implementation-20261021.json`.
+
 ### M-I / LEAD v449 operator-interrupt recovery (2026-10-21)
 
 Ctrl+C during the research runner's child-poll loop now terminates and reaps the direct child, records `OPERATOR_INTERRUPTED`, finalizes cooperative usage, and preserves a blocked receipt/ledger with the idempotency reservation consumed. Regression verifies a second execution is refused. The 36-test focused suite passes three consecutive runs; compile, CLI help, and diff checks pass. This does not handle forced process/machine crashes or descendant processes; no paid/API job ran, the research source has no remote, and M-I remains open. Receipt: `evidence/lead-mi-operator-interrupt-recovery-20261021.json`.
