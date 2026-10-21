@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v483 — Add protocol-neutral synthetic M-B fixture preparation (2026-10-21)
+
+- T12 builds a fully synthetic 40-case / 3-opaque-arm fixture with deterministic output, opaque shuffled rater-view keys, toy gold inclusion, explicit toy-stratum minimum parameter, fail-closed missing-arm/metadata and duplicate-candidate checks, and an intentionally ambiguous identity retained as `AMBIGUOUS_UNMAPPED`. The fixture was reloaded and validated against its generator hash and receipt. Generator SHA-256 `c9a6873de03d0dbd9fb8ab6295d316c0c1f5d809044183d51cb5620bbe5503d2`; 13 focused tests pass.
+- Corrected v2 artifact/receipt SHA-256 `f17b0adb361e06106aadc4a482622e6efbd0a787aa4ed3e4a3d4e638aa9fd189` / `33dd0a7d2c2a3e46ee03fbd24111f3b9a5019388b951ce682b70d3867f31da6e`. V1 is preserved locally but superseded after sequential case IDs were found in the rater view; v2 uses opaque IDs and shuffled order.
+- This is synthetic mechanics only, not a blinded human fixture, real-data pipeline, or scientific protocol. No PR03/PR09/PR15 identity/normalization/allocation/reference-code choice, real data, labels, human ratings, rights conclusion, or external/paid/GPU action occurred. **M-B remains OPEN; L36/L38 and C1/C2 remain open; C1–C5 remain 0/5 accepted.** Evidence is local-only in a research checkout without a remote; this backlog entry preserves the hashes but does not publish those files.
+
 ## LEAD v482 — Apply independently reviewed narrow R13 arithmetic evidence (2026-10-21)
 
 - T10 reproduced the §15.1 R13 profile-pair arithmetic on the exact locally installed, provenance-pinned 971-profile FooDB artifact. T11 independently rehashed the profile, provenance, service, driver, receipt and report; independently recomputed every unordered pair with replacement; and passed narrowly. The 471,906 denominator includes 971 diagonal self-pairs; 470,935 are distinct cross-profile pairs. All 471,906 runtime shared-name/Jaccard results matched the direct set oracle (469,087 nonzero-shared, 2,819 zero-shared; 0 mismatches). T11 review SHA-256 `e06bd860191fb0989da22d96f1c54f580d6194de1fed6a9368553f27c78cee87`; local v2 report/receipt SHA-256 `06bbc96de07ee3ef826a953ff972838a3821c9187985eec5913ccde7f5da803d` / `c63db935d919d5c87c3bbffe4aafb2a1ff476ef66a3a1d7a5db34d9c8d6482fa`.
