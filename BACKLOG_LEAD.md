@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v513 — Correct final synthetic C3 verification count (2026-10-22)
+
+- Follow-up after LEAD v512: one additional invalid-string `max_rank` fixture was added to the synthetic A/B tests. The final exact suite result is **239/239**, superseding the earlier 238/238 count; this corrects the evidence record without changing the implementation boundary or claims.
+- Final T106 candidate/test hashes are recorded in the local report `tasks/T106-c3-arm-bound-coverage-guard-report.md` (research worktree only): A `0b865899e1f67aa8eb89e8850fc7b005fafa79b7731a045be566a21fed2fcf4d`, B `7c59c5af5333536596832f8cdd5938692a84720e393d6ab7d3fb5f4a88e697d8`, A tests `d529140ceee1272e4b64194e33b9cf1b9da0dd3b13bec5b8456794c63c5c8ddc`, A/B tests `df2bee2367757f338fd50676405661c43750fc6ab44198adf8842315fdbc0b7a`.
+- No empirical cells, calibration, labels, GPU/API, new training, protocol adoption, or C3 acceptance are represented by these synthetic tests.
+
 ## LEAD v512 — Close synthetic C3 arm-bound gap; narrow C2 source schema (2026-10-22)
 
 - T104's independent source review found the post-T75 rank-51 correction present, while noting that M=20 versus M=50 still needed caller-bound validation; its review report is local-only in the research checkout. T106 added a keyword-only `max_rank` boundary to both synthetic coverage candidates and fixtures for M=20/M=50. The exact post-change synthetic suite passed 238/238; final code/test hashes and limits are in the local T106 report. This is software-contract evidence only: no C3 calibration rule is adopted, no real cells were scored, and strict C3 acceptance is unchanged.
