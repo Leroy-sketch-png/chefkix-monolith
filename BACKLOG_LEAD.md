@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v455 — Test an undirected-count explanation for the M-A arc discrepancy (2026-10-21)
+
+- A bounded arithmetic check of the hash-pinned local HGAT artifact gives `4,883` unique directed pairs, `292` reciprocal non-self pairs, and `4` unique self-loops. Collapsing reciprocal directions once yields `4,883 - 292 = 4,591` unique unordered endpoint pairs including self-loops; excluding self-loops yields `4,587`.
+- This exact numerical match makes an edge-count convention difference a plausible explanation for historical `4,591` versus `7,247` directed arc entries. It does **not** prove Round 0 used that convention, that both observations share artifact/source lineage or node identity, or that the artifact is loaded or served. The source report remains unavailable; **M-A stays OPEN and R39/R40 stay UNVERIFIED**. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
+
 ## LEAD v454 — Revalidate the M-A source-family coverage subdeliverable (2026-10-21)
 
 - Rechecked the shared receipt and its pinned matrix/generator/test/output identities; the local coverage CSV SHA-256 is `560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac`. The focused generator test passed **2/2** in the research checkout. The receipt records a separate arithmetic reconstruction matching all 35 family-by-top-N rows.

@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v455 undirected-count convention check (2026-10-21)
+
+The local artifact's 4,883 distinct directed pairs, 292 reciprocal non-self pairs, and four self-loops yield exactly 4,591 unique unordered endpoint pairs including loops (4,587 excluding loops). This is a plausible count-convention explanation only; it does not establish Round-0 method, artifact lineage, runtime use, or quality. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
+
 ### M-A / LEAD v454 source-family coverage revalidation (2026-10-21)
 
 The shared receipt binds the GISMo-v23 matrix and records an independent 35/35 arithmetic reconstruction; the focused test was rerun and passed 2/2. The ≥2-family tier covers 31,974/45,988 top-50 occurrences and 57,641/141,040 full-vocabulary occurrences. This is source-linkage support only, not runtime graph coverage, semantic equivalence, rights, or safety. Generator/test/CSV remain local-only. **M-A stays OPEN; R39/R40 stay UNVERIFIED.** Receipt: `evidence/lead-ma-source-family-coverage-curve-20261021.json`.
