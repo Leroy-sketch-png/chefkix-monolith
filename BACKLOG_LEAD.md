@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v468 — Rinse the M-D package validator's label/type boundary (2026-10-21)
+
+- AoE review found that label-like fields were screened only at the top level and Python booleans could satisfy integer ID/rank checks. The package validator now recursively rejects target/label/gold keys, requires positive non-boolean graph IDs, and enforces non-boolean integer ranks 1–20.
+- Three regression tests were added; the combined preparation/package suite passes **36/36**. A fresh package replay preserves the prior manifest and all four payload hashes exactly. This strengthens artifact integrity only; M-D/L44 remain open, and rights/tie-equivalence/inference/quality claims remain unresolved. Receipt: `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
+
 ## LEAD v467 — Assemble and replay the four-file full-split arm package (2026-10-21)
 
 - The two M-D preparation arms are now assembled under the requested `arm_outputs/{gismo,lookup}_{val,test}.jsonl` layout in a local-only package. The fail-closed packager checks both arm manifests and payload hashes, shared case-frame/pool provenance, all 10,729 validation and 10,747 test rows, cross-arm case identity, 20 unique candidate IDs and ordered ranks per row, finite scores, and target/label-key exclusion.

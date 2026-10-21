@@ -1,0 +1,36 @@
+{
+  "state": "LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK",
+  "lead_item": "M-D",
+  "lead_version": 468,
+  "research_branch": "master",
+  "research_commit": "7610ec5c8114e3805b4c222097552e6046cc5cc9",
+  "research_remote": null,
+  "producer_sha256": "6bcb255dbed4c4627ad7a6ce70a637d1e4a2001a4d0a08fd04d7d85cd892f38e",
+  "test_sha256": "b179e69191972d3ec37592a07dc6f213e1b76265a499c9283345ca7b7613539c",
+  "area_cleared": {
+    "trigger_finding": "Package validator only screened label-like keys at row top level and Python treats bool as int.",
+    "seed_of_suspicion": "Nested candidate fields and permissive scalar typing could bypass the label firewall or admit malformed IDs/ranks.",
+    "blast_radius_findings": [
+      "Recursive key scan now covers nested objects/lists, including candidate records.",
+      "Candidate graph IDs now require positive, non-boolean integers.",
+      "Candidate ranks now require exact non-boolean integer sequence 1..20."
+    ],
+    "systemic_sweep": "Searched ai/tools Python validators for duplicate package-validator logic; no additional instance found.",
+    "total_regressions_added": 3
+  },
+  "focused_suite": {
+    "command": "py -3 -m pytest -q ai/tools/test_build_senath_source_only_pools.py ai/tools/test_verify_senath_source_only_pools.py ai/tools/test_materialize_senath_gismo_top20.py ai/tools/test_materialize_senath_lookup_top20.py ai/tools/test_package_senath_arm_outputs.py",
+    "passed": 36
+  },
+  "hardening_replay": {
+    "package_manifest_sha256": "605c863d1cdefcc2190cd247d6cb2ff1fdaedd0b239ff45062c54b35b0b5f4a7",
+    "all_four_payload_hashes_unchanged": true,
+    "target_labels_read": false,
+    "evaluation_or_method_selection": false
+  },
+  "limitations": [
+    "Validator/package hardening does not establish licensed transfer or release; rights remain UNKNOWN.",
+    "Historical torch.topk tie equivalence for the lookup transcription remains unestablished.",
+    "No inference, scoring, quality, superiority, or human-usefulness result was produced; M-D/L44 remain OPEN."
+  ]
+}
