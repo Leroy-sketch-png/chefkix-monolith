@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L48 / LEAD v462 R04/R05 source-reproduction crosswalk (2026-10-21)
+
+The local full-split audit now maps to the two matching seed claims: R04 identity counts and R05 split row counts/raw CSV-to-GISMo-pickle joins. The note `evidence/lead-l48-r04-r05-reproduction-20261021.md` records exact values and limitations, linked to the hash-bound M-B receipt. The migration seed's provenance remains checklist-only; no register row is promoted or verified, and L48 remains open.
+
 ### L45 / LEAD v461 all-chapter structural link sweep (2026-10-21)
 
 Across 14 active chapter drafts, a read-only scan found 60 local file links, zero missing targets, and zero duplicate headings; all source-file hashes and scan limits are recorded in `evidence/lead-l45-chapter-structure-sweep-20261021.json`. External links/fragments, citations, claims, content, rendering and advisor acceptance were not reviewed. L45 remains open; the research checkout has no remote.

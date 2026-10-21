@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v462 — Reconcile local reproduction evidence for claims-seed rows R04/R05 (2026-10-21)
+
+- Mapped the full-split source/identity audit to the seed's two directly matching rows. R04's GISMo-primary and Senath-sensitivity seen/unseen values reproduce separately for validation and test; R05's train/validation/test row counts and raw-CSV↔released-pickle joins pass. Details: `evidence/lead-l48-r04-r05-reproduction-20261021.md`; source hashes and output identities remain bound by `evidence/lead-mb-full-split-source-join-20261021.json`.
+- This is useful row-level evidence, not permission to rewrite the migration seed's provenance or call the claims register valid. **R04/R05 remain UNVERIFIED in the seed; L48 remains OPEN** until a source-bound register is instantiated and validated. No independent test, quality, rights, or independence claim follows.
+
 ## LEAD v461 — Sweep local links and duplicate headings across all thesis drafts (2026-10-21)
 
 - Read-only structural scan of the 14 active §21 chapter files on research `master` commit `42f11119ced56cd81034c957ee2c1c511fd5a280` checked 60 local file links: zero broken targets and zero duplicate headings. File SHA-256 identities and the exact scan boundary are recorded in `evidence/lead-l45-chapter-structure-sweep-20261021.json`.
