@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v475 R26 Segment-7 provenance extension (2026-10-21)
+
+R26’s tracked note now binds the recorded one-attempt Segment-7 version-1 launch and subsequent COMPLETE promotion at step 444 to local hashes of all 12 checkpoint and eight retained-best files. Trainer state records evals at 187/374; manifest schedule metadata lists 561 but does not prove a Segment-7 step-561 eval. Note SHA-256 `134a2b33e5cc7a31127e052837d497042b89a5010310814a7e5840575f0d542c`; register `ea2429994b17929d38cc2278a7b55f81be60530365fe6582bbd6d489e8bec412`; mismatch ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; build receipt `6affa899a3d51f7aa6fb7ddea4cee6142ad9a1285a41abc655006cd84f57e4a5`. Tests pass 5/5 builder and 21/21 validator; these prove local structure/bytes only. All 45 claims remain UNVERIFIED, zero reproductions, M-G/L48 OPEN; no inference or quality conclusion.
+
 ### L48 / LEAD v474 original Segment-9 checkpoint recheck (2026-10-21)
 
 The original `checkpoint-561/` was found in the dirty root checkout and read-only checked at 12/12 files against the Segment-9 manifest; the separate retained-best adapter matches 8/8 manifest hashes. Updated R26 evidence note SHA-256 `b6feea712b8441eeeda026c90088441da017dd1aed662b16b3ed105c3607ca90`; register SHA-256 `28c12b8a81755d497114ae9b233076ecdfda2b567da342af9e12985656f6a988`; mismatch ledger SHA-256 `4c4ebd4db785ffd7958a3dbb007d05da57d0d859dbe7be0ae960abec7d2b5a91`. This hash-bound local evidence does not establish R26's downstream outcome, inference quality, or human value. All 45 rows remain UNVERIFIED; M-G/L48 remain OPEN.

@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v475 — Extend R26 provenance through the recorded Segment-7 launch (2026-10-21)
+
+- Added the exact Segment-7 launch/promotion trail to the R26 evidence note. The source advancement receipt records one launch attempt, positive version-1 acknowledgement, and post-launch RUNNING; the promotion receipt records COMPLETE at step 444 and manifest `d3406733ca38209df9d25b7dd1883cc20a2659611573588f7c32d27690d15481`. These are bounded recorded events, not an inference result.
+- In the dirty root checkout, the Segment-7 output manifest and trainer state locally rehash to `d3406733ca38209df9d25b7dd1883cc20a2659611573588f7c32d27690d15481` and `ed98ae050091f94f4ebc053e1d9f7831070d66d21cd4cd8ecfe4d0a465139a07`; all 12 checkpoint files and all eight retained-best files match their manifest entries. Trainer state ends at 444 and records evaluations at 187/374 only. The manifest’s full `total_steps=561` and `evaluation_steps=[187,374,561]` schedule metadata is not evidence that Segment 7 evaluated at 561; keep that separate from the independently recorded Segment-9 boundary.
+- Updated R26 note SHA-256 `134a2b33e5cc7a31127e052837d497042b89a5010310814a7e5840575f0d542c` and the register builder’s R26 evidence description. The regenerated register/ledger remain local-byte/structure artifacts, not claim verification; all 45 rows stay `UNVERIFIED`, zero reproductions. No inference, scoring, substitution quality, human usefulness, or Stage-3 completion is claimed. M-G/L48 remain **OPEN**.
+
 ## LEAD v474 — Recheck the original Segment-9 checkpoint bytes for R26 (2026-10-21)
 
 - Found the original Segment-9 output under the dirty root checkout at `ai/out/iron-chef-lead-v99/segment-9-output/` (read-only; no model artifacts staged). The exact `checkpoint-561/` inventory has 12/12 files and every SHA-256 matches `stage3_segment_manifest.json` SHA-256 `46f5b0f403f9840e07854ca4c1ce179e49d136b65cc5f319c56f3b2e626eb969`. The separate `best_adapter/` has 8/8 files matching the manifest, including adapter hash `d7da622deff97e1a2c58e627321cb7bd868e554adf93ffbfe9bcf2f4cfa2b814` and recorded best loss `0.19342221319675446`.
