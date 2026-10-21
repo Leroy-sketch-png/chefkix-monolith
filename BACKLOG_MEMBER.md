@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-G/L48 / LEAD v490 bounded R12 inventory reproduction (2026-10-21)
+
+The research-local R12 reproduction and independent T22 review agree on 971 normalized food keys, 206 distinct lowercased compound-name strings, and 125,992 local profile rows/links; the pinned service loads 971 profiles. Current research register v9 has five narrowly verified rows and 40 unverified. The 206 names are not verified unique authoritative compound IDs; the sidecar's CC BY-NC declaration is not rights clearance. This advances only the local evidence-register row, not M-G/L48 acceptance or C1–C5. Research evidence is local-only because that checkout has no remote; see LEAD v490 for hashes and full limits.
+
 ### M-I / LEAD v489 post-launch failure-receipt provenance (2026-10-21)
 
 Normal and post-launch exception receipts now share the same validated run identity; failures additionally retain stop/error/termination details, elapsed time, observable diagnostics/usage, collection errors, and output hashes. An injected runner failure with diagnostic and usage collection also failing still produces a receipt with the rest of the provenance. Research commit `e795628`; 52 runner tests pass on Ubuntu WSL/Linux and Windows has 48 passes/four symlink-privilege skips; compile/diff and 164/164 Agent OS structural checks pass. Local-only evidence is at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-failure-receipt-provenance-20261021.md` / `.json`. This is best-effort receipt behavior, not forced-crash recovery, provider-side spend truth, or M-I closure. M-I/L44 remain OPEN; C1–C5 remain 0/5 accepted; no real job/external service ran.
