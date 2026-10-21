@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v449 operator-interrupt recovery (2026-10-21)
+
+Ctrl+C during the research runner's child-poll loop now terminates and reaps the direct child, records `OPERATOR_INTERRUPTED`, finalizes cooperative usage, and preserves a blocked receipt/ledger with the idempotency reservation consumed. Regression verifies a second execution is refused. The 36-test focused suite passes three consecutive runs; compile, CLI help, and diff checks pass. This does not handle forced process/machine crashes or descendant processes; no paid/API job ran, the research source has no remote, and M-I remains open. Receipt: `evidence/lead-mi-operator-interrupt-recovery-20261021.json`.
+
 ### M-I / LEAD v448 missing-case and diagnostic stops (2026-10-21)
 
 Jobs must now emit a standard `job_diagnostics.json`; missing/malformed/incomplete reports, missing cases, and unresolved diagnostics fail closed. The runner contract documents the schema and operator sequence, and 35 fixtures pass three consecutive runs. Counts are child-reported and not independently audited. M-I remains open: the runner is local-only, unsandboxed, has no provider hard cap, and needs independent/platform/recovery review. Receipt: `evidence/lead-mi-diagnostics-completion-contract-20261021.json`.

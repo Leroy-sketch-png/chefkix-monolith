@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v449 — Preserve M-I run evidence on operator interrupt (2026-10-21)
+
+- Closed a concrete runner failure path: Ctrl+C during the child-poll loop now records `OPERATOR_INTERRUPTED`, terminates/reaps the direct child, finalizes cooperative usage, and writes the existing blocked receipt and ledger; the idempotency key remains consumed to prevent blind retry.
+- Added a regression proving the blocked receipt, runner log, ledger state, and second-run refusal. The focused suite passes **36/36 three consecutive runs**; compilation, CLI help, and scoped diff checks pass. Cluster record: `evidence/lead-mi-operator-interrupt-recovery-20261021.json`.
+- Evidence boundary: this handles only an interrupt during parent polling and the direct child. It does not provide process-tree containment, forced-crash recovery, a provider hard cap, or independent review. **M-I remains OPEN.** The research checkout commit is local-only (`ebb0094`) because no remote is configured; no paid/API job ran.
+
 ## LEAD v448 — Fail closed on missing cases and unresolved diagnostics (2026-10-21)
 
 - The active §13 stop conditions include missing cases and unresolved diagnostics. The runner now requires a standard `job_diagnostics.json` report and blocks on a missing/malformed report, incomplete state, positive missing-case count, or positive unresolved-diagnostic count. Added the operator contract for preflight, manifest identity, environment handling, the cooperative usage journal, diagnostics report, and evidence boundaries.
