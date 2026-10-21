@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-D/L44 — Chapter 5 receipt-to-text consistency check (2026-10-21)
+
+The pinned 200-case ingestion receipt's primary/sensitivity metrics, denominators, identity strata, method failures, unmapped generation count, latency, runtime projection, and test-split boundary match the current Chapter 5 text at displayed precision. Evidence note SHA-256 `fe34f9dce717eac0748aa5894aac2fcccc5a04f04e34b8c4892b3a1675ce5fba` is mirrored under `evidence/`. This is not an independent row-level recomputation or new inference; no Chapter 5 edit was needed. L44/M-D and claim statuses remain OPEN.
+
 ### M-A/L45 — v26 rendered-review blocker (2026-10-21)
 
 The permitted local-file browser request was denied by URL policy, which explicitly rules out alternate browser/workaround routes. No visual inspection occurred; 15/15 existing static/content/structure tests pass and remain below the rendered-acceptance boundary. The failure record is mirrored under `evidence/` (SHA-256 `73a584d2a5b1c019617a608c587956c1450f5f21e0a69af89067f9bce18ee4d7`). Keep visual review OPEN pending a user-provided capture or another allowed, non-bypassing route. Human rehearsal remains NOT RUN; no thesis or claim status changes.

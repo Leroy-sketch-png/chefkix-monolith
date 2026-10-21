@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v498 — Reconcile Chapter 5 with the saved benchmark receipt (2026-10-21)
+
+- Research `master` commit `f9cd70d` records a receipt-to-text consistency check for Chapter 5. The selected cohort counts, both identity strata, primary GISMo and raw-string sensitivity Hit@1/5/10, unmapped generation count, latency, runtime projection, and test-split boundary match the already-validated ingestion receipt at displayed precision. Chapter SHA-256 `9049f5ec8299cd994bbe2a30727eee0347f3849639d0767afb879456706e20d9`.
+- The reconciliation note (SHA-256 `fe34f9dce717eac0748aa5894aac2fcccc5a04f04e34b8c4892b3a1675ce5fba`) is mirrored under `evidence/`. It did not rerun the ingester, inspect raw prediction lines/labels/weights, or independently reproduce metrics; no Chapter 5 edit was needed.
+- **Boundary:** L44/M-D and claims remain OPEN. This does not establish test performance, method superiority, human validity, usefulness, safety, quality, or overall thesis completion.
+
 ## LEAD v497 — Preserve the v26 rendered-review blocker (2026-10-21)
 
 - A permitted local-file open of `ai/demos/iron-chef-midterm-v26-exhibit.html` was denied by the in-app browser's URL policy, which explicitly disallows alternate browser/workaround routes. No rendered screenshots or visual findings were produced. The exact denial and subsequent offline check are documented in the mirrored receipt (SHA-256 `73a584d2a5b1c019617a608c587956c1450f5f21e0a69af89067f9bce18ee4d7`).
