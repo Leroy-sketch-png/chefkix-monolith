@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v485 — Add read-only M-I reservation inspection (2026-10-21)
+
+- The research runner now has `--inspect-reservation <sha256>` to inspect one persisted idempotency ledger, output inventory, and referenced receipt without launching or mutating a job. New ledger records preserve the intended output directory; terminal receipts are checked against ledger identity/state and actual output hashes. A `RESERVED` or incomplete/legacy record is surfaced as `MANUAL_REVIEW_REQUIRED`, never automatically reclaimed or retried.
+- The focused runner suite passes 43/43, including synthetic interrupted-reservation/partial-output byte-preservation, terminal receipt cross-check, CLI diagnostic mode, unsafe path, invalid key, and receipt mismatch tests. Python compile and `git diff --check` pass. Research source commit `4c89fe18b3f17414a37b669756f73826caa399bb`; note/receipt at `ai/evidence/member-backlog/mi-reservation-inspector-20261021.md` / `.json` in the research checkout.
+- **Boundary:** this is observability, not automatic crash recovery: inspection cannot determine whether a `RESERVED` runner is still active and does not authorize retry. Forced-crash policy, cross-platform runtime/independent review, provider hard caps, and sandboxing remain open. No paid/network/GPU/real job ran; **M-I and L44 remain OPEN; C1–C5 remain 0/5 accepted.** Research remains local-only with no configured remote, so evidence files are not published by this monolith entry.
+
 ## LEAD v484 — Bound M-I runner stop cleanup to its launched process tree (2026-10-21)
 
 - Research-local runner now launches cooperative jobs in a dedicated process group/tree and routes timeouts, operator interruption, and unexpected runner exceptions through one stop/reap path. The receipt records the attempted mechanism, direct-child reap observation, and any cleanup error. Windows tests exercised `taskkill /T /F` with a spawned grandchild; the POSIX session/TERM/KILL path was code-inspected but not runtime-tested on this host.
