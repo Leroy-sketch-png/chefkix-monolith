@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "01b26c14642cebe9cf9f76aa12ebb96f6dfd97e8",
+    "remote_configured": false,
+    "runner_sha256": "6B06098AF12896F198D4FD0299D592864EDB2438247748DAA2334012995BD21D",
+    "tests_sha256": "6C63955EA5524DAD220F1B6D3DC959E9830D7A4514A986CE22FBAAAABEA7CC00"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py",
+    "consecutive_runs": 2,
+    "tests_per_run": 24,
+    "failures": 0,
+    "syntax_check": "py_compile passed",
+    "diff_check": "git diff --check passed"
+  },
+  "cluster_fixes": [
+    "manifest parsing now rejects duplicate JSON keys and non-standard NaN/Infinity constants instead of accepting parser ambiguity",
+    "boolean true is rejected as schema version 1 even though Python compares True equal to 1",
+    "usage-journal polling now reads only appended bytes rather than rereading the complete journal on every poll"
+  ],
+  "limits": [
+    "M-I remains OPEN; the test harness does not prove full production readiness.",
+    "Provider-enforced budgets, OS process isolation, and independent review remain absent.",
+    "The research repository still has no configured remote; this implementation is not yet fetchable by collaborators.",
+    "No real API execution or scientific activity occurred."
+  ],
+  "scope": "Only software contract and parser behavior were changed; no scientific claims, model results, or training status changed."
+}

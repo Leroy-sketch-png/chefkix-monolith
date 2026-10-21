@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v444 strict manifest parsing (2026-10-21)
+
+Third-pass parser review removed last-value-wins duplicate JSON keys and Python's `true == 1` schema-version ambiguity; the usage monitor now reads appended journal bytes rather than rescanning the full file every 50 ms. The 24-test suite passed twice consecutively. M-I remains open: local-only implementation, provider-hard budgeting, sandboxing, full recovery/platform coverage and independent review remain outstanding. Receipt: `evidence/lead-mi-strict-manifest-parse-20261021.json`.
+
 ### M-I / LEAD v443 idempotency binding and collision controls (2026-10-21)
 
 Follow-up review found that merely accepting a hash-shaped idempotency key did not meet the active §13.1 identity contract. The research-local runner now derives the key from canonical script hash, sorted input identities, and runtime parameters; it refuses mismatches before launch. Regression coverage also exercises concurrent same-key execution, preflight not consuming the key, prior-ledger preservation, and output-collision non-overwrite. The 22-test suite passed three consecutive runs. M-I remains open: the source is local to research `master` without a remote, and provider hard caps, sandboxing, broader platform/recovery tests, and independent review remain. Receipt: `evidence/lead-mi-idempotency-hardening-20261021.json`.

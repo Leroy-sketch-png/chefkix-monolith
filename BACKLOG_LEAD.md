@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v444 — Reject ambiguous job-manifest encodings (2026-10-21)
+
+- A third-pass parser audit found two fail-open edges: Python accepts duplicate JSON keys with last-value-wins semantics, and `true == 1` could satisfy the schema-version check. The runner now rejects duplicate keys/non-standard numeric constants and requires an actual integer schema version. Usage-journal polling was also made incremental to avoid rereading the full log on each monitor interval.
+- The expanded suite passes **24/24 twice consecutively**; the exact local commit and source/test hashes are recorded in `evidence/lead-mi-strict-manifest-parse-20261021.json`.
+- **M-I remains OPEN.** This is still research-local, with no configured remote, provider hard cap, OS sandbox, or independent review. No API or scientific job ran.
+
 ## LEAD v443 — Bind runner idempotency to parameters and test collision controls (2026-10-21)
 
 - AoE follow-up to v442: the active §13.1 template says the idempotency identity derives from inputs, script, and parameters. The prototype previously accepted any syntactically valid key; that left different jobs able to reuse an identity. It now recomputes a canonical SHA-256 over script hash, path-sorted input hashes, and canonical runtime parameters, and refuses mismatches before reservation or launch.
