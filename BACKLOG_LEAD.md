@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v489 — Preserve identity in post-launch failure receipts (2026-10-21)
+
+- Research-local M-I runner now builds normal and post-launch exception receipts from one validated identity snapshot (manifest/script/input hashes, parameters, environment names, freeze eligibility, budget, and timing/path identity). Failure receipts add stop/error/termination, elapsed time, diagnostic and usage observations/collection errors, and output inventory. If diagnostics or usage collection itself raises during exception handling, the runner still records the collection error and attempts the receipt.
+- Research commit `e795628` contains the implementation, synthetic regressions, contract, and T20 evidence. The suite passes 52/52 on Ubuntu WSL/Linux; Windows has 48 passes and four symlink-privilege skips. Compile, diff check, and structural Agent OS verifier (164/164) pass. Detailed local evidence: `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-failure-receipt-provenance-20261021.md` / `.json`; the research checkout has no remote.
+- **Boundary:** this improves provenance when the runner can write the receipt; it does not guarantee forced process/machine-crash persistence or recovery, prove provider-measured spend, add sandboxing, authenticate approvals, or authorize scientific claims. No real job or external service ran. **M-I and L44 remain OPEN; C1–C5 remain 0/5 accepted.**
+
 ## LEAD v488 — Bind local frozen-approval protocol bytes (2026-10-21)
 
 - The research-local M-I runner's `FROZEN_APPROVED` path now requires `protocol_input_path` to name exactly one already hash-verified manifest input, and requires the approval record's `protocol_sha256` to equal that verified input digest. The protocol input participates in the existing idempotency identity. Approval JSON rejects duplicate keys and nonstandard constants; receipts describe protocol-byte correspondence rather than claiming the approval itself matched/authenticated.
