@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-G/L48 / LEAD v491 R14 eligibility gate (2026-10-21)
+
+The existing local both-endpoint coverage report is hash-pinned, but its producer reads test-label target endpoints. No test-label rows were reopened and no fresh reproduction/register application occurred; R14 remains UNVERIFIED pending the explicit gate and independent review. This is eligibility triage only, not a new result or C1–C5 progress. See LEAD v491.
+
 ### M-G/L48 / LEAD v490 bounded R12 inventory reproduction (2026-10-21)
 
 The research-local R12 reproduction and independent T22 review agree on 971 normalized food keys, 206 distinct lowercased compound-name strings, and 125,992 local profile rows/links; the pinned service loads 971 profiles. Current research register v9 has five narrowly verified rows and 40 unverified. The 206 names are not verified unique authoritative compound IDs; the sidecar's CC BY-NC declaration is not rights clearance. This advances only the local evidence-register row, not M-G/L48 acceptance or C1–C5. Research evidence is local-only because that checkout has no remote; see LEAD v490 for hashes and full limits.
