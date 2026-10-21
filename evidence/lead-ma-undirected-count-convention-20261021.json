@@ -28,6 +28,22 @@
     "unique_unordered_nonself_pairs": "4883 - 292 - 4 = 4587",
     "arithmetic_assertion": "PASS"
   },
+  "direct_edge_tensor_recheck": {
+    "status": "PASS",
+    "inspector_path": "ai/tools/inspect_lead_ma_hgat_artifact.py",
+    "inspector_sha256": "82a3ad74824f288e49356d94923bbe4a9d499e6d5ffd4799785b99467ca585d7",
+    "procedure": "Ran the hash-pinned restricted inspector with weights_only=True, the pinned six-class PyG allowlist and pinned PyG source hashes; captured the loaded edge_index in memory and independently constructed sets of unique directed pairs and sorted unordered endpoint pairs.",
+    "recomputed_counts": {
+      "directed_arc_entries": 7247,
+      "unique_directed_pairs": 4883,
+      "reciprocal_nonself_pairs": 292,
+      "unique_self_loops": 4,
+      "unique_unordered_pairs_including_loops": 4591,
+      "unique_unordered_nonself_pairs": 4587
+    },
+    "artifact_or_source_files_modified": false,
+    "inference_executed": false
+  },
   "interpretation": "The historical 4,591 value is numerically identical to a unique-unordered-pair count including the artifact's four self-loops, while 7,247 is the artifact's directed arc-entry count. This is a plausible edge-count convention explanation for the numerical discrepancy.",
   "not_established": [
     "That Round 0 used this unordered-pair convention.",

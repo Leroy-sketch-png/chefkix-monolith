@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v456 direct serialized-edge count recheck (2026-10-21)
+
+The pinned graph edge tensor was rechecked with the restricted, hash-pinned inspector; direct set construction confirms 4,591 unordered pairs including four self-loops (4,587 excluding them), alongside 4,883 unique directed pairs and 7,247 arc entries. This supports a count-convention hypothesis only; historical convention and provenance remain unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
+
 ### M-A / LEAD v455 undirected-count convention check (2026-10-21)
 
 The local artifact's 4,883 distinct directed pairs, 292 reciprocal non-self pairs, and four self-loops yield exactly 4,591 unique unordered endpoint pairs including loops (4,587 excluding loops). This is a plausible count-convention explanation only; it does not establish Round-0 method, artifact lineage, runtime use, or quality. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.

@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v456 — Recompute the M-A unordered count from raw serialized edges (2026-10-21)
+
+- Independently rebuilt unique directed and sorted unordered endpoint-pair sets from the pinned serialized `edge_index`, after the restricted inspector verified the artifact hash, `weights_only=True`, explicit PyG class allowlist, and pinned PyG source hashes. The direct tensor check reproduces `4,883` unique directed pairs, `292` reciprocal non-self pairs, `4` self-loops, and `4,591` unordered pairs including loops (`4,587` excluding them); no model inference or artifact mutation occurred.
+- This strengthens the edge-count-convention explanation as an `INFERRED` numerical match. It still does not prove Round-0 used that definition or share producer/source/node lineage. **M-A stays OPEN; R39/R40 stay UNVERIFIED.** Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
+
 ## LEAD v455 — Test an undirected-count explanation for the M-A arc discrepancy (2026-10-21)
 
 - A bounded arithmetic check of the hash-pinned local HGAT artifact gives `4,883` unique directed pairs, `292` reciprocal non-self pairs, and `4` unique self-loops. Collapsing reciprocal directions once yields `4,883 - 292 = 4,591` unique unordered endpoint pairs including self-loops; excluding self-loops yields `4,587`.
