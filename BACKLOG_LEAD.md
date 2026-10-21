@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v488 — Bind local frozen-approval protocol bytes (2026-10-21)
+
+- The research-local M-I runner's `FROZEN_APPROVED` path now requires `protocol_input_path` to name exactly one already hash-verified manifest input, and requires the approval record's `protocol_sha256` to equal that verified input digest. The protocol input participates in the existing idempotency identity. Approval JSON rejects duplicate keys and nonstandard constants; receipts describe protocol-byte correspondence rather than claiming the approval itself matched/authenticated.
+- Research commit `cefcb28` contains implementation, refusal/acceptance tests, contract, and T19 report/receipt. The 51-test suite passes on Ubuntu WSL/Linux; Windows has 47 passes and four symlink tests skipped because this account lacks symlink privilege. Compile, diff check, and structural Agent OS verifier (164/164) pass. Detailed local-only evidence: `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-freeze-protocol-byte-binding-20261021.md` and `.json`; research checkout has no remote.
+- **Boundary:** exact local byte correspondence does not authenticate the approval record/approver, establish scientific protocol adequacy, authorize confirmatory claims, or address hostile-concurrency/TOCTOU. No protocol was selected or changed; no real job, API, GPU, paid service, or credential was used. Provider-side hard caps, fuller failure provenance, forced-crash recovery, and remaining M-I requirements stay open. **M-I and L44 remain OPEN; C1–C5 remain 0/5 accepted.**
+
 ## LEAD v487 — Reject symlinked M-I reservation ledger paths (2026-10-21)
 
 - The research-local runner now fails closed if any lexical component of the idempotency ledger is a symlink, checks the strict resolved ledger directory remains within the selected root after creation, rejects a symlinked reservation file, and performs the unsafe-path check before duplicate-key probing. Research commit `65bb7bc` contains the source, regression tests, contract and T17 receipt; research checkout has no remote, so detailed artifacts remain local-only.
