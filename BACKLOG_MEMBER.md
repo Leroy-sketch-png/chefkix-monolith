@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-A/L45 — Chapter 3 source-only seed-graph interpretation (2026-10-21)
+
+Research commit `11ca5d58238319eb002bba7034a9bcf34f7de23a` integrates the current pinned seed-source interpretation into the Chapter 3 draft without calling it historical R0 reproduction: 25 canonical records, 59 embedded directed statements, and a typed interpretation of 79 vertices / 59 arcs. Receipt SHA-256 `3ddd1a045e865ef360e9df252b802f714cbe7786b24f32c17c36bc6b44091f1d` is mirrored under `evidence/`. This does not show the seeder ran, the output persisted, or the AI service loaded it; the historical input snapshot and metric definitions remain unavailable. R39/R40 stay UNVERIFIED; M-A/L45 stay OPEN; no claim or thesis status changes. Research detail remains in the local-only research checkout.
+
 ### M-G/L48 / LEAD v494 owner-boundary reconciliation
 
 T26 found bounded candidates for portions of the targeted claims, but not exact current owners of each complete empirical outcome. R18's v9 pointer to L20 is historical-only relative to the active Lead table; L48 remains the register-reconciliation owner, not an R18 outcome owner. Research v10 corrects only the R18 mapping field; evidence statuses and package states are unchanged. This is backlog/crosswalk maintenance, not claim progress or thesis acceptance. See research commit `ea8c21e` and T26 report SHA-256 `2f77189ab806f97849e3f6879acb3de6acf85496bc1896f94113f491f6590ee7`.

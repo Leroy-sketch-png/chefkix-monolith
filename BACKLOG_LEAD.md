@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v495 — Record bounded current seed-graph interpretation in L45 draft (2026-10-21)
+
+- Research commit `11ca5d58238319eb002bba7034a9bcf34f7de23a` integrates an explicitly source-only interpretation into Chapter 3: the pinned seeder source contains 25 canonical records and 59 directed statements; the parser interprets these as 79 typed vertices and 59 arcs (5 canonical, 1 unique-alias, 54 literal ambiguous/unmatched targets). This is not a reproduction of the historical R0 graph or evidence that the seeder/runtime artifact path executed.
+- Receipt SHA-256 `3ddd1a045e865ef360e9df252b802f714cbe7786b24f32c17c36bc6b44091f1d` is mirrored at `evidence/lead-l45-chapter03-seed-graph-integration-20261021.md`; the research commit and manuscript remain local-only because the research checkout has no remote. The independent fixture suite passed 7/7 and Agent OS structural validation passed 164/164.
+- **Boundary:** R39/R40 remain UNVERIFIED; M-A/L45 remain OPEN; C1–C5 remain 0/5 accepted. No claim, package, contribution, thesis, runtime, persistence, usability, or quality status changed. This is a bounded manuscript-evidence integration, not a completion percentage.
+
 ## LEAD v494 — Reconcile candidate mappings with active outcome ownership (2026-10-21)
 
 - Research commit `ea8c21e` records T26's row-by-row review (report SHA-256 `2f77189ab806f97849e3f6879acb3de6acf85496bc1896f94113f491f6590ee7`; lead review `T26-lead-review.md`). Bounded candidates exist for parts of R01–R03, R06–R14, and R19–R20, but no exact current package owner was established for each complete empirical outcome. Candidates do not imply claim verification or package acceptance.
