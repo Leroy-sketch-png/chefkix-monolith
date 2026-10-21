@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v458 — Integrate new M-A provenance evidence into Chapter 3 draft (2026-10-21)
+
+- Research `master` commit `43d4a2f293789a51f722df3d6b8c85fc10e50376` updates `research/chapters/03-data-and-graph-provenance.md` (SHA-256 `49db7b05a497d1f1f391907a99b975fe9b04e957708817a37a14c372115c5be2`). The internal v0.1 draft now separates directed arc entries, unique unordered pairs, and the provisional 4,591 convention match; it also records the candidate legacy extractor, missing local production inputs/output binding, random-feature fallback, and retirement guard.
+- This advances an evidence-bound chapter draft only. Producer-to-artifact lineage, Round-0 method, runtime use, and model quality remain unproven; advisor review is absent, L45 is not complete, and the research checkout has no remote. Receipt: research `ai/evidence/lead-l45-chapter03-ma-producer-update-20261021.json`. **M-A remains OPEN; R39/R40 remain UNVERIFIED.**
+
 ## LEAD v457 — Locate the legacy HGAT subgraph extractor; preserve the artifact boundary (2026-10-21)
 
 - The root Git history contains a candidate generator at `personal/projects/chefkix/knowledge_graph/build_heterodata.py`; commit `59e8560` added the lean extraction that saves only `ingredient.x` and `ingredient|substitutes|ingredient.edge_index` as `substitution_subgraph.pt`. Its inputs are four CSVs plus an optional feature CSV. The pre-retirement code falls back to random 560-dimensional features when that feature CSV is absent.

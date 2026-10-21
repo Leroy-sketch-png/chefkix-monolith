@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L45 / LEAD v458 Chapter 3 provenance-bound update (2026-10-21)
+
+Research `master` commit `43d4a2f` updates the internal Chapter 3 draft with the direct edge-count derivation and candidate legacy producer trace, preserving missing producer/output binding, random-feature fallback, and no-runtime/no-quality boundaries. Chapter SHA-256 `49db7b05a497d1f1f391907a99b975fe9b04e957708817a37a14c372115c5be2`. This is local-only, advisor-unreviewed draft progress; the research checkout has no remote and L45 remains open.
+
 ### M-A / LEAD v457 legacy producer source trace (2026-10-21)
 
 Found the committed legacy subgraph extractor (`59e8560`): it emits only features and directed edges, with a random-feature fallback if optional feature inputs are absent. The local production inputs and any output-binding receipt are missing; the current source fail-fast retirement guard was not bypassed. Candidate producer identified, lineage still unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-legacy-producer-trace-20261021.json`.
