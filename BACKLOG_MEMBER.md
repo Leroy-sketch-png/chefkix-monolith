@@ -1,5 +1,13 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-A/L45 — Chapter 5 provenance-map repair (2026-10-21)
+
+Chapter 5 now points to the retained local validation evidence rather than an absent ignored `ai/out` path, and its Segment-11 sentence reflects the current session record: launch acknowledgement ambiguous; no step-701 run/evaluation/checkpoint established. Updated chapter SHA-256 `7db494e61b28956a19b22999f771c63db894475aa734be154568ce21e21719c5`. The recovered bundle remains local-only/untracked in the research worktree. This repairs source navigation and status wording only; no result or thesis claim changed. M-A/L45 remain OPEN.
+
+### M-D/L44 — Validate retained benchmark artifact pointers (2026-10-21)
+
+The one-shot version-4 recovery receipt records one output-transfer invocation. A fresh local, read-only inventory comparison found 14 expected/14 actual files and zero missing, extra, or mismatched hashes; Chapter 5's three local Markdown source-map links resolve. No second transfer, inference, metric recomputation, or test-split run occurred. This strengthens artifact traceability only; M-D/L44 and claims remain OPEN.
+
 ### M-A/L45 — Chapter 13 conclusion-to-evidence map (2026-10-21)
 
 Research `master` commit `44d3e14e3121463ac571d33e22ba6077b9199f72` integrates an eight-section map in Chapter 13 §13.10. It connects the discussion scaffold to the current v10 claim IDs/statuses and named primary artifacts where mapped, while preserving population/protocol, counterevidence, and unknowns. Lead rehashed the referenced local receipts and verified the chapter's relative links. The map explicitly leaves missing primary records unmapped; no claim status, score, metric, protocol, or thesis outcome changed. See mirrored evidence note `evidence/lead-l45-ch13-conclusion-map-20261021.md`. M-A/L45 remain OPEN; strict C1–C5 remains 0/5.
