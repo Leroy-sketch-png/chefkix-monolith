@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v476 — Preserve the R26 crosswalk delta without rewriting prior review (2026-10-21)
+
+- Added a separate research crosswalk addendum at `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-r26-addendum-20261021.md` (SHA-256 `2e0eac9f9974e7b454103abe3b6f7f68627d15426a0550579e4376da74897816`; research commit `7f3f8e3c28b17d20f92d45f8e8031a57dc781439`). The original dated crosswalk note is left byte-identical so its prior hash references remain meaningful.
+- The addendum binds the recorded Segment-7 v1 launch, step-444 promotion, and local checkpoint/trainer-state hash checks while separating schedule metadata from observed evaluation records. It does not change R26's L44 boundary crosswalk, assert a reproduction, or promote any owner/status.
+- M-G/L48 remains **OPEN**: 15 rows still lack exact current owners; all 45 rows remain `UNVERIFIED`, with zero reproductions. No inference, scoring, quality, or Stage-3 completion is claimed.
+
 ## LEAD v475 — Extend R26 provenance through the recorded Segment-7 launch (2026-10-21)
 
 - Added the exact Segment-7 launch/promotion trail to the R26 evidence note. The source advancement receipt records one launch attempt, positive version-1 acknowledgement, and post-launch RUNNING; the promotion receipt records COMPLETE at step 444 and manifest `d3406733ca38209df9d25b7dd1883cc20a2659611573588f7c32d27690d15481`. These are bounded recorded events, not an inference result.

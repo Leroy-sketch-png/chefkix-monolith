@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v476 crosswalk addendum and current register bind (2026-10-21)
+
+The earlier row-by-row crosswalk remains unchanged; a separate R26 addendum (SHA-256 `2e0eac9f9974e7b454103abe3b6f7f68627d15426a0550579e4376da74897816`; research commit `7f3f8e3c28b17d20f92d45f8e8031a57dc781439`) captures Segment-7 launch/promotion provenance and keeps claim ownership/status bounded. The register was regenerated against Lead v476: SHA-256 `d8f7965af834ba06c9f935643b5a67d5918d1288c426678384d2f3c48eff91a4`; ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; receipt `235f62ebb8a839237c8f9491b85d5b0bcc04b70fbf58805a6a50ba0694007893` (research commit `b45eeba2a6bdbc1b3aa7c36c6ee6206ff0873079`). All 45 rows remain UNVERIFIED, zero reproductions; 15 owner mappings unresolved; M-G/L48 remain OPEN.
+
 ### L48 / LEAD v475 R26 Segment-7 provenance extension (2026-10-21)
 
 R26’s tracked note now binds the recorded one-attempt Segment-7 version-1 launch and subsequent COMPLETE promotion at step 444 to local hashes of all 12 checkpoint and eight retained-best files. Trainer state records evals at 187/374; manifest schedule metadata lists 561 but does not prove a Segment-7 step-561 eval. Note SHA-256 `134a2b33e5cc7a31127e052837d497042b89a5010310814a7e5840575f0d542c`; register `ea2429994b17929d38cc2278a7b55f81be60530365fe6582bbd6d489e8bec412`; mismatch ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; build receipt `6affa899a3d51f7aa6fb7ddea4cee6142ad9a1285a41abc655006cd84f57e4a5`. Tests pass 5/5 builder and 21/21 validator; these prove local structure/bytes only. All 45 claims remain UNVERIFIED, zero reproductions, M-G/L48 OPEN; no inference or quality conclusion.
