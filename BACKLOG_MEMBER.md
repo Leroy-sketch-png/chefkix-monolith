@@ -1,8 +1,12 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-D/L44 — Correct standalone ingestion receipt locator (2026-10-21)
+
+Follow-up inspection confirmed the standalone ingestion receipt exists locally at `ai/out/senath-validation-benchmark-v1-recovery-20261021/ingestion_receipt.json`, SHA-256 `89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600`, but `.git/info/exclude` keeps the path untracked and local-only. Chapter 5 now identifies that boundary; its final corrected SHA-256 is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. No output, metric, or claim changed. M-D/L44 remain OPEN.
+
 ### M-A/L45 — Chapter 5 provenance-map repair (2026-10-21)
 
-Chapter 5 now points to the retained local validation evidence rather than an absent ignored `ai/out` path, and its Segment-11 sentence reflects the current session record: launch acknowledgement ambiguous; no step-701 run/evaluation/checkpoint established. Updated chapter SHA-256 `7db494e61b28956a19b22999f771c63db894475aa734be154568ce21e21719c5`. The recovered bundle remains local-only/untracked in the research worktree. This repairs source navigation and status wording only; no result or thesis claim changed. M-A/L45 remain OPEN.
+Chapter 5 now points to the retained local validation evidence rather than an absent ignored `ai/out` path, and its Segment-11 sentence reflects the current session record: launch acknowledgement ambiguous; no step-701 run/evaluation/checkpoint established. Final chapter SHA-256 after the follow-up receipt-locator correction is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. The recovered bundle remains local-only/untracked in the research worktree. This repairs source navigation and status wording only; no result or thesis claim changed. M-A/L45 remain OPEN.
 
 ### M-D/L44 — Validate retained benchmark artifact pointers (2026-10-21)
 

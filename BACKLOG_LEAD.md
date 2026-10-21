@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v503 — Correct Chapter 5's standalone receipt location (2026-10-21)
+
+- A follow-up filesystem check found that the standalone ingestion receipt is present at `ai/out/senath-validation-benchmark-v1-recovery-20261021/ingestion_receipt.json` in the research worktree (SHA-256 `89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600`). The path is excluded by that worktree's `.git/info/exclude`: it is available locally but is not tracked or shared. The T40 chapter and task record now say so explicitly.
+- Corrected Chapter 5 SHA-256 is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. The prior LEAD v502 chapter hash (`7db494e6…`) predates this final citation correction; no metric, output, or claim changed.
+- **Boundary:** this is a source-path/hash correction only. It does not re-run ingestion or transfer, inspect test labels, independently recompute metrics, change any claim/backlog status, or promote the ignored receipt into shared evidence. L44/M-D and L45/M-A remain OPEN; C1–C5 remains 0/5 accepted.
+
 ## LEAD v502 — Correct defense-answer and Chapter 5 provenance boundaries (2026-10-21)
 
 - T39 independently reviewed the six-answer T38 written-preparation sheet. Lead accepted it narrowly after correcting two points: the validated Segment-10 boundary is step 631, while Segment 11 has an ambiguous launch acknowledgement and no established step-701 run/checkpoint; and the v26 `NOT RUN` rehearsal label applies to that separate exhibit, not as proof that no other L46 rehearsal ever occurred. Corrected T38 SHA-256: `ec0a774f1855a6855bfa0c8e33842fa0ab08631cc590cc5188aa887139702ef2`; lead review receipt is retained in the shared research worktree at `ai/evidence/lead-t39-defense-answer-review-20261021.md` (SHA-256 `fc3606e7645005843a874e50ec186f2e3604af76b13dfd92e989bc5f4eda7670`).
