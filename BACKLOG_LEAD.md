@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v472 — Record bounded historical-register source search (2026-10-21)
+
+- Updated review note: `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-review-20261021.md` (research-local SHA-256 `0cce3de5ee6643b4952db2ab376aec6bd57898c695dc30c7be332a8c838c3bd4`; research commit `f989a5f52356c8c3bff36001ac03b958ac36eeeb`). The worktree file inventory and available Git history contain the migration seed and v1 register but no v171/v197 register bytes. This bounded negative search cannot exclude external/archive copies.
+- No evidence status, owner mapping, or backlog acceptance changed: all 45 claims remain `UNVERIFIED`, 15 owners remain unresolved, and M-G/L48 remain **OPEN**.
+
 ## LEAD v471 — Review R01–R45 owner crosswalk against current packages (2026-10-21)
 
 - The row-by-row crosswalk review is recorded at research `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-review-20261021.md` (SHA-256 `ca4e1f891009215e5293b12ca9dd3fb5c6a76a8c662c97a6086dcae7f5bac72e`). It checks all 45 mapping dispositions against pinned §15.1 wording and current Lead/Member IDs; all current referenced IDs resolve except historical L29/L30 for R30/R31, which remain historical only. Fifteen rows remain explicitly unmapped; no exact outcome owner was promoted.

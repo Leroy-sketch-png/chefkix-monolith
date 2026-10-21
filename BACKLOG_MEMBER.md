@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v472 bounded historical-register search (2026-10-21)
+
+The updated crosswalk-review note (SHA-256 `0cce3de5ee6643b4952db2ab376aec6bd57898c695dc30c7be332a8c838c3bd4`; research commit `f989a5f52356c8c3bff36001ac03b958ac36eeeb`) records that the available worktree file inventory/Git history has no v171/v197 register bytes. This does not exclude an external/archive copy. All 45 statuses remain UNVERIFIED; M-G/L48 remain OPEN.
+
 ### L48 / LEAD v471 row-level crosswalk review (2026-10-21)
 
 The 45 mapping dispositions were checked against the pinned §15.1 wording and current Lead/Member package IDs; review note SHA-256 `ca4e1f891009215e5293b12ca9dd3fb5c6a76a8c662c97a6086dcae7f5bac72e`. All current referenced IDs resolve except L29/L30 in R30/R31, which are explicitly historical pointers rather than active owners. Fifteen claims remain unmapped; all 45 remain UNVERIFIED with no reproductions or backlog-status promotion. M-G/L48 remain OPEN.
