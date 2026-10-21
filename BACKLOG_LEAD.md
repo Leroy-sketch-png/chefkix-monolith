@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v500 — Record scoped R06–R11 artifact inventory and Chapter 14 boundary correction (2026-10-21)
+
+- T35's bounded local inventory found tracked experiment code/configuration and historical summaries for R06–R11, but no claim-specific primary run/result bundles in the named research/monolith worktrees and evidence/output scopes. Lead independently rehashed 19 source/config/archive paths and matched each current Git blob to its cited last-path-changing commit. One R09 archive-hash transcription error in the candidate report was caught and corrected before acceptance. Candidate inventory SHA-256 `eb58e624b28f811ac124f4976ccec6e261b056673877fd264bd6abf56ffaa7d3`; lead receipt SHA-256 `d8fb5cd74bbe58d900af4c8bc55a26eded84892940bebd0be09e8222a9750f96`.
+- T36 then clarified local Chapter 14 §14.2 to distinguish bounded reproduced results from historical/unverified R06–R11 summaries. Chapter 14 working-tree bytes changed from SHA-256 `bc786827f9105f22b29a31b91c73b29639cac4f42a32ce7a83a87ef8583395fa` to `7c0dd2ffef8eb5e5c1cb4847b0a0b39ebf6a1e46e7c705e8341ec9285b58a4a1c`; its lead receipt SHA-256 is `a2ef85d3de34b1e033524d08bb32ea2dd8075a05988f779044238ae66714889f`. The correction adds no result or metric and makes no claim-status change.
+- The research worktree is local `master` at `d3236a54a15e9a24441be600a3bd625d4d4023e4` and has no remote; the T35/T36 reports and revised chapter remain local-only and are not included in this monolith commit. T35 is a scoped inventory, not proof of global artifact absence; access to an authorized archive/provenance location remains necessary before any R06–R11 reproduction.
+- **Boundary:** R06–R11 remain `UNVERIFIED`; the current v10 register remains five narrowly `VERIFIED` / 40 `UNVERIFIED`; C1–C5 remains 0/5 accepted. L45, L48, and M-G remain open. No Member package status, thesis percentage, experiment, protocol, rights, quality, or product-value claim changes.
+
 ## LEAD v499 — Integrate Chapter 13 conclusion traceability map (2026-10-21)
 
 - Research `master` commit `44d3e14e3121463ac571d33e22ba6077b9199f72` adds Chapter 13 §13.10, mapping each discussion section (§§13.1–13.8) to relevant claims-register v10 IDs/statuses, primary artifact paths where identified, population/protocol boundaries, counterevidence, and unresolved unknowns. Chapter SHA-256 `c41041ed685600f44c3c7c1c8defebc011592420e4b7fe5e2094c20e3b4d2d3d`.
