@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### L45 / LEAD v461 all-chapter structural link sweep (2026-10-21)
+
+Across 14 active chapter drafts, a read-only scan found 60 local file links, zero missing targets, and zero duplicate headings; all source-file hashes and scan limits are recorded in `evidence/lead-l45-chapter-structure-sweep-20261021.json`. External links/fragments, citations, claims, content, rendering and advisor acceptance were not reviewed. L45 remains open; the research checkout has no remote.
+
 ### M-B / LEAD v460 Chapter 3 and local receipt synchronized (2026-10-21)
 
 Research `master` commit `42f1111` commits the full-split receipt (SHA-256 `c2429fbad69d5ffc83d62fbd118c9c26bed6868511cb71c49c5dae4e9165d6420`) and corrects Chapter 3 (SHA-256 `57b2086f607e8163bdc238f783bfdc60175bf44593d3012c00103d7bc6b04bc`) to distinguish the old clean-room-directory observation from the later wider-archive source discovery. The research checkout has no remote; the matching receipt and backlog update are shared in this monolith. M-B remains open; R04/R05 remain unverified.

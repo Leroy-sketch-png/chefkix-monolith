@@ -1,4 +1,9 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v461 — Sweep local links and duplicate headings across all thesis drafts (2026-10-21)
+
+- Read-only structural scan of the 14 active §21 chapter files on research `master` commit `42f11119ced56cd81034c957ee2c1c511fd5a280` checked 60 local file links: zero broken targets and zero duplicate headings. File SHA-256 identities and the exact scan boundary are recorded in `evidence/lead-l45-chapter-structure-sweep-20261021.json`.
+- The scan excludes external URL/fragment correctness, citation accuracy, factual support, rendering, advisor review, and chapter acceptance. **L45 remains OPEN; 14 draft files are not 14 accepted chapters.** Research repo has no remote.
+
 ## LEAD v460 — Align Chapter 3 with the full raw-split join rerun (2026-10-21)
 
 - Research `master` commit `42f11119ced56cd81034c957ee2c1c511fd5a280` preserves the audit receipt at `ai/evidence/lead-mb-full-split-source-join-20261021.json` (SHA-256 `c2429fbad69d5ffc83d62fbd118c9c26bed6868511cb71c49c5dae4e9165d6420`) and updates Chapter 3 (SHA-256 `57b2086f607e8163bdc238f783bfdfc60175bf44593d3012c00103d7bc6b04bc`). It explicitly limits the earlier missing-test-file observation to the designated clean-room directory and records the later hash-pinned full-split join result.
