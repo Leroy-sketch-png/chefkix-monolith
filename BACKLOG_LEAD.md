@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v508 — Refresh current-evidence defense answer candidates for L46 (2026-10-21)
+
+- T47 refreshed all 24 existing examiner answers against the current strategy/evidence boundary while preserving the legacy question IDs, exact challenge text, and order. The independent review confirmed the prompt match and accepted the answer set narrowly after identifying one citation gap; the lead then pinned Q03 directly to v10 R01 and corrected the source path. Candidate SHA-256 `d0594f775b7259a5f58795f73cb73a1335f643f4837adea3eb12f39db014740e`; independent review SHA-256 `a9d95d50a216740840bbd3a4ef6ca26120025196002bbfbc844f55fa9bb36cef`.
+- Q03 now cites `ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v10.csv` (SHA-256 `34e3a76c0d5dafdb8c4a6510d520f9228b303d43ac744b767b8ac747cd70dea4`) and the campaign Mission snapshot (SHA-256 `206f28c34934df09712bcc1d59864e98336ac90c6fa6e6b120900f7cb27a7d78`); R01 is `UNVERIFIED / NA`. SSoT §15.1 is explicitly not used as the active register. Lead receipt: `evidence/lead-l46-current-evidence-answer-refresh-20261021.md`, SHA-256 `ea6d447ee88fbbbf3b97c14d7f31b18bfa540691dfebac2377be594a850795eb`.
+- **Boundary:** the refresh removes stale written-answer wording as a dependency for a current-evidence timed rehearsal. The candidate and review remain in the local research worktree, which has no remote. This is written preparation only: no rehearsal, zero-forbidden-claims result, advisor/committee acceptance, R07 verification, claim promotion, or strategy change. L46 remains OPEN; no thesis-progress percentage changes.
+
 ## LEAD v507 — Correct final T38 answer-sheet pin in L46 receipt (2026-10-21)
 
 - T38's final local source-bound answer sheet is SHA-256 `0d5fb966e720e161bfac8eab5f8e866360d92548aef293e6a15c12cfc89fb99a`; its final paragraph now notes that LEAD v506 mirrors the reviewed T46 addendum as a summary while the full sheet remains local. The answer content and evidence boundary are unchanged.
