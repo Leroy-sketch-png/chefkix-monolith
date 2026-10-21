@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v493 — Narrow R26 script-hash discrepancy to local line-ending representations (2026-10-21)
+
+- A source-only T25 trace found that the Segment-7 builder's package `script_sha256` hashes raw file bytes, while its `normalized_source_sha256` helper canonicalizes CRLF to LF before hashing. The generated Segment-7 runtime script computes manifest `kernel_script_sha256` from raw bytes at `Path(__file__)`; its local package currently has CRLF endings (316 CRLF, no bare LF). The local raw hash is `0b55329a7a985fb0c87c3ce23ec69637831dae7f567cb403d7bff42ed14936f2`, matching the advancement receipt, and its normalized digest is `3568e7880fd638ab937a4f40f89ab53dfb6dffb24afae3b052b4ca9faffd1971`, matching the Segment-7 manifest. T25 report SHA-256 `df3daf96d121ac057e1d4156002bdc90885891a230bce17bbaf9ff84acc249b` is local-only in the research campaign.
+- **Boundary:** this establishes local hash-function/byte-representation correspondence. It is consistent with line-ending normalization during upload/execution but does not prove transport behavior or remote executed-source identity. Combined with T24, the full R26 package is still INCOMPLETE because the task-pinned note hash differs from current bytes and the expected receipt is absent at the exact pinned v99 path. No register application/status change: R26 remains UNVERIFIED; strict C1–C5 stays 0/5 and M-G/L48 stay OPEN. No Kaggle/network, labels, inference, weights, or quality analysis occurred.
+
 ## LEAD v492 — Record bounded R26 provenance review and unresolved bindings (2026-10-21)
 
 - Research-local independent T24 reviewed dated R26 artifacts without Kaggle/network, labels, inference, GPU, or opening checkpoint contents. It passed narrowly on local hash inventories: Segment-9 checkpoint 12/12 and retained-best 8/8; Segment-7 checkpoint 12/12 and retained-best 8/8; trainer-state metadata records global steps 561/444 and the observed evaluation entries. Report SHA-256 `c9c95e2d13c72089e2c8745e3b78595cb16257347616270184abca832ad91e36` is in the local research campaign worktree.

@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-G/L48 / LEAD v493 local R26 hash representation trace
+
+T25 traced the Segment-7 builder/runtime hash functions. The local advancement receipt matches the package's raw CRLF bytes (`0b553…`); the manifest hash matches the same local source normalized CRLF→LF (`3568e…`). This makes upload-time newline normalization plausible but does not verify the remote executed bytes. The dated R26 package still has pinned-note and exact-receipt-path gaps, so R26 remains UNVERIFIED and no register row changed. No Kaggle, labels, inference, model loading, or quality analysis occurred; details and report hash are in LEAD v493.
+
 ### M-G/L48 / LEAD v492 R26 provenance review boundary
 
 Independent T24 passed narrowly for local Segment-9/Segment-7 checkpoint and retained-best hash inventories plus trainer-state metadata, but found the dated provenance package incomplete: the pinned R26 note hash differs from current bytes, the expected Segment-9 receipt is absent at the task-pinned v99 path (a separate receipt path was not substituted or revalidated), and the launch-receipt/manifest script hashes are not bound by an inspected schema. R26 stays UNVERIFIED; no register application, inference, quality, or Stage-3 completion claim follows. Detailed report is local-only in the research campaign; see LEAD v492.
