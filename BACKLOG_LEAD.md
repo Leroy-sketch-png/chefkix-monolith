@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v514 — Correct midterm exhibit provenance wording (2026-10-22)
+
+- T110 independently found the v26 exhibit and speaker script internally consistent on displayed decisions, denominators, and fit boundary, but REVISEd the traceability claim: the pinned materials did not identify exact value-bearing source paths, so the eight displayed hashes did not independently verify the values. Report SHA-256 `78ebb9f327ec8ff260dbaefc9edf70a94b4a3da2b78808107f031173161d1795` (research worktree only).
+- Preserved the frozen v26 exhibit and notes byte-for-byte (SHA-256 `47d9aa1d7f5e1f3f704d43ea32af5773ef2cf94aa906d94aff232457e11c15ff` and `6497f21775bc2938a0f7193f14b4cccf49cc6ee3363d72aa517aa157e2fca1e6`). Created a separate v27 wording-only copy; its provenance panel and narration say hashes identify artifacts but do not verify displayed values without separately authorized access to the exact files. v27 exhibit SHA-256 `eb7f884eee24102570c5cf35d30d6d621484bf390f6207e72268c6f806a0d913`; notes SHA-256 `acc5977c05293668211b93163ebc3dceb03cc9faeb3a039f867077f217a1403e`. Focused structural tests pass 16/16; test SHA-256 `4441f23353c1faf52d4fe9424866ca087073bb722d4f38f80f28c0c65c419442`.
+- The research worktree has no configured remote; detailed T110/T111 reports and v27 files remain local there. This backlog entry records the bounded correction, not independent metric reconstruction or public availability of those files.
+- **Boundary:** the frozen v26 result values and decision were not changed, recomputed, or independently source-verified by T110. Q124 remains incomplete pending exact source reconstruction, rendered review, and a real presenter/listener rehearsal. No user comprehension, product-demo completion, C2/C3/C5 acceptance, safety, or overall thesis completion is inferred.
+
 ## LEAD v513 — Correct final synthetic C3 verification count (2026-10-22)
 
 - Follow-up after LEAD v512: one additional invalid-string `max_rank` fixture was added to the synthetic A/B tests. The final exact suite result is **239/239**, superseding the earlier 238/238 count; this corrects the evidence record without changing the implementation boundary or claims.
