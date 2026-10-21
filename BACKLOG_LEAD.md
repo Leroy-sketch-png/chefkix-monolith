@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v484 — Bound M-I runner stop cleanup to its launched process tree (2026-10-21)
+
+- Research-local runner now launches cooperative jobs in a dedicated process group/tree and routes timeouts, operator interruption, and unexpected runner exceptions through one stop/reap path. The receipt records the attempted mechanism, direct-child reap observation, and any cleanup error. Windows tests exercised `taskkill /T /F` with a spawned grandchild; the POSIX session/TERM/KILL path was code-inspected but not runtime-tested on this host.
+- The focused runner suite passes 39/39, including timeout, Ctrl+C, and injected monitor-failure descendant regressions; `py_compile` and `git diff --check` pass. Research commit `01f819b15ddc3730e1b28fdca7c3af849fe74925`; evidence note/receipt are `ai/evidence/member-backlog/mi-process-tree-stop-20261021.md` / `.json` in that research checkout, which has no remote.
+- **Boundary:** best-effort cleanup for the runner-created tree is not an OS sandbox or hostile-child containment. Detached/external work can escape; forced runner/machine crash recovery, cross-platform runtime validation, independent review, and provider-enforced spending controls remain open. No paid/network/GPU/real job was run; **M-I and L44 remain OPEN, and C1–C5 remain 0/5 accepted.**
+
 ## LEAD v483 — Add protocol-neutral synthetic M-B fixture preparation (2026-10-21)
 
 - T12 builds a fully synthetic 40-case / 3-opaque-arm fixture with deterministic output, opaque shuffled rater-view keys, toy gold inclusion, explicit toy-stratum minimum parameter, fail-closed missing-arm/metadata and duplicate-candidate checks, and an intentionally ambiguous identity retained as `AMBIGUOUS_UNMAPPED`. The fixture was reloaded and validated against its generator hash and receipt. Generator SHA-256 `c9a6873de03d0dbd9fb8ab6295d316c0c1f5d809044183d51cb5620bbe5503d2`; 13 focused tests pass.
