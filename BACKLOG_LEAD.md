@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v471 — Review R01–R45 owner crosswalk against current packages (2026-10-21)
+
+- The row-by-row crosswalk review is recorded at research `ai/evidence/claims-register/instantiated-r01-r45-v1/lead-crosswalk-review-20261021.md` (SHA-256 `ca4e1f891009215e5293b12ca9dd3fb5c6a76a8c662c97a6086dcae7f5bac72e`). It checks all 45 mapping dispositions against pinned §15.1 wording and current Lead/Member IDs; all current referenced IDs resolve except historical L29/L30 for R30/R31, which remain historical only. Fifteen rows remain explicitly unmapped; no exact outcome owner was promoted.
+- The inventory remains 45/45 `UNVERIFIED`, `Outcome=NA`, with zero reproductions. Structural/local-byte validation and the existing builder/validator suites pass; these do not verify claim truth. M-G/L48 remain **OPEN** pending missing-source recovery, unresolved owner reconciliation, independent review, and required reproductions. Research commit `f5a14dc` remains local-only because that checkout has no remote.
+
 ## LEAD v470 — Instantiate a conservative R01–R45 register draft (2026-10-21)
 
 - Research `master` commit `f5a14dc` adds a deterministic, source-pinned first register at `ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v1.csv` (SHA-256 `7e8bc939cb7954f28ff6072ba515fadb42218dacde56da4c32822fcbd38727db`) and row-level `EVIDENCE_VS_CLAIM.csv` (SHA-256 `2ae2bf2c8ef72eb90869d76b8f52790c1862201418d3432ea3e85c36dbba4476`). The inventory has 45 unique rows; its structural/local-byte validator passes. It imports no migration or historical statuses: every row remains `UNVERIFIED`, `Outcome=NA`, and reproduction fields are empty. The report is a row inventory, not a claims scoreboard.

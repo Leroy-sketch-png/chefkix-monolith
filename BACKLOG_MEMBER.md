@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v471 row-level crosswalk review (2026-10-21)
+
+The 45 mapping dispositions were checked against the pinned §15.1 wording and current Lead/Member package IDs; review note SHA-256 `ca4e1f891009215e5293b12ca9dd3fb5c6a76a8c662c97a6086dcae7f5bac72e`. All current referenced IDs resolve except L29/L30 in R30/R31, which are explicitly historical pointers rather than active owners. Fifteen claims remain unmapped; all 45 remain UNVERIFIED with no reproductions or backlog-status promotion. M-G/L48 remain OPEN.
+
 ### L48 / LEAD v470 conservative R01–R45 register draft (2026-10-21)
 
 Research `master` commit `f5a14dc` creates a deterministic, source-pinned 45-row inventory at `ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v1.csv` (SHA-256 `7e8bc939cb7954f28ff6072ba515fadb42218dacde56da4c32822fcbd38727db`) with `EVIDENCE_VS_CLAIM.csv` (SHA-256 `2ae2bf2c8ef72eb90869d76b8f52790c1862201418d3432ea3e85c36dbba4476`). All rows remain UNVERIFIED, with no outcomes or reproduction status; 30 have explicit/bounded crosswalks and 15 remain unmapped. Builder/validator checks establish structure and local-byte integrity only. Historical v171/v197 files were unavailable and not imported. The research commit is local-only because that checkout has no configured remote. This is a first reviewable draft, not claim reconciliation or a scoreboard; **M-G and L48 remain OPEN**. See LEAD v470 for full provenance and limits.
