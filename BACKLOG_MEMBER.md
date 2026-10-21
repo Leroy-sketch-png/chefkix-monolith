@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v470 conservative R01–R45 register draft (2026-10-21)
+
+Research `master` commit `f5a14dc` creates a deterministic, source-pinned 45-row inventory at `ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v1.csv` (SHA-256 `7e8bc939cb7954f28ff6072ba515fadb42218dacde56da4c32822fcbd38727db`) with `EVIDENCE_VS_CLAIM.csv` (SHA-256 `2ae2bf2c8ef72eb90869d76b8f52790c1862201418d3432ea3e85c36dbba4476`). All rows remain UNVERIFIED, with no outcomes or reproduction status; 30 have explicit/bounded crosswalks and 15 remain unmapped. Builder/validator checks establish structure and local-byte integrity only. Historical v171/v197 files were unavailable and not imported. The research commit is local-only because that checkout has no configured remote. This is a first reviewable draft, not claim reconciliation or a scoreboard; **M-G and L48 remain OPEN**. See LEAD v470 for full provenance and limits.
+
 ### M-D / LEAD v469 written-artifact acceptance met locally (2026-10-21)
 
 The literal §17.2 M-D criterion—four deterministic full-split GISMo/lookup files—is now **met locally**: every validation/test case is present, all four outputs and the package manifest replay byte-identically, and 36 focused tests pass. This does not resolve external handoff, rights/release, unspecified historical lookup tie equivalence, model comparison, or L44. Those remain separately open; no labels were read or scored for this packaging work. Receipts: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
