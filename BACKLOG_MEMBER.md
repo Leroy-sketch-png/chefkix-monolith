@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-A/L45 — Chapter 13 conclusion-to-evidence map (2026-10-21)
+
+Research `master` commit `44d3e14e3121463ac571d33e22ba6077b9199f72` integrates an eight-section map in Chapter 13 §13.10. It connects the discussion scaffold to the current v10 claim IDs/statuses and named primary artifacts where mapped, while preserving population/protocol, counterevidence, and unknowns. Lead rehashed the referenced local receipts and verified the chapter's relative links. The map explicitly leaves missing primary records unmapped; no claim status, score, metric, protocol, or thesis outcome changed. See mirrored evidence note `evidence/lead-l45-ch13-conclusion-map-20261021.md`. M-A/L45 remain OPEN; strict C1–C5 remains 0/5.
+
 ### M-D/L44 — Chapter 5 receipt-to-text consistency check (2026-10-21)
 
 The pinned 200-case ingestion receipt's primary/sensitivity metrics, denominators, identity strata, method failures, unmapped generation count, latency, runtime projection, and test-split boundary match the current Chapter 5 text at displayed precision. Evidence note SHA-256 `fe34f9dce717eac0748aa5894aac2fcccc5a04f04e34b8c4892b3a1675ce5fba` is mirrored under `evidence/`. This is not an independent row-level recomputation or new inference; no Chapter 5 edit was needed. L44/M-D and claim statuses remain OPEN.

@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v499 — Integrate Chapter 13 conclusion traceability map (2026-10-21)
+
+- Research `master` commit `44d3e14e3121463ac571d33e22ba6077b9199f72` adds Chapter 13 §13.10, mapping each discussion section (§§13.1–13.8) to relevant claims-register v10 IDs/statuses, primary artifact paths where identified, population/protocol boundaries, counterevidence, and unresolved unknowns. Chapter SHA-256 `c41041ed685600f44c3c7c1c8defebc011592420e4b7fe5e2094c20e3b4d2d3d`.
+- The research-local lead receipt SHA-256 `07451be1c10ad09e7d1e9064aff99f0bd56156e3580b27eb1e6179b57cf1b52c` is mirrored under `evidence/lead-l45-ch13-conclusion-map-20261021.md`; the full candidate and source inventory are in the local research campaign. Five rows remain narrowly `VERIFIED` and 40 `UNVERIFIED`; unmapped conclusions remain explicitly qualified.
+- **Boundary:** this is discussion-chapter traceability, not metric recomputation, independent semantic validation of all receipts, claim promotion, C1–C5 acceptance, final thesis synthesis, human rehearsal, or L45/M-A completion. Research checkout has no configured remote; the full source and evidence remain local to the shared workspace.
+
 ## LEAD v498 — Reconcile Chapter 5 with the saved benchmark receipt (2026-10-21)
 
 - Research `master` commit `f9cd70d` records a receipt-to-text consistency check for Chapter 5. The selected cohort counts, both identity strata, primary GISMo and raw-string sensitivity Hit@1/5/10, unmapped generation count, latency, runtime projection, and test-split boundary match the already-validated ingestion receipt at displayed precision. Chapter SHA-256 `9049f5ec8299cd994bbe2a30727eee0347f3849639d0767afb879456706e20d9`.
