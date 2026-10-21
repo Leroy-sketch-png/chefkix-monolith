@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v442 — Build and fixture-test an independent M-I runner prototype (2026-10-21)
+
+- Implemented the §13.1–13.2 job-manifest boundary in the separate research repository's local `master` (`136e5bd`, `bebe02a`, `ac4c989`): checked script/input hashes, repository-contained non-symlink paths, fresh output directories, idempotency reservation, bounded time/call/reported-spend stops, error/invalid-output thresholds, failure-preserving receipts, and output-hash inventories.
+- The first fixture pass exposed a test serialization mismatch; corrected the fixture and extended coverage. The final focused suite passes **18/18**; `py_compile`, scoped `git diff --check`, and the root Agent OS verifier (124 passes, 0 failures) also pass. File hashes and fixture scope are in `evidence/lead-mi-runner-prototype-20261021.json`.
+- AoE review retained two critical boundaries: cooperative child usage is not a provider-enforced budget, and a local unsigned `HUMAN_APPROVED` JSON record is not authenticated authority. The runner therefore never turns that record into confirmatory-claim permission. It is also not an OS sandbox.
+- **M-I remains OPEN.** Missing coverage includes broader malformed-manifest/concurrency/recovery/platform fixtures and independent review; no real API job was launched. Research `master` has no configured remote, so its implementation commits are local-only and not yet shared. No scientific protocol, claim status, GPU training, or model-quality conclusion changed.
+
 ## LEAD v441 — Repair M-I's stale strategy references and execution boundary (2026-10-21)
 
 - M-I pointed to nonexistent active SSoT §§13.6–13.7; the current job-manifest template and incomplete illustrative runner are §§13.1–13.2. Its table also made PR15 (reference-code defects) an unconditional dependency even though the active strategy says reference-code reuse is conditional and §25 forbids blind reuse.

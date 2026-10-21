@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "strategy_contract": "academic_vision_and_strategy.md §§13.1–13.2; §25 common task boundary",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "implementation": {
+    "repository": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commits": [
+      "136e5bd47571e8418b728db07e34b97e9013b976",
+      "bebe02a",
+      "ac4c989"
+    ],
+    "remote_configured": false,
+    "files": [
+      {
+        "path": "ai/tools/research_job_runner.py",
+        "sha256": "32EA2DF824E83BF48F0C8F849AC50B328555FEDCDB8CE300ED7438B263D6A058"
+      },
+      {
+        "path": "ai/tools/test_research_job_runner.py",
+        "sha256": "AF0FA013A84FD2D441F533D679C4864EC62A6C95CED0A20FF40AB3216DFF9B2E"
+      }
+    ]
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py -v",
+    "result": "18 passed, 0 failed",
+    "syntax_check": "python -m py_compile ai/tools/research_job_runner.py ai/tools/test_research_job_runner.py passed",
+    "diff_check": "git diff --check passed for implementation files",
+    "agent_os": "verify-agent-os.ps1 passed 124 checks, 0 failures"
+  },
+  "tested_behaviors": [
+    "successful run creates a receipt binding manifest, script, inputs, and output hashes",
+    "script hash mismatch and missing inputs refuse before child launch",
+    "fresh output collision preserves existing contents and refuses overwrite",
+    "path traversal is rejected",
+    "exploratory jobs cannot claim confirmatory eligibility",
+    "hash-bound HUMAN_APPROVED record is checked but does not itself authorize confirmatory claims",
+    "invalid freeze protocol hash is refused",
+    "duplicate idempotency key is refused",
+    "reported call, spend, wall-time, API-error, and judge-invalid limits stop the run",
+    "truncated final usage record is rejected rather than omitted",
+    "nonzero exit, missing required output, and input mutation are recorded as blocked"
+  ],
+  "limitations": [
+    "M-I remains OPEN; this is a local prototype, not full acceptance or an approved automatic execution surface.",
+    "Cost/call/error monitoring depends on the child emitting a cooperative append-only usage journal; it is not a provider meter or a hard spend cap.",
+    "The runner is not an OS sandbox; process-tree isolation and hostile-child containment are not established.",
+    "A local unsigned JSON HUMAN_APPROVED declaration is only checked for hash and shape; it is not authenticated human authority or scientific approval.",
+    "Not all malformed-manifest, concurrency, recovery, or platform-specific fixtures are covered; no real API job was launched.",
+    "The research repository has no configured remote; its commits are local and not available to collaborators until a verified remote is configured and pushed."
+  ],
+  "scope": "No scientific protocol, claim status, model result, or training state changed. This receipt is a bounded software-test record only."
+}

@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v442 local runner prototype and refusal fixtures (2026-10-21)
+
+An independently implemented Python runner on the research repository's local `master` now passes 18 focused fixtures for hash-bound manifests/inputs, fresh outputs, idempotency, time/call/cooperatively reported spend limits, stop thresholds, receipts, freeze-record shape, and failure preservation. The runner explicitly does not provide an OS sandbox or provider-side hard budget, and a local unsigned approval record grants no confirmatory-claim permission. The implementation commits are local-only because that repository has no configured remote; no real API job ran. M-I remains open for broader invalid-manifest, concurrency, recovery, platform and independent-review coverage. Receipt: `evidence/lead-mi-runner-prototype-20261021.json`.
+
 ### M-B / LEAD v436 split and identity recount (2026-10-21)
 
 The research-default-branch local recheck reproduced validation/test case-frame counts (10,729/10,747) and GISMo-primary/Senath-sensitivity partitions from the hash-pinned identity map. Available training/validation CSV row counts and hashes matched the audit manifest. The raw test CSV is not in the designated clean-room folder, and the original GISMo joins were not rerun. Evidence note: `ai/evidence/claims-register/r04-r05-split-identity-recheck-20261021.md`, research commit `03ab020`, SHA-256 `57bb6d4ca2f22485f2a8926fcaecc643144ecf14c93e3db21c91b430d5011974`. This is interim local count/integrity evidence; M-B acceptance and R04/R05 claim verification remain open. Research checkout has no remote.
