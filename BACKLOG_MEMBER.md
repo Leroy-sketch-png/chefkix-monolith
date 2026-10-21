@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-D / LEAD v466 deterministic lookup-frequency top-20 preparation (2026-10-21)
+
+The second arm is now materialized for every source-only validation/test case using the released GISMo LTFreq training-pair count rule: 10,729/10,747 cases, 20 unique ranked graph IDs each. The lookup files and manifest replay byte-identically; the combined preparation suite passes 27/27. GISMo's already-generated full-split arm remains unchanged. No labels were opened, and no scoring/evaluation or method selection occurred. The lookup tie rule (count descending, graph ID ascending) is an explicit deterministic transcription; historical `torch.topk` tie equivalence is unknown. Output files are still local-only and not rights-cleared or in final shared packaging. **M-D and L44 remain open.** Receipt: `evidence/lead-md-lookup-top20-preparation-20261021.json`.
+
 ### M-D / LEAD v465 GISMo full-split top-20 materialization (2026-10-21)
 
 Research `master` commit `f0282c4` materializes the deterministic GISMo arm by taking the first 20 candidates from each pinned, verified source-only top-50 row: 10,729 validation and 10,747 test cases. A fresh build replay is byte-identical; all output rows match their source-pool top-20 prefix with exact case order/ranks and no label fields. The 21-test focused source-pool/builder suite passes. This does not rerun GISMo, read labels, score/evaluate, establish rights, or select a method. Lookup-frequency is still missing a pinned executable contract; **M-D and L44 remain open**. Details and hashes: `evidence/lead-md-gismo-top20-preparation-20261021.json`.

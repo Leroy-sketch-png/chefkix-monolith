@@ -1,0 +1,47 @@
+{
+  "state": "LOCAL_GISMO_AND_LOOKUP_TOP20_OUTPUTS_READY_NOT_BENCHMARK",
+  "lead_item": "M-D",
+  "current_lead_version": 466,
+  "research_master": {
+    "gismo_arm_commit": "f0282c460e2c8d57444c119d481932f4b0f302ca",
+    "lookup_arm_commit": "130aa3c591a828cfa4f0d0c68b6d7570ab6602f8",
+    "remote": null
+  },
+  "lookup_arm": {
+    "producer_path": "ai/tools/materialize_senath_lookup_top20.py",
+    "producer_sha256": "e5bcc5a0b0ba9a86d7141ee6e34ee9fdda0cf5fd5fae53c332750a537cb10948",
+    "test_path": "ai/tools/test_materialize_senath_lookup_top20.py",
+    "test_sha256": "d224cf9960c4f31a572933e15cbc42bf3e5ca2a03cf65d89c3fd91f688ce5fd0",
+    "outputs": {
+      "lookup_val.jsonl": {"case_count": 10729, "candidate_count": 214580, "sha256": "8f351df7c5c6b88c86713e3c391e6267edb01f137789d64ae6f79a192755d536"},
+      "lookup_test.jsonl": {"case_count": 10747, "candidate_count": 214940, "sha256": "c7769063bdd97dd93b2b9a41b2b2a7082f6ab06fa1cb6ecaf355ffc1eb7ec139"},
+      "manifest.json": {"sha256": "1b53755d1616d11569762a9b06ab9767477e04d277e8a151c94ae3b0fe196bef"}
+    },
+    "fresh_replay_byte_identical": true,
+    "focused_suite": {"command": "py -3 -m pytest -q ai/tools/test_build_senath_source_only_pools.py ai/tools/test_verify_senath_source_only_pools.py ai/tools/test_materialize_senath_gismo_top20.py ai/tools/test_materialize_senath_lookup_top20.py", "passed": 27},
+    "candidate_contract": "20 unique GISMo graph IDs per case; all ingredient graph nodes including source node; count descending, graph ID ascending for ties",
+    "historical_tie_equivalence": "NOT_ESTABLISHED; legacy torch.topk tie behavior is unspecified",
+    "target_labels_opened": false,
+    "target_labels_in_outputs": false,
+    "evaluation_or_method_selection": false
+  },
+  "gismo_arm": {
+    "producer_sha256": "a068917b45abe710f88bb42cf7d209e0738f75b9a803876026914dc3c7a92a6d",
+    "test_sha256": "4dbda067a1be9173446fc1bd276094a87c95e4b30aaafcb65e5d2c5fee78066d",
+    "outputs": {
+      "gismo_val.jsonl": {"case_count": 10729, "candidate_count": 214580, "sha256": "f02112f72a601d62e120493457abca514de434182c849655e83a92e15e808489"},
+      "gismo_test.jsonl": {"case_count": 10747, "candidate_count": 214940, "sha256": "7725170f37a3f51493caf2dc63165d3a252529bf26ac5b23ee1b1a20a24b0b4d"},
+      "manifest.json": {"sha256": "487c69be29a330fe433eff6db6688a4f7653c811dba0059b26f489c047f822af"}
+    },
+    "fresh_replay_byte_identical": true,
+    "focused_suite_at_generation": 21
+  },
+  "limitations": [
+    "Both are local source-only full-split top-20 output preparations, not inference reruns or benchmark results.",
+    "No validation/test labels were opened; no metrics, method choice, quality, superiority, or human-usefulness result was computed.",
+    "The original GISMo checkpoint was not rerun for the GISMo arm; it is the deterministic prefix of previously verified top-50 outputs.",
+    "The lookup arm transcribes the released LTFreq train-pair count source. Its explicit tie order is a deterministic convention, not verified historical torch.topk equivalence.",
+    "Output bundles remain local-only and are not established as rights-cleared or accepted under final arm_outputs packaging; M-D and L44 remain OPEN.",
+    "The research checkout has no configured remote; both commits are local to the user's research worktree."
+  ]
+}

@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v466 — Materialize and replay deterministic lookup-frequency top-20 arm (2026-10-21)
+
+- Corrects the contemporaneous v465 note: the GISMo arm was already materialized; the missing sibling was the lookup-frequency transcription. Research `master` commit `130aa3c591a828cfa4f0d0c68b6d7570ab6602f8` adds a fail-closed producer and regression tests. It derives GISMo LTFreq pair counts from the pinned 49,044-row training substitution file and emits 20 candidates for each of the 10,729 validation and 10,747 test source-only cases.
+- Independent replay is byte-identical for both split outputs and manifest; structural checks verify full ordered case coverage, unique candidate IDs, ranks 1–20, and the declared score/ID ordering. Combined preparation suite passes **27/27**. No validation/test labels were opened, evaluation or method choice performed, or model-quality claim made.
+- The deterministic tie convention is count descending then GISMo graph ID ascending. Legacy `torch.topk` tie behavior is unspecified, so historical tie equivalence is **NOT ESTABLISHED**. The GISMo arm is the top-20 prefix of its already verified top-50 outputs; its checkpoint was not rerun. Machine receipt: `evidence/lead-md-lookup-top20-preparation-20261021.json`.
+- Both arms now have local, reproducible full-split output preparations, but artifacts remain local-only and are not rights-cleared or accepted in the final `arm_outputs/{gismo,lookup}_{val,test}.jsonl` delivery contract. **M-D/L44 remain OPEN** for rights/protocol, packaging/transfer, and downstream acceptance. Research `master` has no remote.
+
 ## LEAD v465 — Materialize deterministic GISMo top-20 arms for both frozen splits (2026-10-21)
 
 - Research `master` commit `f0282c460e2c8d57444c119d481932f4b0f302ca` adds a fail-closed builder that binds the verified source-only GISMo top-50 pools and emits `gismo_val.jsonl` / `gismo_test.jsonl`: 10,729 + 10,747 cases, 20 candidates each. Both outputs and the manifest are byte-identical on a fresh replay; every row matches the exact top-20 prefix of its pinned pool.
