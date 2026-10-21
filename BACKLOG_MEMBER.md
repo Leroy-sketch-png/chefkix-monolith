@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v446 child environment isolation (2026-10-21)
+
+The runner no longer forwards every parent environment variable to arbitrary child jobs. A small OS baseline is combined only with manifest-declared, required variable names; names are included in the execution identity and receipt, values are not. The 29-test suite passes three consecutive runs, including an explicit secret-noninheritance fixture. Allowlisted secrets are still available to the child and this is not a sandbox; no credentialed job was run. M-I remains open and the source repository has no remote. Receipt: `evidence/lead-mi-child-environment-isolation-20261021.json`.
+
 ### M-I / LEAD v445 enforced stop-policy ceilings (2026-10-21)
 
 The runner now refuses any manifest that weakens the strategy's 5% API-error or 2% invalid-output maximum stop thresholds; exact-threshold fixtures confirm strict `>` behavior. The 27-test suite passes twice consecutively. M-I remains open; usage remains child-reported/cooperative, the runner has no OS sandbox, and the implementation is still local to a research checkout without a remote. Receipt: `evidence/lead-mi-stop-threshold-contract-20261021.json`.

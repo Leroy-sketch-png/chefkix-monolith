@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v446 — Isolate research child environment variables (2026-10-21)
+
+- A credential-flow AoE sweep found the prototype inherited every parent environment variable. It now passes only a small OS baseline and manifest-allowlisted names; those names join the idempotency identity and receipt, but values are not recorded. Unset required names fail preflight. Regression fixture proves an unlisted variable does not reach the child.
+- The focused suite passes **29/29 three consecutive times**. Exact source/test hashes and limits are in `evidence/lead-mi-child-environment-isolation-20261021.json`.
+- **M-I remains OPEN.** Explicitly allowlisted secrets are still accessible to the child; this is not a sandbox, and no credentialed/API job was run. Research `master` remains without a configured remote; no provider hard cap or independent review is established.
+
 ## LEAD v445 — Prevent manifests from weakening error-stop guardrails (2026-10-21)
 
 - A policy sweep found that callers could raise the prototype's API-error and judge-invalid thresholds up to 100%, silently disabling intended stops. Validation now caps them at 5% and 2%; lower thresholds remain allowed. Added exact-boundary tests proving `>` semantics at 5%/2% and refusal for a weakened threshold.

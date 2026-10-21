@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "768fcd820af459d2561abff35208d78b609798cd",
+    "remote_configured": false,
+    "runner_sha256": "47558712617A8B978555B438AEF670C4DE80CC4FADB96013D669FA435AA0DDF6",
+    "tests_sha256": "61ECFF5405B2EAE40EB1A97EDF5FEFA94834F54668D0E23509B3D9D2B0E1C15B"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py",
+    "consecutive_runs": 3,
+    "tests_per_run": 29,
+    "failures": 0,
+    "syntax_check": "py_compile passed",
+    "diff_check": "git diff --check passed"
+  },
+  "newly_verified": [
+    "child processes receive a small documented OS-variable baseline rather than the complete parent environment",
+    "additional environment names must be explicitly allowlisted and set before preflight; reserved runner variable names and duplicate names are rejected",
+    "environment-variable names are included in the idempotency identity and receipt; values are not copied into the receipt",
+    "fixture proves an unlisted parent variable is not passed to the child"
+  ],
+  "limitations": [
+    "M-I remains OPEN and no credentialed/API job was run.",
+    "Allowlisted secrets are still present in the child environment; the runner is not a sandbox and cannot prevent a child from logging them.",
+    "The runner provides no provider-side spending cap; usage data remains child-reported.",
+    "Research `master` has no configured remote, so source commits are local and not collaborator-fetchable.",
+    "Full platform/recovery/independent-review coverage remains outstanding."
+  ],
+  "scope": "No scientific protocol, model evaluation, training, or claim status changed."
+}
