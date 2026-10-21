@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v501 — Prepare source-bound answers for Senath diagnostic and evidence limits (2026-10-21)
+
+- L46 preparation now includes a six-question, locally source-checked answer draft for the completed 200-case Senath validation diagnostic, comparison limits, Segment-9 adapter selection versus later unevaluated continuation, the scoped R06–R11 artifact search, the current claim-register boundary, and the distinction between answer preparation and a real defense rehearsal. Research task SHA-256 `82d1544e1eb80d17baa729997a1c014eb0663763c66e1bdd02fcb4cbfc0ef906`; it cites the recovered benchmark receipt SHA-256 `90da69d9157203bef144ef6cf191d75398c593212fc6255fb6ca02a4e6686b81`, T35 review SHA-256 `d8fb5cd74bbe58d900af4c8bc55a26eded84892940bebd0be09e8222a9750f96`, and T36 review SHA-256 `a2ef85d3de34b1e033524d08bb32ea2dd8075a05988f779044238ae66714889f`.
+- The answer sheet remains a local research-worktree draft; the research worktree has no remote. It is not an observed timed rehearsal, advisor/committee review, new result, claim-register update, SSoT change, or L46 completion. Current five narrowly VERIFIED / 40 UNVERIFIED register boundary and C1–C5 0/5 acceptance remain unchanged. Human rehearsal and feedback remain separate gates.
+
 ## LEAD v500 — Record scoped R06–R11 artifact inventory and Chapter 14 boundary correction (2026-10-21)
 
 - T35's bounded local inventory found tracked experiment code/configuration and historical summaries for R06–R11, but no claim-specific primary run/result bundles in the named research/monolith worktrees and evidence/output scopes. Lead independently rehashed 19 source/config/archive paths and matched each current Git blob to its cited last-path-changing commit. One R09 archive-hash transcription error in the candidate report was caught and corrected before acceptance. Candidate inventory SHA-256 `eb58e624b28f811ac124f4976ccec6e261b056673877fd264bd6abf56ffaa7d3`; lead receipt SHA-256 `d8fb5cd74bbe58d900af4c8bc55a26eded84892940bebd0be09e8222a9750f96`.
