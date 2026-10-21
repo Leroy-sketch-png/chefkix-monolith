@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L44 / LEAD v464 showcase regression suite rerun (2026-10-21)
+
+Fresh rerun of the source-bound benchmark and midterm-exhibit test suites passes 30/30, including receipt-to-table-order assertions for both arms. The test/source hashes and renderer commit are in `evidence/lead-l44-showcase-regression-rerun-20261021.md`. The corrected HTML remains a local-only artifact; no browser visual review or listener rehearsal was performed, so L44 stays open.
+
 ### L44 / LEAD v463 recovered validation-benchmark diagnostics (2026-10-21)
 
 The existing one-shot Kaggle version-4 recovery receipt is bound to a 14-file inventory that was rechecked against disk with zero missing, extra, or mismatched files. Saved-output validation covers 200 fixed validation cases with zero method failures. GISMo identity Hit@1/5/10 is 1.5%/7.5%/14.5% for GISMo top-50 + Senath reranking and 3.0%/11.5%/14.0% for Senath top-20 generation; raw-string sensitivity and per-case latency are separately recorded in `evidence/lead-l44-validation-benchmark-results-20261021.md`. This is descriptive fixed-validation diagnostic evidence only, not an independent test, human-usefulness result, superiority claim, or L44 completion. No new Kaggle operation was performed.

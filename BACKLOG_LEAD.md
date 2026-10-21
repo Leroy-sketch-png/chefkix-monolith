@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v464 — Re-run the saved-output showcase regression suite (2026-10-21)
+
+- Research `master` HEAD `42f1111` reran the benchmark + midterm-exhibit suites: **30 passed in 21.06 s**. The regression checks that primary-identity and raw-string metric cells align with the grouped table headings for both arms.
+- Bound source/test hashes, renderer commit `eda6ddf`, and corrected local-only showcase hash in `evidence/lead-l44-showcase-regression-rerun-20261021.md`. No predictions or generated HTML were copied into the monolith.
+- This confirms structural regression coverage only. Browser visual QA and listener rehearsal remain unperformed; **L44 remains OPEN** and the exhibit is not presentation-approved.
+
 ## LEAD v463 — Record the recovered 200-case validation diagnostics for L44 (2026-10-21)
 
 - Added `evidence/lead-l44-validation-benchmark-results-20261021.md`, derived from the existing one-shot version-4 receipt (`90da69d…6686b81`). A fresh local inventory comparison confirms 14/14 recovered files still match the receipt; no download or relaunch was made.
