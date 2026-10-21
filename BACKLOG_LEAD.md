@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v469 — Audit M-D against its written acceptance (2026-10-21)
+
+- The literal M-D acceptance in §17.2 is four deterministic arm files with every case present and determinism demonstrated across two runs. Current receipts now bind the exact four files under `arm_outputs/`, 10,729 validation and 10,747 test cases, 20 candidates per case, cross-arm case identity, and byte-identical package/output manifests on replay; the focused suite passes **36/36**. On that defined artifact criterion, **M-D artifact generation is MET locally**.
+- This is not a claim that the derived data are rights-cleared for transfer/release, that the lookup tie order reproduces unspecified historical `torch.topk` ties, or that either arm was scored/evaluated in this work. Keep those separate questions open under the relevant rights/protocol/L44 work. The package remains local-only; evidence: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
+- Research tooling/evidence are on local `master` only; that checkout has no remote. A clean third-party checkout reproduction/handoff has not been demonstrated.
+
 ## LEAD v468 — Rinse the M-D package validator's label/type boundary (2026-10-21)
 
 - AoE review found that label-like fields were screened only at the top level and Python booleans could satisfy integer ID/rank checks. The package validator now recursively rejects target/label/gold keys, requires positive non-boolean graph IDs, and enforces non-boolean integer ranks 1–20.
