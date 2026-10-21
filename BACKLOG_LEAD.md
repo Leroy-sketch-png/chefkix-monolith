@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v441 — Repair M-I's stale strategy references and execution boundary (2026-10-21)
+
+- M-I pointed to nonexistent active SSoT §§13.6–13.7; the current job-manifest template and incomplete illustrative runner are §§13.1–13.2. Its table also made PR15 (reference-code defects) an unconditional dependency even though the active strategy says reference-code reuse is conditional and §25 forbids blind reuse.
+- Updated only the M-I pointers and acceptance detail in `BACKLOG_MEMBER.md`: implement the active manifest/runner contract independently, fixture the fail-closed paths, and require PR15 resolution only if Appendix A reference code is reused. This does not claim that the existing Senath-specific benchmark harness is a generic §13 runner.
+- Kept dated v385–v386 and older Lead-log references intact as historical records; they are not current acceptance definitions. A repo-wide search found no other active M-I task card using §13.6–13.7.
+- M-I remains OPEN: no inspected evidence yet proves a generic runner enforces every current manifest, budget, freeze, idempotency, receipt, and refusal requirement. No scientific protocol or method changed.
+
 ## LEAD v440 — Bound M-F source discovery before any rights count (2026-10-21)
 
 - Scanned the current monolith tree, including hidden/ignored files but excluding generated/dependency directories, for static recipe/cookbook/sample/seed/dataset files and first-party/private-Western corpus references. No matching data files or source-corpus declarations were located beyond the backlog itself.

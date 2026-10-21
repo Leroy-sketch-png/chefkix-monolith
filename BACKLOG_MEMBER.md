@@ -220,7 +220,7 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 | **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
 | **M-G** | **Reconstruct the R01–R45 claims register from §15.1:** reconcile claim provenance and current Lead-item mappings; preserve unsupported rows as UNVERIFIED/OPEN/PARTIAL. No statuses inherit from the migration seed. | SSoT §15; source artifacts and reproductions | 6h |
 | **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
-| **M-I** | **Job manifests & runner (fixture-tested):** §13.6–13.7 scripts + fixture. Fail-closed path and happy path both tested before any real run. | PR15 (reference code defects) | 6h |
+| **M-I** | **Job manifests & runner (fixture-tested):** independent implementation of the active §13.1–13.2 contract plus refusal/happy-path fixtures. The Appendix A reference code is not reusable unless PR15 is separately resolved. | Active §13.1–13.2 contract; no dependency on copying Appendix A | 6h |
 
 ## EPIC 2: Evaluation dashboard shell — IMPLEMENTED, evidence contract partial
 
@@ -300,10 +300,11 @@ L39 (allergen) → L45
 - [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
 
 ### M-I: Job Manifests & Runner (6h) — **START WEEK 2**
-> SSoT §13.6–13.7, §25.1, PR15
+> SSoT §13.1–13.2 and §25.1. Appendix A/reference-code reuse is conditional on a separate PR15 resolution; an independently implemented runner may proceed without copying that code.
 
-- [ ] Implement job manifest schema (§13.6) and runner contract (refuse on hash mismatch, fresh timestamped output dir, `RECEIPT.json`, exit non-zero on stop conditions)
-- [ ] **FIXTURE FIRST:** Happy path + each failing path (hash mismatch, missing input, cost cap, error rate >5%, invalid output >2%)
+- [ ] Implement the §13.1 manifest fields: job ID, script and hash, input paths and hashes, fresh output directory, maximum USD/calls/minutes, stop conditions, idempotency key, and freeze eligibility.
+- [ ] Implement an independent fail-closed runner: verify script/input hashes and eligibility before launch; enforce budgets/stop conditions; create a unique output directory; bind identities, outputs, exit status, spend/call/time counts, and logs in a receipt.
+- [ ] **FIXTURE FIRST:** Happy path plus refusal/stop fixtures for script or input hash mismatch, missing inputs, placeholder/invalid manifest fields, ineligible freeze, zero/exceeded budget, repeated idempotency key, output collision, nonzero child exit, API error rate >5%, judge invalid-output rate >2%, and missing required outputs.
 - [ ] **Acceptance:** Fixture tests pass; runner refuses bad manifests
 
 ## EPIC 7: Feedback instrument — IMPLEMENTED, product evidence partial
