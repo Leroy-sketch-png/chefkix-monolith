@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v504 — Reconcile v10 against reviewed v185 without rewriting ledger history (2026-10-21)
+
+- T42 compared the pinned 45-row research register v10 (SHA-256 `34e3a76c0d5dafdb8c4a6510d520f9228b303d43ac744b767b8ac747cd70dea4`) with the reviewed main-checkout v185 snapshot (SHA-256 `8eac99ef54e0752b6cf2ed6e7938553a47e4d3aa18e4c7c8cd94cd0373a53a62`). All ordered IDs and claim strings match. Independent review recomputed transitions: 5 VERIFIED→VERIFIED (R04/R05/R12/R13/R18), 13 VERIFIED→UNVERIFIED (R06/R08–R11/R14/R19–R23/R26/R30), 8 PARTIAL→UNVERIFIED (R01–R03/R07/R16/R17/R31/R42), and 19 UNVERIFIED→UNVERIFIED. Primary `Artifact_path`/`SHA256` fields matched 45/45 in each register; this is not a check of nested citations or scientific validity.
+- Corrected an initial misreading before disposition: `EVIDENCE_VS_CLAIM.csv` (SHA-256 `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`) is the preserved v1 baseline, not a current v10 ledger. The register README (SHA-256 `cf2d3c79e4c3e9550058074ed4a765d5f65579137d95b10aed223c4d768f2db8`) documents v2/v3 lineage, R18 supersession, and v9/v10 status continuity. Preserve v1–v3; no ledger or register edit is warranted by this comparison.
+- Research-local T42 disposition SHA-256 `575e27ab2933519e05ea971f6891b296773f0aec5a1f918a91b8357b350f58e4`; independent review SHA-256 `4be828c5c05a21e074deb6877ef7a1085af5e959239ba56a2771406127c3fcc5`. Candidate reports are local at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/campaigns/iron-chef-outcome-push-20261021/tasks/`; research `master` has no remote. This entry records the reconciliation boundary only and does not embed or publish those files.
+- **Boundary:** current v10 remains 5 narrowly VERIFIED / 40 UNVERIFIED; no claim, Lead/Member item, C1–C5, strategy, protocol, or overall-progress status changed. L48/M-G remain OPEN. Historical v185 statuses were not restored; availability/hash identity alone is not current acceptance.
+
 ## LEAD v503 — Correct Chapter 5's standalone receipt location (2026-10-21)
 
 - A follow-up filesystem check found that the standalone ingestion receipt is present at `ai/out/senath-validation-benchmark-v1-recovery-20261021/ingestion_receipt.json` in the research worktree (SHA-256 `89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600`). The path is excluded by that worktree's `.git/info/exclude`: it is available locally but is not tracked or shared. The T40 chapter and task record now say so explicitly.
