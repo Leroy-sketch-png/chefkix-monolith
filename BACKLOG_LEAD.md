@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v452 — Search preserved sources for the original Round-0 graph evidence (2026-10-21)
+
+- Searched the v4.2 strategy, the preserved pre-self-contained strategy, the current canonical strategy/SCOPE/SESSION mentions, eligible local workspace text files, and available local Git path history for the original Round-0 graph report or raw measurements. The preserved documents repeat the claims but contain no underlying report or measurement table; no matching report path appears in the available local Git history.
+- This is a scoped negative search, not proof that the report never existed: ignored/hidden content and external or unavailable remote history are outside the receipt's search boundary. Receipt: `evidence/lead-ma-round0-preserved-source-search-20261021.json`.
+- **Disposition unchanged:** the source-only 25-record/59-directed-statement interpretation in v451 remains a possible mixed-unit explanation, not Round-0 reproduction. The 195,600/4,591 claim remains unreconciled with the separately inspected 195,600-row/7,247-arc artifact. M-A remains OPEN; R39/R40 remain UNVERIFIED; no thesis percentage or claim status changes.
+
 ## LEAD v451 — Reconcile monolith seed counts as directed graph data (2026-10-21)
 
 - Added a source-only reconstruction of the current hard-coded ingredient seeder. It reproduces **25 canonical source records** and **59 directed substitution statements**; keeping unmatched alternatives as literal targets gives 79 typed vertices, five resolved target statements (one alias-only), 54 literal targets, in/out sums 59/59, total degree 118, and maximum total degree 4. The 25 figure is a source-record count, not the total vertex count in this interpretation.

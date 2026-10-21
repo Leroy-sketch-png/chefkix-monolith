@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "observed_date": "2026-10-21",
+  "question": "Did preserved strategy archives or available local Git history contain the original Round-0 graph report or raw measurement artifacts?",
+  "result": "NOT_FOUND_WITHIN_SCOPED_LOCAL_SEARCH",
+  "search_scope": {
+    "workspace": "D:/code/chefkix",
+    "reference_files": [
+      {"path": "IRON_CHEF_MASTER_VISION_STRATEGY_v4.2.md", "sha256": "8a234fa22936cf055875b9394793983f511d008a3378585fc64732e060feb52f", "finding": "Attributed counts 25/59/max-degree-4 and 195600/4591 to Round 0; explicitly labels these unverified. No source report is embedded."},
+      {"path": "archive/academic-strategy/academic_vision_and_strategy.pre-self-contained.20261009_163952.md", "sha256": "6426e525b462e1109e6169120f83ed175010fdad7a565ab5578ea2f92b540b08", "finding": "Restates historical counts as requiring reconstruction; contains no raw report or measurement table."},
+      {"path": "academic_vision_and_strategy.md", "sha256": "591ae293d0fbefb9f64a3e9b24162df34baffc9ea11eb6529675417acf58e5a", "finding": "Quarantines R0 and records later source-only interpretation separately; no original R0 measurement artifact."}
+    ],
+    "text_search": {
+      "patterns": ["4,591", "Round 0 reported"],
+      "file_globs": ["*.md", "*.json", "*.csv", "*.txt", "*.java", "*.py"],
+      "excluded": [".git", "node_modules", ".venv", "target"],
+      "4,591_matches": ["academic_vision_and_strategy.md", "IRON_CHEF_MASTER_VISION_STRATEGY_v4.2.md", "archive/academic-strategy/academic_vision_and_strategy.pre-self-contained.20261009_163952.md", "SCOPE.md", "SESSION.md"],
+      "Round_0_reported_matches": ["IRON_CHEF_MASTER_VISION_STRATEGY_v4.2.md"]
+    },
+    "git_history": {"searched": "Available local refs via git log --all --name-only", "repo_was_shallow": false, "raw_report_path_found": false, "remote_refs": "No research remote is configured; remote history was not searched."}
+  },
+  "interpretation": [
+    "The v4.2 reference and archived strategy are assertion/provenance sources, not independent measurements.",
+    "The current monolith seeder parse is a possible mixed-unit interpretation of 25/59/max-degree-4, not reproduction of the Round-0 artifact or method.",
+    "The 195600/4591 claim remains unreconciled with the separately inspected 195600-row/7247-arc HGAT artifact."
+  ],
+  "disposition": {"M_A": "OPEN", "R39": "UNVERIFIED", "R40": "UNVERIFIED", "thesis_percentage_changed": false, "claims_promoted": false},
+  "limitations": ["This bounded search cannot prove an artifact never existed or exclude unsearched ignored/hidden content, external sources, or unavailable remote history.", "No runtime graph lineage, artifact production, or model quality is established."]
+}

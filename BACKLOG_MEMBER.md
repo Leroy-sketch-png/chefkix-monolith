@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v452 preserved Round-0 evidence search (2026-10-21)
+
+The v4.2 and preserved pre-migration strategy documents contain attributed Round-0 assertions, not the source report or raw measurements. A bounded local text/history search found no underlying report path; its scope excludes unavailable remote history and unsearched ignored/hidden content. The result does not change acceptance: M-A stays OPEN and R39/R40 stay UNVERIFIED. See `evidence/lead-ma-round0-preserved-source-search-20261021.json`.
+
 ### M-A / LEAD v451 source-seed directed-graph reconstruction (2026-10-21)
 
 The current monolith seeder statically parses to 25 canonical ingredient source records and 59 directed substitution statements. With exact unique canonical/alias resolution and unmatched targets retained as literal vertices, the interpreted graph has 79 vertices, 59 arcs, and max total degree 4; in/out sums are 59/59. Seven parser/graph fixtures pass 7/7 three consecutive runs. This partially reconciles source numbers, not the original Round-0 artifact/definitions or runtime lineage. **M-A remains OPEN; R39/R40 remain UNVERIFIED.** Report/test hashes and limits: `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`.
