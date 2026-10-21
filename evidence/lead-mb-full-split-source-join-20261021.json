@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "record_id": "lead-mb-full-split-source-join-20261021",
+  "observed_date": "2026-10-21",
+  "state": "LOCAL_FULL_SPLIT_JOIN_AND_IDENTITY_AUDIT_PASS",
+  "scope": "Hash-pinned local raw CSV to released GISMo pickle joins and split identity partitions; no inference or quality evaluation.",
+  "source": {
+    "repository": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "43d4a2f293789a51f722df3d6b8c85fc10e50376",
+    "audit_tool": "ai/tools/audit_senath_full_split_identity.py",
+    "audit_tool_sha256": "dd692e077ad5eea44c2749641f8b1dcc66a3491707efe98e34c71976f2bceba9",
+    "gismo_source": "personal/projects/chefkix/lead_recipe1msubs/kaggle_gismo_repro/gismo_checkpoint_repro.py",
+    "gismo_source_sha256": "daaf7f5a2127fa813e6270ea6ded3d82f0e965ab2d4ae45ca56d8aaa782143a6"
+  },
+  "inputs": {
+    "raw_csv_sha256": {
+      "train_comments_subs_with_titles.csv": "65d143c3bacd21555e5f16abdddd961585fce7dcbfdabfcbad0c5ccf8d60557c",
+      "val_comments_subs_with_titles.csv": "002588cb1d7db2d1644cb16079542df641c0ace4807490be380e150973796a0b",
+      "test_comments_subs_with_titles.csv": "7d239b405ef71a4dea3513afe2a22b11b9e0e15256428b40896a31cae0ddd2a6"
+    },
+    "gismo_assets_sha256": {
+      "best_model.chkpnt": "b366654a952ee4fef5e7d72b5e68fb7d86c85d38a7a0325d4073059a195bc95e",
+      "edges_191120.csv": "af2c2324f34fc44493ecf2711787a50f16cc8c61c474dfae64194517a3f51399",
+      "nodes_191120.csv": "ea59d1858ae3a41de14aeabda32e6274693ea7897eb6ae1a3b7262bac5526d5a",
+      "test_comments_subs.pkl": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174",
+      "train_comments_subs.pkl": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+      "val_comments_subs.pkl": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+      "vocab_ingrs.pkl": "ad8c62dee7d1314be6e173c3f3bbde473c2c79352bd6e3ccf656a6ac9a488ed4"
+    }
+  },
+  "results": {
+    "train": {"csv_pickle_join": "PASS", "rows": 49044, "unique_graph_pairs": 23185, "unique_senath_normalized_pairs": 23421},
+    "validation": {"rows": 10729, "gismo_graph_pair_identity": {"seen": 6827, "unseen": 3902}, "senath_normalized_pair_sensitivity": {"seen": 6771, "unseen": 3958}},
+    "test": {"rows": 10747, "gismo_graph_pair_identity": {"seen": 6932, "unseen": 3815}, "senath_normalized_pair_sensitivity": {"seen": 6866, "unseen": 3881}}
+  },
+  "outputs": {
+    "manifest_sha256": "a5d1fafa4b6f0078330693a433487f69f66eb771de7804699caeed5101036bca",
+    "manifest_path_in_research_checkout": "ai/out/lead-mb-full-split-join-rerun-20261021/result/manifest.json",
+    "cases_val_sha256": "db33e7675522da93247dfab29a9388ed50b1be7eb23043a0c050cea58878c70c",
+    "cases_test_sha256": "60448a9fe5447ac91683fa5ee17e57998bdd38b43a5132cf7f3c65fdc8355231",
+    "identity_map_sha256": "b0fd6ac10e17edbaa73686e1c3bc03539b42b08406f178e101d2718756f062f0",
+    "labels_val_sha256": "632ece6d2894883f5fa96d33ad7b18d102ce32d8320ca232de3d1584d5bb01a0",
+    "labels_test_sha256": "acae3f5c0ef774030d2f7c92e72509ddd51513d795f48b019f43700863f836f1",
+    "strata_counts_sha256": "d6d67c97bb2974311577d7db2ac2f9dbefb5aa5b41cedb4f56cf33464001136"
+  },
+  "limitations": [
+    "The exact pinned raw test CSV was found outside the previously designated clean-room directory; the earlier scoped observation that it was absent from that directory remains historically accurate.",
+    "A first local invocation failed closed because nodes_191120.csv was missing from its assembled asset folder; no result was written by that invocation. The passing audit followed after assembling all seven exact-hash assets.",
+    "No release-rights determination, evidence-coverage adjudication, blinded human fixture, or human labels were produced.",
+    "No candidate-pool regeneration, inference, scoring, model-quality conclusion, or acceptance of M-B/R04/R05 was performed."
+  ],
+  "disposition": "This resolves the scoped raw-source/full-split join and identity-partition evidence gap. M-B remains OPEN; R04/R05 remain UNVERIFIED pending provenance and claim review."
+}

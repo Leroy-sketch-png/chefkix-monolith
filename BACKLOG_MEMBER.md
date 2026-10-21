@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-B / LEAD v459 complete raw-split join and identity-frame rerun (2026-10-21)
+
+The exact pinned test CSV was found outside the previously designated clean-room directory, and all pinned GISMo assets were assembled and verified. Full train/validation/test CSV↔pickle joins pass; validation/test identity counts are 10,729/10,747 with GISMo-primary and Senath-normalized strata recorded separately. The machine receipt `evidence/lead-mb-full-split-source-join-20261021.json` binds inputs, outputs, hashes, and limitations. This resolves the scoped join gap only: M-B acceptance and R04/R05 remain open/unverified; no rights, human-label, independent-evaluation, or model-quality claim is made.
+
 ### L45 / LEAD v458 Chapter 3 provenance-bound update (2026-10-21)
 
 Research `master` commit `43d4a2f` updates the internal Chapter 3 draft with the direct edge-count derivation and candidate legacy producer trace, preserving missing producer/output binding, random-feature fallback, and no-runtime/no-quality boundaries. Chapter SHA-256 `49db7b05a497d1f1f391907a99b975fe9b04e957708817a37a14c372115c5be2`. This is local-only, advisor-unreviewed draft progress; the research checkout has no remote and L45 remains open.

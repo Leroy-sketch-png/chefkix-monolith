@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v459 — Re-run complete pinned split joins and resolve the local test-source gap (2026-10-21)
+
+- The full-split audit now finds the exact pinned test CSV in the local archive outside the designated clean-room folder; all seven required GISMo assets were assembled and hash-checked. After an initial fail-closed attempt stopped on the missing node table without writing outputs, the audit passed train CSV↔pickle joins (49,044 rows), and validation/test joins and identity partitions (10,729/10,747 rows). GISMo graph-pair identity and Senath-normalized sensitivity remain separate.
+- Result manifest SHA-256 `a5d1fafa4b6f0078330693a433487f69f66eb771de7804699caeed5101036bca`; case, identity-map, label-hash, and strata-hash evidence is bound in `evidence/lead-mb-full-split-source-join-20261021.json`. No raw datasets or label contents are included in this receipt.
+- This closes only the scoped local join/identity-frame subdeliverable. The prior statement that the test CSV was absent from the designated clean-room directory remains true; it was available elsewhere locally. Rights, blinded human-label, evidence-coverage, independent evaluation, and model-quality questions remain open. **M-B remains OPEN; R04/R05 remain UNVERIFIED.**
+
 ## LEAD v458 — Integrate new M-A provenance evidence into Chapter 3 draft (2026-10-21)
 
 - Research `master` commit `43d4a2f293789a51f722df3d6b8c85fc10e50376` updates `research/chapters/03-data-and-graph-provenance.md` (SHA-256 `49db7b05a497d1f1f391907a99b975fe9b04e957708817a37a14c372115c5be2`). The internal v0.1 draft now separates directed arc entries, unique unordered pairs, and the provisional 4,591 convention match; it also records the candidate legacy extractor, missing local production inputs/output binding, random-feature fallback, and retirement guard.
