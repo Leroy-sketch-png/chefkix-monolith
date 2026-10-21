@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v507 — Correct final T38 answer-sheet pin in L46 receipt (2026-10-21)
+
+- T38's final local source-bound answer sheet is SHA-256 `0d5fb966e720e161bfac8eab5f8e866360d92548aef293e6a15c12cfc89fb99a`; its final paragraph now notes that LEAD v506 mirrors the reviewed T46 addendum as a summary while the full sheet remains local. The answer content and evidence boundary are unchanged.
+- Updated shared receipt: `evidence/lead-l46-r07-provenance-answer-20261021.md`; SHA-256 `3cbb7bba0becf0f57857d5b21867b68f251e2a188094ec86bd569dad25c582ac`.
+- **Boundary:** hash/reference correction only. No L46 completion, rehearsal, R07 verification, claim promotion, Member status, or thesis-progress percentage change.
+
 ## LEAD v506 — Add reviewed R07 provenance answer to L46 preparation (2026-10-21)
 
 - T46 added a source-bound examiner answer to the existing T38 preparation sheet, now seven answers (research-worktree SHA-256 `a8e206b1e884b899f42c56a3e62b5760fe2e5b8961f16720e1a9cf52d0b9e6d1`). Independent review `1b52cfe8018e1b4e5d57636ba15948b455c17cec6e6f12ecf38dc6304b4468f6` accepted it after clarifying that exact source bytes plus immutable run identity are minimum crosswalk prerequisites, not sufficient for R07 verification.
