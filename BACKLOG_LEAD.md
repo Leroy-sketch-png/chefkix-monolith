@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v445 — Prevent manifests from weakening error-stop guardrails (2026-10-21)
+
+- A policy sweep found that callers could raise the prototype's API-error and judge-invalid thresholds up to 100%, silently disabling intended stops. Validation now caps them at 5% and 2%; lower thresholds remain allowed. Added exact-boundary tests proving `>` semantics at 5%/2% and refusal for a weakened threshold.
+- The focused suite passes **27/27 twice consecutively**. Commit and source/test hashes are in `evidence/lead-mi-stop-threshold-contract-20261021.json`.
+- **M-I remains OPEN**; the implementation is local-only and cooperative usage monitoring is not a provider hard cap. No external API or research run occurred.
+
 ## LEAD v444 — Reject ambiguous job-manifest encodings (2026-10-21)
 
 - A third-pass parser audit found two fail-open edges: Python accepts duplicate JSON keys with last-value-wins semantics, and `true == 1` could satisfy the schema-version check. The runner now rejects duplicate keys/non-standard numeric constants and requires an actual integer schema version. Usage-journal polling was also made incremental to avoid rereading the full log on each monitor interval.

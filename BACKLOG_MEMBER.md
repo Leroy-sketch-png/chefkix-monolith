@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v445 enforced stop-policy ceilings (2026-10-21)
+
+The runner now refuses any manifest that weakens the strategy's 5% API-error or 2% invalid-output maximum stop thresholds; exact-threshold fixtures confirm strict `>` behavior. The 27-test suite passes twice consecutively. M-I remains open; usage remains child-reported/cooperative, the runner has no OS sandbox, and the implementation is still local to a research checkout without a remote. Receipt: `evidence/lead-mi-stop-threshold-contract-20261021.json`.
+
 ### M-I / LEAD v444 strict manifest parsing (2026-10-21)
 
 Third-pass parser review removed last-value-wins duplicate JSON keys and Python's `true == 1` schema-version ambiguity; the usage monitor now reads appended journal bytes rather than rescanning the full file every 50 ms. The 24-test suite passed twice consecutively. M-I remains open: local-only implementation, provider-hard budgeting, sandboxing, full recovery/platform coverage and independent review remain outstanding. Receipt: `evidence/lead-mi-strict-manifest-parse-20261021.json`.
