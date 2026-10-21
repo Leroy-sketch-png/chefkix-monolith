@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v492 — Record bounded R26 provenance review and unresolved bindings (2026-10-21)
+
+- Research-local independent T24 reviewed dated R26 artifacts without Kaggle/network, labels, inference, GPU, or opening checkpoint contents. It passed narrowly on local hash inventories: Segment-9 checkpoint 12/12 and retained-best 8/8; Segment-7 checkpoint 12/12 and retained-best 8/8; trainer-state metadata records global steps 561/444 and the observed evaluation entries. Report SHA-256 `c9c95e2d13c72089e2c8745e3b78595cb16257347616270184abca832ad91e36` is in the local research campaign worktree.
+- Full dated provenance remains **INCOMPLETE**: the task-pinned R26 note hash `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52` differs from current note bytes `134a2b33e5cc7a31127e052837d497042b89a5010310814a7e5840575f0d542c`; the expected Segment-9 receipt is absent at the task-pinned v99 path (an older note identifies a separate local receipt path, which T24 did not substitute/revalidate); and the launch receipt's `script_sha256` (`0b553…`) is not bound by the reviewed material to the manifest's `kernel_script_sha256` (`3568e…`). Treat these as unresolved provenance gaps, not evidence of tampering.
+- **Boundary:** no R26 register application or status change. The research v9 register remains five narrowly VERIFIED / 40 UNVERIFIED; strict C1–C5 remains 0/5, and M-G/L48 remain OPEN. Hash inventories/trainer metadata are not a fresh remote observation, training reproduction, inference, scoring, quality, or Stage-3 completion. Detailed report and campaign reconciliation are local-only because the research checkout has no remote.
+
 ## LEAD v491 — Preserve the R14 test-label eligibility gate (2026-10-21)
 
 - A read-only campaign audit confirmed the existing local R14 coverage report (`ai/out/senath-foodb-coverage-20261020-v1/coverage.json`, SHA-256 `f086fa3e195b85924475a1484536adf281719dd47886e60ea113611aaceb9a4d`) matches the dated SSoT reference. Its producer (`audit_senath_foodb_split_coverage.py`, SHA-256 `cbe67015ab68ae52cb9a1d6953a92debb4945900210f2267815de57af864c80c`) reads the local-only test-label file to obtain target endpoints.

@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-G/L48 / LEAD v492 R26 provenance review boundary
+
+Independent T24 passed narrowly for local Segment-9/Segment-7 checkpoint and retained-best hash inventories plus trainer-state metadata, but found the dated provenance package incomplete: the pinned R26 note hash differs from current bytes, the expected Segment-9 receipt is absent at the task-pinned v99 path (a separate receipt path was not substituted or revalidated), and the launch-receipt/manifest script hashes are not bound by an inspected schema. R26 stays UNVERIFIED; no register application, inference, quality, or Stage-3 completion claim follows. Detailed report is local-only in the research campaign; see LEAD v492.
+
 ### M-G/L48 / LEAD v491 R14 eligibility gate (2026-10-21)
 
 The existing local both-endpoint coverage report is hash-pinned, but its producer reads test-label target endpoints. No test-label rows were reopened and no fresh reproduction/register application occurred; R14 remains UNVERIFIED pending the explicit gate and independent review. This is eligibility triage only, not a new result or C1–C5 progress. See LEAD v491.
