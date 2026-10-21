@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v447 explicit validation-only preflight (2026-10-21)
+
+Added a no-side-effect preflight mode so manifests can be checked before a run: it verifies the script/data identities, parameter-derived idempotency, environment requirements, limits, and freeze record but neither launches nor creates a ledger/output folder. Thirty-one tests pass three consecutive runs. M-I remains open because the implementation is local-only, usage accounting is cooperative, execution is unsandboxed, and broader review/platform work remains. Receipt: `evidence/lead-mi-runner-preflight-mode-20261021.json`.
+
 ### M-I / LEAD v446 child environment isolation (2026-10-21)
 
 The runner no longer forwards every parent environment variable to arbitrary child jobs. A small OS baseline is combined only with manifest-declared, required variable names; names are included in the execution identity and receipt, values are not. The 29-test suite passes three consecutive runs, including an explicit secret-noninheritance fixture. Allowlisted secrets are still available to the child and this is not a sandbox; no credentialed job was run. M-I remains open and the source repository has no remote. Receipt: `evidence/lead-mi-child-environment-isolation-20261021.json`.

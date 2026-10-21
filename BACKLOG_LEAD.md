@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v447 — Add explicit no-side-effect M-I preflight (2026-10-21)
+
+- The §13.1 contract expects review before a run; previously validation occurred only inside the launch path. Added `--validate-only`, returning the validated identities, limits, freeze-record status, and destination without reserving idempotency or creating outputs. It refuses the same invalid hashes as execution mode.
+- The **31-test** suite passes three consecutive runs; CLI help, syntax, and diff checks pass. Machine receipt: `evidence/lead-mi-runner-preflight-mode-20261021.json`.
+- **M-I remains OPEN:** local-only source, no real job, no provider hard cap or OS sandbox, and independent review/platform recovery work remain.
+
 ## LEAD v446 — Isolate research child environment variables (2026-10-21)
 
 - A credential-flow AoE sweep found the prototype inherited every parent environment variable. It now passes only a small OS baseline and manifest-allowlisted names; those names join the idempotency identity and receipt, but values are not recorded. Unset required names fail preflight. Regression fixture proves an unlisted variable does not reach the child.
