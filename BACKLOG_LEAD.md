@@ -1,4 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v448 — Fail closed on missing cases and unresolved diagnostics (2026-10-21)
+
+- The active §13 stop conditions include missing cases and unresolved diagnostics. The runner now requires a standard `job_diagnostics.json` report and blocks on a missing/malformed report, incomplete state, positive missing-case count, or positive unresolved-diagnostic count. Added the operator contract for preflight, manifest identity, environment handling, the cooperative usage journal, diagnostics report, and evidence boundaries.
+- The **35-test** suite passes three consecutive runs, including failure fixtures for each diagnostics path. Receipt: `evidence/lead-mi-diagnostics-completion-contract-20261021.json`.
+- Evidence ceiling: these counts are child-reported and are not independently audited; the report interface alone does not establish coverage. **M-I remains OPEN**; research source has no remote, no real API job ran, and provider hard limits, OS sandboxing, independent review, and broader platform/recovery checks remain.
+
 ## LEAD v447 — Add explicit no-side-effect M-I preflight (2026-10-21)
 
 - The §13.1 contract expects review before a run; previously validation occurred only inside the launch path. Added `--validate-only`, returning the validated identities, limits, freeze-record status, and destination without reserving idempotency or creating outputs. It refuses the same invalid hashes as execution mode.

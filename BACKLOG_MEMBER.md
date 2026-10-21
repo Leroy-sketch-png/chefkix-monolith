@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-I / LEAD v448 missing-case and diagnostic stops (2026-10-21)
+
+Jobs must now emit a standard `job_diagnostics.json`; missing/malformed/incomplete reports, missing cases, and unresolved diagnostics fail closed. The runner contract documents the schema and operator sequence, and 35 fixtures pass three consecutive runs. Counts are child-reported and not independently audited. M-I remains open: the runner is local-only, unsandboxed, has no provider hard cap, and needs independent/platform/recovery review. Receipt: `evidence/lead-mi-diagnostics-completion-contract-20261021.json`.
+
 ### M-I / LEAD v447 explicit validation-only preflight (2026-10-21)
 
 Added a no-side-effect preflight mode so manifests can be checked before a run: it verifies the script/data identities, parameter-derived idempotency, environment requirements, limits, and freeze record but neither launches nor creates a ledger/output folder. Thirty-one tests pass three consecutive runs. M-I remains open because the implementation is local-only, usage accounting is cooperative, execution is unsandboxed, and broader review/platform work remains. Receipt: `evidence/lead-mi-runner-preflight-mode-20261021.json`.
