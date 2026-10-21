@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### L48 / LEAD v478 mapping-only register overlay
+
+LEAD v221/v241 had explicit bounded mappings for 14 rows that were left unresolved by the fresh v3 register builder. A hash-bound overlay applies those existing mappings to the v4 derivative, changing only the 14 named `L_item_mapping` cells; statuses and all evidence fields are preserved. Receipt SHA-256 `5f9c1f5912fbb9dd10b073b1bd4045b782556d73c388ff8a31e94b0a9e13f59c`; v4 register SHA-256 `8b9e652d4b2ed8254c6c24b192f2bc0c66cacb7ab97c55d29e35ee361347d9f7`. This corrects v477's wording: the gap was in v3's overlay, not the historical Lead crosswalk. R18 remains a narrow partition result only; 44 claims remain UNVERIFIED. L48/M-G and package acceptance remain open. Research artifacts are local-only because that checkout has no remote.
+
 ### L48 / LEAD v477 bounded R18 reproduction (2026-10-21)
 
 The pinned OFF snapshot's tag-count maps were independently recounted and matched, then partitioned against the preserved later taxonomy with 8/8 semantic mutation checks. Research-local report SHA-256 `0055df06e2af4299b64ef882de79cf14d6e4d7eae32dbec719d5e605c52aec32`; v3 register SHA-256 `6153d70c6ca522292bec037c0aa2616c203790ad1c94b08a34ac3d2092d1c574`. This supports only R18's named deterministic partition, not allergen safety or L20/L39/C3 acceptance. R18 maps to the L20 subdeliverable; L48 reconciliation continues, 44 claims remain UNVERIFIED and 14 mappings remain unresolved. Research artifacts remain local-only because that checkout has no remote.

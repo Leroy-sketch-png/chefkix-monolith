@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v478 — Carry existing L48 mappings into the current register derivative (2026-10-21)
+
+- **Correction to LEAD v477:** the 14 rows described there as unresolved were unresolved in the fresh v3 register overlay, not absent from the backlog history. LEAD v221/v241 already contained bounded mappings for R01–R03, R06–R14, and R19–R20. The new mapping-only overlay carries those existing dispositions into the current register; it does not invent new owners.
+- Research-local source extract: `ai/evidence/claims-register/instantiated-r01-r45-v1/l48-mapping-source-extract-20261021.md` (SHA-256 `7531f53603e70bcc04e9d6c8c19a1f441741666f78f75a3142e71e82fd1aa712`), tied to monolith `BACKLOG_LEAD.md` at commit `d90736682186f71ffeffbf6d994adf4ba484c520` (full file SHA-256 `f551c9c732134e06e7b342eedce4b65aaf31269c52ac923e72e1f12df55092d6`). Overlay receipt SHA-256 `5f9c1f5912fbb9dd10b073b1bd4045b782556d73c388ff8a31e94b0a9e13f59c`; output v4 register SHA-256 `8b9e652d4b2ed8254c6c24b192f2bc0c66cacb7ab97c55d29e35ee361347d9f7`.
+- The fail-closed mapping tool confirms exactly those 14 `L_item_mapping` cells changed from v3; every other cell, including all statuses, outcomes, evidence and reproduction fields, remained identical. The full validator reports 45 ordered rows and intact local pins; v4 contains 1 scoped VERIFIED (R18) and 44 UNVERIFIED. This closes a register-mapping field gap, not L48, M-G, any package acceptance, C3, or thesis progress. The research checkout has no remote, so the derivative and source extract remain local-only; no scientific status is inferred from mapping coverage.
+
 ## LEAD v477 — Reproduce the bounded OFF taxonomy partition for R18 (2026-10-21)
 
 - Recounted allergen/trace tags row-by-row from the pinned 351,351-row derived snapshot and matched both manifest maps exactly; rebuilt the partition against the preserved later taxonomy and passed 8/8 semantic mutation checks. The frozen snapshot has 3,377 distinct union tags / 767,780 occurrences: 23 exact positives / 760,877; `en:none` / 564; 17 review-only alias candidates / 32; and 3,336 unrecognized / 6,307. Unknown values are not negatives, and the snapshot/taxonomy dates differ.
