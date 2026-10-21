@@ -1,4 +1,8 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
+### M-A / LEAD v451 source-seed directed-graph reconstruction (2026-10-21)
+
+The current monolith seeder statically parses to 25 canonical ingredient source records and 59 directed substitution statements. With exact unique canonical/alias resolution and unmatched targets retained as literal vertices, the interpreted graph has 79 vertices, 59 arcs, and max total degree 4; in/out sums are 59/59. Seven parser/graph fixtures pass 7/7 three consecutive runs. This partially reconciles source numbers, not the original Round-0 artifact/definitions or runtime lineage. **M-A remains OPEN; R39/R40 remain UNVERIFIED.** Report/test hashes and limits: `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`.
+
 ### M-G / LEAD v450 fail-closed claims-register validator (2026-10-21)
 
 Added the missing structural/local-byte claims-register validator in the research checkout. Its 21 tests and compile check pass; it rejects the migration seed's checklist-only provenance with no success summary. This is a validator/tooling increment only: no register was instantiated, no claim verified, and no scoreboard generated. M-G and L48 remain open; the research commit is local-only because that checkout has no remote. Receipt: `evidence/lead-mg-validator-implementation-20261021.json`.

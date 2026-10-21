@@ -1,4 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
+## LEAD v451 — Reconcile monolith seed counts as directed graph data (2026-10-21)
+
+- Added a source-only reconstruction of the current hard-coded ingredient seeder. It reproduces **25 canonical source records** and **59 directed substitution statements**; keeping unmatched alternatives as literal targets gives 79 typed vertices, five resolved target statements (one alias-only), 54 literal targets, in/out sums 59/59, total degree 118, and maximum total degree 4. The 25 figure is a source-record count, not the total vertex count in this interpretation.
+- A seven-fixture parser/graph suite passed **7/7 three consecutive times**; Python compilation and `verify-agent-os.ps1 -Quiet` passed. The active strategy's undirected contradiction is now explicitly conditional; this offers a plausible mixed-unit explanation, not reconstruction of the original Round-0 method.
+- Evidence boundary: the report is a static parse of current monolith source and does not show that the seeder ran, that these bytes produced the 92-record runtime, or that the graph is loaded by the AI service/HGAT. Original Round-0 artifact/definitions remain unavailable; **M-A remains OPEN and R39/R40 remain UNVERIFIED**. Research commit `65a61a8c964dbda1fd27400bf985405602a7609d` is local-only; no research remote is configured.
+- Receipt: `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`. Node CSV and report remain in the research checkout at `ai/evidence/lead-ma-seed-graph-source-reconstruction-v2-20261021/`.
+
 ## LEAD v450 — Add fail-closed claims-register validator (2026-10-21)
 
 - Implemented the missing M-G structural/local-byte validator in the research checkout (`ai/tools/validate_claims_register.py`) with 21 passing tests and a successful compile check. It enforces the exact register schema/IDs, complete rows, provenance constraints, repository-relative byte hashes, and evidence requirements for a `VERIFIED` row; it deliberately does not establish whether any research claim is true.
