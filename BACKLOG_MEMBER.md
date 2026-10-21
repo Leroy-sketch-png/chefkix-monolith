@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-A/L45 — Chapter 11 exhibit-map integration (2026-10-21)
+
+Research commit `c00e283fe4f1693d4380b208b76658445190ad9c` adds a three-way exhibit map for the Senath validation diagnostic, v26 benchmark rejection, and unverified graph Explorer; it also clarifies the runtime-check prerequisite. Chapter SHA-256 `5927023c71358c57410ce1f785736e83b49055585bef7e0449567594120730d5`. Receipt SHA-256 `aca8ddd4ec03a79c12c52febfd1562c37b206142f06ce0692e9813e9690e0a18` is mirrored under `evidence/`. This is internal presentation organization, not advisor acceptance, a product demo, protocol validation, or a status/percentage change. L45 and M-A remain OPEN; no research checkout remote is configured.
+
 ### M-A/L45 — Chapter 3 source-only seed-graph interpretation (2026-10-21)
 
 Research commit `11ca5d58238319eb002bba7034a9bcf34f7de23a` integrates the current pinned seed-source interpretation into the Chapter 3 draft without calling it historical R0 reproduction: 25 canonical records, 59 embedded directed statements, and a typed interpretation of 79 vertices / 59 arcs. Receipt SHA-256 `3ddd1a045e865ef360e9df252b802f714cbe7786b24f32c17c36bc6b44091f1d` is mirrored under `evidence/`. This does not show the seeder ran, the output persisted, or the AI service loaded it; the historical input snapshot and metric definitions remain unavailable. R39/R40 stay UNVERIFIED; M-A/L45 stay OPEN; no claim or thesis status changes. Research detail remains in the local-only research checkout.

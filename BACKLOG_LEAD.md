@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v496 — Integrate the Chapter 11 evidence exhibit map (2026-10-21)
+
+- Research `master` commit `c00e283fe4f1693d4380b208b76658445190ad9c` updates Chapter 11 to distinguish three available exhibits: the Senath 200-case validation diagnostic, the v26 selective-evaluation rejection, and the graph Explorer, which remains unverified. Chapter SHA-256 `5927023c71358c57410ce1f785736e83b49055585bef7e0449567594120730d5`.
+- The receipt (SHA-256 `aca8ddd4ec03a79c12c52febfd1562c37b206142f06ce0692e9813e9690e0a18`) is mirrored under `evidence/`. The Senath output remains ignored/local-only; static rendering is not human, accessibility, or physical-device validation. The v26 exhibit is a frozen `REJECT` result, not a product demo. Graph Explorer has no verified product-facing exhibit.
+- **Boundary:** this is an internal manuscript-organization improvement. L45, M-A, claim statuses, acceptance gates, and completion estimates are unchanged; no model, protocol, runtime, or product-quality claim is promoted. The research checkout remains local-only with no configured remote.
+
 ## LEAD v495 — Record bounded current seed-graph interpretation in L45 draft (2026-10-21)
 
 - Research commit `11ca5d58238319eb002bba7034a9bcf34f7de23a` integrates an explicitly source-only interpretation into Chapter 3: the pinned seeder source contains 25 canonical records and 59 directed statements; the parser interprets these as 79 typed vertices and 59 arcs (5 canonical, 1 unique-alias, 54 literal ambiguous/unmatched targets). This is not a reproduction of the historical R0 graph or evidence that the seeder/runtime artifact path executed.
