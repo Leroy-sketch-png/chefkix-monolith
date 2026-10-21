@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v487 — Reject symlinked M-I reservation ledger paths (2026-10-21)
+
+- The research-local runner now fails closed if any lexical component of the idempotency ledger is a symlink, checks the strict resolved ledger directory remains within the selected root after creation, rejects a symlinked reservation file, and performs the unsafe-path check before duplicate-key probing. Research commit `65bb7bc` contains the source, regression tests, contract and T17 receipt; research checkout has no remote, so detailed artifacts remain local-only.
+- T17 adds execution and direct-reservation regressions for symlinks at `ai`, `ai/out`, and `ai/out/.research-job-ledger`. Final suite: 45/45 pass on Ubuntu WSL/Linux; Windows: 45 tests, 41 pass and four symlink cases skip because the account lacks symlink privilege. A malformed timeout-test fixture discovered during final review was corrected; its earlier failures and diagnosis are retained in the T17 receipt.
+- **Boundary:** this check mitigates pre-existing symlink redirection; it is not race-free hostile-filesystem containment or an OS sandbox. Freeze-protocol binding, provider-side spend enforcement, fuller failure receipts, forced-crash recovery and independent closure remain open. M-I/L44 remain OPEN; C1–C5 remain 0/5 accepted. No real job, API, GPU, paid service, or credential was used.
+
 ## LEAD v486 — Verify M-I runner regression suite on Windows and Ubuntu WSL (2026-10-21)
 
 - The current research-local runner suite passes 43/43 on native Windows (Python 3.12; 20.812 s) and 43/43 on Ubuntu WSL2/Linux (Python 3.12.3; final repeat 10.820 s). The suite includes timeout, operator-interrupt, and unexpected-runner-error cleanup tests on both OS process-tree branches, alongside reservation/receipt regressions. Research source commit `6ea0464a5cb8c3d67b8c939a0343e914091e6871`; report and machine receipt are at `ai/evidence/member-backlog/mi-runner-cross-platform-20261021.md` / `.json` in that checkout.

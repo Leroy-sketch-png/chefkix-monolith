@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-I / LEAD v487 narrow symlink-path containment (2026-10-21)
+
+Research-local T17 hardens the idempotency reservation ledger against pre-existing symlink redirection: it rejects symlink path components, verifies the created ledger directory resolves under the selected root, rejects a symlinked reservation filename, and checks unsafe paths before duplicate-key probing. The 45-test suite passes on Ubuntu WSL/Linux; Windows runs 45 with four symlink tests skipped because symlink privilege is unavailable. Research commit `65bb7bc`; detailed note and JSON are local-only at `ai/evidence/member-backlog/mi-ledger-path-containment-20261021.md` / `.json` because the research checkout has no remote. Final AoE review also repaired a malformed timeout fixture and preserved the failed-run diagnosis. This is not race-free containment or a sandbox. Freeze binding, provider hard caps, complete failure provenance and forced-crash recovery remain open; M-I stays OPEN, with no external job or service run.
+
 ### M-I / LEAD v486 cross-platform local regression (2026-10-21)
 
 The runner's existing 43-test suite passes on native Windows and Ubuntu WSL/Linux, covering timeout, operator-interrupt, and unexpected-error process-tree cleanup paths on both platforms. A first WSL run exposed test-harness coupling from patching the shared `time.sleep`; the runner/test now isolate the polling hook, and the failure/correction is retained in the T15 receipt. Research source commit `6ea0464a5cb8c3d67b8c939a0343e914091e6871`; detailed note and JSON receipt are local-only at `ai/evidence/member-backlog/mi-runner-cross-platform-20261021.md` / `.json`. This is two-environment regression evidence only—not independent review, general platform certification, sandboxing, provider cap, or forced-crash recovery. M-I remains OPEN; no real job or external service ran.
