@@ -1,0 +1,45 @@
+{
+  "state": "LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK",
+  "lead_item": "M-D",
+  "lead_version": 467,
+  "research_branch": "master",
+  "research_commits": [
+    "f0282c460e2c8d57444c119d481932f4b0f302ca",
+    "130aa3c591a828cfa4f0d0c68b6d7570ab6602f8",
+    "2023dc30239d43c868bef62a640fa807ab931093"
+  ],
+  "research_remote": null,
+  "packager": {
+    "path": "ai/tools/package_senath_arm_outputs.py",
+    "sha256": "551c19a5a3f075a2b24dc2932265bfe69422b0d1a54f8c8ea9b717cebd4f4c6f",
+    "test_path": "ai/tools/test_package_senath_arm_outputs.py",
+    "test_sha256": "ea43fda10c7519bd69293cfbecbf0cc627906240e3e655a1cc06bf58514528d2"
+  },
+  "verification": {
+    "command": "py -3 -m pytest -q ai/tools/test_build_senath_source_only_pools.py ai/tools/test_verify_senath_source_only_pools.py ai/tools/test_materialize_senath_gismo_top20.py ai/tools/test_materialize_senath_lookup_top20.py ai/tools/test_package_senath_arm_outputs.py",
+    "passed": 33,
+    "independent_package_replay_byte_identical": true,
+    "cross_arm_identity_checked": true,
+    "target_labels_read": false,
+    "evaluation_or_method_selection": false
+  },
+  "package": {
+    "local_path": "ai/out/senath-m-d-arm-outputs-v1",
+    "state": "LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK",
+    "manifest_sha256": "605c863d1cdefcc2190cd247d6cb2ff1fdaedd0b239ff45062c54b35b0b5f4a7",
+    "case_counts": {"val": 10729, "test": 10747},
+    "candidates_per_case_per_arm": 20,
+    "outputs": {
+      "arm_outputs/gismo_val.jsonl": "f02112f72a601d62e120493457abca514de434182c849655e83a92e15e808489",
+      "arm_outputs/gismo_test.jsonl": "7725170f37a3f51493caf2dc63165d3a252529bf26ac5b23ee1b1a20a24b0b4d",
+      "arm_outputs/lookup_val.jsonl": "8f351df7c5c6b88c86713e3c391e6267edb01f137789d64ae6f79a192755d536",
+      "arm_outputs/lookup_test.jsonl": "c7769063bdd97dd93b2b9a41b2b2a7082f6ab06fa1cb6ecaf355ffc1eb7ec139"
+    }
+  },
+  "limitations": [
+    "This bundles the two local deterministic source-only top-20 arms; it is not inference or a benchmark.",
+    "Recipe1MSubs rights remain UNKNOWN; artifacts remain local-only and were not transferred.",
+    "The lookup tie policy is count descending then graph ID ascending; historical torch.topk tie equivalence is not established.",
+    "No labels, quality metrics, or method choice were produced; M-D/L44 remain OPEN pending remaining acceptance and authorization gates."
+  ]
+}

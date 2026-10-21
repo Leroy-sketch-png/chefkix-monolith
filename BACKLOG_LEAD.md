@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v467 — Assemble and replay the four-file full-split arm package (2026-10-21)
+
+- The two M-D preparation arms are now assembled under the requested `arm_outputs/{gismo,lookup}_{val,test}.jsonl` layout in a local-only package. The fail-closed packager checks both arm manifests and payload hashes, shared case-frame/pool provenance, all 10,729 validation and 10,747 test rows, cross-arm case identity, 20 unique candidate IDs and ordered ranks per row, finite scores, and target/label-key exclusion.
+- The package replay is byte-identical across all four outputs and its manifest; the combined source-pool/materializer/packager suite passes **33/33**. This improves M-D artifact readiness but does not establish licensed transfer, historical equivalence of the lookup's unspecified legacy tie behavior, inference, benchmark results, quality, or method choice.
+- Package remains local-only; rights status is `UNKNOWN`. Keep **M-D/L44 OPEN** pending the remaining acceptance, protocol, rights, and downstream gates. Evidence and hashes: `evidence/lead-md-arm-output-package-20261021.json`.
+
 ## LEAD v466 — Materialize and replay deterministic lookup-frequency top-20 arm (2026-10-21)
 
 - Corrects the contemporaneous v465 note: the GISMo arm was already materialized; the missing sibling was the lookup-frequency transcription. Research `master` commit `130aa3c591a828cfa4f0d0c68b6d7570ab6602f8` adds a fail-closed producer and regression tests. It derives GISMo LTFreq pair counts from the pinned 49,044-row training substitution file and emits 20 candidates for each of the 10,729 validation and 10,747 test source-only cases.
