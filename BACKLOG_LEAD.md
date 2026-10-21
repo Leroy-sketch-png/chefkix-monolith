@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v512 — Close synthetic C3 arm-bound gap; narrow C2 source schema (2026-10-22)
+
+- T104's independent source review found the post-T75 rank-51 correction present, while noting that M=20 versus M=50 still needed caller-bound validation; its review report is local-only in the research checkout. T106 added a keyword-only `max_rank` boundary to both synthetic coverage candidates and fixtures for M=20/M=50. The exact post-change synthetic suite passed 238/238; final code/test hashes and limits are in the local T106 report. This is software-contract evidence only: no C3 calibration rule is adopted, no real cells were scored, and strict C3 acceptance is unchanged.
+- T105 inspected only the first header record of the pinned validation CSV (source SHA-256 `002588cb1d7db2d1644cb16079542df641c0ace4807490be380e150973796a0b`). It names `ingredients`, `subs`, `id`, and `Recipe Title`; no explicit `target_ingredient`, `ingredient_list`, or exact `recipe_title` column exists. `subs` is label-bearing and ineligible as target input. This does not establish row completeness, provenance, rights, transfer permission, or a usable package. The detailed report is local-only.
+- **Boundary:** C2 source/rights and HUMAN policy gates remain open; C3 remains synthetic-only pending prospective HUMAN method choices, authoritative inputs, real-data gates, and independent review of the latest bytes. These local task reports are not published in this monolith checkout; no labels, provider/API calls, paid resources, GPU work, or new training were used.
+
 ## LEAD v511 — Record C2 representation and source-provenance boundary (2026-10-22)
 
 - HUMAN resolved T83's representation question: preserve each source alias group as one ordered nested ingredient slot (`list[list[str]]`); do not flatten or infer first-alias canonicality. This does not freeze the full prompt or target-exclusion semantics. T96 separately found an exact-match miss and a normalized alias collision across two slots; T99's collision rule remains awaiting HUMAN selection.
