@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v497 — Preserve the v26 rendered-review blocker (2026-10-21)
+
+- A permitted local-file open of `ai/demos/iron-chef-midterm-v26-exhibit.html` was denied by the in-app browser's URL policy, which explicitly disallows alternate browser/workaround routes. No rendered screenshots or visual findings were produced. The exact denial and subsequent offline check are documented in the mirrored receipt (SHA-256 `73a584d2a5b1c019617a608c587956c1450f5f21e0a69af89067f9bce18ee4d7`).
+- The existing source/content/structure suite passes 15/15 and the tracked exhibit/notes hashes match their pins. This is not rendered visual acceptance, accessibility review, physical-device QA, or timed human rehearsal; the latter remains `NOT RUN`.
+- **Boundary:** keep the v26 visual gate OPEN until a user-provided capture or another allowed, non-bypassing route is available. No claim, evidence status, demo acceptance, or completion estimate changes.
+
 ## LEAD v496 — Integrate the Chapter 11 evidence exhibit map (2026-10-21)
 
 - Research `master` commit `c00e283fe4f1693d4380b208b76658445190ad9c` updates Chapter 11 to distinguish three available exhibits: the Senath 200-case validation diagnostic, the v26 selective-evaluation rejection, and the graph Explorer, which remains unverified. Chapter SHA-256 `5927023c71358c57410ce1f785736e83b49055585bef7e0449567594120730d5`.

@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-A/L45 — v26 rendered-review blocker (2026-10-21)
+
+The permitted local-file browser request was denied by URL policy, which explicitly rules out alternate browser/workaround routes. No visual inspection occurred; 15/15 existing static/content/structure tests pass and remain below the rendered-acceptance boundary. The failure record is mirrored under `evidence/` (SHA-256 `73a584d2a5b1c019617a608c587956c1450f5f21e0a69af89067f9bce18ee4d7`). Keep visual review OPEN pending a user-provided capture or another allowed, non-bypassing route. Human rehearsal remains NOT RUN; no thesis or claim status changes.
+
 ### M-A/L45 — Chapter 11 exhibit-map integration (2026-10-21)
 
 Research commit `c00e283fe4f1693d4380b208b76658445190ad9c` adds a three-way exhibit map for the Senath validation diagnostic, v26 benchmark rejection, and unverified graph Explorer; it also clarifies the runtime-check prerequisite. Chapter SHA-256 `5927023c71358c57410ce1f785736e83b49055585bef7e0449567594120730d5`. Receipt SHA-256 `aca8ddd4ec03a79c12c52febfd1562c37b206142f06ce0692e9813e9690e0a18` is mirrored under `evidence/`. This is internal presentation organization, not advisor acceptance, a product demo, protocol validation, or a status/percentage change. L45 and M-A remain OPEN; no research checkout remote is configured.
