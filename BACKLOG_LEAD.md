@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v505 — Record supplemental R07 local candidate inventory without upgrading evidence (2026-10-21)
+
+- The accepted T44 supplemental read-only inventory found six non-weight files in the separately searched main-checkout path `ai/out/iron-chef-miskg-v9/kaggle-v11-output/`; independent review confirmed their byte sizes/SHA-256 values and ignored/untracked status. Three filenames are result/log-named candidates; three are supporting/index-named artifacts. No payload contents, weights, labels, or targets were inspected.
+- The v37 protocol's recorded v11 source digest `6292ecb04c360ef93877e57d63a808e0733c8a6f198c41cb1747f5d6cb14ab0e` remains unmatched among the three specifically named local source candidates. This is a bounded comparison, not global absence or a run/source binding. T35 remains correct within its stated search roots; T44 is a supplemental discovery.
+- Evidence note `evidence/lead-r07-v11-local-candidate-inventory-20261021.md`, SHA-256 `1a20288fb1570ee9b5a53618ec7f4dcb876af64bd03a2e23528220dd00aeac7a`; research T44 report SHA-256 `8332733fefc7aabfbba838e3105b06f10c19594c69aa236678b1cf3b675d26ad`; independent review SHA-256 `ebb2150b6f576e26250288b1e284908dd89e0579a6116e6b5877ee3ecb0a4d50`.
+- **Boundary / next dependency:** R07 remains `UNVERIFIED`; no claim-register, strategy, scientific-result, or backlog-status change follows. Retrieve the exact source bytes matching the pinned digest and their run/version identity before source-level reproduction or claim review. No broad search, network/archive request, or model/weights action is authorized by this entry.
+
 ## LEAD v504 — Reconcile v10 against reviewed v185 without rewriting ledger history (2026-10-21)
 
 - T42 compared the pinned 45-row research register v10 (SHA-256 `34e3a76c0d5dafdb8c4a6510d520f9228b303d43ac744b767b8ac747cd70dea4`) with the reviewed main-checkout v185 snapshot (SHA-256 `8eac99ef54e0752b6cf2ed6e7938553a47e4d3aa18e4c7c8cd94cd0373a53a62`). All ordered IDs and claim strings match. Independent review recomputed transitions: 5 VERIFIED→VERIFIED (R04/R05/R12/R13/R18), 13 VERIFIED→UNVERIFIED (R06/R08–R11/R14/R19–R23/R26/R30), 8 PARTIAL→UNVERIFIED (R01–R03/R07/R16/R17/R31/R42), and 19 UNVERIFIED→UNVERIFIED. Primary `Artifact_path`/`SHA256` fields matched 45/45 in each register; this is not a check of nested citations or scientific validity.
