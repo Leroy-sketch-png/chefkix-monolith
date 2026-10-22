@@ -1,0 +1,49 @@
+{
+  "record_id": "member-t09-substitution-flag-contract-20261023",
+  "recorded_date_local": "2026-10-23",
+  "scope": "Narrow API-level proof that the graph-preflight request-state flag alone does not change the product substitution response when the research marker is absent.",
+  "ai_service": {
+    "repository": "chefkix-ai-service",
+    "branch": "codex/member-evidence-contract",
+    "commit": "c560b6d836dccab8a1401d22c51bfd5701b17871",
+    "pushed": true,
+    "test_file": "tests/test_pantry_graph_preflight_route.py",
+    "test_file_sha256": "cbc2969a3cb695820448f9e70ce5a44e87d35b6828f557ec397d219552cacb0",
+    "test_name": "test_graph_preflight_flag_does_not_change_product_suggestion_contract"
+  },
+  "test_method": {
+    "framework": "FastAPI TestClient",
+    "route": "POST /api/v1/suggest_substitutions",
+    "request_state_cases": [
+      {"graph_preflight_v2_enabled": false, "research_marker": "absent"},
+      {"graph_preflight_v2_enabled": true, "research_marker": "absent"}
+    ],
+    "same_request_body": true,
+    "response_status_codes": [200, 200],
+    "response_data_identical": true,
+    "mocked_gemini_path_await_count": 2,
+    "identity_resolver_call_count": 0,
+    "graph_candidate_gateway_call_count": 0
+  },
+  "verification": {
+    "focused_test": "PASS, 1 test",
+    "full_ai_service_suite": {
+      "command": ".venv/Scripts/python.exe -m pytest -q -o addopts=",
+      "passed": 498,
+      "failed": 0,
+      "skipped": 11,
+      "warnings": 27
+    },
+    "changed_file_black": "PASS",
+    "changed_file_flake8": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "disposition": {
+    "T09": "PASS for product-route response isolation under the request-scoped graph-preflight flag.",
+    "application_logic_changed": false,
+    "production_http_deployment_tested": false,
+    "browser_tested": false,
+    "external_gemini_request_made": false,
+    "other_m_c_gates_closed": false
+  }
+}
