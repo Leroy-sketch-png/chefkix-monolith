@@ -1,6 +1,6 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
-## Member integration checkpoint — 2026-10-22
+## Member integration checkpoint — 2026-10-23
 
 ### M-C / EPIC 10 — Default-off Graph Evidence shadow endpoint
 
@@ -10,11 +10,11 @@ The API now also requires a resolved response's canonical source and candidate I
 
 Available train-pair evidence must also declare the exact `TRAIN_PAIRS` unit; the backend rejects missing or incorrect units, and the FE treats them as incomplete evidence. Browser fixtures cover both wrong-identity and wrong-unit responses failing closed.
 
-The FE graph loader now refuses malformed API payloads that lack node/edge arrays or contain blank/duplicate ingredient identities. Those responses show an explicit load error instead of rendering ambiguous graph nodes.
+The FE graph loader now refuses malformed API payloads that lack node/edge arrays, contain blank/duplicate ingredient identities, or use a missing/unknown relationship type. It preserves the known `substitutes` legacy alias and the supported chemical-similarity/co-occurrence labels; an unrecognized edge can no longer be mislabeled as a substitution. A failure-driven regression reproduced the old fallback failure and passed after the fix. Those responses show an explicit load error instead of rendering ambiguous or semantically wrong graph edges. The route still reads the legacy knowledge API when explicitly enabled, so this hardening does not satisfy the accepted-artifact requirement or T-01–T-12 as a group.
 
 Fresh Windows `mvnw.cmd test` passed across all monolith modules: 347 tests, 0 failures, 0 errors, and 0 skips in 81 Surefire reports. The Graph Evidence slice accounts for 32 focused tests across the controller, manifest-backed provider, artifact loader, and security filter chain.
 
-The FE companion passed all 213 Jest suites (841 tests), TypeScript, changed-file ESLint, and production builds with 62 static pages. System Chrome Playwright passed the enabled graph interaction on desktop and iPhone-sized Chromium (2/2), including wrong canonical IDs and an incorrect train-pair unit failing closed; a second desktop/mobile run (2/2) confirmed malformed graph identities and response shapes show an error and no graph canvas; a third desktop/mobile run (2/2) confirmed late evidence for a previously selected edge cannot replace the current edge's response. A separate default-off build/run also passed 2/2 with zero graph API requests. Browser API responses are controlled fixtures; these checks do not prove a live FE-to-backend deployment. When explicitly enabled for local integration work, the current map still uses the legacy knowledge API and is not an accepted M-C artifact load. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-12 or the full M-C package complete from this slice.
+The FE companion passed all 213 Jest suites (842 tests), TypeScript, changed-file ESLint/Prettier, and production builds with 62 static pages under both explicit-on and default-off graph flags. System Chrome Playwright passed 6/6 enabled graph cases across desktop and iPhone-sized Chromium, including wrong canonical IDs, wrong train-pair units, malformed relationship types, and late evidence for a previously selected edge; a separate default-off build/run passed 2/2 with zero graph API requests. Browser API responses are controlled fixtures; these checks do not prove a live FE-to-backend deployment. When explicitly enabled for local integration work, the current map still uses the legacy knowledge API and is not an accepted M-C artifact load. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-11 or the full M-C package complete from this slice.
 
 A fresh production build with both graph flags explicitly false completed with 62 generated pages, and real Chrome Playwright confirmed `/explore/graph` stays disabled with zero graph API requests on desktop Chromium and iPhone-sized Chromium (2/2). This verifies the default-off route boundary only; the FE-to-monolith live browser path remains untested because Docker Desktop is unavailable and the backend is not running.
 
@@ -629,20 +629,20 @@ L39 (allergen) → L45
 
 ## Acceptance Test Checklist (from SSoT §12.7 — all must be automated/scripted)
 
-| ID | Test | Pass Condition |
-|----|------|----------------|
-| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained |
-| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal |
-| T-03 | Explorer loads with real artifact, hash shown | Visible hash |
-| T-04 | Explorer with tampered artifact refuses render | Refusal message |
-| T-05 | Unknown ingredient → "not in graph", no invented node | Verified |
-| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | Verified |
-| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | Verified |
-| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Verified |
-| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty |
-| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified |
-| T-11 | No secret in any log/response/artifact | Scan clean |
-| T-12 | All existing suites covering touched code pass | Report verbatim |
+| ID | Test | Pass Condition | Status (2026-10-23) |
+|----|------|----------------|--------------------|
+| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained | **OPEN** — no authoritative upstream row-level split receipt or source builder is available here. |
+| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal | **OPEN** — rebuildable source inputs and accepted artifact pair are unavailable. |
+| T-03 | Explorer loads with real artifact, hash shown | Visible hash | **OPEN** — the FE preview still reads the legacy API, not the accepted hash-pinned product artifact. |
+| T-04 | Explorer with tampered artifact refuses render | Refusal message | **PARTIAL** — backend loader refuses tampered bytes in focused tests; FE artifact-backed render path is not integrated. |
+| T-05 | Unknown ingredient → "not in graph", no invented node | Verified | **OPEN** — needs an end-to-end check against the canonical graph artifact. |
+| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | 0 vacuous cases shown | **OPEN** — no accepted per-cell calibration artifact is configured. |
+| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | No show outside the gate | **OPEN** — the current shadow provider always abstains; no reviewed calibrated show rule is integrated. |
+| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Unknown candidate withheld | **OPEN** — accepted allergen evidence and the real graph-backed request path are unavailable. |
+| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty | **OPEN** — the endpoint remains separate, but no flag-on/flag-off contract comparison was run for this cycle. |
+| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified | **OPEN** — recorded Act 3 and network-isolated demo are not available in these checkouts. |
+| T-11 | No secret in any log/response/artifact | Scan clean | **OPEN** — no scoped full-output secret scan was run for this cycle. |
+| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — FE 213 suites/842 tests; monolith 347 tests/81 reports; enabled Chrome 6/6 and default-off Chrome 2/2. Browser API responses were fixtures, not a live deployment. |
 
 - [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
 - [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.

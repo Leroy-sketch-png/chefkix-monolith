@@ -85,7 +85,7 @@ The FE route `/explore/graph` is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER_ENA
 
 The additive shadow endpoint is `GET /api/v1/graph/evidence`; `chefkix.knowledge.graph-evidence.enabled` defaults to `false`. It requires a hash-verified bundle and exact resolved ingredient IDs, reports train-record counts with unit `TRAIN_PAIRS`, and always abstains. It does not recommend substitutions or replace the legacy suggestion route. The FE shadow panel also has its own build-time flag, `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED`, which defaults to off.
 
-The FE graph loader requires node and edge arrays, nonblank ingredient IDs/names, and unique node IDs. Invalid graph responses render an error instead of a partial or ambiguous map.
+The FE graph loader requires node and edge arrays, nonblank ingredient IDs/names, unique node IDs, and a recognized relationship type. It accepts the `substitutes` legacy alias plus the supported substitution, chemical-similarity, and co-occurrence types. Missing or unknown types render an error instead of being mislabeled as a substitution.
 
 When graph evidence is enabled, responses are tied to the selected edge; a late response for a previously selected edge is ignored.
 
