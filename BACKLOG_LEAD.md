@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v521 — Reconcile C2 identity failure and C3 milestone evidence (2026-10-22)
+
+- Research-worktree T232's pinned producer trace reports the fixed 200-case C2 cohort joins 200/200 by row, recipe, and title; 122 cases then fail exact `source_ingredient` to nested alias-slot identity matching. T188's spelling tiers recover 0/122. Preserve all 200 cases and failures; no semantic remapping or cohort shrink is supported. Report `ai/out/T232/report.md` SHA-256 `88229ff3f9745977e1a885868b27992865e68b3e7ebf4311fdb4cc834ca9f096`.
+- The unresolved next dependency is the release-specific producer/schema/linkage contract and its custodian. Research prepared `ai/evidence/c2-source-contract-request-draft-20261022.md` (SHA-256 `b84e228fae62bcc7d1a4186e713ddd65c887b3073519a7fce4f117ac527a3c91`); recipient remains unverified and no contact was made.
+- T233's fixed-receipt reconciliation found the full C3-G2 criterion remains OPEN: T68's synthetic statistics comparison lacks the complete frozen-source order/filter/status/failure path. The corrected campaign ledger is 1/25 (4%) and strict accepted C1–C5 contributions remain 0/5; this is not overall thesis completion. T233 report SHA-256 `563f93c6cb566c72b25399407f0db2b2be813a06df45c8c017560e2a7da3c230`.
+- Detailed reports are local-only in `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014`; that research checkout has no configured remote. No source rows, labels, pools, API, network, paid resource, or new identity rule were used. No C2/C3 contribution acceptance or claim upgrade follows.
+
 ## LEAD v520 — Distinguish GISMo code license from dataset terms (2026-10-22)
 
 - AoE follow-up to v519: the GISMo reproduction repository contains an Apache-2.0 `LICENSE`, while its README instructs users to download the Recipe1MSubs comment pickle files separately. The repository code license is not assumed to cover those data artifacts or authorize third-party disclosure. T173's evidence receipt now records that distinction explicitly.
