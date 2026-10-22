@@ -250,7 +250,7 @@ class GraphEvidenceControllerTest {
     void evidenceRouteIsAdditiveAndSeparateFromLegacyKnowledgeGraphRoute() throws Exception {
         GetMapping evidenceMapping = GraphEvidenceController.class
                 .getMethod("getEvidence", String.class, String.class).getAnnotation(GetMapping.class);
-        assertArrayEquals(new String[]{GraphEvidenceController.ROUTE}, evidenceMapping.value());
+        assertArrayEquals(new String[]{"/graph/evidence"}, evidenceMapping.value());
 
         RequestMapping legacyPrefix = KnowledgeGraphController.class.getAnnotation(RequestMapping.class);
         GetMapping legacyGraph = KnowledgeGraphController.class

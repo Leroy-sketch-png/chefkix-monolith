@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 /** Additive v1 shadow endpoint. It never calls the legacy seed graph or suggestion service. */
 @RestController
 public class GraphEvidenceController {
-    public static final String ROUTE = "/api/v1/graph/evidence";
+    // application.yml supplies the external /api/v1 servlet context path.
+    public static final String ROUTE = "/graph/evidence";
 
     private final GraphEvidenceProperties properties;
     private final ObjectProvider<GraphEvidenceProvider> provider;

@@ -8,7 +8,17 @@ The monolith now has an additive, authenticated `GET /api/v1/graph/evidence` end
 
 Fresh Windows `mvnw.cmd test` passed across all monolith modules: 345 tests, 0 failures, 0 errors, and 0 skips in 81 Surefire reports. The Graph Evidence slice accounts for 30 focused tests across the controller, manifest-backed provider, artifact loader, and security filter chain.
 
-The FE companion passed all 211 Jest suites (821 tests), its production build (62 static pages), and 4/4 Playwright cases in system Chrome across desktop and mobile profiles. Browser coverage exercises cook-post moderation/XP and graph search/ingredient details with API fixtures. A visible browser also confirmed the graph route's recoverable API-unavailable state when the local monolith was not running. These checks do not prove a live FE-to-backend deployment. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-12 or the full M-C package complete from this slice.
+The FE companion passed all 212 Jest suites (830 tests), its production build (62 static pages), and 4/4 Playwright cases in system Chrome on desktop and mobile in both shadow-enabled and default-off builds. Browser coverage uses controlled API fixtures; these checks do not prove a live FE-to-backend deployment. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-12 or the full M-C package complete from this slice.
+
+### M-C / EPIC 10 — Context-path route fix and FE shadow wiring (2026-10-22)
+
+The monolith's external API prefix comes from `server.servlet.context-path: /api/v1`, so the Graph Evidence controller mapping is `/graph/evidence` and its external URL is `/api/v1/graph/evidence`. A context-path-aware regression first exposed the prior double-prefix mapping; after correction, the test reaches the real controller through the `/api/v1` context. Anonymous access returns 401; an authenticated request reaches the default-off controller and receives typed `FEATURE_DISABLED` (503). The controller stays additive and does not call the legacy graph or substitution service.
+
+The FE graph Explorer now requests pair evidence only after an edge is selected and only when `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true`; the flag is absent by default. It shows a manifest fingerprint only after the expected and observed SHA-256 values match, plus train-pair count, calibration status, and `Abstain`. Typed unavailable/refused results remain visible, and malformed fingerprints or a non-abstaining decision fail closed. The panel states that it never recommends a substitute.
+
+Validation on the synced source: full monolith Maven reactor 345 tests, 0 failures/errors/skips in 81 reports; focused graph endpoint/provider/authentication tests 30/30; FE Jest 212 suites / 830 tests, changed-file ESLint and TypeScript checks, production build with 62 static pages, and Playwright 4/4 with the FE flag enabled plus 4/4 with the flag unset in system Chrome desktop/mobile profiles. The FE branch was merged with fetched `origin/main` at `77200ed` without conflicts; an existing recipe feedback test expectation was aligned with the six-argument substitution API call after the upstream update. Playwright responses are intercepted fixtures; there was no live authenticated FE-to-monolith browser run.
+
+Lead v521 remains authoritative: the fixed C2 cohort still has 122/200 exact slot-identity failures and lacks its release-specific producer/schema/custodian contract; C3-G2 remains open, the corrected campaign ledger is 1/25 (4%), and strict accepted C1–C5 contributions remain 0/5. No identity remapping, cohort reduction, data transfer, or acceptance claim follows. The canonical/rights-cleared graph artifacts and T-01–T-12 acceptance remain open.
 
 ### Sprint 1–2 report traceability
 
@@ -541,7 +551,7 @@ L39 (allergen) → L45
 
 - [ ] Build `graph_eval_v4` (train-derived substitution evidence only; held-out rows never contribute edge evidence, but a held-out occurrence of a train-supported pair does not remove its valid train support) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
 - [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
-- [ ] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — **additive, read-only, does not change `/suggest_substitutions`**
+- [x] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — servlet-relative `/graph/evidence` under the `/api/v1` context; additive, read-only, default-off, and does not change `/suggest_substitutions` (context-path/auth regression in `application/src/test/java/com/chefkix/config/GraphEvidenceEndpointAuthenticationTest.java`)
 - [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
 - [ ] Run acceptance tests T-01 through T-12 (§12.7) + existing suites covering touched code
 - [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
