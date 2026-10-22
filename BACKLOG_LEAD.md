@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v518 — Freeze C2 prompt semantics and enforce rank-preserving self-substitution (2026-10-22)
+
+- Under HUMAN's explicit delegation to resolve remaining internal decisions, T172 froze the existing provider-independent C2 prompt/response semantics without changing Protocol v1. The exact prompt artifact is SHA-256 `63281b23f392920341983d5f992c3ed0482488d263dff4e0dc02137a26c7520d`. The freeze covers the three permitted fields, nested ordered alias slots, exact unique raw target-slot matching/exclusion, strict 20-distinct-string response semantics, one-attempt/failure-denominator behavior, and rank-preserving self-substitution invalidity. It does not select a winner, freeze endpoint/SDK wire details, or authorize data/provider/resource operations.
+- T171 implemented a pure local response ingester and synthetic tests: helper SHA-256 `5df1da4153dcd3a16a03d7648c749d329bcbe9a05958ee9870de3b292c1739c8`; test SHA-256 `e33076d495f1af8edd90d71837e735894510fe3333c8ed21d571c04d3052efe4`. Focused C2 suite: 41 passed, 3 parameterized subtests; helper compilation and scoped diff checks passed. No labels, real rows, provider/API, network, GPU, or spend was used.
+- Detailed decision/research cards are local-only in `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014` (research `master` has no remote); this receipt preserves the accepted boundary, not those full reports. The T172 decision/evidence note is this file; prompt semantics remain provider-independent.
+- **Boundary / next dependency:** C2 still has no API outcome and remains blocked on eligible source and applicable transfer rights, exact endpoint/SDK/schema and output-token bound, fresh budget/account evidence and worst-case reservation, exact cohort/pins and local preflight. No C2 result, quality, method winner, legal clearance, or dispatch eligibility is claimed. Factual gates are not resolved by HUMAN delegation to choose internal semantics.
+
 ## LEAD v517 — Re-run the corrected Graph Evidence contract regressions (2026-10-22)
 
 - After reconciling the T158 evidence ledger, lead re-executed the exact focused six-module Maven reactor command in `D:/code/chefkix/chefkix-monolith/.git-worktrees/monolith-stage3-segment8`: `mvnw.cmd -pl culinary -am -Dtest=GraphEvidenceControllerTest '-Dsurefire.failIfNoSpecifiedTests=false' test`. Result: `BUILD SUCCESS`, 16 tests, 0 failures, 0 errors, 0 skipped (2026-10-22 04:15 UTC).
