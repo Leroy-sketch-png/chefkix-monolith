@@ -247,6 +247,25 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
+    void resolvedCanonicalIdsMustMatchTheRequestedPair() {
+        Evidence original = sampleEvidence();
+        IdentityResolution mismatched = new IdentityResolution(
+                IdentityStatus.RESOLVED, "source-x", "different-source", List.of(),
+                "candidate-y", "different-candidate", List.of());
+        Evidence evidence = new Evidence(mismatched, original.trainPairEvidence(), original.provenance(),
+                original.compoundAvailability(), original.nutrientAvailability(), original.declaredGroupScreening(),
+                original.calibration(), original.decision());
+        GraphEvidenceProvider provider = request -> new ProviderResult(
+                new ArtifactIntegrity(ArtifactIntegrityStatus.VERIFIED, HASH_A, HASH_A), evidence);
+
+        var response = controllerWith(provider).getEvidence("source-x", "candidate-y");
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(UnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().evidence());
+    }
+
+    @Test
     void evidenceRouteIsAdditiveAndSeparateFromLegacyKnowledgeGraphRoute() throws Exception {
         GetMapping evidenceMapping = GraphEvidenceController.class
                 .getMethod("getEvidence", String.class, String.class).getAnnotation(GetMapping.class);

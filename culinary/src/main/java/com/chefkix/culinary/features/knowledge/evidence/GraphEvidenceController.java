@@ -77,7 +77,9 @@ public class GraphEvidenceController {
             }
             if (resolution.sourceIngredientId() == null || resolution.candidateIngredientId() == null
                     || !sourceIngredientId.equals(resolution.requestedSourceIngredientId())
-                    || !candidateIngredientId.equals(resolution.requestedCandidateIngredientId())) {
+                    || !candidateIngredientId.equals(resolution.requestedCandidateIngredientId())
+                    || !sourceIngredientId.equals(resolution.sourceIngredientId())
+                    || !candidateIngredientId.equals(resolution.candidateIngredientId())) {
                 return unavailable(UnavailableReason.PROVIDER_RESULT_INVALID, resolution);
             }
             TrainPairEvidence trainPair = result.evidence().trainPairEvidence();
