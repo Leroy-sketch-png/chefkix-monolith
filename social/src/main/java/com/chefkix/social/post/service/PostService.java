@@ -393,8 +393,8 @@ if (taggedUserId.equals(userId)) continue;
         }
 
         var result = contentModerationProvider.moderate(content, "post");
-        if (result.isBlocked()) {
-            log.warn("Post content blocked by AI moderation for user {}: {}", userId, result.reason());
+        if (result == null || !result.isApproved()) {
+            log.warn("Post content was not approved by AI moderation for user {}", userId);
             throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
         }
     }

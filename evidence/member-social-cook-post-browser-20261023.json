@@ -1,0 +1,58 @@
+{
+  "record_id": "member-social-cook-post-browser-20261023",
+  "date": "2026-10-23",
+  "status": "PASS_FOR_SCOPED_LOCAL_BROWSER_AND_MODULE_TESTS",
+  "frontend": {
+    "repository": "chefkix-fe",
+    "branch": "codex/epic10-graph-e2e",
+    "commit": "407f4726c20b0f821d25dac29c94ce8285ca3f4e",
+    "test_path": "tests/e2e/cook-post-xp.spec.ts",
+    "browser": "Installed system Chrome via PLAYWRIGHT_EXECUTABLE_PATH",
+    "headed": true,
+    "projects": ["desktop-chromium", "mobile-iphone"],
+    "command": "$env:PLAYWRIGHT_EXECUTABLE_PATH='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; npx playwright test tests/e2e/cook-post-xp.spec.ts --config=playwright.e2e.config.ts --headed --project=desktop-chromium --project=mobile-iphone",
+    "result": {
+      "passed": 2,
+      "failed": 0
+    },
+    "checks": [
+      "Blocked, flagged, and unexpected moderation decisions prevent post creation and session linking.",
+      "The flagged moderation case displays that the post was not published.",
+      "Approved caption creates exactly one post and links the cooking session once.",
+      "Successful session link records 80 XP and the created post ID.",
+      "Browser-generated multipart Content-Type includes a boundary.",
+      "Multipart body includes the expected content and sessionId fields."
+    ],
+    "api_mode": "Playwright intercepts all /api/v1/** requests with local test fixtures; the browser request is inspected before interception.",
+    "lint": "passed with no ESLint warnings or errors",
+    "typecheck": "passed",
+    "jest": {
+      "suites": 213,
+      "tests": 845,
+      "failures": 0
+    },
+    "production_build": "passed with NEXT_FONT_GOOGLE_MOCKED_RESPONSES because the external Google Font response failed Next's parser; no font fixture files were committed"
+  },
+  "backend": {
+    "repository": "chefkix-monolith",
+    "branch": "codex/member-sprint12-deliverables",
+    "commit": "8611103effcb829b0e2a99a8fe8a1246c2ee7b6d",
+    "command": ".\\mvnw.cmd -B test",
+    "result": {
+      "tests": 352,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "social_module_tests": 54,
+    "surefire_reports": 83,
+    "scope": "Full Maven reactor including social unit/service tests; no live database or service deployment."
+  },
+  "limitations": [
+    "No live FE-to-Monolith post creation or persistence was exercised.",
+    "Authentication and moderation responses are synthetic fixtures in the browser test.",
+    "Kafka notification delivery, media upload, and feed visibility were not verified.",
+    "The production build used temporary Google Font fixtures because the remote font response could not be parsed.",
+    "This scoped smoke result does not establish complete social feature acceptance."
+  ]
+}

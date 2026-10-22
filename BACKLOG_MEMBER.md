@@ -2,6 +2,22 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### Social / moderation flag fail-closed fix (2026-10-23)
+
+The AI-service content-guard contract returns `approve`, `flag`, or `block`; its rule engine uses `flag` for ambiguous/off-topic content, and the Monolith adapter also returns `flag` when the moderation service is unavailable. Before this fix, post, comment, reply, chat, and story-reply consumers rejected only `block`, so flagged content could be persisted or published despite the provider's review-required state. FE post, comment, reply, and quick-post composers also let `flag` continue after showing a warning, while the cook-post composer ignored flags and moderation failures. A new backend post regression failed before the fix because the flagged create completed without throwing.
+
+All five Monolith consumers and the FE post, comment, reply, quick-post, cook-post, and recipe-publish paths now require an explicit `approve`; flagged, missing, failed, and unknown decisions stop publication. Flagged content receives a truthful message that it was not published and must be retried later. Backend regressions cover flagged post, comment, reply, chat, and story-reply content. The focused backend set passed **17/17** and the full Monolith reactor passed **352 tests, 0 failures/errors/skips in 83 reports**. FE validation passed lint, typecheck, all **845 Jest tests**, and headed desktop/mobile Chrome tests. Evidence: `evidence/member-social-moderation-fail-closed-20261023.json`.
+
+Flagged content is rejected before persistence; no manual review queue is implemented, so the UI explains that it was not published and the user must retry after moderation is available. Browser requests are fixture-backed and do not establish a live FE-to-Monolith post transaction.
+
+### Social / cook-post browser and backend regression (2026-10-23)
+
+Installed system Chrome ran the headed FE cook-post browser flow on desktop Chromium and iPhone-sized Chromium: **2/2 passed**. It verifies blocked, flagged, and unexpected moderation decisions do not create or link a post; the flagged state displays the rejection message. An approved caption creates one post, links the cooking session once, and records 80 XP. The browser also inspects the outgoing multipart request and verifies its generated boundary plus the `content` and `sessionId` fields. FE commit `407f4726c20b0f821d25dac29c94ce8285ca3f4e`; test: `chefkix-fe/tests/e2e/cook-post-xp.spec.ts`.
+
+The full Monolith reactor passed **352 tests, 0 failures/errors/skips**; the Social module contributed **54 passing tests**. Receipt: `evidence/member-social-cook-post-browser-20261023.json`.
+
+This is scoped regression evidence: Playwright intercepts all `/api/v1/**` calls with local fixtures, and the Maven run uses unit/service tests. It does not verify real social-service persistence, live authentication/moderation, Kafka delivery, media upload, feed visibility, or deployed behavior. The FE production build used temporary Google Font test fixtures after the remote font response broke Next's parser; this validates app compilation and browser behavior, not live font fetching. Those end-to-end social flows remain open.
+
 ### M-C / Local live FE-to-Monolith Graph Explorer check (2026-10-23)
 
 The headed in-app Chromium browser loaded the FE Graph Explorer at `http://localhost:3000/explore/graph` with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`, graph mocks off, and the evidence panel off. The current Monolith JAR served the legacy Knowledge API on port 8080 against an isolated Mongo 7 container/database. The live graph endpoint returned HTTP 200 with 25 nodes and 4 edges; the page showed 25 indexed ingredients, 7 linked ingredients, 4 relationships, and `Source: Knowledge API`. No API route interception was used.

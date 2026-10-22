@@ -67,8 +67,8 @@ public class ReplyService {
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
         var moderationResult = contentModerationProvider.moderate(replyRequest.getContent(), "comment");
-        if (moderationResult.isBlocked()) {
-            log.warn("Reply content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+        if (moderationResult == null || !moderationResult.isApproved()) {
+            log.warn("Reply content was not approved by AI moderation for user {}", userId);
             throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
         }
 

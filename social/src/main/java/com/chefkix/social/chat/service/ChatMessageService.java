@@ -161,8 +161,8 @@ public class ChatMessageService {
 
         if (finalMessageContent != null && !finalMessageContent.isBlank()) {
             var moderationResult = contentModerationProvider.moderate(finalMessageContent, "chat");
-            if (moderationResult.isBlocked()) {
-                log.warn("Chat message blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
+            if (moderationResult == null || !moderationResult.isApproved()) {
+                log.warn("Chat message was not approved by AI moderation for user {}", userId);
                 throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
             }
         }
@@ -298,8 +298,8 @@ public class ChatMessageService {
 
         if (event.getReplyText() != null && !event.getReplyText().isBlank()) {
             var moderationResult = contentModerationProvider.moderate(event.getReplyText(), "chat");
-            if (moderationResult.isBlocked()) {
-                log.warn("Story reply blocked by AI moderation for user {}: {}", event.getReplierId(), moderationResult.reason());
+            if (moderationResult == null || !moderationResult.isApproved()) {
+                log.warn("Story reply was not approved by AI moderation for user {}", event.getReplierId());
                 return;
             }
         }
