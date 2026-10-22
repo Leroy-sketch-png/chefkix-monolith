@@ -1,0 +1,4 @@
+/tools/audit_seed_graph.py text eol=lf
+/tools/test_audit_seed_graph.py text eol=lf
+/evidence/member-ma-seed-graph-source-20261023/*.csv text eol=lf
+/evidence/member-ma-seed-graph-source-20261023/*.json text eol=lf

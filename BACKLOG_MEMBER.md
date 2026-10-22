@@ -12,6 +12,12 @@ The model itself is still not ready to serve: safe inspection of the tracked che
 
 Four new regressions failed against the old code, then the AI-service suite at commit `928a2c7` passed **497 tests, 0 failures, 11 skips**. Changed-file Black, Flake8, `git diff --check`, and `pip check` passed. The code is pushed; evidence receipt: `evidence/member-ma-graph-rag-loader-audit-20261023.json`. The 11 skips and 27 existing deprecation warnings are reported by pytest; this verification does not close M-A, M-C, or the accepted-artifact gates.
 
+### M-A / Source-only seed graph statistics and degree invariant (2026-10-23)
+
+The source-pinned auditor reconstructs the ingredient section of `KnowledgeGraphSeeder.java` at SHA-256 `cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174`. It finds 25 canonical source records and 59 directed substitution statements. The explicit source-only graph interpretation has 25 `seed_ingredient` vertices and 54 `unresolved_literal_target` vertices; five target strings match a source canonical name or alias (four canonical, one alias), and 54 remain unmatched. It preserves statements as a directed multigraph. Across all 79 vertices, in-degree is min/median/mean/max `0/1/0.747/1`, out-degree is `0/0/0.747/4`, and total degree is `1/1/1.494/4`; isolates: 0. The directed invariant passes: degree sums are in=59, out=59, total=118. Six standard-library tests pass, including alias collision, duplicate statement, blank target, pinned source counts, and byte-identical artifact generation.
+
+The CSV/JSON outputs, hash receipt, and reproducible command are in `evidence/member-ma-seed-graph-source-20261023/`; run `python tools/audit_seed_graph.py` and `python tools/test_audit_seed_graph.py`. This closes only the source-level count, degree-statistics, and directed-invariant checklist items. It does not show that the seeder ran, identify runtime AI-service contents, establish a Round-0 definition, or create `COVERAGE_CURVES.csv`; no authoritative query cohort/denominator is available, so coverage curves and M-A acceptance remain open.
+
 ### M-C / T-09 — Product substitution route flag isolation (2026-10-23)
 
 A FastAPI `TestClient` differential sends the same product request to `/api/v1/suggest_substitutions` with `graph_preflight_v2_enabled` false and true while the research marker is absent. Both calls return HTTP 200 and identical response data; the mocked Gemini path is invoked for both, while the identity resolver and graph-candidate gateway are not called. This confirms the graph-preflight flag alone does not change the product substitution contract. T-09 is **PASS** for this scoped route invariant; this does not test a deployed service or close the other M-C gates. Test and full-suite evidence: `evidence/member-t09-substitution-flag-contract-20261023.json`; AI-service commit `c560b6d`.
@@ -524,11 +530,12 @@ L39 (allergen) → L45
 > SSoT §12.1–12.3, §25.1 (P1)
 
 - [x] Locate actual seed arrays (`culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java`) — current file SHA-256 still matches the source-bound receipt in `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`; it describes 25 canonical ingredient source records and 59 directed substitution statements. This proves source location only, not current runtime inventory or Round-0 acceptance.
-- [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
-- [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
+- [x] Compute by-type nodes/edges, degree min/median/mean/max, isolates — source-only directed multigraph; provenance and scope in `evidence/member-ma-seed-graph-source-20261023/GRAPH_TRUTH.csv`.
+- [x] Verify degree-sum invariant appropriate to graph type (not blindly undirected) — in=59, out=59, total=118 for 59 directed statements; source-only evidence above.
 - [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
 - [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line) — the tracked Markdown scan found `output/sprints/2026-10-11/README.md:7`, which records 25 ingredients/four edges for that dated local screenshot package and explicitly says it is not an imported Lead graph. This is a historical demo claim, not current runtime or accepted graph truth.
-- [ ] Emit `GRAPH_TRUTH.csv` and `COVERAGE_CURVES.csv` with provenance labels
+- [x] Emit source-only `GRAPH_TRUTH.csv` with source path/hash and an explicit source-only provenance label.
+- [ ] Emit `COVERAGE_CURVES.csv` only after the authoritative query cohort and denominator are available; the current report records `NOT_COMPUTED_NO_QUERY_COHORT_DENOMINATOR`.
 - [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
 
 ### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**

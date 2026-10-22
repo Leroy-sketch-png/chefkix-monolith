@@ -95,6 +95,8 @@ Current implementation evidence and open acceptance gates are tracked in [the Me
 
 The separate AI-service Graph-RAG model remains unready: this checkout lacks its required graph sidecar, and the tracked checkpoint does not match the bundled model implementation. The registry now fails closed on the missing sidecar and the graph loader uses restricted deserialization; see the current M-A entry in the Member backlog for the evidence and remaining model-provenance gate.
 
+The tracked Java ingredient seeder has a reproducible, source-only graph audit at `evidence/member-ma-seed-graph-source-20261023/`. It reports 25 source records and 59 directed statements, with the directed degree-sum invariant passing. Recreate it with `python tools/audit_seed_graph.py` and check the parser with `python tools/test_audit_seed_graph.py`. This does not establish runtime graph contents or coverage curves; the query cohort, runtime artifact, and Round-0 acceptance gates remain open.
+
 ## What Changed from Microservices
 
 | Before | After |
