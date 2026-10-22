@@ -1,5 +1,9 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### M-B / L44 — T52 provisional graph candidate and provenance boundary (2026-10-22)
+
+T154 produced a private, hash-bound `graph_eval_v4` candidate from train-designated inputs: 49,044 rows joined, 49,034 evidence records plus 10 sanitized identity-error records, 6,630 nodes, and 23,175 edges. Manifest SHA-256 is `60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140`; T157 PASSed narrowly for exact file inventory/manifest-bound hashes, schema, denominator, and the explicitly unaccepted state. T160 confirms train-only process selection and train-bound output provenance aggregates only; **upstream row-level split truth remains UNKNOWN**, with `source_split_audit_performed=false`. Ten rows remain preparation errors; M-B/L44/C5 are not accepted, and no quality, rights, or production claim follows. Detailed reports are local-only in the research worktree; see LEAD v516. Next: authoritative split provenance and applicable rights terms before acceptance or provider integration.
+
 ### M-G/L48 — v12 claims-register integration boundary (2026-10-22)
 
 Research-local claims-register v12 (SHA-256 `00b7428c5dfafb1c2ab58dc567ef83fb33220aa46e5b9bd0061e97081f17b7a3`) is the current row-level index accepted by T134 after all 45 rows were reconciled. Counts are five narrowly VERIFIED, two narrowly PARTIAL (R26 provenance only; R42 attributed publication only), and 38 UNVERIFIED. Structural/local-byte validation is not claim truth; this is not a thesis-progress score or C1–C5 acceptance (still 0/5). Research `master` has no configured remote, so the CSV and detailed reports remain local-only and are not fetched by this monolith record. T83's HUMAN choice preserves nested alias groups as ingredient slots for C2 representation only; T99's separate case-3300 identity rule and T74 graph-owner decisions remain unresolved. See LEAD v515 and research task T134.
