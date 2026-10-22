@@ -233,13 +233,7 @@ public class PostService {
 
             log.info("I/O processing completed in {}ms", System.currentTimeMillis() - startTime);
 
-            if (request.getContent() != null && !request.getContent().isBlank()) {
-                var moderationResult = contentModerationProvider.moderate(request.getContent(), "post");
-                if (moderationResult.isBlocked()) {
-                    log.warn("Post content blocked by AI moderation for user {}: {}", userId, moderationResult.reason());
-                    throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
-                }
-            }
+            moderatePostContent(request.getContent(), userId);
 
             return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 
@@ -393,6 +387,18 @@ if (taggedUserId.equals(userId)) continue;
     }
 
 
+    private void moderatePostContent(String content, String userId) {
+        if (!StringUtils.hasText(content)) {
+            return;
+        }
+
+        var result = contentModerationProvider.moderate(content, "post");
+        if (result.isBlocked()) {
+            log.warn("Post content blocked by AI moderation for user {}: {}", userId, result.reason());
+            throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+        }
+    }
+
     @Transactional
     public PostResponse updatePost(String postId, PostUpdateRequest request) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -409,6 +415,7 @@ if (taggedUserId.equals(userId)) continue;
         }
 
         if (StringUtils.hasText(request.getContent())) {
+            moderatePostContent(request.getContent(), userId);
             post.setContent(request.getContent());
             post.generateSlug();
             post.setPostUrl(publicBaseUrl + "/post/" + post.getId());
