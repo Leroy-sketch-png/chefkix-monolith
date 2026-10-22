@@ -91,7 +91,7 @@ The FE graph loader requires node and edge arrays, nonblank ingredient IDs/names
 
 When graph evidence is enabled, responses are tied to the selected edge; a late response for a previously selected edge is ignored.
 
-Current implementation evidence and open acceptance gates are tracked in [the Member backlog](BACKLOG_MEMBER.md). FE request/response details are maintained in `chefkix-fe/docs/epic-10-graph-integration.md`. A live local FE-to-Monolith browser smoke test now appears in `evidence/member-mc-live-graph-20261023/`; it uses isolated legacy seeder data and does not establish rights clearance, acceptance of the canonical graph, or deployed FE-to-backend behavior.
+Current implementation evidence and open acceptance gates are tracked in [the Member backlog](BACKLOG_MEMBER.md). FE request/response details are maintained in `chefkix-fe/docs/epic-10-graph-integration.md`. A live local FE-to-Monolith browser smoke test now appears in `evidence/member-mc-live-graph-20261023/`; it uses isolated legacy seeder data and does not establish rights clearance, acceptance of the canonical graph, or deployed FE-to-backend behavior. The graph UI loaded, while compound profile/pair calls returned 503 because local AI proxy secrets were missing and the default AI service port was not running; the UI showed its generic missing-profile states.
 
 The separate AI-service Graph-RAG model remains unready: this checkout lacks its required graph sidecar, and the tracked checkpoint does not match the bundled model implementation. The registry now fails closed on the missing sidecar and the graph loader uses restricted deserialization; see the current M-A entry in the Member backlog for the evidence and remaining model-provenance gate.
 

@@ -28,15 +28,56 @@
     }
   },
   "checks": [
-    { "name": "Live graph load", "result": "PASS", "details": "UI showed 25 indexed ingredients, 7 linked ingredients, 4 documented relationships, and Source: Knowledge API." },
-    { "name": "Search and ingredient browse", "result": "PASS", "details": "Chicken search selected the ingredient and its detail panel reached Loaded detail." },
-    { "name": "Unknown ingredient", "result": "PASS", "details": "unlisted spice showed not in the current graph, no matching index item, and no fabricated graph node." },
-    { "name": "Relationship detail", "result": "PASS", "details": "Butter to Olive Oil showed substitution ratio 0.75 and recorded context." },
-    { "name": "Relationship filters", "result": "PASS", "details": "Visible links changed from 4 to 0 when Substitution was disabled, then returned to 4 when re-enabled." },
-    { "name": "Ingredient details", "result": "PASS", "details": "Butter and Chicken details reached Loaded detail; unavailable FooDB/USDA sections displayed fallback states." },
-    { "name": "Evidence panel disabled", "result": "PASS", "details": "Panel absent with the evidence feature flag off; Graph Evidence behavior was not exercised." },
-    { "name": "Browser console", "result": "PASS", "details": "Zero console errors; existing design-system token warnings were present." },
-    { "name": "Local CORS setup", "result": "PASS after origin correction", "details": "localhost:3200 received 403 because the configured local FE origin is localhost:3000; the run passed on localhost:3000 without code changes." }
+    {
+      "name": "Live graph load",
+      "result": "PASS",
+      "details": "UI showed 25 indexed ingredients, 7 linked ingredients, 4 documented relationships, and Source: Knowledge API."
+    },
+    {
+      "name": "Search and ingredient browse",
+      "result": "PASS",
+      "details": "Chicken search selected the ingredient and its detail panel reached Loaded detail."
+    },
+    {
+      "name": "Unknown ingredient",
+      "result": "PASS",
+      "details": "unlisted spice showed not in the current graph, no matching index item, and no fabricated graph node."
+    },
+    {
+      "name": "Relationship detail",
+      "result": "PASS",
+      "details": "Butter to Olive Oil showed substitution ratio 0.75 and recorded context."
+    },
+    {
+      "name": "Relationship filters",
+      "result": "PASS",
+      "details": "Visible links changed from 4 to 0 when Substitution was disabled, then returned to 4 when re-enabled."
+    },
+    {
+      "name": "Ingredient details",
+      "result": "PASS",
+      "details": "Basic Butter and Chicken details reached Loaded detail. Compound profile and pair-analysis requests returned 503 from the FE AI proxy; the UI showed generic FooDB/USDA fallback states. Local config check found both required AI rate-limit secrets absent; the proxy fails closed before upstream, and its default AI port 8000 was not listening."
+    },
+    {
+      "name": "Evidence panel disabled",
+      "result": "PASS",
+      "details": "Panel absent with the evidence feature flag off; Graph Evidence behavior was not exercised."
+    },
+    {
+      "name": "Browser console",
+      "result": "PASS",
+      "details": "Zero console errors; existing design-system token warnings were present."
+    },
+    {
+      "name": "Local CORS setup",
+      "result": "PASS after origin correction",
+      "details": "localhost:3200 received 403 because the configured local FE origin is localhost:3000; the run passed on localhost:3000 without code changes."
+    },
+    {
+      "name": "Compound AI proxy",
+      "result": "503, handled",
+      "details": "GET compound/profile and POST compound/analyze-pair returned 503. No secret values were emitted; only presence booleans were checked."
+    }
   ],
   "knownLimits": [
     "Uses the legacy Java seeder response in an isolated local database, not the accepted/hash-pinned product graph.",
@@ -44,7 +85,8 @@
     "FooDB comparison was unavailable and USDA nutrition was pending for the displayed records.",
     "The actuator health URL returned 404 and is not exposed in this local profile.",
     "The Kafka container was still health: starting; notifications and event-dependent social workflows were not tested.",
-    "The full T-11 error-path, log, and artifact inventory scan was not performed."
+    "The full T-11 error-path, log, and artifact inventory scan was not performed.",
+    "Local FE configuration lacks the required AI rate-limit subject and pseudonym secrets, so the proxy intentionally returns 503 before upstream; the default AI service on port 8000 is also not listening."
   ],
   "screenshot": {
     "path": "graph-live-desktop.png",
