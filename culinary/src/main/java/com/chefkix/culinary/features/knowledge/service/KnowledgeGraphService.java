@@ -18,7 +18,6 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -84,10 +83,7 @@ public class KnowledgeGraphService {
             hasMore = page.hasNext();
         }
 
-        Map<String, KnowledgeIngredient> byName = new LinkedHashMap<>();
-        for (KnowledgeIngredient ingredient : ingredients) {
-            byName.put(ingredient.getCanonicalName(), ingredient);
-        }
+        IdentityIndex byIdentity = indexIdentities(ingredients);
         List<KnowledgeGraphResponse.Node> nodes = ingredients.stream()
                 .map(ingredient -> new KnowledgeGraphResponse.Node(
                         ingredient.getCanonicalName(), ingredient.getName(), ingredient.getCategory(),
@@ -98,7 +94,7 @@ public class KnowledgeGraphService {
             if (ingredient.getSubstitutions() == null) continue;
             for (KnowledgeIngredient.Substitution substitution : ingredient.getSubstitutions()) {
                 if (substitution.getAlternative() == null) continue;
-                KnowledgeIngredient target = byName.get(substitution.getAlternative().trim().toLowerCase(Locale.ROOT));
+                KnowledgeIngredient target = byIdentity.resolve(substitution.getAlternative());
                 if (target != null) {
                     edges.add(new KnowledgeGraphResponse.Edge(
                             ingredient.getCanonicalName(), target.getCanonicalName(), "substitution",
@@ -130,19 +126,68 @@ public class KnowledgeGraphService {
             List<KnowledgeIngredient> next = new ArrayList<>();
             for (int offset = 0; offset < names.size() && selected.size() < limit;) {
                 int batchSize = Math.min(limit - selected.size(), names.size() - offset);
-                List<KnowledgeIngredient> found = ingredientRepo.findByCanonicalNameIn(
-                        names.subList(offset, offset + batchSize));
-                found.stream().sorted(Comparator.comparing(KnowledgeIngredient::getCanonicalName))
-                        .forEach(ingredient -> {
-                            if (selected.size() < limit && selected.putIfAbsent(
-                                    ingredient.getCanonicalName(), ingredient) == null) next.add(ingredient);
-                        });
+                List<String> batch = names.subList(offset, offset + batchSize);
+                Map<String, KnowledgeIngredient> foundById = new LinkedHashMap<>();
+                ingredientRepo.findByCanonicalNameIn(batch)
+                        .forEach(ingredient -> foundById.put(ingredient.getCanonicalName(), ingredient));
+                ingredientRepo.findByAliasesIn(batch)
+                        .forEach(ingredient -> foundById.putIfAbsent(ingredient.getCanonicalName(), ingredient));
+                IdentityIndex byIdentity = indexIdentities(foundById.values());
+                for (String name : batch) {
+                    KnowledgeIngredient ingredient = byIdentity.resolve(name);
+                    if (ingredient != null && selected.size() < limit
+                            && selected.putIfAbsent(ingredient.getCanonicalName(), ingredient) == null) {
+                        next.add(ingredient);
+                    }
+                }
                 offset += batchSize;
             }
             frontier = next;
             if (frontier.isEmpty()) break;
         }
         return new ArrayList<>(selected.values());
+    }
+
+    private static IdentityIndex indexIdentities(Collection<KnowledgeIngredient> ingredients) {
+        Map<String, KnowledgeIngredient> byCanonicalName = new LinkedHashMap<>();
+        Set<String> ambiguousCanonicalNames = new LinkedHashSet<>();
+        for (KnowledgeIngredient ingredient : ingredients) {
+            registerIdentity(byCanonicalName, ambiguousCanonicalNames,
+                    ingredient.getCanonicalName(), ingredient);
+        }
+
+        Map<String, KnowledgeIngredient> byAlias = new LinkedHashMap<>();
+        Set<String> ambiguousAliases = new LinkedHashSet<>();
+        for (KnowledgeIngredient ingredient : ingredients) {
+            if (ingredient.getAliases() != null) {
+                ingredient.getAliases().forEach(alias -> {
+                    String normalized = normalizeIdentity(alias);
+                    if (byCanonicalName.containsKey(normalized)
+                            || ambiguousCanonicalNames.contains(normalized)) return;
+                    registerIdentity(byAlias, ambiguousAliases, alias, ingredient);
+                });
+            }
+        }
+        return new IdentityIndex(byCanonicalName, ambiguousCanonicalNames, byAlias, ambiguousAliases);
+    }
+
+    private static void registerIdentity(
+            Map<String, KnowledgeIngredient> byIdentity,
+            Set<String> ambiguous,
+            String identity,
+            KnowledgeIngredient ingredient) {
+        String normalized = normalizeIdentity(identity);
+        if (normalized.isBlank() || ambiguous.contains(normalized)) return;
+        KnowledgeIngredient existing = byIdentity.putIfAbsent(normalized, ingredient);
+        if (existing != null && !normalizeIdentity(existing.getCanonicalName())
+                .equals(normalizeIdentity(ingredient.getCanonicalName()))) {
+            byIdentity.remove(normalized);
+            ambiguous.add(normalized);
+        }
+    }
+
+    private static String normalizeIdentity(String identity) {
+        return identity == null ? "" : identity.trim().toLowerCase(Locale.ROOT);
     }
 
 
@@ -166,5 +211,19 @@ public class KnowledgeGraphService {
 
     public List<KnowledgeTechnique> getAllTechniques() {
         return techniqueRepo.findAll();
+    }
+
+    private record IdentityIndex(
+            Map<String, KnowledgeIngredient> byCanonicalName,
+            Set<String> ambiguousCanonicalNames,
+            Map<String, KnowledgeIngredient> byAlias,
+            Set<String> ambiguousAliases) {
+        private KnowledgeIngredient resolve(String identity) {
+            String normalized = normalizeIdentity(identity);
+            if (normalized.isBlank() || ambiguousCanonicalNames.contains(normalized)) return null;
+            KnowledgeIngredient canonical = byCanonicalName.get(normalized);
+            if (canonical != null) return canonical;
+            return ambiguousAliases.contains(normalized) ? null : byAlias.get(normalized);
+        }
     }
 }
