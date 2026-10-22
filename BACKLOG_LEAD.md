@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v519 — Clarify C2 source-access vs transfer-rights evidence (2026-10-22)
+
+- An authoritative-source scan found that the Recipe1M/Recipe1M+ README directs researchers to a request form and states access is limited to research at universities/research institutions. GISMo's reproduction README provides direct Recipe1MSubs comment-file URLs but the reviewed download instructions state no dataset license or third-party API-disclosure permission. These statements cover different artifacts and are not treated as interchangeable.
+- Exact provenance/terms for the Recipe1MSubs comment files, institution eligibility, and permission to transmit the exact C2 fields remain `UNKNOWN`. A public URL is not permission. No data rows, labels, credentials, provider, or paid resource were accessed. Full source observations, limitations, citations, and reversal evidence are in `evidence/lead-c2-source-rights-scan-20261022.md`.
+- **Next move:** obtain applicable source-steward terms/written permission for the exact artifact, fields, recipient, and retention, or identify an independently rights-cleared replacement. Continue synthetic/local work in parallel. No C2 dispatch or quality claim is authorized by this evidence.
+
 ## LEAD v518 — Freeze C2 prompt semantics and enforce rank-preserving self-substitution (2026-10-22)
 
 - Under HUMAN's explicit delegation to resolve remaining internal decisions, T172 froze the existing provider-independent C2 prompt/response semantics without changing Protocol v1. The exact prompt artifact is SHA-256 `63281b23f392920341983d5f992c3ed0482488d263dff4e0dc02137a26c7520d`. The freeze covers the three permitted fields, nested ordered alias slots, exact unique raw target-slot matching/exclusion, strict 20-distinct-string response semantics, one-attempt/failure-denominator behavior, and rank-preserving self-substitution invalidity. It does not select a winner, freeze endpoint/SDK wire details, or authorize data/provider/resource operations.
