@@ -513,7 +513,7 @@ L39 (allergen) → L45
 - [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
 - [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
 - [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
-- [ ] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line)
+- [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line) — the tracked Markdown scan found `output/sprints/2026-10-11/README.md:7`, which records 25 ingredients/four edges for that dated local screenshot package and explicitly says it is not an imported Lead graph. This is a historical demo claim, not current runtime or accepted graph truth.
 - [ ] Emit `GRAPH_TRUTH.csv` and `COVERAGE_CURVES.csv` with provenance labels
 - [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
 
