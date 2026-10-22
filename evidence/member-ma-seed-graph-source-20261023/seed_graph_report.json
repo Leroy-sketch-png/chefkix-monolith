@@ -1,0 +1,80 @@
+{
+  "artifacts": [
+    "GRAPH_TRUTH.csv",
+    "GRAPH_NODES.csv",
+    "GRAPH_EDGES.csv",
+    "seed_graph_report.json",
+    "audit_receipt.json"
+  ],
+  "coverage_curve_disposition": "NOT_COMPUTED_NO_QUERY_COHORT_DENOMINATOR",
+  "limitations": [
+    "Static source inspection does not prove the seeder ran or that runtime records match these statements.",
+    "Unmatched or ambiguous literal targets are not canonical ingredients or verified real-world substitutions.",
+    "No authoritative query cohort or denominator is present, so COVERAGE_CURVES.csv is not produced.",
+    "No runtime AI artifact, deployment, rights, Round-0 definition, or model-quality claim is established."
+  ],
+  "provenance": {
+    "graph_interpretation": "directed statement multigraph; repeated statements remain separate arcs",
+    "scope": "tracked KnowledgeGraphSeeder ingredient records and literal substitution statements",
+    "source_path": "culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java",
+    "source_sha256": "cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174"
+  },
+  "record_id": "member-ma-seed-graph-source-20261023",
+  "round0_disposition": "OPEN_SOURCE_ONLY_INTERPRETATION",
+  "summary": {
+    "canonical_source_record_count": 25,
+    "degree_distributions": {
+      "in": {
+        "max": 1,
+        "mean": 0.7468354430379747,
+        "median": 1,
+        "min": 0
+      },
+      "out": {
+        "max": 4,
+        "mean": 0.7468354430379747,
+        "median": 0,
+        "min": 0
+      },
+      "total": {
+        "max": 4,
+        "mean": 1.4936708860759493,
+        "median": 1,
+        "min": 1
+      }
+    },
+    "degree_sums": {
+      "in": 59,
+      "out": 59,
+      "total": 118
+    },
+    "directed_degree_sum_invariant_pass": true,
+    "edge_count": 59,
+    "edge_type_counts": {
+      "directed_substitution_statement": 59
+    },
+    "isolated_node_count": 0,
+    "node_count": 79,
+    "node_type_counts": {
+      "seed_ingredient": 25,
+      "unresolved_literal_target": 54
+    },
+    "resolution_counts": {
+      "alias": 1,
+      "ambiguous": 0,
+      "canonical": 4,
+      "unmatched": 54
+    },
+    "resolved_target_statement_count": 5,
+    "source_category_counts": {
+      "baking": 3,
+      "condiment": 3,
+      "dairy": 6,
+      "grain": 2,
+      "oil": 1,
+      "produce": 6,
+      "protein": 2,
+      "spice": 2
+    }
+  }
+}

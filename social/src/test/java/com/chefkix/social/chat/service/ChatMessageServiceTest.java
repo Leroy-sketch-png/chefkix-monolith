@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -22,6 +23,7 @@ import com.chefkix.social.chat.repository.ChatMessageRepository;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
 import com.chefkix.shared.event.StoryReplyEvent;
+import com.chefkix.shared.exception.AppException;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -120,6 +122,24 @@ class ChatMessageServiceTest {
     }
 
     @Test
+    void createRejectsFlaggedModerationResponseBeforeSaving() {
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId("conversation-1")
+                .message("ambiguous cooking message")
+                .type(MessageType.TEXT)
+                .build();
+        when(contentModerationProvider.moderate("ambiguous cooking message", "chat"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "off_topic", "medium", 0.5, "Manual review required"));
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(AppException.class);
+
+        verify(chatMessageRepository, never()).save(any(ChatMessage.class));
+        verify(conversationLookupService, never()).findById("conversation-1");
+    }
+
+    @Test
     void createReturnsTheExistingMessageForTheSameSenderClientKey() {
         String conversationId = new org.bson.types.ObjectId().toHexString();
         ChatMessageRequest request = ChatMessageRequest.builder()
@@ -204,6 +224,29 @@ class ChatMessageServiceTest {
         assertThat(saved.getSharedPostImage()).isEqualTo("https://cdn.example/story-1.jpg");
         assertThat(saved.getSharedPostTitle()).isNull();
         verify(conversationLookupService).touchModifiedDate(eq("conversation-1"), any(Instant.class));
+    }
+
+    @Test
+    void flaggedStoryReplyIsNotPublished() {
+        StoryReplyEvent event = StoryReplyEvent.builder()
+                .storyId("story-1")
+                .storyOwnerId("owner-1")
+                .replierId("replier-1")
+                .replyText("ambiguous story reply")
+                .build();
+        when(conversationRepository.findByParticipantsHash("owner-1_replier-1"))
+                .thenReturn(java.util.Optional.of(Conversation.builder()
+                        .id("conversation-1")
+                        .participantsHash("owner-1_replier-1")
+                        .build()));
+        when(contentModerationProvider.moderate("ambiguous story reply", "chat"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "off_topic", "medium", 0.5, "Manual review required"));
+
+        service.processStoryReplyEvent(event);
+
+        verify(chatMessageRepository, never()).save(any(ChatMessage.class));
+        verify(profileProvider, never()).getBasicProfile("replier-1");
     }
 
     @Test

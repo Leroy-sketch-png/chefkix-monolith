@@ -1,0 +1,50 @@
+{
+  "record_id": "member-t10-network-isolated-graph-demo-20261023",
+  "status": "PARTIAL",
+  "scope": "Fixture-backed Graph Explorer request allowlist and evidence fallback in a headed real browser",
+  "frontend": {
+    "repository_branch": "codex/epic10-graph-e2e",
+    "commit": "4382994db00887e33c32b8e35eb8f14ca18a8177",
+    "test_path": "tests/e2e/graph-explorer.spec.ts",
+    "test_blob_sha1": "51d860bc2b11f6887b764fa1472883f3137456d8",
+    "feature_flags": {
+      "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+      "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": true
+    }
+  },
+  "browser_run": {
+    "command": "npx playwright test tests/e2e/graph-explorer.spec.ts --config=playwright.e2e.config.ts --headed",
+    "browser": "Installed system Chrome via PLAYWRIGHT_EXECUTABLE_PATH",
+    "projects": ["desktop-chromium", "mobile-iphone"],
+    "result": {
+      "passed": 10,
+      "expected_feature_flag_skips": 2,
+      "failed": 0
+    },
+    "playwright_last_run_sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "network_gate": {
+    "frontend_origin": "http://localhost:3200",
+    "allowed_api_arms": [
+      "GET /api/v1/knowledge/graph",
+      "POST /api/v1/compound/analyze-pair",
+      "GET /api/v1/graph/evidence"
+    ],
+    "fixture_fallback": {
+      "http_status": 503,
+      "status": "UNAVAILABLE",
+      "unavailable_reason": "PROVIDER_ERROR",
+      "rendered_state": "Graph evidence is unavailable. No substitution decision was made."
+    },
+    "non_allowlisted_requests": 0
+  },
+  "screenshot": {
+    "path": "graph-demo-fallback.png",
+    "sha256": "7b1746d1bc2f63b970835500cb18244be1c6b500745d7bcb39a1a7e133b74811"
+  },
+  "limitations": [
+    "API responses are controlled browser fixtures, not a live FE-to-backend deployment run.",
+    "The recorded Act 3/demo logs and outputs are unavailable, so the corresponding full recording and artifact scan remain open.",
+    "This does not establish accepted graph data, rights clearance, calibration, or overall M-C acceptance."
+  ]
+}

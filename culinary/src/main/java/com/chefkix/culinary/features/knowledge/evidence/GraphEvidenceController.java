@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 /** Additive v1 shadow endpoint. It never calls the legacy seed graph or suggestion service. */
 @RestController
 public class GraphEvidenceController {
-    public static final String ROUTE = "/api/v1/graph/evidence";
+    // application.yml supplies the external /api/v1 servlet context path.
+    public static final String ROUTE = "/graph/evidence";
 
     private final GraphEvidenceProperties properties;
     private final ObjectProvider<GraphEvidenceProvider> provider;
@@ -76,12 +77,17 @@ public class GraphEvidenceController {
             }
             if (resolution.sourceIngredientId() == null || resolution.candidateIngredientId() == null
                     || !sourceIngredientId.equals(resolution.requestedSourceIngredientId())
-                    || !candidateIngredientId.equals(resolution.requestedCandidateIngredientId())) {
+                    || !candidateIngredientId.equals(resolution.requestedCandidateIngredientId())
+                    || !sourceIngredientId.equals(resolution.sourceIngredientId())
+                    || !candidateIngredientId.equals(resolution.candidateIngredientId())) {
                 return unavailable(UnavailableReason.PROVIDER_RESULT_INVALID, resolution);
             }
             TrainPairEvidence trainPair = result.evidence().trainPairEvidence();
             if (trainPair == null || trainPair.trainCount() == null || trainPair.seenInTrain() == null) {
                 return unavailable(UnavailableReason.TRAIN_PAIR_EVIDENCE_UNAVAILABLE, resolution);
+            }
+            if (!GraphEvidenceContractV1.TRAIN_PAIR_UNIT.equals(trainPair.unit())) {
+                return unavailable(UnavailableReason.PROVIDER_RESULT_INVALID, resolution);
             }
             Calibration calibration = result.evidence().calibration();
             if (calibration == null || calibration.status() == null

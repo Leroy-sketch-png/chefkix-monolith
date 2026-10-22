@@ -49,7 +49,7 @@ public class ContentModerationProviderImpl implements ContentModerationProvider 
             log.warn("AI moderation unavailable for {} content: {}",
                     contentType, e.getMessage());
 
-            log.error("Flagging {} content for review -- AI moderation service is down", contentType);
+            log.error("Rejecting {} content because the AI moderation service is unavailable", contentType);
             return new ModerationResult("flag", "unknown", "medium", 0.0,
                     "AI moderation unavailable -- content held for manual review");
         }

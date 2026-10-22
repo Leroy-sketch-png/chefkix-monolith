@@ -1,0 +1,73 @@
+{
+  "record_id": "member-mc-edge-identity-20261023",
+  "status": "PARTIAL",
+  "scope": "Collision-safe graph edge identity in the FE Explorer",
+  "frontend": {
+    "repository_branch": "codex/epic10-graph-e2e",
+    "commit": "7854baa18967154e6c344baf228ab3adfb40f582",
+    "changed_paths": {
+      "src/features/graph-explorer/services/graphExplorerService.ts": "32de38aa718f00af74e9314ee0b61cfae50fd551",
+      "src/features/graph-explorer/components/GraphExplorer.tsx": "aa993df0aec2b11d85adfff045d24c705249348e",
+      "src/features/graph-explorer/components/GraphCanvas.tsx": "19d6258bd15efa1f81f3660c321ad3a50e5d239b",
+      "tests/e2e/graph-explorer.spec.ts": "b1c1701d718d6f9e13983dd540d60445293b0930"
+    }
+  },
+  "failure_driven_regression": {
+    "case": "Distinct pairs a:b -> c and a -> b:c",
+    "before_fix": [
+      "Graph merge retained only one of the two edges.",
+      "React reported duplicate edge keys.",
+      "Selecting the second edge displayed details for the first edge."
+    ],
+    "fix": "A shared JSON tuple key is used for merge/deduplication, React rendering, selected edge state, compound-detail updates, and evidence state."
+  },
+  "verification": {
+    "unit_command": "npx jest src/features/graph-explorer --runInBand",
+    "unit_result": {
+      "suites": 4,
+      "passed": 29,
+      "failed": 0
+    },
+    "production_builds": {
+      "explorer_and_evidence_flags_on": "passed",
+      "both_flags_off": "passed"
+    },
+    "enabled_headed_graph_e2e": {
+      "command": "npx playwright test tests/e2e/graph-explorer.spec.ts --config=playwright.e2e.config.ts --headed",
+      "projects": [
+        "desktop-chromium",
+        "mobile-iphone"
+      ],
+      "passed": 12,
+      "expected_feature_flag_skips": 2,
+      "failed": 0
+    },
+    "focused_collision_browser_run": {
+      "projects": [
+        "desktop-chromium",
+        "mobile-iphone"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "playwright_last_run_sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "default_off_headed_route_run": {
+      "projects": [
+        "desktop-chromium",
+        "mobile-iphone"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "assertion": "Disabled panel rendered and no knowledge graph request occurred."
+    }
+  },
+  "screenshot": {
+    "path": "graph-edge-colon-ids.png",
+    "sha256": "7f738f4711e5ba738b132ab67420969fef230a60f099f4f0796a2c96e5b74125"
+  },
+  "limitations": [
+    "Graph and evidence API responses in browser checks are fixtures; no live FE-to-backend request was made.",
+    "This does not supply an accepted graph_product_v4 artifact, provenance, or rights decision.",
+    "T-01 through T-08, T-10, and T-11 remain open or partial as recorded in the Member backlog."
+  ]
+}

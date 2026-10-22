@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.RecipeProvider;
 import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.social.group.entity.Group;
@@ -19,6 +21,8 @@ import com.chefkix.social.group.enums.PrivacyType;
 import com.chefkix.social.group.repository.GroupMemberRepository;
 import com.chefkix.social.group.repository.GroupRepository;
 import com.chefkix.social.post.dto.response.PostResponse;
+import com.chefkix.social.post.dto.request.PostCreationRequest;
+import com.chefkix.social.post.dto.request.PostUpdateRequest;
 import com.chefkix.social.post.entity.Collection;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.enums.PostStatus;
@@ -169,6 +173,58 @@ class PostServiceTest {
         assertThat(emittedEvent.getUserId()).isEqualTo("user-1");
         assertThat(collection.getPostIds()).containsExactly("post-2");
         assertThat(collection.getItemCount()).isEqualTo(1);
+    }
+
+    @Test
+    void updatePostRejectsBlockedContentBeforeSaving() {
+        String postId = "post-1";
+        Post post = Post.builder()
+                .id(postId)
+                .userId("user-1")
+                .content("original content")
+                .createdAt(Instant.now().minusSeconds(600))
+                .build();
+        PostUpdateRequest request = PostUpdateRequest.builder()
+                .content("blocked content")
+                .build();
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(contentModerationProvider.moderate("blocked content", "post"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "block", "harmful", "high", 0.99, "blocked by moderation"));
+
+        assertThatThrownBy(() -> postService.updatePost(postId, request))
+                .isInstanceOf(AppException.class);
+
+        assertThat(post.getContent()).isEqualTo("original content");
+        verify(postRepository, never()).save(any(Post.class));
+        verify(eventPublisher, never()).publishEvent(any(Object.class));
+    }
+
+    @Test
+    void createPersonalPostRejectsFlaggedContentBeforeSaving() {
+        String content = "ambiguous cooking caption";
+        PostCreationRequest request = PostCreationRequest.builder()
+                .content(content)
+                .build();
+
+        when(profileProvider.getBasicProfile("user-1")).thenReturn(BasicProfileInfo.builder()
+                .userId("user-1")
+                .displayName("Test Chef")
+                .build());
+        when(contentModerationProvider.moderate(content, "post"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "off_topic", "medium", 0.5, "Manual review required"));
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(0)).run();
+            return null;
+        }).when(taskExecutor).execute(any(Runnable.class));
+
+        assertThatThrownBy(() -> postService.createPersonalPost(request, "user-1"))
+                .isInstanceOf(AppException.class);
+
+        verify(postRepository, never()).save(any(Post.class));
+        verify(kafkaTemplate, never()).send(eq("post-delivery"), any());
     }
 
     @Test

@@ -1,10 +1,13 @@
 package com.chefkix.config;
 
+import com.chefkix.culinary.features.knowledge.evidence.GraphEvidenceConfiguration;
+import com.chefkix.culinary.features.knowledge.evidence.GraphEvidenceController;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.FilterChainProxy;
@@ -14,16 +17,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.mock.web.MockServletContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Executable filter-chain regression for the additive graph-evidence route.
- * The probe controller is synthetic and exists only in this minimal test context.
  */
 class GraphEvidenceEndpointAuthenticationTest {
 
@@ -38,27 +40,34 @@ class GraphEvidenceEndpointAuthenticationTest {
                     .addFilters(context.getBean("springSecurityFilterChain", FilterChainProxy.class))
                     .build();
 
-            // If this exact research path ever enters PUBLIC_ENDPOINTS or GUEST_GET_ENDPOINTS,
-            // the anonymous request reaches the synthetic endpoint (204) instead of 401.
-            mvc.perform(get("/api/v1/graph/evidence"))
+            // The external URL includes the servlet context path; the controller mapping does not.
+            mvc.perform(get("/api/v1/graph/evidence").contextPath("/api/v1"))
                     .andExpect(status().isUnauthorized());
-            mvc.perform(get("/api/v1/graph/evidence").header("Authorization", "Bearer synthetic-token"))
-                    .andExpect(status().isNoContent());
+            mvc.perform(get("/api/v1/graph/evidence").contextPath("/api/v1")
+                            .param("sourceIngredientId", "1")
+                            .param("candidateIngredientId", "2")
+                            .header("Authorization", "Bearer synthetic-token"))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.unavailableReason").value("FEATURE_DISABLED"));
 
             // Controls prove the neighboring legacy public and guest-GET rules still match
             // their own paths and that the GET-only guest rule does not permit mutations.
-            mvc.perform(get("/knowledge/probe"))
+            mvc.perform(get("/api/v1/knowledge/probe").contextPath("/api/v1"))
                     .andExpect(status().isNoContent());
-            mvc.perform(get("/knowledge-graph/probe"))
+            mvc.perform(get("/api/v1/knowledge-graph/probe").contextPath("/api/v1"))
                     .andExpect(status().isNoContent());
-            mvc.perform(post("/knowledge-graph/probe"))
+            mvc.perform(post("/api/v1/knowledge-graph/probe").contextPath("/api/v1"))
                     .andExpect(status().isUnauthorized());
         }
     }
 
     @TestConfiguration(proxyBeanMethods = false)
     @EnableWebMvc
-    @Import(SecurityConfig.class)
+    @Import({
+        SecurityConfig.class,
+        GraphEvidenceConfiguration.class,
+        GraphEvidenceController.class
+    })
     static class SecurityTestApplication {
         @Bean
         JwtDecoder jwtDecoder() {
@@ -76,11 +85,6 @@ class GraphEvidenceEndpointAuthenticationTest {
 
     @RestController
     static class ProbeEndpoints {
-        @GetMapping("/api/v1/graph/evidence")
-        ResponseEntity<Void> graphEvidence() {
-            return ResponseEntity.noContent().build();
-        }
-
         @GetMapping("/knowledge/probe")
         ResponseEntity<Void> publicKnowledgeControl() {
             return ResponseEntity.noContent().build();

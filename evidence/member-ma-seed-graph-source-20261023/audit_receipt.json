@@ -1,0 +1,25 @@
+{
+  "generator": {
+    "path": "tools/audit_seed_graph.py",
+    "sha256": "a162e005f062f749be5f6d3d5f19ac04c4052e2c89e49122f308bc4ee433261a"
+  },
+  "output_sha256": {
+    "GRAPH_EDGES.csv": "e2b3591fb6525ff7890e6c10e872989feabd1b6f0097d3bd4cb5399f7623052f",
+    "GRAPH_NODES.csv": "fbaa44df3a672aa0be9803e18a08724191975e85bff1f582e465508d6099c32c",
+    "GRAPH_TRUTH.csv": "998eb4481f9e13cc594bc97934b56e880a3d82d0926728fbda21e4066fbbd0c1",
+    "seed_graph_report.json": "04e1655e815a439227ce58e45c711884290cfc1c2d802225242841d5c54060b5"
+  },
+  "record_id": "member-ma-seed-graph-source-20261023-audit-receipt",
+  "regression_test": {
+    "command": "python tools/test_audit_seed_graph.py",
+    "path": "tools/test_audit_seed_graph.py",
+    "sha256": "a819ce4a11c789434e275049cf1be74297665867fe043f0b68d3414a936b59d3"
+  },
+  "scope": "Source reconstruction and output inventory only; test result is recorded by the invoking run, not inferred by this generator.",
+  "source": {
+    "graph_interpretation": "directed statement multigraph; repeated statements remain separate arcs",
+    "scope": "tracked KnowledgeGraphSeeder ingredient records and literal substitution statements",
+    "source_path": "culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java",
+    "source_sha256": "cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174"
+  }
+}

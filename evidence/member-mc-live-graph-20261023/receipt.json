@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-23",
+  "status": "PASS for the scoped local live Graph Explorer smoke; not a production acceptance",
+  "frontend": {
+    "repository": "chefkix-fe",
+    "branch": "codex/epic10-graph-e2e",
+    "commit": "7854baa18967154e6c344baf228ab3adfb40f582",
+    "url": "http://localhost:3000/explore/graph",
+    "runtime": "Next.js dev server",
+    "browser": "ChatGPT in-app Chromium",
+    "flags": {
+      "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+      "NEXT_PUBLIC_GRAPH_EXPLORER_MOCK": false,
+      "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": false
+    }
+  },
+  "backend": {
+    "repository": "chefkix-monolith",
+    "branch": "codex/member-sprint12-deliverables",
+    "commit": "7fef7f17863be69875b0a21962a92afb5570210e",
+    "url": "http://localhost:8080/api/v1",
+    "database": "chefkix_codex_graph_smoke on an isolated ephemeral Mongo 7 container",
+    "graphRequest": "GET /knowledge/graph?depth=1&limit=100",
+    "graphResponse": {
+      "httpStatus": 200,
+      "nodes": 25,
+      "edges": 4
+    }
+  },
+  "checks": [
+    {
+      "name": "Live graph load",
+      "result": "PASS",
+      "details": "UI showed 25 indexed ingredients, 7 linked ingredients, 4 documented relationships, and Source: Knowledge API."
+    },
+    {
+      "name": "Search and ingredient browse",
+      "result": "PASS",
+      "details": "Chicken search selected the ingredient and its detail panel reached Loaded detail."
+    },
+    {
+      "name": "Unknown ingredient",
+      "result": "PASS",
+      "details": "unlisted spice showed not in the current graph, no matching index item, and no fabricated graph node."
+    },
+    {
+      "name": "Relationship detail",
+      "result": "PASS",
+      "details": "Butter to Olive Oil showed substitution ratio 0.75 and recorded context."
+    },
+    {
+      "name": "Relationship filters",
+      "result": "PASS",
+      "details": "Visible links changed from 4 to 0 when Substitution was disabled, then returned to 4 when re-enabled."
+    },
+    {
+      "name": "Ingredient details",
+      "result": "PASS",
+      "details": "Basic Butter and Chicken details reached Loaded detail. Compound profile and pair-analysis requests returned 503 from the FE AI proxy; the UI showed generic FooDB/USDA fallback states. Local config check found both required AI rate-limit secrets absent; the proxy fails closed before upstream, and its default AI port 8000 was not listening."
+    },
+    {
+      "name": "Evidence panel disabled",
+      "result": "PASS",
+      "details": "Panel absent with the evidence feature flag off; Graph Evidence behavior was not exercised."
+    },
+    {
+      "name": "Browser console",
+      "result": "PASS",
+      "details": "Zero console errors; existing design-system token warnings were present."
+    },
+    {
+      "name": "Local CORS setup",
+      "result": "PASS after origin correction",
+      "details": "localhost:3200 received 403 because the configured local FE origin is localhost:3000; the run passed on localhost:3000 without code changes."
+    },
+    {
+      "name": "Compound AI proxy",
+      "result": "503, handled",
+      "details": "GET compound/profile and POST compound/analyze-pair returned 503. No secret values were emitted; only presence booleans were checked."
+    }
+  ],
+  "knownLimits": [
+    "Uses the legacy Java seeder response in an isolated local database, not the accepted/hash-pinned product graph.",
+    "No rights, provenance acceptance, tamper-refusal, calibration, allergen decision, or production deployment gate was tested.",
+    "FooDB comparison was unavailable and USDA nutrition was pending for the displayed records.",
+    "The actuator health URL returned 404 and is not exposed in this local profile.",
+    "The Kafka container was still health: starting; notifications and event-dependent social workflows were not tested.",
+    "The full T-11 error-path, log, and artifact inventory scan was not performed.",
+    "Local FE configuration lacks the required AI rate-limit subject and pseudonym secrets, so the proxy intentionally returns 503 before upstream; the default AI service on port 8000 is also not listening."
+  ],
+  "screenshot": {
+    "path": "graph-live-desktop.png",
+    "sha256": "0E8D693CB0D330F09503FE79F6B28033172ECD33C2FB5BD5591D293F0069356D"
+  }
+}

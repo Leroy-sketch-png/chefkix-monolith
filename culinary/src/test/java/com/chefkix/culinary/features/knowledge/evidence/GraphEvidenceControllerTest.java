@@ -107,6 +107,21 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
+    void trainPairCountMustDeclareTheTrainPairUnit() {
+        for (String unit : new String[]{null, "PAIR_ROWS", ""}) {
+            Evidence evidence = evidenceWithTrainPair(new TrainPairEvidence(true, 3L, unit));
+            GraphEvidenceProvider provider = request -> new ProviderResult(
+                    new ArtifactIntegrity(ArtifactIntegrityStatus.VERIFIED, HASH_A, HASH_A), evidence);
+
+            var response = controllerWith(provider).getEvidence("source-x", "candidate-y");
+
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals(UnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+            assertNull(response.getBody().evidence());
+        }
+    }
+
+    @Test
     void frozenCalibrationStatusesRemainDistinctAndGraphEvidenceAlwaysAbstains() throws Exception {
         for (CalibrationStatus status : List.of(
                 CalibrationStatus.OK,
@@ -213,13 +228,17 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
-    void providerExceptionReturnsTypedUnavailableAndNeverFallsBack() {
-        GraphEvidenceProvider provider = request -> { throw new IllegalStateException("synthetic failure"); };
+    void providerExceptionDetailsDoNotLeakIntoTheResponse() throws Exception {
+        String secretSentinel = "CHEFKIX_T11_SECRET_SENTINEL_20261023";
+        GraphEvidenceProvider provider = request -> { throw new IllegalStateException(secretSentinel); };
         var response = controllerWith(provider).getEvidence("ingredient-a", "ingredient-b");
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals(UnavailableReason.PROVIDER_ERROR, response.getBody().unavailableReason());
         assertNull(response.getBody().evidence());
+        String responseJson = new ObjectMapper().writeValueAsString(response.getBody());
+        assertFalse(responseJson.contains(secretSentinel));
+        assertFalse(responseJson.contains("IllegalStateException"));
     }
 
     @Test
@@ -247,10 +266,29 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
+    void resolvedCanonicalIdsMustMatchTheRequestedPair() {
+        Evidence original = sampleEvidence();
+        IdentityResolution mismatched = new IdentityResolution(
+                IdentityStatus.RESOLVED, "source-x", "different-source", List.of(),
+                "candidate-y", "different-candidate", List.of());
+        Evidence evidence = new Evidence(mismatched, original.trainPairEvidence(), original.provenance(),
+                original.compoundAvailability(), original.nutrientAvailability(), original.declaredGroupScreening(),
+                original.calibration(), original.decision());
+        GraphEvidenceProvider provider = request -> new ProviderResult(
+                new ArtifactIntegrity(ArtifactIntegrityStatus.VERIFIED, HASH_A, HASH_A), evidence);
+
+        var response = controllerWith(provider).getEvidence("source-x", "candidate-y");
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(UnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().evidence());
+    }
+
+    @Test
     void evidenceRouteIsAdditiveAndSeparateFromLegacyKnowledgeGraphRoute() throws Exception {
         GetMapping evidenceMapping = GraphEvidenceController.class
                 .getMethod("getEvidence", String.class, String.class).getAnnotation(GetMapping.class);
-        assertArrayEquals(new String[]{GraphEvidenceController.ROUTE}, evidenceMapping.value());
+        assertArrayEquals(new String[]{"/graph/evidence"}, evidenceMapping.value());
 
         RequestMapping legacyPrefix = KnowledgeGraphController.class.getAnnotation(RequestMapping.class);
         GetMapping legacyGraph = KnowledgeGraphController.class

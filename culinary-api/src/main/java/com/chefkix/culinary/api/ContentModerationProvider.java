@@ -29,7 +29,7 @@ String severity,
         /**
          */
         public static ModerationResult approved() {
-            return new ModerationResult("approve", "clean", "low", 1.0, "AI unavailable — auto-approved");
+            return new ModerationResult("approve", "clean", "low", 1.0, "No content to moderate");
         }
     }
 }

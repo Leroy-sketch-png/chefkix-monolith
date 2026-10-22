@@ -1,0 +1,7 @@
+/tools/audit_seed_graph.py text eol=lf
+/tools/test_audit_seed_graph.py text eol=lf
+/evidence/member-ma-seed-graph-source-20261023/*.csv text eol=lf
+/evidence/member-ma-seed-graph-source-20261023/*.json text eol=lf
+/evidence/member-t11-error-output-20261023.json text eol=lf
+/evidence/member-t10-network-isolated-graph-demo-20261023/*.json text eol=lf
+/evidence/member-mc-edge-identity-20261023/*.json text eol=lf

@@ -1,0 +1,57 @@
+{
+  "record_id": "member-t11-error-output-20261023",
+  "status": "PARTIAL",
+  "scope": "Graph Evidence provider-failure response and Graph Explorer error presentation",
+  "synthetic_marker": "CHEFKIX_T11_SECRET_SENTINEL_20261023",
+  "backend": {
+    "repository_branch": "codex/member-sprint12-deliverables",
+    "base_commit": "02971683dabb0bead421cf4e2cb5814b21393340",
+    "test_path": "culinary/src/test/java/com/chefkix/culinary/features/knowledge/evidence/GraphEvidenceControllerTest.java",
+    "test_blob_sha1": "a9e945630c8ca8137893845ea5617e3cbee18bb7",
+    "command": ".\\mvnw.cmd -pl culinary -am -Dtest=GraphEvidenceControllerTest -Dsurefire.failIfNoSpecifiedTests=false test",
+    "result": {
+      "tests": 18,
+      "passed": 18,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failure_driven_probe": "Temporarily bypassing the controller exception boundary caused the sentinel test to error; restoring the typed PROVIDER_ERROR response returned the focused suite to 18/18. The controller source was restored and has no pending change."
+  },
+  "frontend": {
+    "repository_branch": "codex/epic10-graph-e2e",
+    "commit": "66465cfa56bc28755769f6190c3eebcdd3a33296",
+    "test_path": "tests/e2e/graph-explorer.spec.ts",
+    "test_blob_sha1": "1594d769ef1f820dc2bc8702e3cc6736e9b3f08f",
+    "feature_flags": {
+      "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+      "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": true
+    },
+    "browser": "Installed system Chrome via PLAYWRIGHT_EXECUTABLE_PATH; headed run",
+    "projects": ["desktop-chromium", "mobile-iphone"],
+    "graph_explorer_suite": {
+      "tests": 10,
+      "passed": 8,
+      "expected_skips": 2,
+      "failed": 0
+    },
+    "sentinel_case": "Passed on both projects; provider diagnostic text was absent from the rendered page and browser console.",
+    "build_id_sha256": "4cd843e2bb449f1a465647f358f51cdd2ee0bf9c743bc8588d9990fcafd14252",
+    "playwright_last_run_sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "artifact_marker_scan": {
+    "surefire_report_sha256": "6e4aa3dc8f6c25e0f713c15cf366461d325e6dd79897ce02b94dfe57494c6e31",
+    "checked_outputs": [
+      "culinary/target/surefire-reports",
+      "chefkix-fe/.next",
+      "chefkix-fe/test-results/e2e"
+    ],
+    "marker_found": false,
+    "scan_scope": "Synthetic marker only; test/source files intentionally contain the marker and were excluded."
+  },
+  "limitations": [
+    "The browser test uses a controlled API response; it is not a live FE-to-backend deployment run.",
+    "The complete Act 3/demo logs, responses, and artifact inventory are not available for a full secret scan.",
+    "This closes no accepted graph-data, rights, calibration, product, or overall M-C gate."
+  ]
+}

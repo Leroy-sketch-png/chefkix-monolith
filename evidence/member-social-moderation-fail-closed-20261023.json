@@ -1,0 +1,52 @@
+{
+  "record_id": "member-social-moderation-fail-closed-20261023",
+  "date": "2026-10-23",
+  "status": "PASS_LOCAL_REGRESSION",
+  "root_cause": {
+    "contract": "AI content guard returns approve, flag, or block; flag means ambiguous or review-required content.",
+    "provider_behavior": "ContentModerationProviderImpl returns flag when the AI moderation service is unavailable.",
+    "defect": "Five Monolith consumers rejected only block, allowing flag results to continue into persistence/publication. FE social composers also warned on flag and continued, while cook-post and recipe guard callers did not require explicit approval.",
+    "failure_before_fix": "PostServiceTest.createPersonalPostRejectsFlaggedContentBeforeSaving failed because the flagged create completed without throwing."
+  },
+  "change": {
+    "decision": "Monolith post, comment, reply, chat, and story-reply paths plus FE post, comment, reply, quick-post, cook-post, and recipe-publish paths now require action=approve; failures, null results, flag, block, and unknown actions stop before persistence/publication.",
+    "provider_log": "The AI-unavailable log now says content is rejected, not held in a review queue that does not exist.",
+    "review_queue": "Not implemented; flagged content is rejected with the existing moderation error."
+  },
+  "regressions": {
+    "focused_command": ".\\mvnw.cmd -B -pl social -am '-Dtest=PostServiceTest,CommentServiceModerationTest,ReplyServiceModerationTest,ChatMessageServiceTest' '-Dsurefire.failIfNoSpecifiedTests=false' test",
+    "focused_result": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "full_command": ".\\mvnw.cmd -B test",
+    "full_result": {
+      "tests": 352,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "surefire_reports": 83
+    }
+  },
+  "frontend_regressions": {
+    "commit": "407f4726c20b0f821d25dac29c94ce8285ca3f4e",
+    "lint": "passed with no ESLint warnings or errors",
+    "typecheck": "passed",
+    "jest": { "suites": 213, "tests": 845, "failures": 0 },
+    "production_build": "passed with temporary Google Font fixtures after Next's Google Font parser failed on the external response",
+    "flagged_message": "Updated post, comment, reply, and quick-post messages to state flagged content was not published."
+  },
+  "browser_context": {
+    "frontend_commit": "407f4726c20b0f821d25dac29c94ce8285ca3f4e",
+    "test_path": "chefkix-fe/tests/e2e/cook-post-xp.spec.ts",
+    "result": "Headed installed Chrome passed 2/2 across desktop and iPhone-sized Chromium; it verifies block/flag/unexpected action refusal, the flagged rejection message, and approved post/session-link/XP request construction.",
+    "limitation": "Playwright intercepts all /api/v1/** calls with test fixtures; it is not a live FE-to-Monolith transaction."
+  },
+  "limitations": [
+    "Maven tests use mocks and do not verify production provider availability or deployment configuration.",
+    "Flagged content is rejected, not queued for moderator review.",
+    "Kafka event delivery and persisted social-feed visibility were not exercised in a deployed system."
+  ]
+}

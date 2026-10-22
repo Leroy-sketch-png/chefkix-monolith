@@ -1,5 +1,103 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+## Member integration checkpoint — 2026-10-23
+
+### AI service / main sync and full regression (2026-10-23)
+
+The `codex/member-evidence-contract` branch was two commits behind `origin/main`. Merged the two upstream diagnostics-privacy commits into the member branch with no conflicts across 12 changed files, then pushed merge commit `7875fd7400676fa9ca820399236465d7c5dec179`. Full AI-service suite: **518 passed, 11 skipped, 28 warnings** on Python 3.13; measured coverage was **75%**. The warnings are existing `datetime.utcnow()` deprecations in `src/models/health.py`.
+
+### Social / moderation flag fail-closed fix (2026-10-23)
+
+The AI-service content-guard contract returns `approve`, `flag`, or `block`; its rule engine uses `flag` for ambiguous/off-topic content, and the Monolith adapter also returns `flag` when the moderation service is unavailable. Before this fix, post, comment, reply, chat, and story-reply consumers rejected only `block`, so flagged content could be persisted or published despite the provider's review-required state. FE post, comment, reply, and quick-post composers also let `flag` continue after showing a warning, while the cook-post composer ignored flags and moderation failures. A new backend post regression failed before the fix because the flagged create completed without throwing.
+
+All five Monolith consumers and the FE post, comment, reply, quick-post, cook-post, and recipe-publish paths now require an explicit `approve`; flagged, missing, failed, and unknown decisions stop publication. Flagged content receives a truthful message that it was not published and must be retried later. Backend regressions cover flagged post, comment, reply, chat, and story-reply content. The focused backend set passed **17/17** and the full Monolith reactor passed **352 tests, 0 failures/errors/skips in 83 reports**. FE validation passed lint, typecheck, all **845 Jest tests**, and headed desktop/mobile Chrome tests. Evidence: `evidence/member-social-moderation-fail-closed-20261023.json`.
+
+Flagged content is rejected before persistence; no manual review queue is implemented, so the UI explains that it was not published and the user must retry after moderation is available. Browser requests are fixture-backed and do not establish a live FE-to-Monolith post transaction.
+
+### Social / cook-post browser and backend regression (2026-10-23)
+
+Installed system Chrome ran the headed FE cook-post browser flow on desktop Chromium and iPhone-sized Chromium: **2/2 passed**. It verifies blocked, flagged, and unexpected moderation decisions do not create or link a post; the flagged state displays the rejection message. An approved caption creates one post, links the cooking session once, and records 80 XP. The browser also inspects the outgoing multipart request and verifies its generated boundary plus the `content` and `sessionId` fields. FE commit `407f4726c20b0f821d25dac29c94ce8285ca3f4e`; test: `chefkix-fe/tests/e2e/cook-post-xp.spec.ts`.
+
+The full Monolith reactor passed **352 tests, 0 failures/errors/skips**; the Social module contributed **54 passing tests**. Receipt: `evidence/member-social-cook-post-browser-20261023.json`.
+
+This is scoped regression evidence: Playwright intercepts all `/api/v1/**` calls with local fixtures, and the Maven run uses unit/service tests. It does not verify real social-service persistence, live authentication/moderation, Kafka delivery, media upload, feed visibility, or deployed behavior. The FE production build used temporary Google Font test fixtures after the remote font response broke Next's parser; this validates app compilation and browser behavior, not live font fetching. Those end-to-end social flows remain open.
+
+### M-C / Local live FE-to-Monolith Graph Explorer check (2026-10-23)
+
+The headed in-app Chromium browser loaded the FE Graph Explorer at `http://localhost:3000/explore/graph` with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`, graph mocks off, and the evidence panel off. The current Monolith JAR served the legacy Knowledge API on port 8080 against an isolated Mongo 7 container/database. The live graph endpoint returned HTTP 200 with 25 nodes and 4 edges; the page showed 25 indexed ingredients, 7 linked ingredients, 4 relationships, and `Source: Knowledge API`. No API route interception was used.
+
+Browser interactions passed for a `chicken` search and loaded ingredient details, an `unlisted spice` search with the “not in the current graph” message and no fabricated node, a Butter → Olive Oil relationship (recorded ratio 0.75 and context), relationship filtering from 4 visible links to 0 and back to 4, and loaded Butter/Chicken details. The browser reported no console errors. Compound profile/pair requests returned 503 from the FE AI proxy, so its compound and nutrition fallbacks appeared. Root cause in the local FE config: the two required AI rate-limit secrets are absent; the proxy fails closed before upstream, and its default AI service on port 8000 was not listening. Screenshot and run receipt: `evidence/member-mc-live-graph-20261023/`.
+
+This is a local legacy-seeder smoke test, not the accepted/hash-pinned M-C graph or a deployed integration. FooDB and USDA detail sections remain unavailable/pending because the AI proxy configuration is incomplete; evidence was deliberately disabled, `/actuator/health` returned 404, and the Kafka container was still reporting `health: starting`. Notification and event-dependent social flows were not exercised. A first browser attempt from port 3200 received a CORS 403; rerunning on the configured FE origin `localhost:3000` passed without code changes. T-10 remains partial pending the recorded Act 3 and deployed/accepted artifact run; T-11 remains partial because this run did not scan the complete demo/log/artifact inventory.
+
+### Current branch sync and regression checkpoint (2026-10-23)
+
+Fetched and fast-forward-checked Monolith `codex/member-sprint12-deliverables`, FE `codex/epic10-graph-e2e`, AI service `codex/member-evidence-contract`, and Infrastructure `master`; each was current with its tracking branch. Monolith contains current `origin/master`, and FE contains current `origin/main`. The AI-service branch was two commits behind `origin/main`; its merge had one conflict in `src/routers/pantry.py`. Resolution retained the branch's fail-closed `allergen_safe=None` and grounded compound provenance while merging the newer privacy-safe logging and guarded candidate-pool changes. The synchronized AI branch is pushed at `824b0cf`.
+
+Verification on the earlier synced source: AI service targeted pantry/compound tests **48/48**, full suite **503 passed, 11 skipped, 27 warnings**; changed-file Black check passed. FE Graph Explorer plus route tests **31/31**, full FE suite **213 suites / 845 tests**; Monolith reactor **347 tests / 81 Surefire reports, 0 failures/errors/skips**. The initial global-Python test attempt failed because it lacked `pytest-cov` and `slowapi`; rerunning in the repository `.venv` passed. The later Oct 23 AI-service main sync is recorded above; the social browser/backend validation is recorded below. These suite results do not close the missing artifact/rights/calibration gates or establish full social-flow behavior.
+
+### M-A / Graph-RAG artifact and loader readiness (2026-10-23)
+
+The current AI-service checkout contains the tracked `models/hgat_weights.pt` file (253,163 bytes; SHA-256 `05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f`), but `models/substitution_subgraph.pt` is absent. The registry's persisted entry says active/healthy, but has no health-check timestamp; a fresh `ModelRegistry.get_status_report()` now correctly says `serving_ready=false` for both the missing timestamp and missing required graph sidecar. The graph artifact census in the earlier v397/v398 receipts describes a different local file and is not evidence about this checkout. The model weights alone do not establish node/edge counts or isolates.
+
+The AI-service fix aligns the default registry path with the `hgat_weights.pt` file used by `MLLoader`, makes the graph sidecar a required serving artifact (including for older registry entries), and loads graph bundles with PyTorch `weights_only=True`, a narrow PyG-container allowlist, CPU mapping, and a required `HeteroData` result. A failure-driven test showed that the old loader executed a benign pickle payload; the new loader rejects it without the marker side effect. An actual PyG 2.8 `HeteroData` fixture also loads through the restricted path.
+
+The model itself is still not ready to serve: safe inspection of the tracked checkpoint found 22 state entries, including an uninitialized `recipe_lin.weight`; those keys do not match the bundled `src/research/hgat_model.py` implementation, and the legacy external `hgat_model.py` path in `MLLoader` does not exist in these checkouts. No matching architecture source was found across the current repos. No graph artifact was loaded and no inference was run. Keep M-A open until the exact compatible model source and graph artifact are provided with provenance and a successful health check; do not reuse the prior local census as current runtime truth.
+
+Four new regressions failed against the old code, then the AI-service suite at commit `928a2c7` passed **497 tests, 0 failures, 11 skips**. Changed-file Black, Flake8, `git diff --check`, and `pip check` passed. The code is pushed; evidence receipt: `evidence/member-ma-graph-rag-loader-audit-20261023.json`. The 11 skips and 27 existing deprecation warnings are reported by pytest; this verification does not close M-A, M-C, or the accepted-artifact gates.
+
+### M-A / Source-only seed graph statistics and degree invariant (2026-10-23)
+
+The source-pinned auditor reconstructs the ingredient section of `KnowledgeGraphSeeder.java` at SHA-256 `cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174`. It finds 25 canonical source records and 59 directed substitution statements. The explicit source-only graph interpretation has 25 `seed_ingredient` vertices and 54 `unresolved_literal_target` vertices; five target strings match a source canonical name or alias (four canonical, one alias), and 54 remain unmatched. It preserves statements as a directed multigraph. Across all 79 vertices, in-degree is min/median/mean/max `0/1/0.747/1`, out-degree is `0/0/0.747/4`, and total degree is `1/1/1.494/4`; isolates: 0. The directed invariant passes: degree sums are in=59, out=59, total=118. Six standard-library tests pass, including alias collision, duplicate statement, blank target, pinned source counts, and byte-identical artifact generation.
+
+The CSV/JSON outputs, hash receipt, and reproducible command are in `evidence/member-ma-seed-graph-source-20261023/`; run `python tools/audit_seed_graph.py` and `python tools/test_audit_seed_graph.py`. This closes only the source-level count, degree-statistics, and directed-invariant checklist items. It does not show that the seeder ran, identify runtime AI-service contents, establish a Round-0 definition, or create `COVERAGE_CURVES.csv`; no authoritative query cohort/denominator is available, so coverage curves and M-A acceptance remain open.
+
+### M-C / T-11 — Graph Evidence error-output boundary (2026-10-23)
+
+The backend regression injects a synthetic secret marker into a provider exception and verifies the serialized response contains neither the marker nor the exception class; the endpoint returns typed `PROVIDER_ERROR`. The test failed when the controller catch was temporarily bypassed, then passed after restoring its fail-closed path; the focused controller suite passed **18/18**. The FE browser case returns a 503 fixture with diagnostic text and verifies the error panel stays generic and the marker does not appear in page text or browser console. The full Graph Explorer E2E suite passed **8** cases with **2 expected skips** (the default-off test is skipped because the production build explicitly enables the Explorer), using headed installed Chrome on desktop and iPhone-sized Chromium. Test and scan details: `evidence/member-t11-error-output-20261023.json`.
+
+T-11 remains **PARTIAL**. The scan confirms this synthetic marker is absent from the captured Surefire, Next production-build, and Playwright output artifacts. The T-11 error-presentation browser API is intercepted; the separate local live graph-render smoke is recorded in `evidence/member-mc-live-graph-20261023/`. Full Act 3/demo logs, responses, and artifact inventory are unavailable for a complete secret scan.
+
+### M-C / Explorer edge identity collision hardening (2026-10-23)
+
+The FE used colon-concatenated edge keys in graph merging, SVG/React rows, selection state, and evidence request state. Two distinct valid pairs (`a:b` → `c` and `a` → `b:c`) therefore collided: failure-driven regressions first observed the merge dropping one edge, a duplicate React key, and selection showing the wrong relationship details. A shared JSON-tuple key now keeps those paths aligned. All four Graph Explorer unit suites pass **29/29**; the enabled-flag headed browser suite passes **12** with **2** expected feature-flag skips on desktop and iPhone-sized Chromium, the focused collision browser check passes **2/2**, and the default-off headed route check passes **2/2** with no graph request. Receipt and screenshot: `evidence/member-mc-edge-identity-20261023/`.
+
+This hardens local FE edge identity only. Its browser API responses are fixtures; the separate local legacy-API smoke does not close accepted-artifact rendering, rights, calibration, or any remaining T-01–T-08/T-10/T-11 gate.
+
+### M-C / T-09 — Product substitution route flag isolation (2026-10-23)
+
+A FastAPI `TestClient` differential sends the same product request to `/api/v1/suggest_substitutions` with `graph_preflight_v2_enabled` false and true while the research marker is absent. Both calls return HTTP 200 and identical response data; the mocked Gemini path is invoked for both, while the identity resolver and graph-candidate gateway are not called. This confirms the graph-preflight flag alone does not change the product substitution contract. T-09 is **PASS** for this scoped route invariant; this does not test a deployed service or close the other M-C gates. Test and full-suite evidence: `evidence/member-t09-substitution-flag-contract-20261023.json`; AI-service commit `c560b6d`.
+
+### M-C / EPIC 10 — Default-off Graph Evidence shadow endpoint
+
+The monolith now has an additive, authenticated `GET /api/v1/graph/evidence` endpoint backed only by a caller-pinned `graph_eval_v4` bundle. It is disabled by default, validates the exact manifest and output inventory/hashes, requires train-only evidence with reconciled row provenance, and never falls back to the legacy graph or returns a substitution recommendation.
+
+The API now also requires a resolved response's canonical source and candidate IDs to match the exact requested pair. The FE checks that each resolved ID matches its request ID and that both request IDs match the pair it sent; mismatches fail closed instead of displaying evidence on the wrong edge.
+
+Available train-pair evidence must also declare the exact `TRAIN_PAIRS` unit; the backend rejects missing or incorrect units, and the FE treats them as incomplete evidence. Browser fixtures cover both wrong-identity and wrong-unit responses failing closed.
+
+The FE graph loader now refuses malformed API payloads that lack node/edge arrays, contain blank/duplicate ingredient identities, or use a missing/unknown relationship type. It preserves the known `substitutes` legacy alias and the supported chemical-similarity/co-occurrence labels; an unrecognized edge can no longer be mislabeled as a substitution. A failure-driven regression reproduced the old fallback failure and passed after the fix. An empty successful ingredient search now states that the ingredient is not in the current graph and does not create a node; component and browser fixtures cover that result. The route still reads the legacy knowledge API when explicitly enabled, so this hardening does not satisfy accepted-artifact requirements. T-09 passes only for product-route flag isolation; T-01–T-08, T-10, and T-11 remain open or partial, and the complete M-C package remains open.
+
+Fresh Windows `mvnw.cmd test` passed across all monolith modules: 347 tests, 0 failures, 0 errors, and 0 skips in 81 Surefire reports. The Graph Evidence slice accounts for 32 focused tests across the controller, manifest-backed provider, artifact loader, and security filter chain.
+
+The FE companion passed all 213 Jest suites (843 tests), TypeScript, changed-file ESLint/Prettier, and production builds with 62 static pages under both explicit-on and default-off graph flags. System Chrome Playwright passed 6/6 enabled graph cases across desktop and iPhone-sized Chromium, including unknown-search handling, wrong canonical IDs, wrong train-pair units, malformed relationship types, and late evidence for a previously selected edge; a separate default-off build/run passed 2/2 with zero graph API requests. Browser API responses are controlled fixtures; these checks do not prove a live FE-to-backend deployment. When explicitly enabled for local integration work, the current map still uses the legacy knowledge API and is not an accepted M-C artifact load. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-11 or the full M-C package complete from this slice.
+
+A fresh production build with both graph flags explicitly false completed with 62 generated pages, and real Chrome Playwright confirmed `/explore/graph` stays disabled with zero graph API requests on desktop Chromium and iPhone-sized Chromium (2/2). This verifies the default-off route boundary only; the FE-to-monolith live browser path remains untested because Docker Desktop is unavailable and the backend is not running.
+
+### M-C / EPIC 10 — Context-path route fix and FE shadow wiring (2026-10-22)
+
+The monolith's external API prefix comes from `server.servlet.context-path: /api/v1`, so the Graph Evidence controller mapping is `/graph/evidence` and its external URL is `/api/v1/graph/evidence`. A context-path-aware regression first exposed the prior double-prefix mapping; after correction, the test reaches the real controller through the `/api/v1` context. Anonymous access returns 401; an authenticated request reaches the default-off controller and receives typed `FEATURE_DISABLED` (503). The controller stays additive and does not call the legacy graph or substitution service.
+
+The public `/explore/graph` route now mounts the Explorer only when `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`; absent or other values show a disabled state and issue no graph-data requests. This corrects the prior default-on route, but the explicitly enabled preview still reads the legacy knowledge API and cannot be counted as a real hash-pinned M-C artifact load. The FE graph Explorer requests pair evidence only after an edge is selected and only when `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true`; that flag remains absent by default. It shows a manifest fingerprint only after the expected and observed SHA-256 values match, plus train-pair count, calibration status, and `Abstain`. Typed unavailable/refused results remain visible, and malformed fingerprints or a non-abstaining decision fail closed. The panel states that it never recommends a substitute.
+
+Validation on the synced source: full monolith Maven reactor 345 tests, 0 failures/errors/skips in 81 reports; focused graph endpoint/provider/authentication tests 30/30; FE Jest 213 suites / 838 tests, changed-file ESLint and TypeScript checks, production build with 62 static pages, and three system Chrome Playwright configurations on desktop/mobile: default-off Explorer 4 passed / 2 flag-conditional skips, enabled Explorer + evidence 4 passed / 2 skips, and enabled Explorer with evidence unset 4 passed / 2 skips. The FE branch was merged with fetched `origin/main` through `44f9e1b` without conflicts; an existing recipe feedback test expectation was aligned with the six-argument substitution API call after the upstream update. Playwright responses are intercepted fixtures; there was no live authenticated FE-to-monolith browser run.
+
+Lead v521 remains authoritative: the fixed C2 cohort still has 122/200 exact slot-identity failures and lacks its release-specific producer/schema/custodian contract; C3-G2 remains open, the corrected campaign ledger is 1/25 (4%), and strict accepted C1–C5 contributions remain 0/5. No identity remapping, cohort reduction, data transfer, or acceptance claim follows. The canonical/rights-cleared graph artifacts and T-01–T-12 acceptance remain open.
+
+### Sprint 1–2 report traceability
+
+VoTrungTin's Sprint 1–2 requirements, Use Cases, Data Flows, UI-facing contracts, and scaffold acceptance are mapped in [the sprint report](docs/iron-chef/votrungtin-sprint-1-2.md). The Word/PDF package and browser captures are indexed in [the output README](output/sprints/2026-10-11/README.md). These documents record member-owned deliverables and dependencies; they do not claim acceptance of Lead-owned datasets, vocabulary, evaluation, models, deployment, or human review.
+
 ### M-B / L44 — T52 provisional graph candidate and provenance boundary (2026-10-22)
 
 T154 produced a private, hash-bound `graph_eval_v4` candidate from train-designated inputs: 49,044 rows joined, 49,034 evidence records plus 10 sanitized identity-error records, 6,630 nodes, and 23,175 edges. Manifest SHA-256 is `60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140`; T157 PASSed narrowly for exact file inventory/manifest-bound hashes, schema, denominator, and the explicitly unaccepted state. T160 confirms train-only process selection and train-bound output provenance aggregates only; **upstream row-level split truth remains UNKNOWN**, with `source_split_audit_performed=false`. Ten rows remain preparation errors; M-B/L44/C5 are not accepted, and no quality, rights, or production claim follows. Detailed reports are local-only in the research worktree; see LEAD v516. Next: authoritative split provenance and applicable rights terms before acceptance or provider integration.
@@ -445,11 +543,11 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 
 | ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
 |----|--------------------------|--------------|--------------|
-| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed-graph degree-sum check passes; every Round 0 number reproduced or struck. | Real seed arrays, runtime artifact access | 10h |
+| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed arrays are located and their recorded source hash matches; runtime artifact statistics and Round 0 reconciliation remain open. | Runtime artifact access and Round 0 definition | 10h |
 | **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Interim v3 split/identity recount exists (LEAD v436; note in research commit `03ab020`), but raw test CSV/source-join reproduction and remaining M-B acceptance are open. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
-| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** §12.4–12.5 implementation. T-03 to T-09 pass. Feature flag OFF by default. Real artifact only; tampered artifact refuses render. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
+| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** the additive endpoint is implemented and default-off. T-09 and T-12 pass narrowly; T-11 is partial; T-01–T-08 and T-10 remain open or partial per the §12.7 status table. Accepted-artifact rendering, calibration, allergy, and product acceptance remain incomplete. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
 | **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. **Artifact acceptance met locally (LEAD v469)**; recursive label firewall and strict ID/rank typing are regression-tested. Keep handoff/rights, historical tie-equivalence, and downstream L44 separate and open; they do not undo the local file-generation result. | M-B case frames; official GISMo checkpoint | 8h |
-| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10, T-11, T-12 pass. Act 3 recorded from frozen files (not live API). Clean checkout, network disabled except API arms. | M-C Explorer; L38/L39 results | 12h |
+| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10 remains open; T-11 is partial; T-12 passes for suites covering the current FE and monolith graph slice. Act 3 and a network-isolated demo are not verified. | M-C Explorer; L38/L39 results | 12h |
 | **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
 | **M-G** | **Reconstruct the R01–R45 claims register from §15.1:** reconcile claim provenance and current Lead-item mappings; preserve unsupported rows as UNVERIFIED/OPEN/PARTIAL. No statuses inherit from the migration seed. | SSoT §15; source artifacts and reproductions | 6h |
 | **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
@@ -477,12 +575,13 @@ L39 (allergen) → L45
 ### M-A: Graph & Coverage Truth (10h) — **START WEEK 0**
 > SSoT §12.1–12.3, §25.1 (P1)
 
-- [ ] Locate actual seed arrays (`KnowledgeGraphSeeder.java`, `18-knowledge-graph.js` or equivalents)
-- [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
-- [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
+- [x] Locate actual seed arrays (`culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java`) — current file SHA-256 still matches the source-bound receipt in `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`; it describes 25 canonical ingredient source records and 59 directed substitution statements. This proves source location only, not current runtime inventory or Round-0 acceptance.
+- [x] Compute by-type nodes/edges, degree min/median/mean/max, isolates — source-only directed multigraph; provenance and scope in `evidence/member-ma-seed-graph-source-20261023/GRAPH_TRUTH.csv`.
+- [x] Verify degree-sum invariant appropriate to graph type (not blindly undirected) — in=59, out=59, total=118 for 59 directed statements; source-only evidence above.
 - [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
-- [ ] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line)
-- [ ] Emit `GRAPH_TRUTH.csv` and `COVERAGE_CURVES.csv` with provenance labels
+- [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line) — the tracked Markdown scan found `output/sprints/2026-10-11/README.md:7`, which records 25 ingredients/four edges for that dated local screenshot package and explicitly says it is not an imported Lead graph. This is a historical demo claim, not current runtime or accepted graph truth.
+- [x] Emit source-only `GRAPH_TRUTH.csv` with source path/hash and an explicit source-only provenance label.
+- [ ] Emit `COVERAGE_CURVES.csv` only after the authoritative query cohort and denominator are available; the current report records `NOT_COMPUTED_NO_QUERY_COHORT_DENOMINATOR`.
 - [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
 
 ### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**
@@ -527,10 +626,12 @@ L39 (allergen) → L45
 
 - [ ] Build `graph_eval_v4` (train-derived substitution evidence only; held-out rows never contribute edge evidence, but a held-out occurrence of a train-supported pair does not remove its valid train support) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
 - [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
-- [ ] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — **additive, read-only, does not change `/suggest_substitutions`**
+- [x] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — servlet-relative `/graph/evidence` under the `/api/v1` context; additive, read-only, default-off, and does not change `/suggest_substitutions` (context-path/auth regression in `application/src/test/java/com/chefkix/config/GraphEvidenceEndpointAuthenticationTest.java`)
 - [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
 - [ ] Run acceptance tests T-01 through T-12 (§12.7) + existing suites covering touched code
 - [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
+
+> Progress (2026-10-22): the route-level `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED` gate defaults off and its disabled state makes no graph request. The FE rejects graph responses with missing node/edge arrays or blank/duplicate ingredient IDs. The remaining Explorer acceptance stays open because enabling the local preview still reads the legacy API; a real accepted hash-pinned graph artifact, provenance footer, tamper-refusal proof, and T-01–T-12 evidence are not yet integrated.
 
 ### M-I: Job Manifests & Runner (6h) — **START WEEK 2**
 > SSoT §13.1–13.2 and §25.1. Appendix A/reference-code reuse is conditional on a separate PR15 resolution; an independently implemented runner may proceed without copying that code.
@@ -595,20 +696,20 @@ L39 (allergen) → L45
 
 ## Acceptance Test Checklist (from SSoT §12.7 — all must be automated/scripted)
 
-| ID | Test | Pass Condition |
-|----|------|----------------|
-| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained |
-| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal |
-| T-03 | Explorer loads with real artifact, hash shown | Visible hash |
-| T-04 | Explorer with tampered artifact refuses render | Refusal message |
-| T-05 | Unknown ingredient → "not in graph", no invented node | Verified |
-| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | Verified |
-| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | Verified |
-| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Verified |
-| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty |
-| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified |
-| T-11 | No secret in any log/response/artifact | Scan clean |
-| T-12 | All existing suites covering touched code pass | Report verbatim |
+| ID | Test | Pass Condition | Status (2026-10-23) |
+|----|------|----------------|--------------------|
+| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained | **OPEN** — no authoritative upstream row-level split receipt or source builder is available here. |
+| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal | **OPEN** — rebuildable source inputs and accepted artifact pair are unavailable. |
+| T-03 | Explorer loads with real artifact, hash shown | Visible hash | **OPEN** — the FE preview still reads the legacy API, not the accepted hash-pinned product artifact. |
+| T-04 | Explorer with tampered artifact refuses render | Refusal message | **PARTIAL** — backend loader refuses tampered bytes in focused tests; FE artifact-backed render path is not integrated. |
+| T-05 | Unknown ingredient → "not in graph", no invented node | Verified | **PARTIAL** — fixture-backed cases and a live local legacy-API browser search for `unlisted spice` show “not in the current graph,” with no fabricated node; verification against the canonical graph artifact remains open. |
+| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | 0 vacuous cases shown | **OPEN** — no accepted per-cell calibration artifact is configured. |
+| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | No show outside the gate | **OPEN** — the current shadow provider always abstains; no reviewed calibrated show rule is integrated. |
+| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Unknown candidate withheld | **OPEN** — accepted allergen evidence and the real graph-backed request path are unavailable. |
+| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty | **PASS** — FastAPI route comparison returned identical product response data with the request-scoped graph-preflight flag off/on and no research marker; only the mocked Gemini path was invoked. This proves this route invariant, not live deployment behavior. |
+| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified | **PARTIAL** — headed system Chrome on desktop and iPhone-sized Chromium passed the fixture-backed network gate; a separate live local FE-to-Monolith run also passed against isolated legacy seed data. The recorded Act 3 and deployed/accepted-artifact run remain unavailable. Screenshots and receipts: `evidence/member-t10-network-isolated-graph-demo-20261023/` and `evidence/member-mc-live-graph-20261023/`. |
+| T-11 | No secret in any log/response/artifact | Scan clean | **PARTIAL** — provider exception response and FE error presentation pass sentinel regressions; captured build/test outputs contain no sentinel. A local graph response was rendered from isolated legacy seed data, but no full Act 3/demo output inventory scan or live error-path scan was performed; see `evidence/member-t11-error-output-20261023.json` and `evidence/member-mc-live-graph-20261023/`. |
+| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — after current branch sync: AI service 503 passed/11 skipped/27 warnings; FE 213 suites/845 tests; Monolith 347 tests in 81 reports; Graph Explorer plus route tests 31/31. The current headed browser runs also include enabled Explorer 12 passed with 2 expected skips and default-off 2/2 across desktop and iPhone-sized Chromium. Automated E2E API responses are fixtures; the separate local live API check is recorded at `evidence/member-mc-live-graph-20261023/`. |
 
 - [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
 - [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.

@@ -73,7 +73,7 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
                     new Pair(request.sourceIngredientId(), request.candidateIngredientId()), 0L);
         }
         TrainPairEvidence pairEvidence = new TrainPairEvidence(
-                pairCount == null ? null : pairCount > 0, pairCount, "TRAIN_PAIRS");
+                pairCount == null ? null : pairCount > 0, pairCount, TRAIN_PAIR_UNIT);
         Evidence evidence = new Evidence(
                 identity,
                 pairEvidence,
