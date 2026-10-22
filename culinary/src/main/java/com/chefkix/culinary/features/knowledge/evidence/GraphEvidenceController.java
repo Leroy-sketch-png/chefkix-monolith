@@ -86,6 +86,9 @@ public class GraphEvidenceController {
             if (trainPair == null || trainPair.trainCount() == null || trainPair.seenInTrain() == null) {
                 return unavailable(UnavailableReason.TRAIN_PAIR_EVIDENCE_UNAVAILABLE, resolution);
             }
+            if (!GraphEvidenceContractV1.TRAIN_PAIR_UNIT.equals(trainPair.unit())) {
+                return unavailable(UnavailableReason.PROVIDER_RESULT_INVALID, resolution);
+            }
             Calibration calibration = result.evidence().calibration();
             if (calibration == null || calibration.status() == null
                     || calibration.status() == CalibrationStatus.UNAVAILABLE

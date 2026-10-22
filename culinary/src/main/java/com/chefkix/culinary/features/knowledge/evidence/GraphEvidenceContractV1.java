@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public final class GraphEvidenceContractV1 {
 
     public static final String VERSION = "graph-evidence.v1";
+    public static final String TRAIN_PAIR_UNIT = "TRAIN_PAIRS";
 
     private GraphEvidenceContractV1() {}
 

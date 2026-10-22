@@ -107,6 +107,21 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
+    void trainPairCountMustDeclareTheTrainPairUnit() {
+        for (String unit : new String[]{null, "PAIR_ROWS", ""}) {
+            Evidence evidence = evidenceWithTrainPair(new TrainPairEvidence(true, 3L, unit));
+            GraphEvidenceProvider provider = request -> new ProviderResult(
+                    new ArtifactIntegrity(ArtifactIntegrityStatus.VERIFIED, HASH_A, HASH_A), evidence);
+
+            var response = controllerWith(provider).getEvidence("source-x", "candidate-y");
+
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals(UnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+            assertNull(response.getBody().evidence());
+        }
+    }
+
+    @Test
     void frozenCalibrationStatusesRemainDistinctAndGraphEvidenceAlwaysAbstains() throws Exception {
         for (CalibrationStatus status : List.of(
                 CalibrationStatus.OK,
