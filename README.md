@@ -97,6 +97,8 @@ The separate AI-service Graph-RAG model remains unready: this checkout lacks its
 
 The tracked Java ingredient seeder has a reproducible, source-only graph audit at `evidence/member-ma-seed-graph-source-20261023/`. It reports 25 source records and 59 directed statements, with the directed degree-sum invariant passing. Recreate it with `python tools/audit_seed_graph.py` and check the parser with `python tools/test_audit_seed_graph.py`. This does not establish runtime graph contents or coverage curves; the query cohort, runtime artifact, and Round-0 acceptance gates remain open.
 
+Graph Evidence provider failures return a typed generic error, and the FE displays a generic unavailable state when the upstream diagnostic payload is untrusted. Backend sentinel regressions pass, and visible Chrome checks pass on desktop and iPhone-sized viewports. T-11 remains partial pending a full scan of the recorded demo outputs and a live FE-to-backend run; see `evidence/member-t11-error-output-20261023.json`.
+
 ## What Changed from Microservices
 
 | Before | After |

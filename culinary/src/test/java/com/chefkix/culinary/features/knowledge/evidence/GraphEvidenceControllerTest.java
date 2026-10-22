@@ -228,13 +228,17 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
-    void providerExceptionReturnsTypedUnavailableAndNeverFallsBack() {
-        GraphEvidenceProvider provider = request -> { throw new IllegalStateException("synthetic failure"); };
+    void providerExceptionDetailsDoNotLeakIntoTheResponse() throws Exception {
+        String secretSentinel = "CHEFKIX_T11_SECRET_SENTINEL_20261023";
+        GraphEvidenceProvider provider = request -> { throw new IllegalStateException(secretSentinel); };
         var response = controllerWith(provider).getEvidence("ingredient-a", "ingredient-b");
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals(UnavailableReason.PROVIDER_ERROR, response.getBody().unavailableReason());
         assertNull(response.getBody().evidence());
+        String responseJson = new ObjectMapper().writeValueAsString(response.getBody());
+        assertFalse(responseJson.contains(secretSentinel));
+        assertFalse(responseJson.contains("IllegalStateException"));
     }
 
     @Test
