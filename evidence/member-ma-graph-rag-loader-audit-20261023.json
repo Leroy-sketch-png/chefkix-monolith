@@ -1,0 +1,97 @@
+{
+  "record_id": "member-ma-graph-rag-loader-audit-20261023",
+  "recorded_date_local": "2026-10-23",
+  "observed_at_utc": "2026-10-22T17:41:48Z",
+  "scope": "Read-only artifact and architecture census plus fail-closed AI-service readiness/loader change. No graph inference, model training, data transfer, or product acceptance.",
+  "ai_service": {
+    "repository": "chefkix-ai-service",
+    "branch": "codex/member-evidence-contract",
+    "commit": "928a2c70ff93cf82f36fefeda4b5fa4dfdd7a3d9",
+    "pushed": true,
+    "worktree_clean_after_push": true,
+    "tracked_weights": {
+      "path": "models/hgat_weights.pt",
+      "bytes": 253163,
+      "sha256": "05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f",
+      "restricted_inspection": {
+        "pytorch": "2.13.0+cpu",
+        "loader": "torch.load(map_location='cpu', weights_only=True) with only torch.nn.parameter.UninitializedParameter added through safe_globals",
+        "object_type": "OrderedDict",
+        "state_entries": 22,
+        "ordinary_tensor_entries": 21,
+        "uninitialized_parameter_entries": ["recipe_lin.weight"],
+        "unrestricted_pickle_used": false
+      }
+    },
+    "graph_bundle": {
+      "path": "models/substitution_subgraph.pt",
+      "ignored_by_git": true,
+      "present_in_current_checkout": false,
+      "node_count": null,
+      "edge_count_by_type": null,
+      "isolated_node_count": null,
+      "reason": "The required sidecar is absent; counts cannot be reproduced from the weights state dict."
+    },
+    "persisted_registry": {
+      "path": "models/registry.json",
+      "sha256": "07dde924574998367bcdc45ef7a0eb4fc46f42e92974ba7551b54b94c9616b7a",
+      "graph_rag_path": "local:models/hgat_weights.pt",
+      "status": "active",
+      "health_status": "healthy",
+      "last_health_check": null
+    },
+    "fresh_status_report": {
+      "serving_ready": false,
+      "readiness_reasons": [
+        "no_verified_health_check",
+        "artifact_missing:models/substitution_subgraph.pt"
+      ]
+    },
+    "architecture": {
+      "loader_legacy_source_expression": "_SERVICE_ROOT.parent/personal/projects/chefkix/knowledge_graph/hgat_model.py",
+      "legacy_source_present_in_current_checkout": false,
+      "bundled_source": "src/research/hgat_model.py",
+      "bundled_source_sha256": "8c72a8c861c92ea15b955d4719085d710ca5a2e1382d636c4761920e185e9573",
+      "checkpoint_key_families": ["han1", "han2", "ingredient_lin", "recipe_lin", "edge_predictor"],
+      "bundled_model_key_families": ["conv1", "conv2", "input_proj", "bn1", "bn2", "scorer"],
+      "compatible_model_source_found_in_current_repos": false,
+      "disposition": "Do not load or serve this checkpoint with the bundled model implementation."
+    }
+  },
+  "implementation": {
+    "default_registry_path_matches_loader": true,
+    "graph_sidecar_required_for_readiness": true,
+    "legacy_registry_entries_receive_graph_sidecar_gate": true,
+    "graph_load_uses_weights_only": true,
+    "graph_load_cpu_mapping": true,
+    "graph_load_allowlist": [
+      "torch_geometric.data.HeteroData",
+      "torch_geometric.data.storage.BaseStorage",
+      "torch_geometric.data.storage.EdgeStorage",
+      "torch_geometric.data.storage.GlobalStorage",
+      "torch_geometric.data.storage.NodeStorage"
+    ],
+    "graph_load_requires_heterodata": true
+  },
+  "verification": {
+    "test_first_new_regressions_before_fix": "4 failed, reproducing missing-sidecar readiness, default path mismatch, unrestricted graph load, and benign pickle execution.",
+    "full_ai_service_suite_after_fix": {
+      "command": ".venv/Scripts/python.exe -m pytest -q -o addopts=",
+      "passed": 497,
+      "failed": 0,
+      "skipped": 11,
+      "warnings": 27
+    },
+    "real_pyg_fixture": "PASS using torch-geometric 2.8.0 and a synthetic HeteroData graph; no external graph artifact was loaded.",
+    "changed_file_black": "PASS",
+    "changed_file_flake8": "PASS",
+    "git_diff_check": "PASS",
+    "pip_check": "PASS"
+  },
+  "limitations": [
+    "The current graph sidecar is absent, so graph node/edge/degree counts were not measured.",
+    "The saved checkpoint does not match any model implementation found in the current repos; no inference was attempted.",
+    "The old v397/v398 census refers to a different local artifact and cannot be promoted as current runtime truth.",
+    "M-A remains OPEN; this change does not satisfy M-C accepted-artifact, provenance, rights, calibration, or product acceptance."
+  ]
+}

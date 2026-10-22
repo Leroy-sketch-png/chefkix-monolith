@@ -2,6 +2,16 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### M-A / Graph-RAG artifact and loader readiness (2026-10-23)
+
+The current AI-service checkout contains the tracked `models/hgat_weights.pt` file (253,163 bytes; SHA-256 `05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f`), but `models/substitution_subgraph.pt` is absent. The registry's persisted entry says active/healthy, but has no health-check timestamp; a fresh `ModelRegistry.get_status_report()` now correctly says `serving_ready=false` for both the missing timestamp and missing required graph sidecar. The graph artifact census in the earlier v397/v398 receipts describes a different local file and is not evidence about this checkout. The model weights alone do not establish node/edge counts or isolates.
+
+The AI-service fix aligns the default registry path with the `hgat_weights.pt` file used by `MLLoader`, makes the graph sidecar a required serving artifact (including for older registry entries), and loads graph bundles with PyTorch `weights_only=True`, a narrow PyG-container allowlist, CPU mapping, and a required `HeteroData` result. A failure-driven test showed that the old loader executed a benign pickle payload; the new loader rejects it without the marker side effect. An actual PyG 2.8 `HeteroData` fixture also loads through the restricted path.
+
+The model itself is still not ready to serve: safe inspection of the tracked checkpoint found 22 state entries, including an uninitialized `recipe_lin.weight`; those keys do not match the bundled `src/research/hgat_model.py` implementation, and the legacy external `hgat_model.py` path in `MLLoader` does not exist in these checkouts. No matching architecture source was found across the current repos. No graph artifact was loaded and no inference was run. Keep M-A open until the exact compatible model source and graph artifact are provided with provenance and a successful health check; do not reuse the prior local census as current runtime truth.
+
+Four new regressions failed against the old code, then the full AI-service suite passed **497 tests, 0 failures, 11 skips** after the fix. Changed-file Black, Flake8, `git diff --check`, and `pip check` passed. The code is pushed in AI-service commit `928a2c7`; evidence receipt: `evidence/member-ma-graph-rag-loader-audit-20261023.json`. The 11 skips and 27 existing deprecation warnings are reported by pytest; this verification does not close M-A, M-C, or the accepted-artifact gates.
+
 ### M-C / EPIC 10 — Default-off Graph Evidence shadow endpoint
 
 The monolith now has an additive, authenticated `GET /api/v1/graph/evidence` endpoint backed only by a caller-pinned `graph_eval_v4` bundle. It is disabled by default, validates the exact manifest and output inventory/hashes, requires train-only evidence with reconciled row provenance, and never falls back to the legacy graph or returns a substitution recommendation.

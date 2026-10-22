@@ -91,6 +91,8 @@ When graph evidence is enabled, responses are tied to the selected edge; a late 
 
 Current implementation evidence and open acceptance gates are tracked in [the Member backlog](BACKLOG_MEMBER.md). FE request/response details are maintained in `chefkix-fe/docs/epic-10-graph-integration.md`. Local tests and fixture-backed browser checks do not establish rights clearance, accepted graph data, or a deployed FE-to-backend integration.
 
+The separate AI-service Graph-RAG model remains unready: this checkout lacks its required graph sidecar, and the tracked checkpoint does not match the bundled model implementation. The registry now fails closed on the missing sidecar and the graph loader uses restricted deserialization; see the current M-A entry in the Member backlog for the evidence and remaining model-provenance gate.
+
 ## What Changed from Microservices
 
 | Before | After |
