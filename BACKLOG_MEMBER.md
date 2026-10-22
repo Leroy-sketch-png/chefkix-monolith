@@ -477,11 +477,11 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 
 | ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
 |----|--------------------------|--------------|--------------|
-| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed-graph degree-sum check passes; every Round 0 number reproduced or struck. | Real seed arrays, runtime artifact access | 10h |
+| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed arrays are located and their recorded source hash matches; runtime artifact statistics and Round 0 reconciliation remain open. | Runtime artifact access and Round 0 definition | 10h |
 | **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Interim v3 split/identity recount exists (LEAD v436; note in research commit `03ab020`), but raw test CSV/source-join reproduction and remaining M-B acceptance are open. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
-| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** §12.4–12.5 implementation. T-03 to T-09 pass. Feature flag OFF by default. Real artifact only; tampered artifact refuses render. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
+| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** the additive endpoint is implemented and default-off. T-03–T-09 remain open or partial per the §12.7 status table; accepted-artifact rendering, tamper refusal in the FE, calibration, allergy, and substitution-route checks remain incomplete. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
 | **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. **Artifact acceptance met locally (LEAD v469)**; recursive label firewall and strict ID/rank typing are regression-tested. Keep handoff/rights, historical tie-equivalence, and downstream L44 separate and open; they do not undo the local file-generation result. | M-B case frames; official GISMo checkpoint | 8h |
-| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10, T-11, T-12 pass. Act 3 recorded from frozen files (not live API). Clean checkout, network disabled except API arms. | M-C Explorer; L38/L39 results | 12h |
+| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10 and T-11 remain open; T-12 passes for suites covering the current FE and monolith graph slice. Act 3 and a network-isolated demo are not verified. | M-C Explorer; L38/L39 results | 12h |
 | **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
 | **M-G** | **Reconstruct the R01–R45 claims register from §15.1:** reconcile claim provenance and current Lead-item mappings; preserve unsupported rows as UNVERIFIED/OPEN/PARTIAL. No statuses inherit from the migration seed. | SSoT §15; source artifacts and reproductions | 6h |
 | **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
@@ -642,7 +642,7 @@ L39 (allergen) → L45
 | T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty | **OPEN** — the endpoint remains separate, but no flag-on/flag-off contract comparison was run for this cycle. |
 | T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified | **OPEN** — recorded Act 3 and network-isolated demo are not available in these checkouts. |
 | T-11 | No secret in any log/response/artifact | Scan clean | **OPEN** — no scoped full-output secret scan was run for this cycle. |
-| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — FE 213 suites/842 tests; monolith 347 tests/81 reports; enabled Chrome 6/6 and default-off Chrome 2/2. Browser API responses were fixtures, not a live deployment. |
+| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — FE 213 suites/843 tests; monolith 347 tests/81 reports; enabled Chrome 6/6 and default-off Chrome 2/2. Browser API responses were fixtures, not a live deployment. |
 
 - [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
 - [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.
