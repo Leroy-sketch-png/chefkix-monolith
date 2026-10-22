@@ -103,6 +103,8 @@ The headed Graph Explorer browser run also gates requests to same-origin FE asse
 
 Graph Explorer now identifies edges with a collision-safe JSON tuple across graph merging, rendering, selection, and evidence state. This prevents colon-bearing ingredient IDs from merging distinct relationships or displaying details for the wrong selected edge. The failure-driven unit and headed browser checks are recorded in `evidence/member-mc-edge-identity-20261023/`; they use fixture APIs and do not close the accepted-artifact or live-backend gates.
 
+The current branch-sync regression checkpoint passes the full FE suite (213 suites / 845 tests), the Monolith Maven reactor (347 tests in 81 reports), and the synchronized AI-service suite (503 passed / 11 skipped). Graph Explorer plus route tests pass 31/31. Exact commands, merge resolution, and remaining acceptance limits are recorded in [the Member backlog](BACKLOG_MEMBER.md).
+
 ## What Changed from Microservices
 
 | Before | After |
