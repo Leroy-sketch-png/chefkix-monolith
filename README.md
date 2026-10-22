@@ -101,6 +101,8 @@ Graph Evidence provider failures return a typed generic error, and the FE displa
 
 The headed Graph Explorer browser run also gates requests to same-origin FE assets and the three local graph API arms. Desktop Chrome and iPhone-sized Chromium both show the generic evidence fallback when a fixture returns `PROVIDER_ERROR`, with no non-allowlisted request attempted. The screenshot and hashed run receipt are in `evidence/member-t10-network-isolated-graph-demo-20261023/`. T-10 remains partial because the recorded Act 3 and a live FE-to-backend run are unavailable.
 
+Graph Explorer now identifies edges with a collision-safe JSON tuple across graph merging, rendering, selection, and evidence state. This prevents colon-bearing ingredient IDs from merging distinct relationships or displaying details for the wrong selected edge. The failure-driven unit and headed browser checks are recorded in `evidence/member-mc-edge-identity-20261023/`; they use fixture APIs and do not close the accepted-artifact or live-backend gates.
+
 ## What Changed from Microservices
 
 | Before | After |
