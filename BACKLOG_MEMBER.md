@@ -521,7 +521,7 @@ L39 (allergen) → L45
 ### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
 > SSoT §12.2–12.7, §25.7 (P6)
 
-- [ ] Build `graph_eval_v4` (train-only substitution edges; test asserts no val/test pair) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
+- [ ] Build `graph_eval_v4` (train-derived substitution evidence only; held-out rows never contribute edge evidence, but a held-out occurrence of a train-supported pair does not remove its valid train support) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
 - [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
 - [ ] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — **additive, read-only, does not change `/suggest_substitutions`**
 - [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
@@ -593,7 +593,7 @@ L39 (allergen) → L45
 
 | ID | Test | Pass Condition |
 |----|------|----------------|
-| T-01 | `graph_eval_v4` contains no val/test pair | 0 leaks |
+| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained |
 | T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal |
 | T-03 | Explorer loads with real artifact, hash shown | Visible hash |
 | T-04 | Explorer with tampered artifact refuses render | Refusal message |
