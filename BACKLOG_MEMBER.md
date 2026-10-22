@@ -509,7 +509,7 @@ L39 (allergen) → L45
 ### M-A: Graph & Coverage Truth (10h) — **START WEEK 0**
 > SSoT §12.1–12.3, §25.1 (P1)
 
-- [ ] Locate actual seed arrays (`KnowledgeGraphSeeder.java`, `18-knowledge-graph.js` or equivalents)
+- [x] Locate actual seed arrays (`culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java`) — current file SHA-256 still matches the source-bound receipt in `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`; it describes 25 canonical ingredient source records and 59 directed substitution statements. This proves source location only, not current runtime inventory or Round-0 acceptance.
 - [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
 - [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
 - [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
