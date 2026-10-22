@@ -79,6 +79,14 @@ Cross-module calls use **Provider interfaces** (defined in `-api` modules, imple
 | `/api/v1/notification/**` | `/notification/**` | notification |
 | `/api/v1/ws` | WebSocket STOMP | application |
 
+## Graph Explorer and evidence status
+
+The FE route `/explore/graph` is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`. The current opt-in preview reads the bounded legacy knowledge API and is not the accepted M-C product graph. Keep it disabled as a product surface until the canonical graph artifact, applicable rights, provenance, and tamper-refusal checks are accepted.
+
+The additive shadow endpoint is `GET /api/v1/graph/evidence`; `chefkix.knowledge.graph-evidence.enabled` defaults to `false`. It requires a hash-verified bundle and exact resolved ingredient IDs, reports train-record counts with unit `TRAIN_PAIRS`, and always abstains. It does not recommend substitutions or replace the legacy suggestion route. The FE shadow panel also has its own build-time flag, `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED`, which defaults to off.
+
+Current implementation evidence and open acceptance gates are tracked in [the Member backlog](BACKLOG_MEMBER.md). FE request/response details are maintained in `chefkix-fe/docs/epic-10-graph-integration.md`. Local tests and fixture-backed browser checks do not establish rights clearance, accepted graph data, or a deployed FE-to-backend integration.
+
 ## What Changed from Microservices
 
 | Before | After |
