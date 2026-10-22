@@ -1,5 +1,10 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v520 — Distinguish GISMo code license from dataset terms (2026-10-22)
+
+- AoE follow-up to v519: the GISMo reproduction repository contains an Apache-2.0 `LICENSE`, while its README instructs users to download the Recipe1MSubs comment pickle files separately. The repository code license is not assumed to cover those data artifacts or authorize third-party disclosure. T173's evidence receipt now records that distinction explicitly.
+- No status upgrade: Recipe1MSubs artifact provenance/terms, institution eligibility, and permission for the exact C2 transfer remain `UNKNOWN`; do not dispatch on the basis of the code license. No rows, credentials, provider, or paid resource were accessed.
+
 ## LEAD v519 — Clarify C2 source-access vs transfer-rights evidence (2026-10-22)
 
 - An authoritative-source scan found that the Recipe1M/Recipe1M+ README directs researchers to a request form and states access is limited to research at universities/research institutions. GISMo's reproduction README provides direct Recipe1MSubs comment-file URLs but the reviewed download instructions state no dataset license or third-party API-disclosure permission. These statements cover different artifacts and are not treated as interchangeable.
