@@ -52,6 +52,79 @@ class KnowledgeGraphServiceTest {
     }
 
     @Test
+    void substitutionTargetResolvesOnlyThroughAnExplicitIngredientAlias() {
+        var salt = ingredient("salt", "lemon juice", 1.0);
+        var lemon = KnowledgeIngredient.builder()
+                .canonicalName("lemon")
+                .name("Lemon")
+                .aliases(List.of("lemon juice"))
+                .category("fruit")
+                .allergenFlags(List.of())
+                .substitutions(List.of())
+                .build();
+        var request = PageRequest.of(0, 2, Sort.by("canonicalName"));
+        when(ingredientRepo.count()).thenReturn(2L);
+        when(ingredientRepo.findAll(request)).thenReturn(new PageImpl<>(List.of(salt, lemon), request, 2));
+
+        var graph = service.getGraph(null, null, 1, 2);
+
+        assertThat(graph.edges()).singleElement().satisfies(edge -> {
+            assertThat(edge.source()).isEqualTo("salt");
+            assertThat(edge.target()).isEqualTo("lemon");
+        });
+    }
+
+    @Test
+    void ambiguousSubstitutionAliasDoesNotGuessATarget() {
+        var salt = ingredient("salt", "lemon juice", 1.0);
+        var lemon = ingredientWithAlias("lemon", "lemon juice");
+        var lime = ingredientWithAlias("lime", "lemon juice");
+        var request = PageRequest.of(0, 3, Sort.by("canonicalName"));
+        when(ingredientRepo.count()).thenReturn(3L);
+        when(ingredientRepo.findAll(request)).thenReturn(new PageImpl<>(List.of(salt, lemon, lime), request, 3));
+
+        var graph = service.getGraph(null, null, 1, 3);
+
+        assertThat(graph.edges()).isEmpty();
+    }
+
+    @Test
+    void canonicalIdentityTakesPrecedenceOverAnotherIngredientsAlias() {
+        var salt = ingredient("salt", "lemon juice", 1.0);
+        var lemon = ingredientWithAlias("lemon", "lemon juice");
+        var lemonJuice = ingredient("lemon juice", null, null);
+        var request = PageRequest.of(0, 3, Sort.by("canonicalName"));
+        when(ingredientRepo.count()).thenReturn(3L);
+        when(ingredientRepo.findAll(request)).thenReturn(
+                new PageImpl<>(List.of(salt, lemon, lemonJuice), request, 3));
+
+        var graph = service.getGraph(null, null, 1, 3);
+
+        assertThat(graph.edges()).singleElement().satisfies(edge -> {
+            assertThat(edge.source()).isEqualTo("salt");
+            assertThat(edge.target()).isEqualTo("lemon juice");
+        });
+    }
+
+    @Test
+    void rootNeighborhoodResolvesAnExplicitAliasToItsCanonicalIngredient() {
+        var salt = ingredient("salt", "lemon juice", 1.0);
+        var lemon = ingredientWithAlias("lemon", "lemon juice");
+        when(ingredientRepo.count()).thenReturn(2L);
+        when(ingredientRepo.findByCanonicalName("salt")).thenReturn(Optional.of(salt));
+        when(ingredientRepo.findByCanonicalNameIn(List.of("lemon juice"))).thenReturn(List.of());
+        when(ingredientRepo.findByAliasesIn(List.of("lemon juice"))).thenReturn(List.of(lemon));
+
+        var graph = service.getGraph("salt", null, 1, 2);
+
+        assertThat(graph.nodes()).extracting(node -> node.id()).containsExactly("salt", "lemon");
+        assertThat(graph.edges()).singleElement().satisfies(edge -> {
+            assertThat(edge.source()).isEqualTo("salt");
+            assertThat(edge.target()).isEqualTo("lemon");
+        });
+    }
+
+    @Test
     void rootNeighborhoodExpandsInBatchesToRequestedDepth() {
         var butter = ingredient("butter", "coconut oil", 0.75);
         var coconut = ingredient("coconut oil", "olive oil", 1.0);
@@ -132,6 +205,17 @@ class KnowledgeGraphServiceTest {
                 .substitutions(alternative == null ? List.of() : List.of(
                         KnowledgeIngredient.Substitution.builder()
                                 .alternative(alternative).context("recorded context").ratio(ratio).build()))
+                .build();
+    }
+
+    private static KnowledgeIngredient ingredientWithAlias(String canonicalName, String alias) {
+        return KnowledgeIngredient.builder()
+                .canonicalName(canonicalName)
+                .name(canonicalName)
+                .aliases(List.of(alias))
+                .category("ingredient")
+                .allergenFlags(List.of())
+                .substitutions(List.of())
                 .build();
     }
 }

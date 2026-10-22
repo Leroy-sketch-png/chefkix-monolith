@@ -16,6 +16,8 @@ public interface KnowledgeIngredientRepository extends MongoRepository<Knowledge
 
     List<KnowledgeIngredient> findByCanonicalNameIn(Collection<String> canonicalNames);
 
+    List<KnowledgeIngredient> findByAliasesIn(Collection<String> aliases);
+
     List<KnowledgeIngredient> findByCategory(String category);
 
     @Query("{ '$or': [ " +
