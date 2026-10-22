@@ -2,6 +2,10 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### AI service / main sync and full regression (2026-10-23)
+
+The `codex/member-evidence-contract` branch was two commits behind `origin/main`. Merged the two upstream diagnostics-privacy commits into the member branch with no conflicts across 12 changed files, then pushed merge commit `7875fd7400676fa9ca820399236465d7c5dec179`. Full AI-service suite: **518 passed, 11 skipped, 28 warnings** on Python 3.13; measured coverage was **75%**. The warnings are existing `datetime.utcnow()` deprecations in `src/models/health.py`.
+
 ### Social / moderation flag fail-closed fix (2026-10-23)
 
 The AI-service content-guard contract returns `approve`, `flag`, or `block`; its rule engine uses `flag` for ambiguous/off-topic content, and the Monolith adapter also returns `flag` when the moderation service is unavailable. Before this fix, post, comment, reply, chat, and story-reply consumers rejected only `block`, so flagged content could be persisted or published despite the provider's review-required state. FE post, comment, reply, and quick-post composers also let `flag` continue after showing a warning, while the cook-post composer ignored flags and moderation failures. A new backend post regression failed before the fix because the flagged create completed without throwing.
@@ -30,7 +34,7 @@ This is a local legacy-seeder smoke test, not the accepted/hash-pinned M-C graph
 
 Fetched and fast-forward-checked Monolith `codex/member-sprint12-deliverables`, FE `codex/epic10-graph-e2e`, AI service `codex/member-evidence-contract`, and Infrastructure `master`; each was current with its tracking branch. Monolith contains current `origin/master`, and FE contains current `origin/main`. The AI-service branch was two commits behind `origin/main`; its merge had one conflict in `src/routers/pantry.py`. Resolution retained the branch's fail-closed `allergen_safe=None` and grounded compound provenance while merging the newer privacy-safe logging and guarded candidate-pool changes. The synchronized AI branch is pushed at `824b0cf`.
 
-Verification on the synced source: AI service targeted pantry/compound tests **48/48**, full suite **503 passed, 11 skipped, 27 warnings**; changed-file Black check passed. FE Graph Explorer plus route tests **31/31**, full FE suite **213 suites / 845 tests**; current Monolith Maven reactor **347 tests / 81 Surefire reports, 0 failures/errors/skips**. The initial global-Python test attempt failed because it lacked `pytest-cov` and `slowapi`; rerunning in the repository `.venv` passed. No product source was changed in Monolith or FE during this sync. These suite results do not close the missing artifact/rights/calibration gates or establish full social-flow behavior.
+Verification on the earlier synced source: AI service targeted pantry/compound tests **48/48**, full suite **503 passed, 11 skipped, 27 warnings**; changed-file Black check passed. FE Graph Explorer plus route tests **31/31**, full FE suite **213 suites / 845 tests**; Monolith reactor **347 tests / 81 Surefire reports, 0 failures/errors/skips**. The initial global-Python test attempt failed because it lacked `pytest-cov` and `slowapi`; rerunning in the repository `.venv` passed. The later Oct 23 AI-service main sync is recorded above; the social browser/backend validation is recorded below. These suite results do not close the missing artifact/rights/calibration gates or establish full social-flow behavior.
 
 ### M-A / Graph-RAG artifact and loader readiness (2026-10-23)
 
