@@ -1,5 +1,11 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v517 — Re-run the corrected Graph Evidence contract regressions (2026-10-22)
+
+- After reconciling the T158 evidence ledger, lead re-executed the exact focused six-module Maven reactor command in `D:/code/chefkix/chefkix-monolith/.git-worktrees/monolith-stage3-segment8`: `mvnw.cmd -pl culinary -am -Dtest=GraphEvidenceControllerTest '-Dsurefire.failIfNoSpecifiedTests=false' test`. Result: `BUILD SUCCESS`, 16 tests, 0 failures, 0 errors, 0 skipped (2026-10-22 04:15 UTC).
+- Exact test/contract/controller SHA-256 values were `428a99001d201c717f0930dccf116c8a94a20e9f6bdbb935bf4fa0dbf653544b`, `599bd3e6cf3a5b00da092402622ffd3c20fdc160a1d8e0fcfb9ed3deff98d5ab`, and `b9bd2c1c239740448b19e8ca2c11856021641c287d637e9c061cce09b8e94d23`. The research T158 card records this run; current card SHA-256 `be582cb0a9676a2e396bd117ba1fc9ddc36c16b91ba2f44672f29ce315e1dd91`.
+- This raises confidence in the local focused regression result only. The candidate package/tests remain untracked/uncommitted and default-off; no independent runtime/provider, artifact-byte verification, C5, production, or quality acceptance is implied. No unrelated source or prior dirty backlog hunk was staged.
+
 ## LEAD v516 — Record bounded T52 graph/provenance and provider-contract advancement (2026-10-22)
 
 - T154's local/private graph candidate is preserved at `ai/out/sprint4-graph-20261022/build-v4-partial-b/`. Exact manifest SHA-256: `60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140`; the four manifest-declared output hashes match. It contains 49,034 evidence rows and 10 sanitized identity-error rows against the unchanged 49,044-row denominator. Candidate state remains `PROVISIONAL_PRIVATE_CANDIDATE_WITH_PREPARATION_ERRORS_NOT_ACCEPTED`; no T53 binding, C5 acceptance, graph quality/utility, production eligibility, or rights clearance follows.
