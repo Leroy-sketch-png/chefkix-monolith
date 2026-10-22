@@ -99,6 +99,8 @@ The tracked Java ingredient seeder has a reproducible, source-only graph audit a
 
 Graph Evidence provider failures return a typed generic error, and the FE displays a generic unavailable state when the upstream diagnostic payload is untrusted. Backend sentinel regressions pass, and visible Chrome checks pass on desktop and iPhone-sized viewports. T-11 remains partial pending a full scan of the recorded demo outputs and a live FE-to-backend run; see `evidence/member-t11-error-output-20261023.json`.
 
+The headed Graph Explorer browser run also gates requests to same-origin FE assets and the three local graph API arms. Desktop Chrome and iPhone-sized Chromium both show the generic evidence fallback when a fixture returns `PROVIDER_ERROR`, with no non-allowlisted request attempted. The screenshot and hashed run receipt are in `evidence/member-t10-network-isolated-graph-demo-20261023/`. T-10 remains partial because the recorded Act 3 and a live FE-to-backend run are unavailable.
+
 ## What Changed from Microservices
 
 | Before | After |
