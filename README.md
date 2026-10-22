@@ -87,6 +87,8 @@ The additive shadow endpoint is `GET /api/v1/graph/evidence`; `chefkix.knowledge
 
 The FE graph loader requires node and edge arrays, nonblank ingredient IDs/names, and unique node IDs. Invalid graph responses render an error instead of a partial or ambiguous map.
 
+When graph evidence is enabled, responses are tied to the selected edge; a late response for a previously selected edge is ignored.
+
 Current implementation evidence and open acceptance gates are tracked in [the Member backlog](BACKLOG_MEMBER.md). FE request/response details are maintained in `chefkix-fe/docs/epic-10-graph-integration.md`. Local tests and fixture-backed browser checks do not establish rights clearance, accepted graph data, or a deployed FE-to-backend integration.
 
 ## What Changed from Microservices
