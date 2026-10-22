@@ -1,0 +1,51 @@
+{
+  "evidence_id": "LEAD-v449-M-I-operator-interrupt-recovery",
+  "recorded_date": "2026-10-21",
+  "claim_status": "VERIFIED_BOUNDED_IMPLEMENTATION_AND_FIXTURE_EVIDENCE",
+  "backlog_status": "M-I_OPEN",
+  "change": {
+    "trigger": "KeyboardInterrupt during research_job_runner.py child polling previously escaped the ordinary receipt and ledger path.",
+    "behavior": "The polling loop records OPERATOR_INTERRUPTED, terminates a still-running direct child, then uses the normal bounded wait/kill, usage finalization, blocked receipt, and blocked ledger path.",
+    "retry_control": "The idempotency reservation remains consumed; the regression proves a second attempt is refused.",
+    "limitations": [
+      "Does not recover forced runner termination or machine/process crashes.",
+      "Does not terminate or contain child-created descendants; not process-tree isolation or a sandbox.",
+      "Usage reporting remains cooperative and does not impose provider-side spend limits.",
+      "This fixture does not establish cross-platform correctness or independent review."
+    ]
+  },
+  "source": {
+    "repository": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "ebb0094d23f5401a934a0ca79dc498f5050006b9",
+    "remote_configured": false,
+    "files": {
+      "ai/tools/research_job_runner.py": "e0e9623d3376008eab2239e481c3e609b5b4d70724030599dfb885873ce6aa7e",
+      "ai/tools/test_research_job_runner.py": "0a07ce23a693dd9528d2d42a0eb42d2da5d09bc4c292a4c9993404ba27511792",
+      "ai/tools/RESEARCH_JOB_RUNNER.md": "c5d43660dbce12e0585d9691413997d1a6771dd09a742eba93943db6759fc993"
+    }
+  },
+  "verification": {
+    "focused_command": "python -m unittest ai.tools.test_research_job_runner",
+    "consecutive_runs": [
+      {"tests": 36, "passed": 36, "failed": 0},
+      {"tests": 36, "passed": 36, "failed": 0},
+      {"tests": 36, "passed": 36, "failed": 0}
+    ],
+    "py_compile": "PASS",
+    "cli_help": "PASS",
+    "scoped_git_diff_check": "PASS",
+    "third_pass_sibling_scan": {
+      "pattern": "subprocess.Popen, process.poll/terminate/kill and interrupt handling in ai/tools/*.py",
+      "finding": "Only the generic research_job_runner.py used this long-running polling pattern; no sibling implementation required migration."
+    }
+  },
+  "negative_evidence": {
+    "paid_or_api_job_executed": false,
+    "credentials_used": false,
+    "kaggle_kernel_changed": false,
+    "scientific_claim_or_protocol_changed": false,
+    "m_i_acceptance_claimed": false
+  },
+  "sharing_boundary": "The research commit is local-only: no remote is configured in that checkout. The monolith backlog/receipt records the verified change and blocker but does not make the source commit fetchable."
+}

@@ -1,0 +1,29 @@
+{
+  "record_type": "bounded_repository_source_inventory",
+  "observed_on": "2026-10-21",
+  "backlog_item": "M-F: First-Party Recipe Inventory & License Check",
+  "repository": "chefkix-monolith",
+  "repository_commit": "86ff92a25ed2aa9384b77d36483fb260747e8ddd",
+  "scan": {
+    "tool": "ripgrep rg --files and rg search",
+    "scope": "Current monolith worktree, including hidden and ignored files, excluding .git, node_modules, target, build, and .next generated/dependency trees.",
+    "data_extensions": ["csv", "json", "jsonl", "sql", "yaml", "yml", "xml"],
+    "filename_terms": ["recipe", "cookbook", "sample", "seed", "fixture", "dataset"],
+    "text_terms": ["first-party", "private-Western", "recipe corpus", "recipe seed", "seed recipe"],
+    "matching_data_files": 0,
+    "text_matches_outside_backlog": 0
+  },
+  "result": {
+    "status": "NO_REPOSITORY_CORPUS_LOCATED",
+    "recipe_count": null,
+    "license_status": "NOT_ASSESSED",
+    "interpretation": "A bounded project-tree search found no static first-party recipe corpus. This does not establish that the application database, an authorized external source, or data outside this repository contains zero recipes."
+  },
+  "next_step": "Obtain HUMAN-authorized app/data-source access and identify the exact first-party recipe collection/export. Then enumerate stable recipe IDs, authorship/source, per-recipe license/permission scope, and UNKNOWN rows without exporting content. Seek legal review where required.",
+  "limitations": [
+    "No live database, API, account, or personal recipe content was queried.",
+    "No license or legal conclusion is made; the Recipe1M/Recipe1MSubs audit is a separate rights question.",
+    "A zero file-match count is not a count of recipes available in the product or for research.",
+    "M-F remains open and no recipe was created, uploaded, or redistributed."
+  ]
+}

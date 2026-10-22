@@ -1,0 +1,26 @@
+{
+  "record_type": "bounded_local_runtime_api_cross_check",
+  "observed_on": "2026-10-21",
+  "observer": "read-only local HTTP requests",
+  "case": {
+    "canonical_ingredient": "butter",
+    "collection_endpoint": {
+      "path": "/api/v1/knowledge/ingredients",
+      "http_status": 200
+    },
+    "embedded_substitution_count": 2,
+    "dedicated_substitution_endpoint": {
+      "path": "/api/v1/knowledge/ingredients/butter/substitutions",
+      "method": "GET",
+      "http_status": 200,
+      "item_count": 2,
+      "response_body_sha256": "5e096cd9fe58c8ea3bc49e3ba96a649e5c527ef8f6583471b0f95b19e2121fbf"
+    },
+    "counts_match": true
+  },
+  "claim_boundary": [
+    "This is one ingredient example, not validation of all substitution records or graph behavior.",
+    "It does not resolve the aggregate graph route 404 or identify the exact serving build.",
+    "It does not establish producer lineage, scientific graph equivalence, model quality, or human usefulness. M-A remains OPEN; R39/R40 remain quarantined."
+  ]
+}

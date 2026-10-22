@@ -1,0 +1,36 @@
+{
+  "record_type": "offline_source_build_and_route_test",
+  "observed_on": "2026-10-21",
+  "source_revision": "c5750a7056a7264708430ae7bef13e6804d20f6b",
+  "controller_source_sha256": "77ca939aa972a39bb382cb7b8a1e8df38f48bccd8d04ddca447b41f1789ea9b8",
+  "build": {
+    "command": "mvnw.cmd -o -pl culinary -am -DskipTests package",
+    "result": "BUILD SUCCESS",
+    "network_access": false,
+    "tests_skipped_for_package_step": true,
+    "artifact_path_class": "ignored culinary/target output",
+    "artifact_sha256": "88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1",
+    "artifact_bytes": 1087811,
+    "controller_class_sha256": "336752d565228e65cd1eb0dfdd328a78a72fd974e5d2b2b854b3c54aa6967710",
+    "graph_get_mapping_present_in_bytecode": true
+  },
+  "focused_test": {
+    "command": "mvnw.cmd -o -pl culinary -am -Dtest=KnowledgeGraphControllerTest -Dsurefire.failIfNoSpecifiedTests=false test",
+    "result": "BUILD SUCCESS",
+    "tests_run": 2,
+    "failures": 0,
+    "errors": 0,
+    "graph_route_test": "bindsBoundedGraphQueryAndSerializesCounts exercises GET /knowledge/graph"
+  },
+  "comparison": {
+    "loaded_local_maven_jar_sha256": "ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b",
+    "loaded_jar_graph_get_mapping_present": false,
+    "current_source_build_sha256_differs_from_loaded_jar": true
+  },
+  "limitations": [
+    "This verifies the checked-out source package and focused test, not the running service's behavior after a rebuild.",
+    "No artifact was installed into the local Maven repository and no service was restarted.",
+    "M-A remains OPEN; R39/R40 remain quarantined; no graph lineage, model quality, or thesis-completion claim follows."
+  ],
+  "next_boundary": "An install/restart would alter local runtime state and is not part of this offline build/test evidence."
+}

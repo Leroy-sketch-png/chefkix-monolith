@@ -201,6 +201,12 @@ public class ChallengeService {
                         .longestStreak(streakResult.getLongestStreak())
                         .totalBonusXp(totalBonusXp)
                         .build())
+                .pagination(ChallengeHistoryResponse.PaginationDto.builder()
+                        .page(historyPage.getNumber())
+                        .size(historyPage.getSize())
+                        .totalElements(historyPage.getTotalElements())
+                        .hasNext(historyPage.hasNext())
+                        .build())
                 .build();
     }
 

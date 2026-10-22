@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "observed_on": "2026-10-21",
+  "record_type": "bounded_m_a_legacy_producer_source_trace",
+  "evidence_state": "CANDIDATE_GENERATOR_FOUND_OUTPUT_LINK_UNPROVEN",
+  "source": {
+    "path": "personal/projects/chefkix/knowledge_graph/build_heterodata.py",
+    "current_sha256": "9095a17dd88de86282cf0fce6453828560dea193860a4efcea86bd646125db92",
+    "introduced_extraction_commit": "59e8560160562f9107d46de20298232daf2d58c7",
+    "introduced_version_git_blob": "ba7e5e95b9f34f08954cf65282f80341a26d7308",
+    "retirement_guard_commit": "a0ffe8f6fc63562ff18ec7c89af3c073885052af",
+    "current_version_git_blob": "5e9e26d656a2f3c515cebb40153736d7983408c6"
+  },
+  "source_behavior": {
+    "inputs": [
+      "ingredient_vocab.csv",
+      "recipe_nodes.csv",
+      "recipe_ingredient_edges.csv",
+      "substitution_edges.csv",
+      "ingredient_features.csv (optional)"
+    ],
+    "subgraph_fields": ["ingredient.x", "ingredient|substitutes|ingredient.edge_index"],
+    "output_name": "substitution_subgraph.pt",
+    "mapping_embedded_in_subgraph": false,
+    "missing_feature_behavior_in_pre_guard_version": "random 560-dimensional ingredient and recipe features"
+  },
+  "local_input_state": {
+    "production_processed_data_directory_present": false,
+    "test_processed_contains_only_small_fixture_files": true,
+    "tracked_model_artifact_present_in_ai_service": false,
+    "ignored_local_ai_service_subgraph_sha256": "70005b57e835b9d18a4445d05c83bfdfeb44c8e4fcc73b03cc74944688f0125f",
+    "artifact_generation_receipt_or_hash_binding_found": false
+  },
+  "safety_and_lineage": {
+    "current_builder_execution": "NOT_RUN",
+    "current_builder_behavior": "Immediately raises RuntimeError stating it is retired; no attempt was made to bypass this guard.",
+    "candidate_format_compatibility": "The legacy extraction code emits the same two-field HeteroData subgraph shape as the inspected artifact, but shape compatibility does not prove byte identity or that this source produced the local artifact.",
+    "source_to_artifact_lineage": "UNKNOWN"
+  },
+  "disposition": {
+    "M_A": "OPEN",
+    "R39": "UNVERIFIED",
+    "R40": "UNVERIFIED",
+    "historical_claim_promoted": false,
+    "runtime_or_quality_claim": false
+  },
+  "limitations": [
+    "The generator and the inspected ignored artifact are separate observations with no producer receipt or input hashes connecting them.",
+    "The original Round-0 report, exact input snapshots, execution environment, and historical edge-count definition remain unavailable.",
+    "The optional random-feature fallback makes the legacy generator unsuitable for an unbound rebuild; the current fail-fast guard was respected.",
+    "No model was loaded for inference and no model-quality result was produced."
+  ]
+}

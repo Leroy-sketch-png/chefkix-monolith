@@ -1,5 +1,7 @@
 package com.chefkix.culinary.features.shoppinglist.service;
 
+import com.chefkix.culinary.features.cookplan.entity.CookPlan;
+import com.chefkix.culinary.features.cookplan.repository.CookPlanRepository;
 import com.chefkix.culinary.features.mealplan.entity.MealPlan;
 import com.chefkix.culinary.features.mealplan.entity.PlannedDay;
 import com.chefkix.culinary.features.mealplan.repository.MealPlanRepository;
@@ -10,6 +12,7 @@ import com.chefkix.culinary.features.recipe.entity.Recipe;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.shoppinglist.dto.request.AddCustomItemRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateCustomListRequest;
+import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromCookPlanRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromMealPlanRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromRecipeRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListResponse;
@@ -36,6 +39,7 @@ import java.util.stream.Stream;
 public class ShoppingListService {
 
     private final ShoppingListRepository shoppingListRepo;
+    private final CookPlanRepository cookPlanRepo;
     private final MealPlanRepository mealPlanRepo;
     private final RecipeRepository recipeRepo;
     private final PantryItemRepository pantryRepo;
@@ -72,6 +76,39 @@ public class ShoppingListService {
                 .items(toShoppingItems(aggregated))
                 .source(ShoppingListSource.MEAL_PLAN)
                 .sourceMealPlanId(plan.getId())
+                .shareToken(generateShareToken())
+                .build();
+
+        return toResponse(shoppingListRepo.save(list));
+    }
+
+    public ShoppingListResponse createFromCookPlan(String userId, CreateFromCookPlanRequest req) {
+        Optional<ShoppingList> existing = shoppingListRepo.findByUserIdAndSourceCookPlanId(
+                userId, req.getCookPlanId());
+        if (existing.isPresent()) {
+            return toResponse(existing.get());
+        }
+
+        CookPlan plan = cookPlanRepo.findByIdAndUserId(req.getCookPlanId(), userId)
+                .orElseThrow(() -> new AppException(ErrorCode.COOK_PLAN_NOT_FOUND));
+
+        List<ShoppingListItem> items = plan.getShoppingList().stream()
+                .map(item -> ShoppingListItem.builder()
+                        .itemId(UUID.randomUUID().toString())
+                        .ingredient(item.getIngredient())
+                        .quantity(item.getQuantity())
+                        .unit(item.getUnit())
+                        .category(categorize(item.getIngredient()))
+                        .recipes(new ArrayList<>(item.getSourceRecipes()))
+                        .build())
+                .toList();
+
+        ShoppingList list = ShoppingList.builder()
+                .userId(userId)
+                .name("Shopping for " + plan.getPlanDate())
+                .items(items)
+                .source(ShoppingListSource.COOK_PLAN)
+                .sourceCookPlanId(plan.getId())
                 .shareToken(generateShareToken())
                 .build();
 
@@ -132,6 +169,36 @@ public class ShoppingListService {
         ShoppingList list = shoppingListRepo.findByShareToken(shareToken)
                 .orElseThrow(() -> new AppException(ErrorCode.SHOPPING_LIST_NOT_FOUND));
         return toResponse(list);
+    }
+
+    public ShoppingListResponse copySharedList(String userId, String shareToken) {
+        ShoppingList source = shoppingListRepo.findByShareToken(shareToken)
+                .orElseThrow(() -> new AppException(ErrorCode.SHOPPING_LIST_NOT_FOUND));
+
+        List<ShoppingListItem> copiedItems = source.getItems().stream()
+                .map(item -> ShoppingListItem.builder()
+                        .itemId(UUID.randomUUID().toString())
+                        .ingredient(item.getIngredient())
+                        .quantity(item.getQuantity())
+                        .unit(item.getUnit())
+                        .category(item.getCategory())
+                        .recipes(item.getRecipes() == null
+                                ? new ArrayList<>()
+                                : new ArrayList<>(item.getRecipes()))
+                        .checked(false)
+                        .addedManually(item.isAddedManually())
+                        .build())
+                .toList();
+
+        ShoppingList copy = ShoppingList.builder()
+                .userId(userId)
+                .name(source.getName())
+                .items(new ArrayList<>(copiedItems))
+                .source(ShoppingListSource.CUSTOM)
+                .shareToken(generateShareToken())
+                .build();
+
+        return toResponse(shoppingListRepo.save(copy));
     }
 
 
@@ -321,6 +388,7 @@ public class ShoppingListService {
                 .items(list.getItems())
                 .source(list.getSource() != null ? list.getSource().getValue() : null)
                 .sourceMealPlanId(list.getSourceMealPlanId())
+                .sourceCookPlanId(list.getSourceCookPlanId())
                 .sourceRecipeId(list.getSourceRecipeId())
                 .shareToken(list.getShareToken())
                 .totalItems(list.getItems().size())

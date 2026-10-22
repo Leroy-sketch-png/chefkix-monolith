@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "a649eb93008fac9894cf5959d39bcc4c0ee86bbd",
+    "remote_configured": false,
+    "runner_sha256": "A4C893FC1D9B08739C67C34153861C67B0668CD7F89233B902C151EB0DFE9C7B",
+    "tests_sha256": "0DC5EEBF37E5828DA1D60D3C210B82CA6A97659FA9C31A51C3FC7ADC9BB28C4E",
+    "contract_doc_sha256": "CEA91ED5D91CFFDA4447F6B5F2B99D0AAC5D77DA499322848853455A4148F565"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py",
+    "consecutive_runs": 3,
+    "tests_per_run": 35,
+    "failures": 0,
+    "syntax_check": "py_compile passed",
+    "cli_check": "--help passed",
+    "diff_check": "git diff --check passed"
+  },
+  "newly_verified": [
+    "every manifest must declare job_diagnostics.json as a required output",
+    "execution blocks if the child report is missing, malformed, or not COMPLETE",
+    "positive missing_cases counts block with MISSING_CASES",
+    "positive unresolved_diagnostics counts block with UNRESOLVED_DIAGNOSTICS",
+    "validation-only performs the same manifest preflight without execution side effects",
+    "operator-facing schema, child journal/report format, command sequence, and limitations are documented"
+  ],
+  "evidence_ceiling": "The runner validates a cooperative child-authored diagnostic report; it does not independently reconstruct case coverage or judge diagnostic completeness.",
+  "limitations": [
+    "M-I remains OPEN; this is a local prototype without a configured remote.",
+    "No real API job ran; child-reported usage is not a provider hard cap.",
+    "There is no OS sandbox; allowlisted secrets remain available to the child.",
+    "Broader recovery/platform fixtures, secret-scanning validation, and independent review remain outstanding."
+  ],
+  "scope": "No scientific protocol, model evaluation, training, or claim status changed."
+}

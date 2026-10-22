@@ -22,6 +22,7 @@ public class ShoppingList {
     @Builder.Default List<ShoppingListItem> items = new ArrayList<>();
     ShoppingListSource source;
     String sourceMealPlanId;
+    String sourceCookPlanId;
     String sourceRecipeId;
     @Indexed(unique = true, sparse = true) String shareToken;
     @CreatedDate Instant createdAt;

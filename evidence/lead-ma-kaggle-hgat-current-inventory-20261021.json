@@ -1,0 +1,82 @@
+{
+  "record_type": "kaggle_hgat_current_saved_source_and_output_inventory",
+  "observed_on": "2026-10-21",
+  "credential_context": "official Kaggle CLI configured identity; credential values not read or exposed",
+  "commands": {
+    "status": {
+      "command": "kaggle kernels status phanphutho/chefkix-hgat-epic-1-training",
+      "exit_code": 0,
+      "observed_output": "phanphutho/chefkix-hgat-epic-1-training has status KernelWorkerStatus.COMPLETE",
+      "interpretation": "remote status only; no output validity conclusion"
+    },
+    "files": {
+      "command": "kaggle kernels files phanphutho/chefkix-hgat-epic-1-training --page-size 200",
+      "exit_code": 0,
+      "creation_date_reported_for_listed_outputs": "2026-07-22 04:15 UTC",
+      "names": [
+        "hgat_model.cpython-312.pyc",
+        "build_heterodata.py",
+        "download_features.py",
+        "extract_substitutions.py",
+        "hgat_model.py",
+        "parse_recipe_nlg.py",
+        "requirements.txt",
+        "train_hgat.py",
+        "food_graph.pt",
+        "hgat_weights.pt",
+        "ingredient_features.csv",
+        "ingredient_vocab.csv",
+        "recipe_ingredient_edges.csv",
+        "recipe_nodes.csv",
+        "substitution_edges.csv",
+        "substitution_subgraph.pt",
+        "kg.zip"
+      ],
+      "limitation": "file listing does not expose content hashes or bind entries to an explicit completed-run version"
+    },
+    "source_pull": {
+      "command": "kaggle kernels pull phanphutho/chefkix-hgat-epic-1-training --path <temporary-directory>",
+      "exit_code": 0,
+      "file": "chefkix-hgat-epic-1-training.py",
+      "bytes": 16395,
+      "sha256": "45e44b7e01b02bb4593e5bf88e49abab8b00d356014a6dcc6eb88cc73e8e9e0b",
+      "source_behaviors_observed": [
+        "references paultimothymooney/recipenlg as expected input",
+        "recursively globs /kaggle/input for CSV files and selects the first match",
+        "invokes RecipeNLG parsing, substitution extraction, feature construction, HeteroData construction, and HGAT training",
+        "calls train_hgat.py with codebase/processed/substitution_subgraph.pt"
+      ],
+      "limitation": "pull reflects the currently saved source; no interface evidence ties this exact source hash to the listed completed output run"
+    }
+  },
+  "previous_local_artifact_crosscheck": {
+    "source_record": "LEAD v399",
+    "mirror_and_service_bytes_match_for": [
+      {
+        "file": "hgat_weights.pt",
+        "sha256": "05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f"
+      },
+      {
+        "file": "substitution_subgraph.pt",
+        "sha256": "70005b57e835b9d18a4445d05c83bfdfeb44c8e4fcc73b03cc74944688f0125f"
+      }
+    ],
+    "meaning": "local copy equality only; not remote-content verification"
+  },
+  "provenance_limits": {
+    "explicit_kernel_run_version": false,
+    "source_hash_bound_to_completed_run": false,
+    "input_dataset_version_or_hash": false,
+    "output_content_hashes": false,
+    "senath_segment_identity": false,
+    "runtime_loaded_artifact": false
+  },
+  "disposition": {
+    "m_a_status": "OPEN",
+    "r39_r40": "QUARANTINED",
+    "output_downloaded": false,
+    "kernel_launched_or_modified": false,
+    "service_model_or_registry_modified": false,
+    "claim_or_quality_status_promoted": false
+  }
+}

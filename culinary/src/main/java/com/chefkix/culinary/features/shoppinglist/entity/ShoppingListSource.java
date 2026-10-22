@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ShoppingListSource {
     MEAL_PLAN("Meal Plan"),
+    COOK_PLAN("Cook Plan"),
     RECIPE("Recipe"),
     CUSTOM("Custom");
 

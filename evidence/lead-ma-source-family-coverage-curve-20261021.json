@@ -1,0 +1,45 @@
+{
+  "record_type": "bounded_hash_pinned_source_family_coverage_curve",
+  "observed_on": "2026-10-21",
+  "research_checkout": "D:/code/chefkix",
+  "research_git_head": "9e62bda0ba3a5a4063b8afd2806930f90c23c3d7",
+  "source_artifact": "ai/out/iron-chef-lead-v23/cross_source_identity_matrix.json",
+  "source_artifact_sha256": "3daf6a4904a2b05de4cbd547888fea9e02f4fdc6a664050cfe92ddc059be822d",
+  "source_summary_sha256": "258afe9420f9f3b52b5200b282e215f740a6a5df68a7096c9b192eb39d58f5dc",
+  "source_validation_sha256": "b08d75fce1619cc678471bc6cc6ceb27002051dbab8dec579ef873bea8e5fab8",
+  "generator": "ai/tools/build_lead_ma_coverage_curve.py",
+  "generator_sha256": "9f8d58d1f2f98fe7a23734afdcfcbf2144f4a33cb54d724c877dd415db1764f8",
+  "focused_test": {
+    "command": "python -m pytest ai/tools/test_build_lead_ma_coverage_curve.py -q",
+    "result": "2 passed",
+    "test_file_sha256": "0780d57654b2235c8a42ae5bd5db3c865a54fb08375d6a0b3c67f2bda7e9ba3b"
+  },
+  "builder_command": "python ai/tools/build_lead_ma_coverage_curve.py --output-dir ai/out/iron-chef-lead-m-a-coverage-20261021",
+  "builder_result": "PASS",
+  "independent_reconstruction": {
+    "method": "separate inline row-selection and arithmetic oracle over the same pinned matrix; compared all exported count and ratio fields",
+    "result": "35/35 family-by-top-N records matched within 1e-15 ratio tolerance",
+    "eligible_classes": 6632,
+    "eligible_endpoint_occurrences": 141040
+  },
+  "independent_family_curve": [
+    {"top_n": 50, "classes_with_2plus_families": 29, "endpoint_occurrences": 31974, "share_of_top_n_occurrences": 0.6952683308689224},
+    {"top_n": 100, "classes_with_2plus_families": 49, "endpoint_occurrences": 38840, "share_of_top_n_occurrences": 0.616214501031255},
+    {"top_n": 250, "classes_with_2plus_families": 107, "endpoint_occurrences": 49260, "share_of_top_n_occurrences": 0.5614506992488916},
+    {"top_n": 500, "classes_with_2plus_families": 169, "endpoint_occurrences": 54181, "share_of_top_n_occurrences": 0.5079214789260537},
+    {"top_n": 1000, "classes_with_2plus_families": 246, "endpoint_occurrences": 56693, "share_of_top_n_occurrences": 0.46231692598753954},
+    {"top_n": 2000, "classes_with_2plus_families": 300, "endpoint_occurrences": 57309, "share_of_top_n_occurrences": 0.42755147717099373},
+    {"top_n": 5000, "classes_with_2plus_families": 422, "endpoint_occurrences": 57641, "share_of_top_n_occurrences": 0.40868547929665344}
+  ],
+  "curve_csv_local_path": "D:/code/chefkix/ai/out/iron-chef-lead-m-a-coverage-20261021/COVERAGE_CURVES.csv",
+  "curve_csv_sha256": "560cbaed26593d2b55311908e6ca50630e76a01886f95b4429db1759e76efeac",
+  "curve_manifest_local_path": "D:/code/chefkix/ai/out/iron-chef-lead-m-a-coverage-20261021/COVERAGE_CURVES.manifest.json",
+  "curve_manifest_sha256": "3d50dfbdc46835394125f7047f6d776f4fe12160ad5d9247098683c03a3b730d",
+  "disposition": "One bounded M-A source-family coverage subdeliverable is independently reconstructed. This is support among exact-name source mappings over the frozen GISMo-v23 vocabulary, not graph_eval_v4/graph_product_v4 coverage, live runtime coverage, semantic equivalence, rights clearance, safety, or M-A completion.",
+  "limitations": [
+    "The generator/test and aggregate output are local-only in the dirty research checkout; this receipt does not commit them or make the source matrix distributable.",
+    "FlavorDB and FlavorGraph remain collapsed into one correlated family.",
+    "No unknown or ambiguous mappings were promoted.",
+    "R39/R40 provenance-separated historical claims and M-A remain open/quarantined."
+  ]
+}

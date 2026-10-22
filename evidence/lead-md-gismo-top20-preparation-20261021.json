@@ -1,0 +1,18 @@
+{
+  "state": "LOCAL_GISMO_TOP20_ARM_OUTPUTS_READY_NOT_BENCHMARK",
+  "mission_item": "M-D / deterministic GISMo and lookup arm outputs",
+  "research_repository": "chefkix research master",
+  "research_commit": "f0282c460e2c8d57444c119d481932f4b0f302ca",
+  "research_commit_remote": "none configured",
+  "producer_sha256": "a068917b45abe710f88bb42cf7d209e0738f75b9a803876026914dc3c7a92a6d",
+  "test_sha256": "4dbda067a1be9173446fc1bd276094a87c95e4b30aaafcb65e5d2c5fee78066d",
+  "focused_tests_passed": 21,
+  "outputs": {
+    "gismo_val.jsonl": {"case_count": 10729, "candidate_count": 214580, "sha256": "f02112f72a601d62e120493457abca514de434182c849655e83a92e15e808489", "local_path": "ai/out/senath-m-d-gismo-top20-v1/gismo_val.jsonl"},
+    "gismo_test.jsonl": {"case_count": 10747, "candidate_count": 214940, "sha256": "7725170f37a3f51493caf2dc63165d3a252529bf26ac5b23ee1b1a20a24b0b4d", "local_path": "ai/out/senath-m-d-gismo-top20-v1/gismo_test.jsonl"},
+    "manifest.json": {"sha256": "487c69be29a330fe433eff6db6688a4f7653c811dba0059b26f489c047f822af", "local_path": "ai/out/senath-m-d-gismo-top20-v1/manifest.json"}
+  },
+  "replay": {"gismo_val_sha256_identical": true, "gismo_test_sha256_identical": true, "manifest_sha256_identical": true, "each_output_matches_the_exact_top20_prefix_of_its_pinned_top50_pool": true, "unique_case_ids_and_ordered_ranks_verified": true},
+  "firewall": {"target_labels_opened": false, "target_labels_present_in_outputs": false, "evaluation_or_method_selection_performed": false, "outputs_uploaded": false},
+  "limitations": ["GISMo arm files are derived from the first 20 entries of the already verified released-checkpoint top-50 pools; the checkpoint was not rerun.", "Lookup-frequency outputs remain blocked until an exact executable source/transcription and deterministic tie contract are pinned.", "M-D remains OPEN; this is not matched evaluation, model-quality evidence, rights clearance, or a method decision.", "The research worktree has no configured remote; its commit is local-only."]
+}

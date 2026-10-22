@@ -57,8 +57,6 @@ public class SecurityConfig {
 
             "/actuator/health",
 
-            "/shopping-lists/shared/**",
-
             "/search",
             "/search/autocomplete",
             "/search/trending",
@@ -111,6 +109,8 @@ public class SecurityConfig {
 "/collections/*",
 "/collections/*/posts",
 "/collections/user/*",
+
+"/shopping-lists/shared/**",
 
 "/knowledge-graph/**",
     };

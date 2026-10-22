@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "55ebfeea25c0cf39456921e8cc399020c928dd29",
+    "remote_configured": false,
+    "runner_sha256": "A458AFC0B762FB4A94DDEC0BE13C714FF35C46058F8D9A2856F5A978DE2F7F1E",
+    "tests_sha256": "BDDE7CD37C5A776528EE032FFF5F7F530E5D5A1E5BD92A48ED7B12DB41E8FD68"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py",
+    "consecutive_runs": 2,
+    "tests_per_run": 27,
+    "failures": 0,
+    "syntax_check": "py_compile passed",
+    "diff_check": "git diff --check passed"
+  },
+  "newly_verified": [
+    "manifest thresholds cannot weaken the strategy ceiling of 5% API errors and 2% invalid outputs",
+    "strict greater-than semantics allow an exact 5% API-error boundary",
+    "strict greater-than semantics allow an exact 2% invalid-output boundary",
+    "thresholds above either policy ceiling refuse preflight before child execution"
+  ],
+  "limitations": [
+    "M-I remains OPEN; a local prototype is not a complete production or automatic-run authorization.",
+    "Usage values are emitted cooperatively by child processes and are not provider-side hard caps.",
+    "The process is not sandboxed; OS-level isolation and resource containment remain unresolved.",
+    "No remote is configured for the research checkout; commits are not available to collaborators.",
+    "Broader manifest, recovery, cross-platform, and independent-review checks remain."
+  ],
+  "scope": "No real API call, model execution, scientific outcome, or training state changed."
+}

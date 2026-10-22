@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-21",
+  "lead_item": "M-I",
+  "state": "PARTIAL_IMPLEMENTATION_TESTED",
+  "research_repository": {
+    "worktree": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+    "branch": "master",
+    "commit": "68589c7842ceac8a9a80befd29f07764481478c1",
+    "remote_configured": false,
+    "runner_sha256": "234D1E6CFCEA06FD087EFA2CC152B123774F49995980113D034CA5FC7BAF36AB",
+    "tests_sha256": "6AC0DBD067D294B1F666EA515FD456DC4403EE731C7EDD03CD9B5E15313C9DFB"
+  },
+  "verification": {
+    "command": "python -m unittest discover -s ai/tools -p test_research_job_runner.py",
+    "consecutive_runs": 3,
+    "tests_per_run": 31,
+    "failures": 0,
+    "additional_check": "python ai/tools/research_job_runner.py --help passed",
+    "syntax_check": "py_compile passed",
+    "diff_check": "git diff --check passed"
+  },
+  "newly_verified": [
+    "--validate-only verifies hashes, paths, runtime parameters, environment requirements, budgets, stop policy, idempotency identity, and freeze-record shape",
+    "validate-only returns READY_FOR_EXPLICIT_EXECUTION without creating output directories, reserving the idempotency key, or launching the child",
+    "validate-only still refuses a mismatched script hash"
+  ],
+  "limitations": [
+    "M-I remains OPEN; the research-local implementation has no configured remote and is not collaborator-fetchable.",
+    "No real API job was launched; metering remains cooperative and not provider-enforced.",
+    "Child execution is not sandboxed; allowlisted environment values remain accessible to the child.",
+    "Broader recovery/platform coverage and independent review remain outstanding."
+  ],
+  "scope": "No research run, model inference, evaluation, training, or scientific claim changed."
+}

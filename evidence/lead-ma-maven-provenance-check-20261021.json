@@ -1,0 +1,25 @@
+{
+  "record_type": "bounded_local_maven_artifact_provenance_check",
+  "observed_on": "2026-10-21",
+  "artifact_coordinates": "com.chefkix:culinary:1.0.0-SNAPSHOT",
+  "artifact_jar_sha256": "ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b",
+  "local_repository_metadata": {
+    "pom_sha256": "f908ad665e57c84b3e30511db4169eeb380e3c480a4de94c80efc47548408797",
+    "pom_has_scm_block": false,
+    "pom_has_revision_commit_or_build_number": false,
+    "maven_metadata_local_sha256": "0972bd06c7e2e3731cfe9df181ca373a54c18e445897393a26e3fa32c3d38151",
+    "maven_metadata_has_timestamp": false,
+    "maven_metadata_has_build_number": false,
+    "sources_jar_present": false,
+    "embedded_controller_source_present": false,
+    "embedded_pom_properties_present": true
+  },
+  "interpretation": "The inspected local repository metadata does not identify the artifact's source revision or build process.",
+  "limitations": [
+    "Absence of local metadata does not prove the artifact was not built from the current checkout.",
+    "This does not identify the artifact producer or establish another deployment's state.",
+    "No local artifact metadata was modified, and no install or restart was performed.",
+    "M-A remains OPEN; R39/R40 remain quarantined."
+  ],
+  "next_acceptance": "Obtain a build/install receipt binding artifact SHA-256 to a pinned source revision, or reproduce the artifact from a pinned revision and compare it without overwriting the live local repository artifact."
+}

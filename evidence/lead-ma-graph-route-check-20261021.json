@@ -1,0 +1,49 @@
+{
+  "record_type": "bounded_local_runtime_route_check",
+  "server_timestamp": "2026-10-21T00:12:23.429+07:00",
+  "observer": "read-only local HTTP requests",
+  "requests": [
+    {
+      "path": "/api/v1/knowledge/ingredients",
+      "method": "GET",
+      "http_status": 200,
+      "record_count": 92,
+      "response_body_sha256": "1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3"
+    },
+    {
+      "path": "/api/v1/knowledge/techniques",
+      "method": "GET",
+      "http_status": 200,
+      "record_count": 25,
+      "response_body_sha256": "73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf"
+    },
+    {
+      "path": "/api/v1/knowledge/graph?limit=500",
+      "http_status": 404,
+      "error": "Not Found",
+      "error_path": "/api/v1/knowledge/graph",
+      "response_body_sha256": "40d6085656256f8c3cf6c89992faa8dc12333c2071ca3009d5e1bb8f2f8628f7"
+    }
+  ],
+  "static_runtime_comparison": {
+    "checked_out_source_declares_route": "GET /knowledge/graph",
+    "local_application_base_path": "/api/v1",
+    "runtime_route_result": 404,
+    "interpretation": "Observed route mismatch only. The runtime artifact/build identity and deployment provenance are unknown; this does not prove that no graph is available from another source or route."
+  },
+  "listener_binding_check": {
+    "port": 8080,
+    "process_id": 30696,
+    "executable_path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.8.9-hotspot\\bin\\java.exe",
+    "process_created_at": "2026-10-20T23:44:56.661611+07:00",
+    "java_argument_file_sha256": "752d26773b9d1850d56a86a3ac9dca5fcaf930af1a4e58a3e025cb4e9023fd18",
+    "resolved_application_artifact": false,
+    "note": "The Java process uses an argument file, but the application class/artifact could not be resolved from the sanitized inspection. Do not infer which checkout or build serves the port."
+  },
+  "claim_boundary": [
+    "No graph output or graph counts were observed because the route returned 404.",
+    "No conclusion is drawn about deployed environment, process artifact identity, data lineage, model quality, or thesis completion.",
+    "M-A remains OPEN; R39/R40 remain quarantined."
+  ],
+  "next_diagnostic": "Bind the live port-8080 process to its exact executable artifact and launch configuration, then determine whether the route discrepancy is due to runtime version skew or another documented cause."
+}

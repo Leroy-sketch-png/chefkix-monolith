@@ -1,0 +1,43 @@
+{
+  "observed_at_utc": "2026-10-20T19:32:07Z",
+  "scope": "Read-only source/documentation comparison of installed official Kaggle CLI 1.7.4.5, official tagged release v2.2.4, official upstream fix commit 30540b4, and current official kernel command documentation. No authenticated request, install, source pull, output retrieval, or kernel mutation occurred.",
+  "installed_cli": {
+    "version": "1.7.4.5",
+    "extended_api_source_sha256": "6a1a3171f346aea79650f528f74e875be1b5745b4391d3ae00b87fc74de9c8d8",
+    "observed_version_handling": {
+      "kernels_list_files": "Parses the third path component into kernel_version_number but does not set a version label on ApiListKernelFilesRequest.",
+      "kernels_output": "Parses owner and kernel slug, discards the version component, and sends ApiListKernelSessionOutputRequest without a version label.",
+      "kernels_status": "Parses owner and kernel slug, discards the version component, and requests status without a version label."
+    },
+    "interpretation": "Do not use this installed CLI to claim that a /version argument pins files, output, or status."
+  },
+  "official_release_comparison": {
+    "latest_release_observed_on_pypi": "2.2.4",
+    "source": "https://pypi.org/project/kaggle/",
+    "tagged_source": "https://github.com/Kaggle/kaggle-cli/tree/v2.2.4",
+    "extended_api_observation": "The tagged v2.2.4 extended API source contains no version_label implementation; the tag predates upstream commit 30540b4.",
+    "interpretation": "A simple upgrade to the latest observed PyPI release is not established to contain the fix."
+  },
+  "official_upstream_fix": {
+    "commit": "30540b4",
+    "url": "https://github.com/Kaggle/kaggle-cli/commit/30540b4",
+    "documented_behavior": "Passes version_label=v<N> for kernels pull, output, status, files, and logs; bare numeric versions are normalized to v<N>.",
+    "upstream_test_claim": "Commit description reports live API behavior on one notebook with three versions, where exact-version status, output, files, logs, and pull select the requested version.",
+    "documentation": "https://github.com/Kaggle/kaggle-cli/blob/main/docs/kernels.md"
+  },
+  "what_this_does_not_establish": [
+    "That this upstream commit is available in an official released package as of this observation.",
+    "Historical kernel session enumeration or run history.",
+    "That a particular source, dataset version/content hash, output content hash, and runtime-loaded artifact all belong to the same completed run.",
+    "Any new M-A artifact provenance, graph/runtime count, R39/R40 result, or quality conclusion."
+  ],
+  "disposition": {
+    "m_a": "OPEN",
+    "artifact_lineage": "UNKNOWN",
+    "r39_r40": "QUARANTINED",
+    "authenticated_request": false,
+    "output_retrieved": false,
+    "kernel_changed": false
+  },
+  "next_bounded_action": "In an isolated environment, validate the official CLI built from commit 30540b4 (or a later release containing it), then consider read-only version-pinned source/output inventory. Preserve the remaining provenance gates; do not treat version-pinned retrieval as a complete producer chain."
+}

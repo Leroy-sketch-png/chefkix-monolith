@@ -2,6 +2,7 @@ package com.chefkix.culinary.features.shoppinglist.controller;
 
 import com.chefkix.culinary.features.shoppinglist.dto.request.AddCustomItemRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateCustomListRequest;
+import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromCookPlanRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromMealPlanRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.request.CreateFromRecipeRequest;
 import com.chefkix.culinary.features.shoppinglist.dto.response.ShoppingListResponse;
@@ -40,6 +41,16 @@ public class ShoppingListController {
         return ApiResponse.<ShoppingListResponse>builder()
                 .success(true).statusCode(201)
                 .data(shoppingListService.createFromMealPlan(userId(), request))
+                .build();
+    }
+
+    @PostMapping("/from-cook-plan")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<ShoppingListResponse> createFromCookPlan(
+            @Valid @RequestBody CreateFromCookPlanRequest request) {
+        return ApiResponse.<ShoppingListResponse>builder()
+                .success(true).statusCode(201)
+                .data(shoppingListService.createFromCookPlan(userId(), request))
                 .build();
     }
 
@@ -85,6 +96,15 @@ public class ShoppingListController {
         return ApiResponse.<ShoppingListResponse>builder()
                 .success(true).statusCode(200)
                 .data(shoppingListService.getByShareToken(shareToken))
+                .build();
+    }
+
+    @PostMapping("/shared/{shareToken}/copy")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<ShoppingListResponse> copySharedList(@PathVariable String shareToken) {
+        return ApiResponse.<ShoppingListResponse>builder()
+                .success(true).statusCode(201)
+                .data(shoppingListService.copySharedList(userId(), shareToken))
                 .build();
     }
 

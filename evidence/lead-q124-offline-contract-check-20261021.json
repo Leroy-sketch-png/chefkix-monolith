@@ -1,0 +1,36 @@
+{
+  "record_type": "q124_offline_exhibit_source_and_contract_check",
+  "observed_on": "2026-10-21",
+  "research_checkout": "D:/code/chefkix/.git-worktrees/root-master-segment10-20261014",
+  "research_git_head": "740e85fff30eac762521eeb5f60d841e216700c5",
+  "artifact": {
+    "path": "ai/demos/iron-chef-midterm-v26-exhibit.html",
+    "sha256": "47d9aa1d7f5e1f3f704d43ea32af5773ef2cf94aa906d94aff232457e11c15ff"
+  },
+  "test": {
+    "path": "ai/tools/test_midterm_evidence_exhibit.py",
+    "sha256": "7305909c6262871ff2661db9549b60a87fc85b4c910ff59ddae07d59b4ded5e2",
+    "command": "python -m pytest ai/tools/test_midterm_evidence_exhibit.py -q",
+    "result": "15 passed"
+  },
+  "source_contract_observations": {
+    "no_external_url_or_remote_asset_patterns_in_exhibit": true,
+    "no_fetch_or_xhr_patterns_in_exhibit": true,
+    "keyboard_focus_contract_present": true,
+    "focusable_named_table_region_present": true,
+    "basis": "focused structural test assertions plus exact source inspection",
+    "limitation": "static/source-contract evidence only; no runtime network capture or actual browser focus traversal"
+  },
+  "computer_use_attempt": {
+    "state": "STOPPED_BY_COMPUTER_USE_POLICY",
+    "reason": "Windows browser URL could not be determined with sufficient confidence to enforce navigation policy",
+    "navigation_completed": false,
+    "keyboard_focus_verified": false
+  },
+  "q124_boundary": {
+    "human_timed_rehearsal": "NOT_RUN",
+    "listener_answers": "NOT_COLLECTED",
+    "status": "OPEN"
+  },
+  "claims_boundary": "No claim of rendered keyboard accessibility, zero runtime network requests, audience comprehension, product quality, or Q124 completion. Existing desktop/mobile/print render evidence remains separate."
+}

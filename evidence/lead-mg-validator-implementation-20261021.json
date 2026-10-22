@@ -1,0 +1,39 @@
+{
+  "record_id": "lead-mg-validator-implementation-20261021",
+  "recorded_date": "2026-10-21",
+  "lead_backlog_entry": "LEAD v450",
+  "member_backlog_entry": "M-G / LEAD v450",
+  "research_commit": "5b6e5322b40e4ee337e0e14d8986c8d1775cad3d",
+  "research_repository_remote": null,
+  "artifacts": {
+    "validator": {
+      "path": "ai/tools/validate_claims_register.py",
+      "sha256": "b1a3100236f5969a06f64871b2f4ffbae2785d40a61fd5b7608ccbdad4aa68a6"
+    },
+    "tests": {
+      "path": "ai/tools/test_validate_claims_register.py",
+      "sha256": "3d9f239d7409b9d97a1097c2af4e1a6fa47369730a6147ee2098dac4026dd4d3"
+    },
+    "migration_seed": {
+      "path": "ai/evidence/claims-register/lead-claims-register-migration-seed-20261021.csv",
+      "sha256": "871ed9937d5c366744b5759f51238a944aec6fcc8f3002d59e53ad74821eaa36",
+      "result": "REJECTED_CHECKLIST_ONLY_PROVENANCE_EXIT_2_NO_SUCCESS_SUMMARY"
+    }
+  },
+  "verification": {
+    "synthetic_tests": "21/21 passed",
+    "python_compile": "passed",
+    "repository_os_gate": "124 passed, 0 failed"
+  },
+  "claim_boundary": {
+    "register_instantiated": false,
+    "empirical_claims_verified": false,
+    "scoreboard_generated": false,
+    "M-G": "OPEN",
+    "L48": "OPEN"
+  },
+  "limitations": [
+    "The validator checks schema and referenced local bytes; it does not reproduce experiments or verify claim truth.",
+    "The research checkout has no configured remote, so its source commit is local-only."
+  ]
+}

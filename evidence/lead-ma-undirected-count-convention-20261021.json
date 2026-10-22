@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "observed_on": "2026-10-21",
+  "record_type": "bounded_m_a_edge_count_convention_check",
+  "claim_status": "INFERRED",
+  "question": "Can the historical 4,591 count be obtained from the hash-pinned local HGAT artifact by counting unique unordered endpoint pairs instead of directed arcs?",
+  "inputs": {
+    "artifact_sha256": "70005b57e835b9d18a4445d05c83bfdfeb44c8e4fcc73b03cc74944688f0125f",
+    "artifact_observation_report": {
+      "path": "ai/out/iron-chef-lead-m-a-hgat-artifact-20261012/HGAT_SUBGRAPH_ARTIFACT_TRUTH.json",
+      "sha256": "e9f8abf6cbee3d03526127d34afdaee18f584896b72a9a505c81c99fa552b66e",
+      "observation_state": "COMPUTED_FROM_LOCAL_ARTIFACT_BYTES"
+    },
+    "monolith_artifact_census_receipt": {
+      "path": "evidence/lead-ma-ai-service-graph-artifact-census-20261021.json",
+      "sha256": "bf7a183b385ae56894850a610794aeda1a8e7fe9f4b1505d2653f42cda3d504"
+    }
+  },
+  "observed_counts": {
+    "directed_arc_entries": 7247,
+    "unique_directed_pairs": 4883,
+    "reciprocal_nonself_pair_count": 292,
+    "unique_self_loop_pairs": 4,
+    "historical_round0_count": 4591
+  },
+  "calculation": {
+    "unique_unordered_endpoint_pairs_including_self_loops": "4883 - 292 = 4591",
+    "unique_unordered_nonself_pairs": "4883 - 292 - 4 = 4587",
+    "arithmetic_assertion": "PASS"
+  },
+  "direct_edge_tensor_recheck": {
+    "status": "PASS",
+    "inspector_path": "ai/tools/inspect_lead_ma_hgat_artifact.py",
+    "inspector_sha256": "82a3ad74824f288e49356d94923bbe4a9d499e6d5ffd4799785b99467ca585d7",
+    "procedure": "Ran the hash-pinned restricted inspector with weights_only=True, the pinned six-class PyG allowlist and pinned PyG source hashes; captured the loaded edge_index in memory and independently constructed sets of unique directed pairs and sorted unordered endpoint pairs.",
+    "recomputed_counts": {
+      "directed_arc_entries": 7247,
+      "unique_directed_pairs": 4883,
+      "reciprocal_nonself_pairs": 292,
+      "unique_self_loops": 4,
+      "unique_unordered_pairs_including_loops": 4591,
+      "unique_unordered_nonself_pairs": 4587
+    },
+    "artifact_or_source_files_modified": false,
+    "inference_executed": false
+  },
+  "interpretation": "The historical 4,591 value is numerically identical to a unique-unordered-pair count including the artifact's four self-loops, while 7,247 is the artifact's directed arc-entry count. This is a plausible edge-count convention explanation for the numerical discrepancy.",
+  "not_established": [
+    "That Round 0 used this unordered-pair convention.",
+    "That the historical and inspected artifacts share producer lineage, mapping, revision, or node identity.",
+    "That the artifact is selected, loaded, or served by the current runtime.",
+    "Any semantic correctness, substitution quality, or user value."
+  ],
+  "disposition": {
+    "M_A": "OPEN",
+    "R39": "UNVERIFIED",
+    "R40": "UNVERIFIED",
+    "historical_claim_promoted": false,
+    "runtime_or_quality_claim": false
+  }
+}

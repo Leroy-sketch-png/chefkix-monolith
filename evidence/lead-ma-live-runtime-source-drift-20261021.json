@@ -1,0 +1,79 @@
+{
+  "record_type": "local_live_runtime_artifact_source_drift",
+  "observed_on": "2026-10-21",
+  "scope": "read-only comparison of the already-running local monolith on port 8080, its loaded culinary JAR, two local worktree artifacts, and controller source/bytecode",
+  "runtime": {
+    "port": 8080,
+    "pid": 31152,
+    "process": "java",
+    "process_started": "2026-10-21T01:05:24.2685051+07:00",
+    "loaded_culinary_jar": "C:/Users/YOGA/.m2/repository/com/chefkix/culinary/1.0.0-SNAPSHOT/culinary-1.0.0-SNAPSHOT.jar",
+    "loaded_culinary_jar_sha256": "c2ebe26bfa61eb7993ed773f24b970f04b115d978082b9edcaf538b141ce3067"
+  },
+  "artifact_comparison": {
+    "dirty_nested_checkout": {
+      "path": "D:/code/chefkix/chefkix-monolith/culinary/target/culinary-1.0.0-SNAPSHOT.jar",
+      "branch": "codex/workspace-triage-monolith-20261012",
+      "head": "b30732dd13ef4396ede95a0f740fd283d515b8c2",
+      "sha256": "c2ebe26bfa61eb7993ed773f24b970f04b115d978082b9edcaf538b141ce3067",
+      "byte_identical_to_loaded_jar": true
+    },
+    "dedicated_default_master_worktree": {
+      "path": "D:/code/chefkix/chefkix-monolith/.git-worktrees/monolith-stage3-segment8/culinary/target/culinary-1.0.0-SNAPSHOT.jar",
+      "branch": "master",
+      "head": "c183f1fa9e596120372f2523051ef808397471a5",
+      "sha256": "88f7c02b94aeff5e98176ba39a9e71a1e657751c3bfa285e52a0632ea4ad0be1",
+      "byte_identical_to_loaded_jar": false
+    }
+  },
+  "controller_comparison": {
+    "dirty_nested_checkout": {
+      "path": "culinary/src/main/java/com/chefkix/culinary/features/knowledge/controller/KnowledgeGraphController.java",
+      "sha256": "264a4a729414f3d6f5cccda853bc911088532ecb1f3d60abb2a3f12e22596b6c",
+      "request_mapping": "/knowledge",
+      "graph_mapping_present": false
+    },
+    "dedicated_default_master_worktree": {
+      "path": "culinary/src/main/java/com/chefkix/culinary/features/knowledge/controller/KnowledgeGraphController.java",
+      "sha256": "77ca939aa972a39bb382cb7b8a1e8df38f48bccd8d04ddca447b41f1789ea9b8",
+      "request_mapping": "/knowledge",
+      "graph_mapping": "/graph"
+    },
+    "loaded_jar_bytecode": {
+      "class": "com.chefkix.culinary.features.knowledge.controller.KnowledgeGraphController",
+      "source_file_attribute": "KnowledgeGraphController.java",
+      "graph_mapping_strings_present": false,
+      "observed_mappings_include_ingredients_and_techniques": true
+    }
+  },
+  "read_only_http_observations": {
+    "graph": {
+      "path": "/api/v1/knowledge/graph?limit=500",
+      "status": 404,
+      "response_bytes": 111,
+      "response_sha256": "abf746e0b98fe48e4bf85b7141efad29d185880121d1bdb2601b3921b79441ac"
+    },
+    "ingredients": {
+      "path": "/api/v1/knowledge/ingredients",
+      "status": 200,
+      "response_bytes": 34809,
+      "response_sha256": "1b9945b91598c33c4a2417285a0310aefe3775295301a270c7ddcbe3864c53b3"
+    },
+    "techniques": {
+      "path": "/api/v1/knowledge/techniques",
+      "status": 200,
+      "response_bytes": 16521,
+      "response_sha256": "73609dc303d08752e5eae33baa7c16daee10acbb3a083a74778c7ff26d478cdf"
+    }
+  },
+  "interpretation": {
+    "finding": "The live process is serving a culinary JAR byte-identical to the dirty nested checkout's target JAR, not the dedicated default-master worktree's target JAR. Its controller bytecode and the corresponding dirty-checkout source both lack the graph mapping, matching the observed 404; the clean master's source contains the mapping.",
+    "limits": [
+      "This is a local process/artifact/source comparison, not a producer or deployment provenance chain.",
+      "A matching target JAR does not independently prove which exact source tree produced it.",
+      "No process was started, stopped, restarted, or modified.",
+      "The HTTP collection endpoints establish only current response status/bytes, not transactional database snapshot identity or data lineage."
+    ],
+    "disposition": "M-A remains OPEN; R39/R40 remain QUARANTINED. Do not infer default-master runtime behavior from the listener. Resolve the build/run checkout contract and use a guarded, explicitly approved runtime activation before claiming the clean-master graph route is live."
+  }
+}

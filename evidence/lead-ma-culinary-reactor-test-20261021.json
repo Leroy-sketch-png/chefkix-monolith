@@ -1,0 +1,40 @@
+{
+  "record_type": "offline_culinary_reactor_test",
+  "observed_on": "2026-10-21",
+  "source_revision": "c5750a7056a7264708430ae7bef13e6804d20f6b",
+  "command": "mvnw.cmd -o -pl culinary -am test",
+  "result": "BUILD SUCCESS",
+  "network_access": false,
+  "reactor_modules": [
+    "chefkix-monolith",
+    "shared",
+    "identity-api",
+    "culinary-api",
+    "social-api",
+    "culinary"
+  ],
+  "tests": {
+    "run": 140,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "knowledge_graph_controller": {
+      "run": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "knowledge_graph_service": {
+      "run": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "limitations": [
+    "Tests exercise the checked-out source and fixtures, not the older JAR loaded by the running local process.",
+    "This does not establish runtime graph data lineage, persisted graph truth, public deployment behavior, or model quality.",
+    "No tracked source changed; generated Maven outputs remain ignored.",
+    "M-A remains OPEN; R39/R40 remain quarantined."
+  ]
+}

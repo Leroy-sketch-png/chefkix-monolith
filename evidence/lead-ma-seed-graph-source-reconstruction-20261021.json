@@ -1,0 +1,64 @@
+{
+  "record_id": "lead-ma-seed-graph-source-reconstruction-20261021",
+  "recorded_date": "2026-10-21",
+  "lead_backlog_entry": "LEAD v451",
+  "member_backlog_entry": "M-A / LEAD v451",
+  "research_commit": "65a61a8c964dbda1fd27400bf985405602a7609d",
+  "research_repository_remote": null,
+  "monolith_source_commit": "a90f050",
+  "source": {
+    "path": "culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java",
+    "sha256": "cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174",
+    "scope": "ingredient seed graph only; separate technique catalogue excluded"
+  },
+  "analysis_artifacts": {
+    "tool": {
+      "research_path": "ai/tools/audit_monolith_seed_graph.py",
+      "sha256": "ba61a541004fea5c767502eb8389f0c96ff0abdeb1cb6238287e25c8338f283e"
+    },
+    "tests": {
+      "research_path": "ai/tools/test_audit_monolith_seed_graph.py",
+      "sha256": "af8544fdfad2ae176a9037e7b2a1e83a39ce161ff0524d9b8d3573377e2a5ba8",
+      "result": "7/7 passed three consecutive runs"
+    },
+    "report": {
+      "research_path": "ai/evidence/lead-ma-seed-graph-source-reconstruction-v2-20261021/seed_graph_report.json",
+      "sha256": "0aead4a4a583e57057dadf733956988a33fe5c8bedca86026be4e276a3c8ab05"
+    },
+    "node_csv": {
+      "research_path": "ai/evidence/lead-ma-seed-graph-source-reconstruction-v2-20261021/GRAPH_TRUTH.csv",
+      "sha256": "11273128e8f2a9e34dfc18a7d97e783995946df455e3a386c8968a1960c85823"
+    },
+    "python_compile": "passed",
+    "agent_os_gate": "124 passed, 0 failed"
+  },
+  "reconstructed_source_interpretation": {
+    "canonical_ingredient_source_records": 25,
+    "directed_substitution_statements": 59,
+    "typed_vertices_with_literal_targets": 79,
+    "resolved_target_statements": 5,
+    "alias_only_resolutions": 1,
+    "unmatched_literal_target_statements": 54,
+    "directed_arcs": 59,
+    "in_degree_sum": 59,
+    "out_degree_sum": 59,
+    "total_degree_sum": 118,
+    "max_total_degree": 4,
+    "max_source_out_degree": 4,
+    "weak_components": 20,
+    "largest_weak_component": 9
+  },
+  "round0_boundary": {
+    "disposition": "PARTIAL_SOURCE_INTERPRETATION_ONLY",
+    "definition_recovered": false,
+    "original_artifact_recovered": false,
+    "R39": "UNVERIFIED",
+    "R40": "UNVERIFIED",
+    "M_A": "OPEN"
+  },
+  "limitations": [
+    "Static source inspection does not prove the seeder ran or that it produced the observed runtime records.",
+    "The source graph interpretation is not the live monolith API, HGAT artifact, AI-service loader, deployed graph, or model-quality evidence.",
+    "The historical 25/59/max-degree tuple is not fully reconciled without the original Round-0 artifact and metric definitions."
+  ]
+}

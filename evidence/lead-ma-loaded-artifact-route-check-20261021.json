@@ -1,0 +1,40 @@
+{
+  "record_type": "sanitized_local_runtime_artifact_binding",
+  "observed_on": "2026-10-21",
+  "listener": {
+    "port": 8080,
+    "process_id": 30696,
+    "executable": "Eclipse Adoptium JDK 21 java.exe",
+    "process_created_at": "2026-10-20T23:44:56.661611+07:00",
+    "inspection": "jcmd VM.system_properties filtered in memory to java.class.path only; credential-bearing system properties and full command line were not emitted"
+  },
+  "loaded_artifact": {
+    "coordinates": "com.chefkix:culinary:1.0.0-SNAPSHOT",
+    "location_class": "Windows user's local Maven repository",
+    "jar_sha256": "ce214cc6c524b0f431e3dbe482940389118d1d620114c515a54ec32d0840339b",
+    "jar_bytes": 1081288,
+    "jar_last_write": "2026-10-16T13:41:00.653+07:00",
+    "controller_class_sha256": "c7dba59f3a83fa67c9353a856020c55e9bfb387d18d5178d7c9c67221a9fe92c",
+    "bytecode_mapping_annotations": [
+      "GET /ingredients",
+      "GET /ingredients/{name}",
+      "GET /ingredients/{name}/substitutions",
+      "GET /techniques",
+      "GET /techniques/{name}",
+      "REQUEST /knowledge"
+    ],
+    "graph_get_mapping_present": false
+  },
+  "checked_out_source": {
+    "worktree_branch": "master",
+    "controller_source_sha256": "77ca939aa972a39bb382cb7b8a1e8df38f48bccd8d04ddca447b41f1789ea9b8",
+    "declares_get_knowledge_graph": true
+  },
+  "interpretation": "The 404 at /api/v1/knowledge/graph is explained by the loaded local Maven controller artifact lacking that route while the checked-out source declares it. This does not prove graph data is absent.",
+  "limitations": [
+    "The Maven artifact's source commit/build provenance is unknown.",
+    "No conclusion is drawn about other deployments or graph sources.",
+    "M-A remains OPEN; R39/R40 remain quarantined; no model-quality or thesis-completion claim is made."
+  ],
+  "next_acceptance": "Recover the local Maven artifact's build provenance and verify whether the intended current build is used by the local runtime."
+}

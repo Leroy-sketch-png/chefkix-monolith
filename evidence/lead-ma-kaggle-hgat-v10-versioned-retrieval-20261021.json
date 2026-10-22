@@ -1,0 +1,106 @@
+{
+  "observed_on": "2026-10-20",
+  "target": "phanphutho/chefkix-hgat-epic-1-training/v10",
+  "execution_environment": {
+    "official_kaggle_cli_source_commit": "30540b45a5eb85c319d3247907d5f8162917093b",
+    "reported_cli_version": "2.2.4",
+    "python_runtime": "3.11-slim container",
+    "credential_mount": "configured Kaggle config mounted read-only; no credential values printed or recorded",
+    "container_image_digest": "sha256:e88e9763f943ec1834f992a4b51e0f24500486803e8bc534e5767af9ea65f6ce",
+    "persistence": "Each Docker invocation used --rm; pulled source and retrieved log were in disposable container temporary directories. Only hashes and metadata are preserved here."
+  },
+  "version_pinned_observations": {
+    "status_command": "kaggle kernels status phanphutho/chefkix-hgat-epic-1-training/v10",
+    "status_exit_code": 0,
+    "status": "KernelWorkerStatus.COMPLETE",
+    "files_command": "kaggle kernels files phanphutho/chefkix-hgat-epic-1-training/v10 --page-size 200 --csv",
+    "files_exit_code": 0,
+    "listed_count": 17,
+    "listed_creation_date": "4:15 am, Wednesday 22 July 2026 UTC",
+    "hgat_weights_listing": {
+      "name": "hgat_weights.pt",
+      "api_reported_size": 893,
+      "creation_date": "4:15 am, Wednesday 22 July 2026 UTC"
+    },
+    "other_output_inventory": [
+      "hgat_model.cpython-312.pyc",
+      "build_heterodata.py",
+      "download_features.py",
+      "extract_substitutions.py",
+      "hgat_model.py",
+      "parse_recipe_nlg.py",
+      "requirements.txt",
+      "train_hgat.py",
+      "food_graph.pt",
+      "ingredient_features.csv",
+      "ingredient_vocab.csv",
+      "recipe_ingredient_edges.csv",
+      "recipe_nodes.csv",
+      "substitution_edges.csv",
+      "substitution_subgraph.pt",
+      "kg.zip"
+    ]
+  },
+  "version_pinned_source_pull": {
+    "command": "kaggle kernels pull phanphutho/chefkix-hgat-epic-1-training/v10 --path <disposable-temp-dir> --metadata",
+    "exit_code": 0,
+    "source_file": "chefkix-hgat-epic-1-training.py",
+    "source_bytes": 16339,
+    "source_sha256": "4758635e793a9cb4e98f09124e344b288b4d7b1547bcfbef2cd5f645c73886fd",
+    "metadata_file": "kernel-metadata.json",
+    "metadata_bytes": 622,
+    "metadata_sha256": "a8362f28afa87d5d407ca23371b1c5390a8034ac3fe434fbafe78c22dcdb5df8",
+    "metadata_declared_dataset_sources": ["paultimothymooney/recipenlg"],
+    "comparison_to_prior_unpinned_saved_source": {
+      "source_sha256": "45e44b7e01b02bb4593e5bf88e49abab8b00d356014a6dcc6eb88cc73e8e9e0b",
+      "source_bytes": 16395,
+      "equal": false,
+      "interpretation": "Different source snapshots; neither is asserted to be the actual code executed by the retrieved output until output/run linkage is established."
+    }
+  },
+  "targeted_output_retrieval": {
+    "command": "kaggle kernels output phanphutho/chefkix-hgat-epic-1-training/v10 --file-pattern '^hgat_weights[.]pt$' --path <disposable-temp-dir>",
+    "exit_code": 0,
+    "targeted_artifact_retrieved": false,
+    "files_written": [
+      {
+        "name": "chefkix-hgat-epic-1-training.log",
+        "bytes": 21691,
+        "sha256": "4e7639031d844df7b20bd810988a720ab0dd87239bf2037c09b7f1dd48d6217b",
+        "retention": "Hash and size recorded; file was in disposable container and not retained."
+      }
+    ],
+    "attempt_history": [
+      {
+        "phase": "initial size preflight",
+        "outcome": "No download performed. Local parser failed to find CSV header because CLI warning text preceded it."
+      },
+      {
+        "phase": "first output filter",
+        "outcome": "Over-escaped regex matched no target; only the CLI's kernel log was written."
+      },
+      {
+        "phase": "corrected output filter",
+        "outcome": "CSV header and 893-byte size row parsed; target was below 50 MB cap; corrected exact-name regex still yielded only the log and no hgat_weights.pt."
+      }
+    ],
+    "interpretation": "The command completed, but the listed output was not recoverable by this exact-version output request. The log-only result is a files-vs-output discrepancy, not proof the artifact is absent from Kaggle or that source/output lineage is invalid."
+  },
+  "limitations": [
+    "No bytes for hgat_weights.pt were recovered, so no comparison with prior local mirror hash 05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f was possible.",
+    "The source and metadata were fetched using explicit v10; this alone does not prove they produced any separately listed output files or reflect the runtime-loaded artifact.",
+    "The API-reported size and creation date are metadata, not content hashes or run provenance.",
+    "No documented explanation for the files-vs-output discrepancy has yet been established."
+  ],
+  "disposition": {
+    "m_a": "OPEN",
+    "artifact_lineage": "UNKNOWN",
+    "r39_r40": "QUARANTINED",
+    "kernel_modified": false,
+    "output_artifact_retrieved": false,
+    "model_or_registry_modified": false,
+    "inference_run": false,
+    "quality_claim": false
+  },
+  "stop_condition": "Do not repeat or broaden output retrieval in this path until a separately documented recovery method or producer-side receipt explains the exact-version listing/output mismatch."
+}
