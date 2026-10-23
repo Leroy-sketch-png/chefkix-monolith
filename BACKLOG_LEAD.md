@@ -1,5 +1,26 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v525 — Reconcile focused T52 integration-suite evidence (2026-10-23)
+
+- On clean monolith commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82`, the offline Maven reactor selected the graph loader, manifest-backed provider, controller and three endpoint test classes. Build succeeded; 37 tests were reported, with 0 failures/errors and 3 expected skips for default-off opt-in real-bundle cases. Surefire XML hashes and the exact command are recorded in the research T52 map.
+- On clean FE commit `eab2aaf69824213ee362e1f5a6951b6f24602343`, three targeted substitution-evidence, Graph Explorer and research-substitution service suites passed 25/25. The existing AI-service T-09 receipt was reused, not rerun.
+- These are current fixture/unit and mock-MVC checks. The explicit real-provisional-bundle tamper path is separately exercised by T326; three default-off methods remain skipped in the Maven suite. None of this proves deployment, accepted real artifact behavior, graph validity, source rights, or an end-to-end real-data demo. T52 T-12 is PASS narrowly for these affected suites only; no T52/C5 acceptance or mission points.
+- **Next:** prioritize the missing eligible real-artifact path and its source/owner gates; do not spend another cycle expanding unchanged synthetic suites.
+
+## LEAD v524 — Pin the v27 static-exhibit publication boundary (2026-10-23)
+
+- The research worktree now has an exact two-file allowlist for `ai/demos/iron-chef-midterm-v27-exhibit.html` and `ai/demos/iron-chef-midterm-v27-speaker-notes.md`, bound to their reviewed SHA-256 values. The manifest explicitly excludes raw cases/source rows, labels/predictions, candidate pools/weights, credentials and credential-bearing logs, and limits its scope to this static exhibit bundle.
+- The existing exhibit test verifies exact membership and hashes, then performs redacted signature scans for common API/private-key/Bearer-token patterns and structured restricted-record fields. The bounded test command passed 21 tests. A directory-level pass over demo `.html`/`.md` siblings found no matching signatures; this is not a comprehensive secret detector or an audit of other repository outputs, screenshots, logs, future packages, rights, or runtime transfer.
+- T52 T-11 is recorded PASS narrowly for this two-file bundle only. No C5/T52 contribution acceptance, fixed-milestone points, general publication clearance, or deployed behavior is claimed.
+- **Next:** choose a distinct open T52 integration gap; do not extend signature checks mechanically without an identified publication path or relevant source artifact.
+
+## LEAD v523 — Reconcile the bounded T52 T-09 route-isolation receipt (2026-10-23)
+
+- The existing Member receipt records T-09 as PASS for one narrow invariant: the same `/api/v1/suggest_substitutions` request returns identical HTTP-200 response data with the request-scoped graph-preflight flag off versus on while the research marker is absent; the identity resolver and graph-candidate gateway are not called. Source is AI-service commit `c560b6d836dccab8a1401d22c51bfd5701b17871`; its committed test bytes are SHA-256 `dbd816a2a656aa4f0263941b30c026d8711ae5dc4dfaf1568cd4b7bde125001c` (Windows CRLF working-tree form in the Member receipt: `cbc2969a3cb695820448f9e70ce5a44e87d35b6828f557ec397d219552cacb0`). Evidence receipt `evidence/member-t09-substitution-flag-contract-20261023.json` SHA-256 `905a4d33771cdea498f7e2505a26330ac516c1f45b3bbd42b0c9b8629a393c88` also records the focused test, suite, and formatting results.
+- The research T52 map now reconciles this receipt as **PASS narrowly for product-route response isolation only**. It explicitly leaves graph/Explorer read-only non-mutation, deployed runtime, accepted-artifact use, and overall T52/C5 acceptance unproven. No test was rerun and no code, feature flag, API behavior, or evidence fixture changed in this reconciliation.
+- This does not change the fixed mission measure or strict C1–C5 acceptance. No human, food-safety, live-model, product-quality, or C5 contribution claim is inferred.
+- **Next:** continue with a distinct open T52 criterion that can be advanced against an authorized artifact; do not repeat T-09 tests or present this narrow receipt as a full M-C/T52 pass.
+
 ## LEAD v522 — Integrate T295 graph-provenance display evidence (2026-10-23)
 
 - T295's opt-in substitution evidence panel now displays the exact non-null `graphProvenance.manifestSha256` returned by the typed response and its returned source split in recommendation and abstention states; null provenance remains omitted. The text explicitly identifies this as returned provenance, not computed verification.
