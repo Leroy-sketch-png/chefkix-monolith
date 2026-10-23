@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v523 — Reconcile the bounded T52 T-09 route-isolation receipt (2026-10-23)
+
+- The existing Member receipt records T-09 as PASS for one narrow invariant: the same `/api/v1/suggest_substitutions` request returns identical HTTP-200 response data with the request-scoped graph-preflight flag off versus on while the research marker is absent; the identity resolver and graph-candidate gateway are not called. Source is AI-service commit `c560b6d836dccab8a1401d22c51bfd5701b17871`; its committed test bytes are SHA-256 `dbd816a2a656aa4f0263941b30c026d8711ae5dc4dfaf1568cd4b7bde125001c` (Windows CRLF working-tree form in the Member receipt: `cbc2969a3cb695820448f9e70ce5a44e87d35b6828f557ec397d219552cacb0`). Evidence receipt `evidence/member-t09-substitution-flag-contract-20261023.json` SHA-256 `905a4d33771cdea498f7e2505a26330ac516c1f45b3bbd42b0c9b8629a393c88` also records the focused test, suite, and formatting results.
+- The research T52 map now reconciles this receipt as **PASS narrowly for product-route response isolation only**. It explicitly leaves graph/Explorer read-only non-mutation, deployed runtime, accepted-artifact use, and overall T52/C5 acceptance unproven. No test was rerun and no code, feature flag, API behavior, or evidence fixture changed in this reconciliation.
+- This does not change the fixed mission measure or strict C1–C5 acceptance. No human, food-safety, live-model, product-quality, or C5 contribution claim is inferred.
+- **Next:** continue with a distinct open T52 criterion that can be advanced against an authorized artifact; do not repeat T-09 tests or present this narrow receipt as a full M-C/T52 pass.
+
 ## LEAD v522 — Integrate T295 graph-provenance display evidence (2026-10-23)
 
 - T295's opt-in substitution evidence panel now displays the exact non-null `graphProvenance.manifestSha256` returned by the typed response and its returned source split in recommendation and abstention states; null provenance remains omitted. The text explicitly identifies this as returned provenance, not computed verification.
