@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-23",
+  "task": "member-research-substitution-product-route",
+  "frontend_repository": "Leroy-sketch-png/chefkix-fe",
+  "frontend_branch": "codex/member-research-product-route",
+  "frontend_base_commit": "c449a75124072b13b841e5aab6be5e7bf6393a4f",
+  "implementation": {
+    "client_gate": "NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED",
+    "same_origin_route": "/api/v1/research/suggest_substitutions",
+    "server_gates": [
+      "IRON_CHEF_RESEARCH_ROUTE_ENABLED",
+      "IRON_CHEF_RESEARCH_API_KEY"
+    ],
+    "request_scope": "Authenticated user; forwards the source ingredient and a fixed unavailable reason only; no recipe, session, profile, or allergen data is forwarded.",
+    "failure_behavior": "Research errors and abstentions do not fall back to product Gemini suggestions."
+  },
+  "verification": {
+    "focused_route_and_component_tests": "28 passed",
+    "full_frontend_jest": "213 suites, 859 tests passed",
+    "typecheck": "passed",
+    "scoped_eslint": "passed",
+    "prettier_changed_files": "passed",
+    "headed_default_off_e2e": "18 passed, 6 expected skips across desktop Chrome and iPhone-sized Chromium",
+    "headed_research_enabled_e2e": "2 passed, 2 expected skips across desktop Chrome and iPhone-sized Chromium"
+  },
+  "limits": [
+    "The research product browser cases use fixture API responses.",
+    "No live research API credential or accepted graph artifact was configured.",
+    "The browser evidence does not verify live inference, artifact bytes, recommendation quality, rights, or research acceptance."
+  ]
+}
