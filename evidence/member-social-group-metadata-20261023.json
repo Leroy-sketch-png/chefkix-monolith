@@ -82,6 +82,46 @@
       "skipped": 0
     }
   },
+  "post_sync_validation": {
+    "synced_branch_heads": {
+      "monolith_default": "origin/master b98f293",
+      "frontend_default": "origin/main 8b59764",
+      "ai_service_default": "origin/main afce901",
+      "infrastructure_default": "origin/master f41d0c3"
+    },
+    "frontend": {
+      "jest": {
+        "passed_suites": 214,
+        "passed_tests": 867,
+        "skipped_suites": 1,
+        "skipped_tests": 1,
+        "failed": 0
+      },
+      "production_build": "PASS with Graph Explorer, Graph Evidence, and research flags enabled",
+      "typecheck": "PASS",
+      "headed_system_chrome_e2e": {
+        "total": 42,
+        "passed": 36,
+        "skipped": 6,
+        "failed": 0
+      }
+    },
+    "backend": {
+      "reports": 86,
+      "tests": 375,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "ai_service": {
+      "tests": 557,
+      "passed": 546,
+      "skipped": 11,
+      "warnings": 28,
+      "coverage_percent": 77
+    },
+    "integration_note": "The merged default-branch updates introduced a GraphCanvas Jest import of next-intl. Added the same isolated next-intl mock used by GraphDetailPanel tests; the focused GraphCanvas suite then passed 3/3."
+  },
   "limitations": [
     "Browser API calls use local fixtures; no live FE-to-Monolith group transaction was exercised.",
     "Backend tests use Mockito; Mongo persistence and the production moderation provider were not exercised.",
