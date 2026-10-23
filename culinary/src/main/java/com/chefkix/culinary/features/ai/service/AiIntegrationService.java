@@ -343,19 +343,14 @@ public class AiIntegrationService {
 
         AIModerationResponse response = aiRestClient.moderateContent(request);
 
-        if (response.isBlocked()) {
-            log.warn("Recipe {} blocked by moderation: {} (severity={}, reason={})",
-                    recipe.getId(), response.getCategory(), response.getSeverity(), response.getReason());
+        if (response == null || !response.isApproved()) {
+            String action = response == null ? "missing" : response.getAction();
+            log.warn("Recipe {} was not approved by moderation (action={})", recipe.getId(), action);
             throw new AppException(ErrorCode.RECIPE_MODERATION_FAILED);
         }
 
-        if ("flag".equalsIgnoreCase(response.getAction())) {
-            log.info("Recipe {} flagged by moderation but allowed (severity={}, reason={})",
-                    recipe.getId(), response.getSeverity(), response.getReason());
-        }
-
-        log.info("Recipe {} passed moderation (action={}, confidence={})",
-                recipe.getId(), response.getAction(), response.getConfidence());
+        log.info("Recipe {} passed moderation with explicit approval (confidence={})",
+                recipe.getId(), response.getConfidence());
         return response;
     }
 

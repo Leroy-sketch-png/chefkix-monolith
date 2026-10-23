@@ -1,0 +1,41 @@
+{
+  "record_type": "recipe_publish_moderation_regression",
+  "observed_on": "2026-10-23",
+  "repository": "chefkix-monolith",
+  "fix_commit": "8c174343cdfc2d23e70851c703e190ae448c31f3",
+  "finding": "Recipe publication accepted moderation actions other than block. Flagged and unknown actions returned normally, so DraftService.publishRecipe could continue to scoring and save; a missing response instead caused a NullPointerException.",
+  "call_path": [
+    "culinary/src/main/java/com/chefkix/culinary/features/recipe/service/DraftService.java:193",
+    "culinary/src/main/java/com/chefkix/culinary/features/ai/service/AiIntegrationService.java:320"
+  ],
+  "regression_test": "culinary/src/test/java/com/chefkix/culinary/features/ai/service/AiIntegrationServiceModerationTest.java",
+  "before_fix": {
+    "focused_tests": 4,
+    "failures": 3,
+    "failing_cases": [
+      "flag action returned normally",
+      "unknown action returned normally",
+      "missing response raised NullPointerException instead of RECIPE_MODERATION_FAILED"
+    ]
+  },
+  "fix": "Require AIModerationResponse.isApproved() before allowing the moderation method to return. Flag, block, unknown, and missing responses raise RECIPE_MODERATION_FAILED; explicit approval continues.",
+  "after_fix": {
+    "focused_command": ".\\mvnw.cmd -pl culinary -am -Dtest=AiIntegrationServiceModerationTest -Dsurefire.failIfNoSpecifiedTests=false test",
+    "focused_tests": 4,
+    "focused_failures": 0,
+    "full_command": ".\\mvnw.cmd test",
+    "full_reports": 84,
+    "full_tests": 360,
+    "full_failures": 0,
+    "full_errors": 0,
+    "full_skipped": 0
+  },
+  "browser_and_external_services": {
+    "headed_recipe_publish_test_run": false,
+    "recipe_publish_e2e_spec_present": false,
+    "ai_service_called": false,
+    "database_written": false,
+    "limitation": "The FE was not changed, and no headed browser test currently covers recipe publishing. The focused regression uses a mocked AIRestClient; it verifies the backend moderation contract, not a live AI service or persisted recipe."
+  },
+  "result": "The backend now fails closed for every non-approve moderation outcome. No checklist item is marked complete by this receipt."
+}
