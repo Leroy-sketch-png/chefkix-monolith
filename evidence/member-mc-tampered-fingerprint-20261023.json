@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-23",
+  "item": "M-C T-04 tampered graph evidence fingerprint refusal",
+  "source_heads": {
+    "frontend_main_after_merge": "d32d3a1",
+    "frontend_test_commit": "71e9037",
+    "monolith_master": "2f78046"
+  },
+  "frontend": {
+    "build": {
+      "command": "$env:NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED='true'; $env:NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED='true'; $env:NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED='false'; npm run build",
+      "result": "PASS",
+      "notes": "Production build compiled, checked lint/types, and generated all 62 static pages. Existing caniuse-lite and edge-runtime static-generation warnings were reported."
+    },
+    "unit_test": {
+      "path": "src/features/graph-explorer/__tests__/graphExplorerService.test.ts",
+      "result": "20 passed, 0 failed",
+      "assertion": "An AVAILABLE response with differing expected and observed SHA-256 values is rejected as an invalid artifact fingerprint."
+    },
+    "browser_test": {
+      "path": "tests/e2e/graph-explorer.spec.ts",
+      "command": "$env:NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED='true'; $env:NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED='true'; $env:NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED='false'; $env:PLAYWRIGHT_EXECUTABLE_PATH='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; npx playwright test --config=playwright.e2e.config.ts --headed --timeout=120000 --grep 'graph search and ingredient inspection preserve evidence labels'",
+      "browser": "Installed system Google Chrome, headed",
+      "viewports": [
+        "desktop-chromium",
+        "mobile-iphone"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "assertions": [
+        "A mismatched expected/observed fingerprint for an AVAILABLE evidence response renders the unavailable message.",
+        "The evidence panel displays neither the manifest fingerprint nor a decision for the rejected response."
+      ],
+      "api_mode": "Local route fixtures; this browser test does not call a live evidence service."
+    },
+    "format_and_lint": "Prettier, ESLint, and the commit lint hook passed."
+  },
+  "backend": {
+    "command": ".\\mvnw.cmd -pl culinary -am '-Dtest=VerifiedGraphArtifactLoaderTest' '-Dsurefire.failIfNoSpecifiedTests=false' test",
+    "result": "6 passed, 0 failed, 0 skipped",
+    "tamper_case": "rejectsTamperedOutputWithoutReturningAnyBundleBytes"
+  },
+  "acceptance_limit": "These checks validate FE evidence-fingerprint refusal and the backend verified-bundle loader separately. The FE graph map still reads the bounded legacy Knowledge API, and the accepted graph-product artifact/route is absent. The complete artifact-backed Explorer refusal condition in T-04 remains open."
+}
