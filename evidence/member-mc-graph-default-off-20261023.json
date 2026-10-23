@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-23",
+  "feature": "M-C Graph Explorer default-off gate when its explicit feature flag is absent",
+  "source_heads": {
+    "frontend_main": "819f1bb",
+    "monolith_master": "be62cf8"
+  },
+  "build": {
+    "command": "Remove-Item Env:\\NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED -ErrorAction SilentlyContinue; Remove-Item Env:\\NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED -ErrorAction SilentlyContinue; Remove-Item Env:\\NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED -ErrorAction SilentlyContinue; npm run build",
+    "result": "PASS",
+    "notes": "Next.js production build compiled and generated all 62 static pages. Existing warnings: stale caniuse-lite data and an edge-runtime page that is not statically generated."
+  },
+  "feature_flags": {
+    "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": "UNSET",
+    "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": "UNSET",
+    "NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED": "UNSET",
+    "dotenv_check": ".env.local contained no values for these flags"
+  },
+  "browser": {
+    "browser": "Installed system Google Chrome, headed",
+    "command": "Remove-Item Env:\\NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED -ErrorAction SilentlyContinue; Remove-Item Env:\\NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED -ErrorAction SilentlyContinue; Remove-Item Env:\\NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED -ErrorAction SilentlyContinue; $env:PLAYWRIGHT_EXECUTABLE_PATH='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; npx playwright test --config=playwright.e2e.config.ts --headed --timeout=120000 --grep 'graph explorer stays disabled without its explicit feature flag'",
+    "viewports": [
+      "desktop-chromium",
+      "mobile-iphone"
+    ],
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "assertions": [
+      "The disabled Graph Explorer state is visible.",
+      "No graph content is rendered.",
+      "No /api/v1/knowledge/graph request is issued."
+    ]
+  },
+  "coverage_limit": "This proves the default-off UI feature gate for the production build and two headed browser viewports. It does not exercise the graph backend, accepted/hash-pinned graph artifact, live AI service, or deployed behavior. M-C artifact acceptance remains open."
+}
