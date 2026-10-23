@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +62,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -208,23 +208,40 @@ class PostServiceTest {
                 .content(content)
                 .build();
 
-        when(profileProvider.getBasicProfile("user-1")).thenReturn(BasicProfileInfo.builder()
-                .userId("user-1")
-                .displayName("Test Chef")
-                .build());
         when(contentModerationProvider.moderate(content, "post"))
                 .thenReturn(new ContentModerationProvider.ModerationResult(
                         "flag", "off_topic", "medium", 0.5, "Manual review required"));
-        doAnswer(invocation -> {
-            ((Runnable) invocation.getArgument(0)).run();
-            return null;
-        }).when(taskExecutor).execute(any(Runnable.class));
 
         assertThatThrownBy(() -> postService.createPersonalPost(request, "user-1"))
                 .isInstanceOf(AppException.class);
 
         verify(postRepository, never()).save(any(Post.class));
         verify(kafkaTemplate, never()).send(eq("post-delivery"), any());
+    }
+
+    @Test
+    void createGroupPostRejectsFlaggedContentBeforeUploadingOrPersisting() {
+        String groupId = "group-1";
+        String content = "ambiguous group caption";
+        var photo = new MockMultipartFile("photoUrls", "dish.jpg", "image/jpeg", new byte[] {1, 2, 3});
+        PostCreationRequest request = PostCreationRequest.builder()
+                .content(content)
+                .photoUrls(List.of(photo))
+                .build();
+
+        when(groupMemberRepository.existsByGroupIdAndUserId(groupId, "user-1")).thenReturn(true);
+        when(contentModerationProvider.moderate(content, "post"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "off_topic", "medium", 0.5, "Manual review required"));
+
+        assertThatThrownBy(() -> postService.createGroupPost(groupId, request, "user-1"))
+                .isInstanceOf(AppException.class);
+
+        verify(uploadImageFile, never()).uploadImageFile(any());
+        verify(profileProvider, never()).getBasicProfile(any());
+        verify(postRepository, never()).save(any(Post.class));
+        verify(kafkaTemplate, never()).send(eq("post-delivery"), any());
+        verify(eventPublisher, never()).publishEvent(any(Object.class));
     }
 
     @Test

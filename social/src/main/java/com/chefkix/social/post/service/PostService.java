@@ -173,6 +173,9 @@ public class PostService {
         log.info("Starting to create post for user: {}", userId);
 
         try {
+            // Reject unapproved text before uploading media or starting dependent I/O.
+            moderatePostContent(request.getContent(), userId);
+
             List<CompletableFuture<String>> uploadFutures = new ArrayList<>();
             if (request.getPhotoUrls() != null && !request.getPhotoUrls().isEmpty()) {
                 for (MultipartFile photo : request.getPhotoUrls()) {
@@ -232,8 +235,6 @@ public class PostService {
             SessionInfo session = sessionFuture.join();
 
             log.info("I/O processing completed in {}ms", System.currentTimeMillis() - startTime);
-
-            moderatePostContent(request.getContent(), userId);
 
             return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 

@@ -2,6 +2,16 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### Social group-post moderation boundary and failed-publish handling (2026-10-23)
+
+Code inspection found that the FE `GroupCreatePostBox` called the group-post endpoint without moderation and treated a returned `success: false` response as success, clearing the draft and closing the composer. The failure-first headed browser test reproduced the missing moderation request. The backend shared post pipeline started image uploads and profile/session reads before applying moderation; its failure-first service regression confirmed that a flagged caption still invoked the upload service.
+
+The group composer now requires a successful moderation response with the explicit `approve` action, fails closed on block/flag/missing/unknown/error results, checks the group-post API response before reporting success, and preserves the draft after refusal. The Monolith now moderates before starting image uploads or profile/session reads. The FE headed regression failed before the guard because the moderation call count was 0; the backend regression failed before the ordering fix because the upload service was called for rejected content.
+
+Verification: the group-post browser case passes in **2/2** headed system Chrome viewports. The full flag-enabled headed E2E suite passes **24 tests with 6 expected skips** across desktop and iPhone-sized Chromium; the skips are the live graph case (Monolith not listening on port 8080) and mutually exclusive flag-off cases. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `PostServiceTest` passes **10/10**; the full Maven reactor passes **362 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-group-post-moderation-20261023.json`.
+
+The browser test intercepts API calls with fixtures, and the backend regression uses Mockito. No live group-post-to-Monolith transaction, Mongo persistence, media-storage cleanup, Kafka/index delivery, or production moderation provider was exercised. The broader social and backlog acceptance gates remain open.
+
 ### Epic 11 / LEAD v522 — T56 thesis exhibit handoff (2026-10-23)
 
 The FE thesis workspace manifest was still labeled `lead-v101-member-v2` from October 4, and the Chapter 8 capture brief asked for unsupported confidence and safety claims. Failure-first assertions reproduced both stale states. The manifest now identifies the v522 baseline and adds a Chapter 13 T56 saved-output exhibit card that stays `pending-data`; compound capture guidance now limits claims to documented overlap and keeps nutrition, functional suitability, and allergy safety unavailable without source evidence. The photo workflow and stack descriptions were also updated to reflect current model-readiness limits and IRON CHEF v4.

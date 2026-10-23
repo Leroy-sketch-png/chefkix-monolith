@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-23",
+  "leader_checkpoint": "LEAD v522",
+  "feature": "Social group-post moderation boundary",
+  "pre_fix_failure_first": [
+    {
+      "surface": "FE headed browser",
+      "command": "npx playwright test --config=playwright.e2e.config.ts tests/e2e/group-post-moderation.spec.ts --project=desktop-chromium --headed",
+      "observed": "Failed as expected: the test expected one moderation request but received zero; the group composer submitted directly to the group-post endpoint."
+    },
+    {
+      "surface": "Monolith service test",
+      "command": "mvnw.cmd -pl social -am -Dtest=PostServiceTest -Dsurefire.failIfNoSpecifiedTests=false test",
+      "observed": "Failed as expected: a flagged group post invoked UploadImageFile before the moderation rejection."
+    }
+  ],
+  "implementation": [
+    "GroupCreatePostBox requires a successful moderation response with action approve and fails closed for block, flag, missing, unknown, and failed results.",
+    "GroupCreatePostBox checks the createGroupPost response success and data before showing success, clearing the draft, closing, or refreshing posts.",
+    "PostService moderates post content before starting image uploads or profile/session reads."
+  ],
+  "frontend": {
+    "browser_test": "chefkix-fe/tests/e2e/group-post-moderation.spec.ts",
+    "browser": "Installed system Chrome, headed",
+    "focused_viewports": {
+      "desktop_chromium": "PASS",
+      "iphone_sized_chromium": "PASS"
+    },
+    "full_e2e": {
+      "command": "npx playwright test --config=playwright.e2e.config.ts --headed --timeout=120000",
+      "feature_flags": [
+        "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED=true"
+      ],
+      "total": 30,
+      "passed": 24,
+      "skipped": 6,
+      "failed": 0,
+      "expected_skips": "Two live graph cases because localhost:8080 was unavailable; four mutually exclusive flag-off cases."
+    },
+    "jest": {
+      "suites": 214,
+      "tests": 864,
+      "passed": 864,
+      "failed": 0
+    },
+    "production_build": "PASS with Graph Explorer, Graph Evidence, and research flags enabled",
+    "typecheck": "PASS",
+    "eslint_changed_files": "PASS",
+    "prettier_changed_files": "PASS"
+  },
+  "backend": {
+    "focused_test": "PostServiceTest",
+    "focused_result": {
+      "passed": 10,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "full_reactor": {
+      "reports": 84,
+      "tests": 362,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "verified_behavior": [
+    "Flagged, blocked, unknown, missing, or failed moderation results do not call the group-post endpoint and keep the draft open.",
+    "A 400 response from the group-post endpoint does not report success or clear the draft.",
+    "An explicitly approved caption can be submitted and closes the composer only after a successful response.",
+    "Backend moderation rejection occurs before image upload, profile lookup, persistence, or event publication."
+  ],
+  "limitations": [
+    "The browser intercepts API calls with local fixtures; no live FE-to-Monolith group-post transaction or Mongo persistence was exercised.",
+    "The backend service test uses Mockito; media-storage cleanup, Kafka/index delivery, and production moderation were not exercised.",
+    "The live graph E2E case was skipped because the Monolith was not listening on localhost:8080."
+  ]
+}
