@@ -3,11 +3,12 @@ package com.chefkix.social.story.service;
 import com.chefkix.social.story.dto.request.StoryCreateRequest;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface StoryService {
-    StoryResponse createStory(String userId, StoryCreateRequest request, String mediaUrl);
+    StoryResponse createStory(String userId, StoryCreateRequest request, MultipartFile mediaFile);
     void deleteStory(String userId, String storyId);
 
     List<StoryResponse> getMyActiveStories(String userId);

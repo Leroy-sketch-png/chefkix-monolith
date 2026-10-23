@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-23",
+  "leader_checkpoint": "LEAD v522",
+  "feature": "Social Story overlay moderation and upload ordering",
+  "pre_fix_failure_first": [
+    {
+      "surface": "FE headed browser",
+      "command": "npm run test:e2e -- tests/e2e/story-moderation.spec.ts --project=desktop-chromium",
+      "observed": "Failed as expected: blocked and approved story cases each expected one moderation request but received zero; the creator sent the story without a moderation request."
+    },
+    {
+      "surface": "Monolith service test",
+      "command": "mvnw.cmd -pl social -am -Dtest=StoryServiceImplTest -Dsurefire.failIfNoSpecifiedTests=false test",
+      "observed": "Failed as expected: flagged overlay text did not throw CONTENT_MODERATION_FAILED or stop story creation."
+    }
+  ],
+  "implementation": [
+    "StoryCreator combines nonblank TEXT overlays and requires a successful moderation envelope with action approve before sticker upload or story submission.",
+    "StoryServiceImpl independently moderates TEXT overlays and fails closed for null, flag, block, or unknown results.",
+    "StoryController passes the background multipart file into the service; the service validates the optional public recipe and moderation result before uploading the background image."
+  ],
+  "frontend": {
+    "browser_test": "chefkix-fe/tests/e2e/story-moderation.spec.ts",
+    "browser": "Installed system Chrome, headed",
+    "full_e2e": {
+      "command": "npm run test:e2e -- --headed --timeout=120000",
+      "feature_flags": [
+        "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED=true"
+      ],
+      "total": 36,
+      "passed": 30,
+      "skipped": 6,
+      "failed": 0,
+      "expected_skips": "Two live graph cases because localhost:8080 was unavailable; two mutually exclusive Explorer-off cases; two mutually exclusive research-off cases."
+    },
+    "jest": {
+      "suites": 214,
+      "tests": 864,
+      "passed": 864,
+      "failed": 0
+    },
+    "production_build": "PASS with Graph Explorer, Graph Evidence, and research flags enabled",
+    "typecheck": "PASS",
+    "eslint_changed_files": "PASS",
+    "prettier_changed_files": "PASS"
+  },
+  "backend": {
+    "focused_test": "StoryServiceImplTest",
+    "focused_result": {
+      "passed": 7,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "full_reactor": {
+      "reports": 84,
+      "tests": 364,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "verified_behavior": [
+    "Flag, block, unknown action, missing action, and moderation-service failure do not submit a story and preserve overlay text for correction.",
+    "Explicit approval permits story submission on desktop and iPhone-sized Chromium.",
+    "Stories without text overlays publish without a moderation request.",
+    "Backend non-approval stops the story before background upload and repository persistence.",
+    "A linked private or missing recipe is rejected before background upload."
+  ],
+  "limitations": [
+    "The browser intercepts APIs with local fixtures; no live FE-to-Monolith story transaction or Mongo persistence was exercised.",
+    "Backend tests use Mockito; real Cloudinary/background or sticker upload and production moderation were not exercised.",
+    "The full browser run skipped the live graph cases because the Monolith was not listening on localhost:8080."
+  ]
+}

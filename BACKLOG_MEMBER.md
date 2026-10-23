@@ -12,6 +12,16 @@ Verification: the group-post browser case passes in **2/2** headed system Chrome
 
 The browser test intercepts API calls with fixtures, and the backend regression uses Mockito. No live group-post-to-Monolith transaction, Mongo persistence, media-storage cleanup, Kafka/index delivery, or production moderation provider was exercised. The broader social and backlog acceptance gates remain open.
 
+### Social Story overlay moderation and upload ordering (2026-10-23)
+
+Code inspection found that Story overlays could contain user-authored text, but `StoryCreator` sent the story without moderation and uploaded image stickers before submitting it. The Monolith `StoryController` uploaded the background image before `StoryServiceImpl` checked the linked recipe, and the service had no moderation boundary. Failure-first headed-browser tests observed zero moderation calls for both blocked and approved stories; the backend service regression showed flagged overlay text did not throw or stop persistence.
+
+The FE now requires a successful moderation response with explicit `approve` for combined nonblank `TEXT` overlays before uploading stickers or sending the story. The backend independently checks all text overlays, rejects null or non-approved results with `CONTENT_MODERATION_FAILED`, validates a linked public recipe, and uploads the background only after those checks. The controller passes the multipart file through to the service so API callers cannot bypass the ordering.
+
+Verification: the full flag-enabled headed system Chrome suite passes **30 tests with 6 expected skips** across desktop and iPhone-sized Chromium; the story cases cover flag, block, unknown action, missing action, moderation-service failure, approval, and no-text publishing on both viewports. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `StoryServiceImplTest` passes **7/7**, including moderation-before-upload ordering; the full Maven reactor passes **364 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-story-moderation-20261023.json`.
+
+The browser uses local API fixtures, and the service tests use Mockito. The run does not exercise the production moderation provider, Mongo persistence, real background/sticker storage, or a live FE-to-Monolith story transaction. Broader social and backlog acceptance gates remain open.
+
 ### Epic 11 / LEAD v522 — T56 thesis exhibit handoff (2026-10-23)
 
 The FE thesis workspace manifest was still labeled `lead-v101-member-v2` from October 4, and the Chapter 8 capture brief asked for unsupported confidence and safety claims. Failure-first assertions reproduced both stale states. The manifest now identifies the v522 baseline and adds a Chapter 13 T56 saved-output exhibit card that stays `pending-data`; compound capture guidance now limits claims to documented overlap and keeps nutrition, functional suitability, and allergy safety unavailable without source evidence. The photo workflow and stack descriptions were also updated to reflect current model-readiness limits and IRON CHEF v4.
