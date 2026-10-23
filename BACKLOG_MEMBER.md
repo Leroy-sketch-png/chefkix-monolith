@@ -14,6 +14,10 @@ Failure-first regressions used a local HTTP server that returned a 503 body cont
 
 An unmocked local FE probe was also attempted in system Chrome. The local Monolith rejected the intentionally synthetic unsigned test token and the protected Story route redirected to sign-in before the composer loaded; no story-create request was made. A valid local test identity and reachable moderation service are not configured, so no live authenticated FE-to-Monolith story publish is claimed. Receipt: `evidence/member-social-moderation-log-redaction-20261024.json`. T-11 remains partial.
 
+### T-11 AI moderation fallback log check (2026-10-24)
+
+The AI-service moderation provider already logs only the exception class and returns a generic fail-closed `flag` result when its provider call fails. Added a synthetic-sentinel regression that verifies neither the submitted text nor an exception echo appears in the response or log arguments; **1/1** test passes. The provider is mocked. This covers one fallback path and does not complete the all-log, response, and artifact inventory scan, so T-11 remains partial. Receipt: `evidence/member-t11-ai-moderation-log-20261024.json`.
+
 ### Social group metadata moderation, tag persistence, and privacy confirmation (2026-10-23)
 
 The group create form collected names, descriptions, and tags without moderating them, while the Monolith discarded tags on create and omitted them from Explore responses. Group metadata updates also had no moderation boundary. Separately, the FE privacy action sent only `privacyType` even though the backend requires a nonblank confirmation password. In headed Chrome, the group create/settings dropdown options were also covered by the dialog overlay and could not be selected.
