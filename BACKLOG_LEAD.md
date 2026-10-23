@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v524 — Pin the v27 static-exhibit publication boundary (2026-10-23)
+
+- The research worktree now has an exact two-file allowlist for `ai/demos/iron-chef-midterm-v27-exhibit.html` and `ai/demos/iron-chef-midterm-v27-speaker-notes.md`, bound to their reviewed SHA-256 values. The manifest explicitly excludes raw cases/source rows, labels/predictions, candidate pools/weights, credentials and credential-bearing logs, and limits its scope to this static exhibit bundle.
+- The existing exhibit test verifies exact membership and hashes, then performs redacted signature scans for common API/private-key/Bearer-token patterns and structured restricted-record fields. The bounded test command passed 21 tests. A directory-level pass over demo `.html`/`.md` siblings found no matching signatures; this is not a comprehensive secret detector or an audit of other repository outputs, screenshots, logs, future packages, rights, or runtime transfer.
+- T52 T-11 is recorded PASS narrowly for this two-file bundle only. No C5/T52 contribution acceptance, fixed-milestone points, general publication clearance, or deployed behavior is claimed.
+- **Next:** choose a distinct open T52 integration gap; do not extend signature checks mechanically without an identified publication path or relevant source artifact.
+
 ## LEAD v523 — Reconcile the bounded T52 T-09 route-isolation receipt (2026-10-23)
 
 - The existing Member receipt records T-09 as PASS for one narrow invariant: the same `/api/v1/suggest_substitutions` request returns identical HTTP-200 response data with the request-scoped graph-preflight flag off versus on while the research marker is absent; the identity resolver and graph-candidate gateway are not called. Source is AI-service commit `c560b6d836dccab8a1401d22c51bfd5701b17871`; its committed test bytes are SHA-256 `dbd816a2a656aa4f0263941b30c026d8711ae5dc4dfaf1568cd4b7bde125001c` (Windows CRLF working-tree form in the Member receipt: `cbc2969a3cb695820448f9e70ce5a44e87d35b6828f557ec397d219552cacb0`). Evidence receipt `evidence/member-t09-substitution-flag-contract-20261023.json` SHA-256 `905a4d33771cdea498f7e2505a26330ac516c1f45b3bbd42b0c9b8629a393c88` also records the focused test, suite, and formatting results.
