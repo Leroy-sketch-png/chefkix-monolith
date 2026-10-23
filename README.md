@@ -113,6 +113,10 @@ Social cook-post regression: headed installed Chrome passed on desktop and iPhon
 
 Social moderation now fails closed across posts, comments, replies, chat messages, and story replies: only an explicit `approve` can be published. FE composers for posts, comments, replies, cook posts, quick posts, and recipes also stop on `flag`, missing results, failures, or unknown actions and explain that flagged content was not published. The pre-fix backend post regression failed, and all five backend flagged-content regressions now pass; see `evidence/member-social-moderation-fail-closed-20261023.json`. A manual review queue is not implemented, so flagged content is rejected for retry rather than queued.
 
+## First-party recipe inventory status
+
+M-F remains open. The latest bounded scan found no recipe/license corpus in the Monolith or FE repositories, and the Monolith `Recipe` model has no explicit source or license fields. The local MongoDB read-only probe failed authentication before reading documents. Recipe count is unknown and licenses have not been assessed; see [the M-F evidence receipt](evidence/member-mf-repository-and-schema-probe-20261023.json) and [the Member backlog](BACKLOG_MEMBER.md).
+
 ## What Changed from Microservices
 
 | Before | After |

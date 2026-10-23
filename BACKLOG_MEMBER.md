@@ -2,6 +2,10 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### M-F source and local database access probe (2026-10-23)
+
+Refreshed hidden/ignored-file scans covered 859 Monolith paths and 1,224 FE paths, excluding generated and dependency directories. The Monolith matches were graph/backlog evidence and IDE data-source descriptors; the FE matches were ingredient vocabulary and compound-index JSON. No recipe dataset or license inventory was located. The Monolith `Recipe` model records `userId`, visibility, cuisine, and status, but has no explicit first-party source or license fields. A read-only probe of the configured local MongoDB failed authentication before database access; zero documents were read and no writes were issued. Receipt: `evidence/member-mf-repository-and-schema-probe-20261023.json`. Recipe count and license status remain `UNKNOWN` / `NOT_ASSESSED`; all M-F checklist items remain open pending an authorized read-only data path and canonical first-party/private-Western criteria.
+
 ### M-C / Exact alias resolution and live browser verification (2026-10-23)
 
 Lead v522 is the current checkpoint. T295 adds a narrow FE presentation result; it does not establish that returned provenance was recomputed or that the research flow is integrated into the product route. Lead v521's C2 boundary remains controlling: preserve all 200 cases and the 122/200 exact identity mismatches; spelling tiers recover 0/122; C3-G2 remains open. No cohort remapping, source-label change, or artifact, rights, calibration, or human-acceptance gate closure follows.
