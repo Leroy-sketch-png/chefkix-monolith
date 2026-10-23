@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v525 — Reconcile focused T52 integration-suite evidence (2026-10-23)
+
+- On clean monolith commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82`, the offline Maven reactor selected the graph loader, manifest-backed provider, controller and three endpoint test classes. Build succeeded; 37 tests were reported, with 0 failures/errors and 3 expected skips for default-off opt-in real-bundle cases. Surefire XML hashes and the exact command are recorded in the research T52 map.
+- On clean FE commit `eab2aaf69824213ee362e1f5a6951b6f24602343`, three targeted substitution-evidence, Graph Explorer and research-substitution service suites passed 25/25. The existing AI-service T-09 receipt was reused, not rerun.
+- These are current fixture/unit and mock-MVC checks. The explicit real-provisional-bundle tamper path is separately exercised by T326; three default-off methods remain skipped in the Maven suite. None of this proves deployment, accepted real artifact behavior, graph validity, source rights, or an end-to-end real-data demo. T52 T-12 is PASS narrowly for these affected suites only; no T52/C5 acceptance or mission points.
+- **Next:** prioritize the missing eligible real-artifact path and its source/owner gates; do not spend another cycle expanding unchanged synthetic suites.
+
 ## LEAD v524 — Pin the v27 static-exhibit publication boundary (2026-10-23)
 
 - The research worktree now has an exact two-file allowlist for `ai/demos/iron-chef-midterm-v27-exhibit.html` and `ai/demos/iron-chef-midterm-v27-speaker-notes.md`, bound to their reviewed SHA-256 values. The manifest explicitly excludes raw cases/source rows, labels/predictions, candidate pools/weights, credentials and credential-bearing logs, and limits its scope to this static exhibit bundle.
