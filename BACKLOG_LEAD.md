@@ -1,5 +1,12 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v526 — Integrate reviewed FE cutoff guard receipt (2026-10-24)
+
+- FE `main` now contains commit `42d3ba339b4c83d79c935fb15e5ca943e5cebd4b` (`fix(research): require supported graph cutoff`), directly pushed after fetch and verified at 0/0 divergence. The four-path scope adds the default-off `graph-evidence-v2` consumer cutoff check and keeps v1 abstention-only. Focused consumer suite: 36 passed; typecheck, lint, and scoped diff check passed.
+- Independent exact-byte review v3 PASSed narrowly; report `ai/out/T407/review-report-v3.md`, SHA-256 `bcba19166e329f62d998c84b6fc154c48a93c2eb60cf3a68843c6e27df903833`. Research lead receipt: `ai/out/T407/report.md`. This is FE contract integration only: no accepted calibration artifact, endpoint wiring/enablement, real-data runtime, T-07/T54/T55/T52 acceptance, C5 contribution, safety guarantee, or fixed-milestone credit.
+- The current graph candidate remains provisional with ten preserved identity errors. Keep the feature off and fail closed; the next evidence path is source-backed resolution or continued explicit abstention, followed by real artifact/runtime review. Do not remap identities or rebuild from the interrupted T220 trace.
+- **Next:** advance a distinct source-backed artifact/runtime dependency; do not repeat FE cutoff fixtures or characterize this candidate as an accepted product result.
+
 ## LEAD v525 — Reconcile focused T52 integration-suite evidence (2026-10-23)
 
 - On clean monolith commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82`, the offline Maven reactor selected the graph loader, manifest-backed provider, controller and three endpoint test classes. Build succeeded; 37 tests were reported, with 0 failures/errors and 3 expected skips for default-off opt-in real-bundle cases. Surefire XML hashes and the exact command are recorded in the research T52 map.
