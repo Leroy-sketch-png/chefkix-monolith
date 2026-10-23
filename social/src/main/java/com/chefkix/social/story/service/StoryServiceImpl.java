@@ -2,8 +2,11 @@ package com.chefkix.social.story.service;
 
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.culinary.api.RecipeProvider;
+import com.chefkix.shared.util.UploadImageFile;
 import com.chefkix.social.story.dto.request.StoryCreateRequest;
+import com.chefkix.social.story.dto.request.StoryItemDto;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.entity.Story;
 import com.chefkix.social.story.mapper.StoryMapper;
@@ -14,10 +17,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +31,11 @@ public class StoryServiceImpl implements StoryService {
     private final StoryRepository storyRepository;
     private final StoryMapper storyMapper;
     private final RecipeProvider recipeProvider;
+    private final ContentModerationProvider contentModerationProvider;
+    private final UploadImageFile uploadImageFile;
 
     @Override
-    public StoryResponse createStory(String userId, StoryCreateRequest request, String mediaUrl) {
+    public StoryResponse createStory(String userId, StoryCreateRequest request, MultipartFile mediaFile) {
         String linkedRecipeId = StringUtils.hasText(request.linkedRecipeId())
                 ? request.linkedRecipeId().trim()
                 : null;
@@ -36,12 +43,30 @@ public class StoryServiceImpl implements StoryService {
             throw new AppException(ErrorCode.RECIPE_NOT_FOUND);
         }
 
+        List<StoryItemDto> items = request.items() == null ? List.of() : request.items();
+        String overlayText = items.stream()
+                .filter(item -> item != null && "TEXT".equalsIgnoreCase(item.type()))
+                .map(StoryItemDto::data)
+                .filter(data -> data != null && data.get("text") instanceof String)
+                .map(data -> ((String) data.get("text")).trim())
+                .filter(StringUtils::hasText)
+                .collect(Collectors.joining("\n"));
+        if (StringUtils.hasText(overlayText)) {
+            ContentModerationProvider.ModerationResult moderationResult =
+                    contentModerationProvider.moderate(overlayText, "post_caption");
+            if (moderationResult == null || !moderationResult.isApproved()) {
+                throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+            }
+        }
+
+        String mediaUrl = uploadImageFile.uploadImageFile(mediaFile);
+
         Instant now = Instant.now();
         Story story = Story.builder()
                 .userId(userId)
                 .mediaUrl(mediaUrl)
                 .mediaType(request.mediaType())
-                .items(storyMapper.toStoryItems(request.items()))
+                .items(storyMapper.toStoryItems(items))
                 .imageScale(request.imageScale())
                 .imageRotation(request.imageRotation())
                 .recipeId(linkedRecipeId)

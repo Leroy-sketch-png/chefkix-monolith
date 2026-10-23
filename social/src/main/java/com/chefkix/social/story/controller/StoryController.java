@@ -1,7 +1,6 @@
 package com.chefkix.social.story.controller;
 
 import com.chefkix.shared.dto.ApiResponse;
-import com.chefkix.shared.util.UploadImageFile;
 import com.chefkix.social.story.dto.request.StoryCreateRequest;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.service.StoryService;
@@ -14,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.util.List;
 
 @RestController
@@ -23,16 +21,13 @@ import java.util.List;
 @Validated
 public class StoryController {
     private final StoryService storyService;
-    private final UploadImageFile uploadImageFile;
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<StoryResponse> create(
 @RequestPart("file") MultipartFile file,
 @RequestPart("story") @Valid StoryCreateRequest request
     ) {
-        String uploadedUrl = uploadImageFile.uploadImageFile(file);
-
-        StoryResponse response = storyService.createStory(getCurrentUserId(), request, uploadedUrl);
+        StoryResponse response = storyService.createStory(getCurrentUserId(), request, file);
 
         return ApiResponse.created(response);
     }
