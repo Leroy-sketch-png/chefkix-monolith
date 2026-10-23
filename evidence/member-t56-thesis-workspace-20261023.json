@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-23",
+  "leader_baseline": "LEAD v522",
+  "member_manifest": {
+    "version": "lead-v522-member-v3",
+    "updated_at": "2026-10-23",
+    "feature": "/thesis Chapter 13 T56 saved-output validation exhibit card",
+    "status": "pending-data"
+  },
+  "failure_first": {
+    "manifest_test": "Failed against lead-v101-member-v2 and the old unsupported Chapter 8 confidence/safety capture brief.",
+    "headed_browser": "Failed on desktop and mobile because the v522 manifest label was absent."
+  },
+  "verification": {
+    "manifest_suite": "4 passed",
+    "full_frontend_jest": "213 suites, 861 tests passed",
+    "typecheck": "passed",
+    "eslint": "passed",
+    "prettier": "passed",
+    "production_build": "passed",
+    "headed_full_e2e": "20 passed, 6 expected skips across desktop Chrome and iPhone-sized Chromium",
+    "headed_t56_e2e": "2 passed across desktop Chrome and iPhone-sized Chromium; no horizontal overflow"
+  },
+  "claim_limits": [
+    "The cited corrected saved-output exhibit is absent from the synced FE, Monolith, AI-service, and infrastructure repositories; the historical D:\\code\\chefkix research-worktree path is unavailable in this environment.",
+    "The 200-case validation result remains a diagnostic and is not product-quality or method-superiority evidence.",
+    "No saved-output measurements were copied or reconstructed into the product workspace.",
+    "Actual exhibit workflow p95, presenter/listener rehearsal, and backup video remain open under LEAD v522; T56 and L44 remain open."
+  ]
+}
