@@ -10,6 +10,12 @@ The cited corrected saved-output exhibit is not present in the synced FE, Monoli
 
 The new manifest regressions failed before the changes and pass **4/4**. Full FE validation passes **213 Jest suites / 861 tests**, typecheck, lint, and Prettier. The full headed Playwright run passes **20 tests with 6 expected skips** across desktop Chrome and iPhone-sized Chromium; the T56 card/diagnostic-boundary case passes on both viewports and confirms no horizontal overflow. Receipt: `evidence/member-t56-thesis-workspace-20261023.json`. This is a pending-workspace handoff, not an integrated saved-output exhibit or human acceptance.
 
+### M-D checklist reconciliation to LEAD v469 (2026-10-23)
+
+The M-D checklist below still showed lookup-arm generation and four-file packaging as incomplete, while LEAD v469 records the local written-artifact criterion as met: 10,729 validation and 10,747 test cases, 20 candidates per arm, all four arm outputs and manifest hash-pinned, and an independent byte-identical replay with 36 focused tests. The lookup-arm and package/replay checkboxes now reflect that local completion. The receipt state is `LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK`; it records no target-label reads, evaluation, or method selection.
+
+The package files live in the historical research checkout `ai/out/senath-m-d-arm-outputs-v1`, whose research branch had no remote. The files are absent from the currently synced AI-service checkout, so they were not reloaded or replayed here. Recipe1MSubs rights/release remain UNKNOWN, historical lookup tie equivalence is unestablished, and inference, evaluation, method comparison, and L44 remain open. Receipts: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
+
 ### Recipe publish moderation boundary and headed browser follow-through (2026-10-23)
 
 Added a DraftService boundary regression proving that a moderation rejection propagates `RECIPE_MODERATION_FAILED` before quality scoring, repository save, or recipe-index event publication. The focused Maven test passes **2/2**; the full Monolith reactor passes **361 tests across 84 reports**, with 0 failures, errors, or skips.
@@ -654,10 +660,10 @@ L39 (allergen) → L45
 > SSoT §5.7, §13.3
 
 - [x] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases — local-only outputs in `ai/out/senath-m-d-gismo-top20-v1`; provenance in LEAD v465
-- [ ] Generate lookup-frequency baseline ranked lists on same cases
-- [ ] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl`
-- [x] Verify determinism: two runs produce identical outputs — fresh replay and hashes in LEAD v465
-- [ ] **Acceptance:** Every case present; deterministic across runs
+- [x] Generate lookup-frequency baseline ranked lists on the same cases — local-only source-only arm, deterministic count-descending / graph-ID-ascending tie rule; historical `torch.topk` tie equivalence remains unknown (LEAD v466)
+- [x] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl` — local package path and four SHA-256 values in `evidence/lead-md-arm-output-package-20261021.json` (LEAD v467/v469); files are not in the current synced repositories
+- [x] Verify determinism: package outputs and manifest replay byte-identically — all four payload hashes unchanged after validator hardening (LEAD v468/v469)
+- [x] **Local written-artifact acceptance:** every validation/test case is present and the package is deterministic (LEAD v469). This does not resolve rights/release, historical lookup tie equivalence, inference/evaluation, method comparison, or L44.
 
 ### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
 > SSoT §12.2–12.7, §25.7 (P6)
