@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-23",
+  "item": "M-C bounded real-artifact filename inventory",
+  "workspace_heads": {
+    "chefkix-fe": "d32d3a1",
+    "chefkix-monolith": "b9b841f",
+    "chefkix-ai-service": "afce901",
+    "chefkix-infrastructure": "f41d0c3"
+  },
+  "searched_roots": [
+    "C:\\Users\\LENOVO\\IdeaProjects\\chefkix-fe",
+    "C:\\Users\\LENOVO\\IdeaProjects\\chefkix-monolith",
+    "C:\\Users\\LENOVO\\IdeaProjects\\chefkix-ai-service",
+    "C:\\Users\\LENOVO\\IdeaProjects\\chefkix-infrastructure"
+  ],
+  "filename_patterns": [
+    "*graph_product_v4*",
+    "*graph_eval_v4*",
+    "substitution_subgraph.pt"
+  ],
+  "scan": {
+    "included_hidden_and_ignored_files": true,
+    "excluded": [
+      ".git",
+      "node_modules",
+      ".next",
+      "target",
+      "build",
+      "dist",
+      ".venv",
+      "venv"
+    ],
+    "matches": []
+  },
+  "historical_research_worktree": {
+    "path": "D:\\code\\chefkix\\.git-worktrees\\root-master-segment10-20261014",
+    "available": false
+  },
+  "result": "NO_MATCHING_CANDIDATE_FOUND_IN_SCANNED_WORKSPACES",
+  "limits": "This was a bounded filename inventory, not a content search or a claim that no artifact exists elsewhere. It establishes no source rights, ownership, eligibility, or acceptance. No artifact was reconstructed or imported.",
+  "next_step": "Locate an eligible real graph artifact and establish source/owner gates before further artifact-backed M-C acceptance work."
+}
