@@ -1,0 +1,66 @@
+{
+  "record_type": "bounded_recipe_inventory_source_and_access_probe",
+  "observed_on": "2026-10-23",
+  "backlog_item": "M-F: First-Party Recipe Inventory & License Check",
+  "repository_commits": {
+    "chefkix-monolith": "9a20e466ecc4a7533ce2bfd6bb7068d21c546699",
+    "chefkix-fe": "c449a75124072b13b841e5aab6be5e7bf6393a4f"
+  },
+  "static_scans": [
+    {
+      "repository": "chefkix-monolith",
+      "files_scanned": 859,
+      "candidate_data_files": 10,
+      "candidate_paths": [
+        "evidence/member-mf-repository-source-inventory-20261021.json",
+        "evidence/member-ma-seed-graph-source-20261023/seed_graph_report.json",
+        "evidence/lead-mb-full-split-source-join-20261021.json",
+        "evidence/lead-ma-source-family-coverage-curve-20261021.json",
+        "evidence/lead-ma-seed-graph-source-reconstruction-20261021.json",
+        "evidence/lead-ma-round0-preserved-source-search-20261021.json",
+        "evidence/lead-ma-live-runtime-source-drift-20261021.json",
+        "evidence/lead-ma-current-source-build-check-20261021.json",
+        ".idea/dataSources.xml",
+        ".idea/dataSources.local.xml"
+      ],
+      "interpretation": "The JSON matches are graph/backlog evidence; the XML files configure IDE data sources. No recipe dataset or recipe-license manifest was located."
+    },
+    {
+      "repository": "chefkix-fe",
+      "files_scanned": 1224,
+      "candidate_data_files": 2,
+      "candidate_paths": [
+        "public/data/ingredient_vocab_v2.json",
+        "public/data/ingredient_compound_index.json"
+      ],
+      "interpretation": "These files are ingredient vocabulary and compound-index data, not recipe records or a license inventory."
+    }
+  ],
+  "monolith_recipe_model": {
+    "path": "culinary/src/main/java/com/chefkix/culinary/features/recipe/entity/Recipe.java",
+    "modeled_inventory_fields": ["userId", "recipeVisibility", "cuisineType", "status"],
+    "explicit_first_party_source_or_license_fields_found": false
+  },
+  "local_runtime_probe": {
+    "configured_endpoint_scope": "localhost MongoDB",
+    "operation": "read-only connection and metadata/count probe",
+    "result": "authentication_failed_before_database_access",
+    "documents_read": 0,
+    "writes": 0,
+    "credential_material_recorded": false
+  },
+  "result": {
+    "status": "OPEN_NO_AUTHENTICATED_INVENTORY",
+    "recipe_count": null,
+    "first_party_private_western_count": null,
+    "license_status": "NOT_ASSESSED",
+    "checklist_items_completed": 0
+  },
+  "next_step": "Provide an authorized read-only database access path through the local environment and the canonical definitions for first-party ownership and the private-Western cell. Then enumerate stable recipe identifiers and per-recipe source/license states without exporting recipe content; obtain legal review where required.",
+  "limitations": [
+    "Static file scans do not count recipes stored in a database or external source.",
+    "The authenticated database probe failed before reading collection contents; no count or rights conclusion can be inferred.",
+    "The application Recipe model does not establish first-party ownership or license permission.",
+    "M-F remains open and no recipe content was exported, created, uploaded, or redistributed."
+  ]
+}
