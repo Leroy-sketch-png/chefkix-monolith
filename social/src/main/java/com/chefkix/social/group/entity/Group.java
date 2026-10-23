@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,6 +19,7 @@ public class Group {
     private String name;
     private String description;
     private String coverImageUrl;
+    private List<String> tags;
 
 private PrivacyType privacyType;
     private String creatorId;

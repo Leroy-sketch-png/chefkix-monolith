@@ -4,12 +4,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.api.ProfileProvider;
+import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.social.group.dto.request.GroupCreationRequest;
+import com.chefkix.social.group.dto.request.GroupPrivacyUpdateRequest;
+import com.chefkix.social.group.dto.request.GroupUpdateRequest;
 import com.chefkix.social.group.entity.Group;
 import com.chefkix.social.group.entity.GroupMember;
 import com.chefkix.social.group.enums.MemberRole;
@@ -23,6 +31,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,9 +58,179 @@ class GroupServiceTest {
     private MongoTemplate mongoTemplate;
     @Mock
     private ProfileProvider profileProvider;
+    @Mock
+    private ContentModerationProvider contentModerationProvider;
 
     @InjectMocks
     private GroupService groupService;
+
+    @Test
+    void createGroupPersistsSubmittedTags() {
+        GroupCreationRequest request = createRequest(List.of("meal prep", "weeknight"));
+        when(contentModerationProvider.moderate(
+                        "Weeknight Cooks\nPractical meals\nmeal prep\nweeknight", "post_caption"))
+                .thenReturn(ContentModerationProvider.ModerationResult.approved());
+        when(groupRepository.save(any(Group.class))).thenAnswer(invocation -> {
+            Group saved = invocation.getArgument(0);
+            saved.setId("group-1");
+            return saved;
+        });
+        when(memberRepository.save(any(GroupMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toGroupResponse(any(Group.class)))
+                .thenReturn(com.chefkix.social.group.dto.response.GroupResponse.builder().id("group-1").build());
+
+        groupService.createGroup(request, "owner-1");
+
+        InOrder order = inOrder(contentModerationProvider, groupRepository, memberRepository);
+        order.verify(contentModerationProvider).moderate(
+                "Weeknight Cooks\nPractical meals\nmeal prep\nweeknight", "post_caption");
+        order.verify(groupRepository).save(any(Group.class));
+        order.verify(memberRepository).save(any(GroupMember.class));
+
+        ArgumentCaptor<Group> groupCaptor = ArgumentCaptor.forClass(Group.class);
+        verify(groupRepository).save(groupCaptor.capture());
+        assertThat(groupCaptor.getValue().getTags()).containsExactly("meal prep", "weeknight");
+    }
+
+    @Test
+    void createGroupRejectsUnapprovedMetadataBeforeSavingMembership() {
+        GroupCreationRequest request = createRequest(List.of());
+        when(contentModerationProvider.moderate(
+                        "Weeknight Cooks\nPractical meals", "post_caption"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "unknown", "medium", 0.0, "Review required"));
+
+        assertThatThrownBy(() -> groupService.createGroup(request, "owner-1"))
+                .isInstanceOf(AppException.class)
+                .satisfies(error -> assertThat(((AppException) error).getErrorCode())
+                        .isEqualTo(ErrorCode.CONTENT_MODERATION_FAILED));
+
+        verify(groupRepository, never()).save(any(Group.class));
+        verify(memberRepository, never()).save(any(GroupMember.class));
+    }
+
+    @Test
+    void updateGroupRejectsUnapprovedMetadataBeforeSaving() {
+        GroupMember admin = GroupMember.builder()
+                .groupId("group-1")
+                .userId("owner-1")
+                .role(MemberRole.ADMIN)
+                .status(MemberStatus.ACTIVE)
+                .build();
+        Group group = Group.builder()
+                .id("group-1")
+                .name("Weeknight Cooks")
+                .description("Practical meals")
+                .tags(List.of("meal prep"))
+                .build();
+        GroupUpdateRequest request = new GroupUpdateRequest();
+        request.setName("Unsafe Group");
+        request.setDescription("Updated description");
+        when(memberRepository.findByGroupIdAndUserId("group-1", "owner-1"))
+                .thenReturn(Optional.of(admin));
+        when(groupRepository.findById("group-1")).thenReturn(Optional.of(group));
+        when(contentModerationProvider.moderate(
+                        "Unsafe Group\nUpdated description\nmeal prep", "post_caption"))
+                .thenReturn(new ContentModerationProvider.ModerationResult(
+                        "flag", "unknown", "medium", 0.0, "Review required"));
+
+        assertThatThrownBy(() -> groupService.updateGroup("group-1", request, "owner-1"))
+                .isInstanceOf(AppException.class)
+                .satisfies(error -> assertThat(((AppException) error).getErrorCode())
+                        .isEqualTo(ErrorCode.CONTENT_MODERATION_FAILED));
+
+        verify(groupRepository, never()).save(any(Group.class));
+    }
+
+    @Test
+    void exploreGroupResponseIncludesStoredTags() {
+        Group group = Group.builder()
+                .id("group-1")
+                .name("Weeknight Cooks")
+                .tags(List.of("meal prep", "weeknight"))
+                .build();
+
+        GroupMapper groupMapper = org.mapstruct.factory.Mappers.getMapper(GroupMapper.class);
+
+        assertThat(groupMapper.toGroupResponse(group).getTags())
+                .containsExactly("meal prep", "weeknight");
+        assertThat(groupMapper.toExploreResponse(group, null).getTags())
+                .containsExactly("meal prep", "weeknight");
+    }
+
+    @Test
+    void changePrivacyAcceptsValidConfirmationPasswordAndSavesPrivacy() {
+        GroupMember admin = GroupMember.builder()
+                .groupId("group-1")
+                .userId("owner-1")
+                .role(MemberRole.ADMIN)
+                .status(MemberStatus.ACTIVE)
+                .build();
+        Group group = Group.builder()
+                .id("group-1")
+                .privacyType(PrivacyType.PUBLIC)
+                .memberCount(1)
+                .build();
+        BasicProfileInfo profile = BasicProfileInfo.builder()
+                .userId("owner-1")
+                .username("group-chef")
+                .build();
+        GroupPrivacyUpdateRequest request = new GroupPrivacyUpdateRequest();
+        request.setPrivacyType("PRIVATE");
+        request.setConfirmationPassword("correct-password");
+        when(memberRepository.findByGroupIdAndUserId("group-1", "owner-1"))
+                .thenReturn(Optional.of(admin));
+        when(profileProvider.getBasicProfile("owner-1")).thenReturn(profile);
+        when(profileProvider.verifyUserPassword("group-chef", "correct-password"))
+                .thenReturn(true);
+        when(groupRepository.findById("group-1")).thenReturn(Optional.of(group));
+        when(groupRepository.save(any(Group.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        groupService.changePrivacy("group-1", request, "owner-1");
+
+        assertThat(group.getPrivacyType()).isEqualTo(PrivacyType.PRIVATE);
+        verify(profileProvider).verifyUserPassword("group-chef", "correct-password");
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void changePrivacyRejectsInvalidConfirmationPasswordBeforeSaving() {
+        GroupMember admin = GroupMember.builder()
+                .groupId("group-1")
+                .userId("owner-1")
+                .role(MemberRole.ADMIN)
+                .status(MemberStatus.ACTIVE)
+                .build();
+        BasicProfileInfo profile = BasicProfileInfo.builder()
+                .userId("owner-1")
+                .username("group-chef")
+                .build();
+        GroupPrivacyUpdateRequest request = new GroupPrivacyUpdateRequest();
+        request.setPrivacyType("PRIVATE");
+        request.setConfirmationPassword("incorrect-password");
+        when(memberRepository.findByGroupIdAndUserId("group-1", "owner-1"))
+                .thenReturn(Optional.of(admin));
+        when(profileProvider.getBasicProfile("owner-1")).thenReturn(profile);
+        when(profileProvider.verifyUserPassword("group-chef", "incorrect-password"))
+                .thenReturn(false);
+
+        assertThatThrownBy(() -> groupService.changePrivacy("group-1", request, "owner-1"))
+                .isInstanceOf(AppException.class)
+                .satisfies(error -> assertThat(((AppException) error).getErrorCode())
+                        .isEqualTo(ErrorCode.INVALID_CREDENTIALS));
+
+        verify(groupRepository, never()).save(any(Group.class));
+        verify(groupRepository, never()).findById(anyString());
+    }
+
+    private GroupCreationRequest createRequest(List<String> tags) {
+        GroupCreationRequest request = new GroupCreationRequest();
+        request.setName("Weeknight Cooks");
+        request.setDescription("Practical meals");
+        request.setPrivacyType("PUBLIC");
+        request.setTags(tags);
+        return request;
+    }
 
     @Test
     void cleanupDeletedUserDataTransfersOwnershipToHighestRankedActiveSurvivor() {

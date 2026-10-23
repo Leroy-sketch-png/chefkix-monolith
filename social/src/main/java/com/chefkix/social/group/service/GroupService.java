@@ -2,6 +2,7 @@ package com.chefkix.social.group.service;
 
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
+import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.chat.enums.RequestAction;
@@ -57,15 +58,20 @@ public class GroupService {
     final MongoTemplate mongoTemplate;
 
     final ProfileProvider profileProvider;
+    final ContentModerationProvider contentModerationProvider;
 
     @Transactional
     public GroupResponse createGroup(GroupCreationRequest request, String currentUserId) {
 
         try {
+            List<String> tags = request.getTags() == null ? List.of() : new ArrayList<>(request.getTags());
+            moderateGroupMetadata(request.getName(), request.getDescription(), tags);
+
             Group group = Group.builder()
                     .name(request.getName())
                     .description(request.getDescription())
                     .coverImageUrl(request.getCoverImageUrl())
+                    .tags(tags)
                     .privacyType(parsePrivacyType(request.getPrivacyType()))
                     .creatorId(currentUserId)
                     .ownerId(currentUserId)
@@ -551,13 +557,17 @@ throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
-        if (request.getName() != null && !request.getName().trim().isEmpty()) {
-            group.setName(request.getName());
+        String updatedName = request.getName() != null && !request.getName().trim().isEmpty()
+                ? request.getName() : group.getName();
+        String updatedDescription = request.getDescription() != null
+                ? request.getDescription() : group.getDescription();
+        if (!Objects.equals(updatedName, group.getName())
+                || !Objects.equals(updatedDescription, group.getDescription())) {
+            moderateGroupMetadata(updatedName, updatedDescription, group.getTags());
         }
 
-        if (request.getDescription() != null) {
-            group.setDescription(request.getDescription());
-        }
+        group.setName(updatedName);
+        group.setDescription(updatedDescription);
 
         if (request.getCoverImageUrl() != null) {
             group.setCoverImageUrl(request.getCoverImageUrl());
@@ -566,6 +576,36 @@ throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION);
         group = groupRepository.save(group);
 
         return mapper.toExploreResponse(group, requester);
+    }
+
+    private void moderateGroupMetadata(String name, String description, List<String> tags) {
+        List<String> contentParts = new ArrayList<>();
+        addModerationText(contentParts, name);
+        addModerationText(contentParts, description);
+        if (tags != null) {
+            tags.forEach(tag -> addModerationText(contentParts, tag));
+        }
+        if (contentParts.isEmpty()) {
+            return;
+        }
+
+        try {
+            ContentModerationProvider.ModerationResult result =
+                    contentModerationProvider.moderate(String.join("\n", contentParts), "post_caption");
+            if (result == null || !result.isApproved()) {
+                throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+            }
+        } catch (AppException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new AppException(ErrorCode.CONTENT_MODERATION_FAILED);
+        }
+    }
+
+    private void addModerationText(List<String> contentParts, String value) {
+        if (value != null && !value.isBlank()) {
+            contentParts.add(value.trim());
+        }
     }
 
     @Transactional

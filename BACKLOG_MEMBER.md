@@ -2,6 +2,16 @@
 
 ## Member integration checkpoint — 2026-10-23
 
+### Social group metadata moderation, tag persistence, and privacy confirmation (2026-10-23)
+
+The group create form collected names, descriptions, and tags without moderating them, while the Monolith discarded tags on create and omitted them from Explore responses. Group metadata updates also had no moderation boundary. Separately, the FE privacy action sent only `privacyType` even though the backend requires a nonblank confirmation password. In headed Chrome, the group create/settings dropdown options were also covered by the dialog overlay and could not be selected.
+
+The FE now requires an explicit moderation `approve` for group creation and for changed metadata on settings updates; privacy-only updates skip moderation. Group tags are saved and included in Explore responses. The backend independently moderates group create and changed metadata updates before persistence and fails closed on provider errors or non-approved results. Privacy changes now collect, validate, and send the confirmation password. The dropdown menus render above their dialogs.
+
+Failure-first regressions reproduced the absent create moderation request, unmoderated backend create/update, and the overlay-intercepted dropdown click. The privacy request test confirmed the password was missing from the old FE payload. Verification: the full flag-enabled headed system Chrome suite passes **36 tests with 6 expected skips** (42 total) across desktop and iPhone-sized Chromium; the focused group metadata/privacy cases pass **6/6**. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `GroupServiceTest` passes **10/10**; the full Maven reactor passes **370 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-group-metadata-20261023.json`.
+
+Browser API calls use local fixtures, and backend service tests use Mockito. This run does not exercise a live FE-to-Monolith transaction, Mongo persistence, or the production moderation provider. The broader social and backlog acceptance gates remain open.
+
 ### Social group-post moderation boundary and failed-publish handling (2026-10-23)
 
 Code inspection found that the FE `GroupCreatePostBox` called the group-post endpoint without moderation and treated a returned `success: false` response as success, clearing the draft and closing the composer. The failure-first headed browser test reproduced the missing moderation request. The backend shared post pipeline started image uploads and profile/session reads before applying moderation; its failure-first service regression confirmed that a flagged caption still invoked the upload service.
