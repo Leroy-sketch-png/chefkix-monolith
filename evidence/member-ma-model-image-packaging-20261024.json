@@ -1,0 +1,45 @@
+{
+  "record_id": "member-ma-model-image-packaging-20261024",
+  "date": "2026-10-24",
+  "scope": "AI-service Docker model packaging only; no graph data or inference claim.",
+  "ai_service": {
+    "repository": "chefkix-ai-service",
+    "base_commit": "afce9010dc634c418feab3db031f187d3b72f0f6",
+    "branch": "codex/member-backlog-model-image-20261024",
+    "changed_files": {
+      "Dockerfile": "C12A62606E1B74B9F1506075DFC9C71A89B9BEDD78E7DE8613F35197D713C901",
+      "README.md": "1A4119BA1672DF419A984D640B676D6E7604DA714984331B04FB208A05C3BF0E"
+    },
+    "change": "Copy models/ into the runtime image; document that the ignored graph sidecar must be supplied in the build context."
+  },
+  "verification": {
+    "docker_build": {
+      "command": "docker build --tag chefkix-ai-service:member-backlog-check .",
+      "result": "PASS",
+      "image_digest": "sha256:f72eb90bca1241af6f1623e9b6a3a8be5d84efe9b1ffcb9ebdf3a0f6cfe32242"
+    },
+    "container_file_check": {
+      "command": "docker run --rm --entrypoint python chefkix-ai-service:member-backlog-check -c <model path assertions>",
+      "result": "PASS",
+      "tracked_weights_present": true,
+      "registry_present": true,
+      "graph_sidecar_present": false
+    },
+    "focused_tests": {
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_model_registry_truth.py tests/test_ml_loader_graph.py -q",
+      "result": "PASS",
+      "passed": 16,
+      "failed": 0
+    },
+    "diff_check": "PASS"
+  },
+  "backlog_state": {
+    "M-A_artifact_acceptance": "OPEN",
+    "reason": "The ignored substitution_subgraph.pt artifact is absent; its path, hash, node/edge counts, isolated-node count, and runtime loading cannot be verified."
+  },
+  "limitations": [
+    "No graph bundle was available in the AI-service checkout or the configured ChefKix workspaces.",
+    "No graph inference, live endpoint, production image, or accepted artifact was exercised.",
+    "Copying models/ makes available files reachable in the image but does not create or certify the missing bundle."
+  ]
+}

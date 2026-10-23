@@ -2,6 +2,10 @@
 
 ## Member integration checkpoint — 2026-10-24
 
+### M-A Graph-RAG model image packaging (2026-10-24)
+
+The AI-service Docker image copied `src/` and `data/` but omitted `models/`, so tracked model files and any supplied graph bundle could not reach container runtime. The image now copies `models/`; a clean Docker build and an in-container file check confirmed the tracked weights and registry are present. Focused registry/loader tests pass **16/16**. The required ignored `substitution_subgraph.pt` remains absent from the checkout and built image, so no runtime graph load, inference, node/edge census, or M-A artifact acceptance is claimed. Receipt: `evidence/member-ma-model-image-packaging-20261024.json`.
+
 ### Social moderation error-log privacy (2026-10-24)
 
 The Monolith AI client logged the complete moderation-service HTTP error body, and its fallback provider logged exception messages and stack traces. If an upstream error echoes a submitted story or post caption, that user-authored text could be written to application logs even though moderation correctly fails closed. The moderation HTTP path now records only the status; unexpected failures record only the exception class. The content-moderation adapter also records only the exception class and still returns a `flag` result when the provider is unavailable.
