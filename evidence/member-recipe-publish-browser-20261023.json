@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-23",
+  "leader_checkpoint": "LEAD v522",
+  "feature": "Recipe publish moderation boundary",
+  "frontend": {
+    "browser_test": "chefkix-fe/tests/e2e/recipe-publish-moderation.spec.ts",
+    "command": "npm run test:e2e -- --headed",
+    "browser": "Installed system Chrome",
+    "viewports": {
+      "desktop_chromium": "PASS",
+      "iphone_sized_chromium": "PASS"
+    },
+    "full_e2e": {
+      "passed": 22,
+      "skipped": 6,
+      "failed": 0
+    },
+    "jest": {
+      "suites": 213,
+      "tests": 861,
+      "passed": 861,
+      "failed": 0
+    },
+    "production_build": "PASS",
+    "typecheck": "PASS",
+    "eslint_changed_e2e_file": "PASS"
+  },
+  "backend": {
+    "focused_test": "DraftServiceTest.doesNotScoreSaveOrIndexRecipeWhenModerationRejectsIt",
+    "focused_command": "mvnw.cmd -pl culinary -am -Dtest=DraftServiceTest -Dsurefire.failIfNoSpecifiedTests=false test",
+    "focused_result": {
+      "passed": 2,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "full_reactor": {
+      "reports": 84,
+      "tests": 361,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "verified_behavior": [
+    "A flagged FE content-guard result does not call the publish endpoint.",
+    "A RECIPE_MODERATION_FAILED response keeps the recipe in DRAFT and does not navigate away from the editor.",
+    "The user can retry after moderation becomes approved and reaches the recipe route.",
+    "The backend service propagates moderation rejection before quality scoring, repository save, or recipe-index event publication."
+  ],
+  "limitations": [
+    "Playwright intercepts API calls with local fixtures; no live FE-to-Monolith browser transaction was exercised.",
+    "The backend unit test uses Mockito; Mongo persistence, Kafka delivery, and index delivery were not exercised.",
+    "No production moderation provider or deployed environment was used."
+  ],
+  "initial_browser_attempt": "The first run used a text locator for a title rendered in an input value. The test failed at setup; the locator was corrected to assert the textbox value, after which the new case passed on both viewports. No product failure was observed in that initial attempt."
+}
