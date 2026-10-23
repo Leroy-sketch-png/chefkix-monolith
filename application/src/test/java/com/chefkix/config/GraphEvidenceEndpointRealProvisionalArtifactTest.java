@@ -21,15 +21,19 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
-import java.util.List;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +47,7 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
     private static final String T154_MANIFEST_SHA256 =
             "60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140";
     private static final String BUNDLE_PROPERTY = "chefkix.test.real-provisional-bundle";
+    private static final String CAPTURE_PROPERTY = "chefkix.test.capture-refusal-json";
 
     @Test
     void refusesRealProvisionalBundleAndReturnsOnlyItsRecomputedManifestDigest() throws Exception {
@@ -62,7 +67,7 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
 
         try (AnnotationConfigWebApplicationContext context = context(bundle, actualManifestDigest)) {
             MockMvc mvc = mvc(context);
-            mvc.perform(get("/api/v1/graph/evidence")
+            var result = mvc.perform(get("/api/v1/graph/evidence")
                             .contextPath("/api/v1")
                             .param("sourceIngredientId", "synthetic-source")
                             .param("candidateIngredientId", "synthetic-candidate")
@@ -73,7 +78,36 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
                     .andExpect(jsonPath("$.artifactIntegrity.expectedSha256").value(actualManifestDigest))
                     .andExpect(jsonPath("$.artifactIntegrity.observedSha256").value(actualManifestDigest))
                     .andExpect(jsonPath("$.evidence").doesNotExist())
-                    .andExpect(jsonPath("$.identityResolution").doesNotExist());
+                    .andExpect(jsonPath("$.identityResolution").doesNotExist())
+                    .andReturn();
+
+            String capturePath = System.getProperty(CAPTURE_PROPERTY);
+            if (capturePath != null && !capturePath.isBlank()) {
+                Path requestedOutput = Path.of(capturePath);
+                Path output = requestedOutput.toAbsolutePath().normalize();
+                if (!requestedOutput.isAbsolute()
+                        || !Files.isDirectory(output.getParent())
+                        || Files.isSymbolicLink(output.getParent())
+                        || Files.exists(output)) {
+                    throw new IllegalStateException(
+                            "Refusal-response capture path must be a fresh file in a real directory");
+                }
+                String responseJson = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+                JsonNode response = JSON.readTree(responseJson);
+                assertEquals("graph-evidence.v1", response.path("contractVersion").asText());
+                assertEquals("REFUSED", response.path("status").asText());
+                assertEquals(actualManifestDigest,
+                        response.path("artifactIntegrity").path("expectedSha256").asText());
+                assertEquals(actualManifestDigest,
+                        response.path("artifactIntegrity").path("observedSha256").asText());
+                assertTrue(response.path("evidence").isNull(), "refusal capture must not include graph evidence");
+                assertTrue(response.path("identityResolution").isNull(),
+                        "refusal capture must not include row identity data");
+                Path pending = output.resolveSibling(output.getFileName() + ".pending-" + UUID.randomUUID());
+                Files.writeString(pending, responseJson, StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                Files.move(pending, output);
+            }
         }
     }
 
