@@ -39,6 +39,7 @@ public interface GroupMapper {
                 .creatorId(group.getCreatorId())
                 .ownerId(group.getOwnerId())
                 .memberCount(group.getMemberCount())
+                .tags(group.getTags())
                 .createdAt(group.getCreatedAt())
                 .myRole(myRole)
                 .myStatus(myStatus)

@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-23",
+  "feature": "Social group metadata moderation, tag persistence, and privacy confirmation",
+  "root_causes": [
+    "The FE group create form submitted name, description, and tags without a moderation approval check.",
+    "The backend Group model did not store tags, and Explore mapping omitted tags.",
+    "Backend group creation and changed metadata updates had no moderation boundary.",
+    "The FE privacy update omitted the confirmationPassword required by the backend request contract.",
+    "Create and settings dropdown menus rendered below their modal overlay, which intercepted option clicks."
+  ],
+  "pre_fix_failure_first": [
+    {
+      "surface": "FE headed browser",
+      "observed": "The create flow expected one moderation request but received zero; the group dropdown option click was intercepted by the dialog overlay."
+    },
+    {
+      "surface": "Monolith service tests",
+      "observed": "Flagged group creation reached persistence without moderation, and a rejected metadata update did not throw."
+    },
+    {
+      "surface": "FE privacy request",
+      "observed": "The old privacy payload contained only privacyType and omitted the required confirmationPassword."
+    }
+  ],
+  "implementation": [
+    "FE creation requires explicit moderation approval for group name, description, and tags before submission.",
+    "FE settings moderates changed group metadata and skips moderation for privacy-only changes.",
+    "Monolith independently moderates create and changed metadata updates before persistence and fails closed on provider failures or non-approved results.",
+    "Group tags persist on the entity and are returned from Explore mapping.",
+    "Privacy changes collect and validate the current password and include confirmationPassword in the request.",
+    "Group modal dropdown menus render above their dialog overlays."
+  ],
+  "frontend": {
+    "browser_test": "chefkix-fe/tests/e2e/group-metadata-moderation.spec.ts",
+    "browser": "Installed system Chrome, headed",
+    "focused_viewports": {
+      "desktop_chromium": "PASS",
+      "iphone_sized_chromium": "PASS"
+    },
+    "focused_result": {
+      "passed": 6,
+      "failed": 0,
+      "cases": "Create moderation refusal/retry, tag and privacy payload, metadata update refusal, and privacy password validation/submission."
+    },
+    "full_e2e": {
+      "command": "npx playwright test --config=playwright.e2e.config.ts --headed --timeout=120000",
+      "feature_flags": [
+        "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true",
+        "NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED=true"
+      ],
+      "total": 42,
+      "passed": 36,
+      "skipped": 6,
+      "failed": 0,
+      "expected_skips": "Two live graph cases because localhost:8080 was unavailable; four mutually exclusive flag-off cases."
+    },
+    "jest": {
+      "suites": 214,
+      "tests": 864,
+      "passed": 864,
+      "failed": 0
+    },
+    "production_build": "PASS with Graph Explorer, Graph Evidence, and research flags enabled",
+    "typecheck": "PASS",
+    "eslint_changed_files": "PASS",
+    "prettier_changed_files": "PASS"
+  },
+  "backend": {
+    "focused_test": "GroupServiceTest",
+    "focused_result": {
+      "passed": 10,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "full_reactor": {
+      "reports": 84,
+      "tests": 370,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "post_sync_validation": {
+    "synced_branch_heads": {
+      "monolith_default": "origin/master b98f293",
+      "frontend_default": "origin/main 8b59764",
+      "ai_service_default": "origin/main afce901",
+      "infrastructure_default": "origin/master f41d0c3"
+    },
+    "frontend": {
+      "jest": {
+        "passed_suites": 214,
+        "passed_tests": 867,
+        "skipped_suites": 1,
+        "skipped_tests": 1,
+        "failed": 0
+      },
+      "production_build": "PASS with Graph Explorer, Graph Evidence, and research flags enabled",
+      "typecheck": "PASS",
+      "headed_system_chrome_e2e": {
+        "total": 42,
+        "passed": 36,
+        "skipped": 6,
+        "failed": 0
+      }
+    },
+    "backend": {
+      "reports": 86,
+      "tests": 375,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "ai_service": {
+      "tests": 557,
+      "passed": 546,
+      "skipped": 11,
+      "warnings": 28,
+      "coverage_percent": 77
+    },
+    "integration_note": "The merged default-branch updates introduced a GraphCanvas Jest import of next-intl. Added the same isolated next-intl mock used by GraphDetailPanel tests; the focused GraphCanvas suite then passed 3/3."
+  },
+  "limitations": [
+    "Browser API calls use local fixtures; no live FE-to-Monolith group transaction was exercised.",
+    "Backend tests use Mockito; Mongo persistence and the production moderation provider were not exercised.",
+    "The full E2E suite skips the live graph cases while the Monolith is unavailable and skips mutually exclusive flag-off cases."
+  ]
+}
