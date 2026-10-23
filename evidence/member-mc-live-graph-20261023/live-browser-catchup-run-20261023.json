@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-23",
+  "executedAtUtc": "2026-10-23T00:52:42Z",
+  "status": "PASS for the scoped local live FE-to-Monolith Graph Explorer browser smoke; not production acceptance",
+  "frontend": {
+    "repository": "chefkix-fe",
+    "branch": "codex/member-backlog-catchup-20261023",
+    "baseCommit": "afa6f785ede9f931c4d5c7788c5368abd05b53db",
+    "worktree": "dirty; current source file SHA-256 values follow",
+    "browser": "Installed Google Chrome 155.0.8059.85 via headed Playwright",
+    "webOrigin": "http://localhost:3200",
+    "apiBaseUrl": "http://localhost:8080",
+    "flags": {
+      "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+      "CHEFKIX_LIVE_MONOLITH": true,
+      "NEXT_PUBLIC_GRAPH_EXPLORER_MOCK": false
+    },
+    "sourceSha256": {
+      "src/features/graph-explorer/components/GraphExplorer.tsx": "05D13BF0578D121D2A17DE4E9871069C0313490B860EA57384578A55BA05191F",
+      "src/features/graph-explorer/__tests__/GraphExplorer.test.tsx": "1BA94FE7043EB8DA738779FB40514A2A39FBBFF16E5FAAAAB510A4C0F290F46D",
+      "tests/e2e/graph-explorer.spec.ts": "1B16905E4D851ABBB28E966C8E6470787FFB37483BD6C7FAF2F1FDF889BEFCDA"
+    }
+  },
+  "backend": {
+    "repository": "chefkix-monolith",
+    "branch": "codex/member-backlog-catchup-20261023",
+    "commit": "180fedc661300d737efacabc6ff0173c753877e1",
+    "origin": "http://127.0.0.1:8080/api/v1",
+    "database": "fresh isolated local MongoDB on 127.0.0.1:27018",
+    "graphRequest": "GET /api/v1/knowledge/graph?depth=1&limit=100",
+    "graphResponse": {
+      "httpStatus": 200,
+      "nodes": 25,
+      "edges": 5,
+      "edge": {
+        "source": "salt",
+        "target": "lemon"
+      }
+    },
+    "cors": {
+      "preflightStatus": 200,
+      "origin": "http://localhost:3200",
+      "allowOrigin": "http://localhost:3200"
+    }
+  },
+  "browserRun": {
+    "test": "live Graph Explorer reads the Monolith and keeps unknown identities absent",
+    "command": "CHEFKIX_LIVE_MONOLITH=true NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true PLAYWRIGHT_EXECUTABLE_PATH=<installed Chrome> npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer-live.spec.ts",
+    "apiRouteInterception": false,
+    "projects": [
+      "desktop-chromium",
+      "mobile-iphone"
+    ],
+    "result": "2 passed",
+    "checks": [
+      "Initial graph response contained 25 nodes and 5 edges, including salt -> lemon.",
+      "Selecting Salt loaded its live root neighborhood with salt -> lemon.",
+      "Unknown ingredient search returned zero nodes and zero edges and showed the explicit not-in-current-graph state.",
+      "The UI showed the bounded-preview boundary and Knowledge API source."
+    ]
+  },
+  "limits": [
+    "Uses isolated legacy seed data, not the hash-pinned Leader artifact.",
+    "Does not establish rights clearance, accepted canonical graph provenance, calibration, allergy safety, shadow evidence behavior, or deployed behavior.",
+    "The separate empty compound-overlap retry case is fixture-backed and is covered by the full headed E2E suite; this live spec covers graph requests against Monolith."
+  ]
+}
