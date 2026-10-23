@@ -1,6 +1,14 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
-## Member integration checkpoint — 2026-10-23
+## Member integration checkpoint — 2026-10-24
+
+### Social moderation error-log privacy (2026-10-24)
+
+The Monolith AI client logged the complete moderation-service HTTP error body, and its fallback provider logged exception messages and stack traces. If an upstream error echoes a submitted story or post caption, that user-authored text could be written to application logs even though moderation correctly fails closed. The moderation HTTP path now records only the status; unexpected failures record only the exception class. The content-moderation adapter also records only the exception class and still returns a `flag` result when the provider is unavailable.
+
+Failure-first regressions used a local HTTP server that returned a 503 body containing a synthetic caption and a provider exception containing another synthetic caption. Before the fix, the first test captured the echoed caption in the Monolith log. Both tests now pass and assert the caption is absent while the HTTP status or exception class remains diagnosable. Focused tests pass **2/2**. The full offline Maven reactor passes **377 tests across 88 reports**, with 0 failures/errors and 2 expected skips. The headed Story moderation suite passes **6/6** on desktop and iPhone-sized system Chrome; its `/api/v1/**` requests are fixture-backed.
+
+An unmocked local FE probe was also attempted in system Chrome. The local Monolith rejected the intentionally synthetic unsigned test token and the protected Story route redirected to sign-in before the composer loaded; no story-create request was made. A valid local test identity and reachable moderation service are not configured, so no live authenticated FE-to-Monolith story publish is claimed. Receipt: `evidence/member-social-moderation-log-redaction-20261024.json`. T-11 remains partial.
 
 ### Social group metadata moderation, tag persistence, and privacy confirmation (2026-10-23)
 

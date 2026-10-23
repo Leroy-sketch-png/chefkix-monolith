@@ -157,12 +157,12 @@ throw e;
 
             return wrapper.getData();
         } catch (WebClientResponseException e) {
-            log.error("AI moderate HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI moderate HTTP error: {}", e.getStatusCode());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("AI moderate failed", e);
+            log.error("AI moderate failed ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }

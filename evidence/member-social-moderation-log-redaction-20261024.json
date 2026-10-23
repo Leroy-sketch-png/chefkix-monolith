@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-24",
+  "leader_checkpoint": "LEAD v525",
+  "feature": "Social moderation error-log privacy",
+  "root_causes": [
+    "AIRestClient logged the complete upstream moderation HTTP error body, which could echo submitted story or post text.",
+    "AIRestClient logged unexpected moderation failures with their exception stack trace, and ContentModerationProviderImpl logged exception text."
+  ],
+  "failure_first": [
+    {
+      "surface": "Monolith moderation HTTP client",
+      "fixture": "A local HTTP server returned 503 with a synthetic user-caption sentinel in the response body.",
+      "observed_before_fix": "The captured Monolith log contained the echoed caption."
+    },
+    {
+      "surface": "Content moderation provider",
+      "fixture": "The client raised an exception whose message contained a synthetic caption sentinel.",
+      "observed_after_fix": "The provider returns a fail-closed flag and logs only the exception class."
+    }
+  ],
+  "implementation": [
+    "Moderation HTTP failures log the status code without logging the response body.",
+    "Unexpected moderation HTTP-client failures log the exception class without the exception object or message.",
+    "The content-moderation adapter logs only the exception class and retains its fail-closed flag behavior."
+  ],
+  "verification": {
+    "source_sha256": {
+      "culinary/src/main/java/com/chefkix/culinary/common/client/AIRestClient.java": "FBE0EB3B9B63C2FACE2536E6CDB00BE0289898A5D805474FE14B6016934B5633",
+      "culinary/src/main/java/com/chefkix/culinary/features/ai/service/ContentModerationProviderImpl.java": "CE1D6A0FD77AAE06021E043E0BD4642D7DC9F3F65BFCD64E3BC4326B133D5F23",
+      "culinary/src/test/java/com/chefkix/culinary/common/client/AIRestClientModerationLoggingTest.java": "BDF1D4A618FF0B39179E0D8FE1D28DDD75F7E40D2895DEA4D18A737803CBFFC2",
+      "culinary/src/test/java/com/chefkix/culinary/features/ai/service/ContentModerationProviderLoggingTest.java": "2D1D82FFEA3EDC521AF94661D7ACC96778A581E8E4B673459B947248B335FBBB"
+    },
+    "backend_focused": {
+      "command": "cmd /c \"mvnw.cmd -o -pl culinary -am -Dtest=AIRestClientModerationLoggingTest,ContentModerationProviderLoggingTest -Dsurefire.failIfNoSpecifiedTests=false test\"",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "backend_full_reactor": {
+      "command": "cmd /c \"mvnw.cmd -o test\"",
+      "reports": 88,
+      "tests": 377,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "frontend_headed_browser": {
+      "test": "chefkix-fe/tests/e2e/story-moderation.spec.ts",
+      "browser": "Installed system Chrome, headed",
+      "viewports": ["desktop Chromium", "iPhone-sized Chromium"],
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "api_mode": "All /api/v1/** calls were intercepted by local fixtures."
+    },
+    "frontend_unmocked_local_probe": {
+      "browser": "Installed system Chrome, headed",
+      "result": "BLOCKED_BEFORE_STORY_COMPOSER",
+      "reason": "The local Monolith rejected the intentionally synthetic unsigned access token, so the protected route redirected to sign-in before the composer loaded.",
+      "story_create_requests": 0,
+      "publish_claimed": false
+    },
+    "diff_check": "PASS"
+  },
+  "limitations": [
+    "No valid local test identity or reachable moderation service was available for an authenticated live FE-to-Monolith publish.",
+    "No production moderation service, Mongo persistence, storage upload, or deployed log sink was exercised.",
+    "T-11 remains partial; this change narrows one identified moderation log path and does not establish a complete log/response/artifact inventory scan."
+  ]
+}

@@ -47,7 +47,7 @@ public class ContentModerationProviderImpl implements ContentModerationProvider 
             );
         } catch (Exception e) {
             log.warn("AI moderation unavailable for {} content: {}",
-                    contentType, e.getMessage());
+                    contentType, e.getClass().getSimpleName());
 
             log.error("Rejecting {} content because the AI moderation service is unavailable", contentType);
             return new ModerationResult("flag", "unknown", "medium", 0.0,
