@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.chefkix.culinary.features.knowledge.evidence.GraphEvidenceConfiguration;
 import com.chefkix.culinary.features.knowledge.evidence.GraphEvidenceController;
+import com.chefkix.culinary.features.knowledge.evidence.VerifiedGraphArtifactLoader;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -22,10 +24,12 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,6 +72,58 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
                     .andExpect(jsonPath("$.artifactIntegrity.status").value("INVALID"))
                     .andExpect(jsonPath("$.artifactIntegrity.expectedSha256").value(actualManifestDigest))
                     .andExpect(jsonPath("$.artifactIntegrity.observedSha256").value(actualManifestDigest))
+                    .andExpect(jsonPath("$.evidence").doesNotExist())
+                    .andExpect(jsonPath("$.identityResolution").doesNotExist());
+        }
+    }
+
+    @Test
+    void refusesTamperedCopyOfRealProvisionalBundleWithoutReturningEvidence(@TempDir Path tempDir)
+            throws Exception {
+        String configuredBundle = System.getProperty(BUNDLE_PROPERTY);
+        Assumptions.assumeTrue(configuredBundle != null && !configuredBundle.isBlank(),
+                "Set the explicit local bundle property to run this data-boundary test");
+
+        Path bundle = Path.of(configuredBundle).toAbsolutePath().normalize();
+        assertFalse(Files.isSymbolicLink(bundle), "the source bundle must not be a symlink");
+        VerifiedGraphArtifactLoader loader = new VerifiedGraphArtifactLoader();
+        VerifiedGraphArtifactLoader.Result sourceResult = loader.load(bundle, T154_MANIFEST_SHA256);
+        assertInstanceOf(VerifiedGraphArtifactLoader.Loaded.class, sourceResult);
+
+        Path copy = Files.createDirectory(tempDir.resolve("tampered-bundle"));
+        List<String> allowlistedFiles = List.of(
+                "manifest.json", "nodes.jsonl", "edges.jsonl", "edge_evidence.jsonl", "row_errors.jsonl");
+        for (String name : allowlistedFiles) {
+            Path source = bundle.resolve(name);
+            assertFalse(Files.isSymbolicLink(source), "source bundle entries must not be symlinks");
+            Files.copy(source, copy.resolve(name));
+        }
+
+        Path sourceEdges = bundle.resolve("edges.jsonl");
+        byte[] sourceBytes = Files.readAllBytes(sourceEdges);
+        assertFalse(sourceBytes.length == 0, "the pinned edge artifact must be nonempty");
+        byte[] tamperedBytes = sourceBytes.clone();
+        tamperedBytes[0] ^= 1;
+        Files.write(copy.resolve("edges.jsonl"), tamperedBytes);
+
+        VerifiedGraphArtifactLoader.Result tamperedResult = loader.load(copy, T154_MANIFEST_SHA256);
+        VerifiedGraphArtifactLoader.Refused refusal = assertInstanceOf(
+                VerifiedGraphArtifactLoader.Refused.class, tamperedResult);
+        assertEquals(VerifiedGraphArtifactLoader.Refusal.OUTPUT_HASH_MISMATCH, refusal.reason());
+        assertEquals(sha256(sourceBytes), sha256(Files.readAllBytes(sourceEdges)),
+                "the source artifact digest must remain unchanged");
+
+        try (AnnotationConfigWebApplicationContext context = context(copy, T154_MANIFEST_SHA256)) {
+            MockMvc mvc = mvc(context);
+            mvc.perform(get("/api/v1/graph/evidence")
+                            .contextPath("/api/v1")
+                            .param("sourceIngredientId", "synthetic-source")
+                            .param("candidateIngredientId", "synthetic-candidate")
+                            .header("Authorization", "Bearer synthetic-token"))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.status").value("REFUSED"))
+                    .andExpect(jsonPath("$.artifactIntegrity.status").value("INVALID"))
+                    .andExpect(jsonPath("$.artifactIntegrity.expectedSha256").value(T154_MANIFEST_SHA256))
                     .andExpect(jsonPath("$.evidence").doesNotExist())
                     .andExpect(jsonPath("$.identityResolution").doesNotExist());
         }
