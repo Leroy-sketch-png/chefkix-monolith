@@ -10,6 +10,20 @@ The cited corrected saved-output exhibit is not present in the synced FE, Monoli
 
 The new manifest regressions failed before the changes and pass **4/4**. Full FE validation passes **213 Jest suites / 861 tests**, typecheck, lint, and Prettier. The full headed Playwright run passes **20 tests with 6 expected skips** across desktop Chrome and iPhone-sized Chromium; the T56 card/diagnostic-boundary case passes on both viewports and confirms no horizontal overflow. Receipt: `evidence/member-t56-thesis-workspace-20261023.json`. This is a pending-workspace handoff, not an integrated saved-output exhibit or human acceptance.
 
+### M-D checklist reconciliation to LEAD v469 (2026-10-23)
+
+The M-D checklist below still showed lookup-arm generation and four-file packaging as incomplete, while LEAD v469 records the local written-artifact criterion as met: 10,729 validation and 10,747 test cases, 20 candidates per arm, all four arm outputs and manifest hash-pinned, and an independent byte-identical replay with 36 focused tests. The lookup-arm and package/replay checkboxes now reflect that local completion. The receipt state is `LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK`; it records no target-label reads, evaluation, or method selection.
+
+The package files live in the historical research checkout `ai/out/senath-m-d-arm-outputs-v1`, whose research branch had no remote. The files are absent from the currently synced AI-service checkout, so they were not reloaded or replayed here. Recipe1MSubs rights/release remain UNKNOWN, historical lookup tie equivalence is unestablished, and inference, evaluation, method comparison, and L44 remain open. Receipts: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
+
+### Recipe publish moderation boundary and headed browser follow-through (2026-10-23)
+
+Added a DraftService boundary regression proving that a moderation rejection propagates `RECIPE_MODERATION_FAILED` before quality scoring, repository save, or recipe-index event publication. The focused Maven test passes **2/2**; the full Monolith reactor passes **361 tests across 84 reports**, with 0 failures, errors, or skips.
+
+Added `chefkix-fe/tests/e2e/recipe-publish-moderation.spec.ts` and ran the built FE in headed system Chrome on desktop and iPhone-sized Chromium. The browser verifies that a flagged precheck never calls publish, a backend moderation rejection leaves the recipe in DRAFT and keeps the editor open, and an explicit approval can be retried through to the published route. The new case passes **2/2 viewports**. FE validation passes production build, typecheck, ESLint, and **213 Jest suites / 861 tests**; the full headed E2E suite passes **22 tests with 6 expected skips**. Receipt: `evidence/member-recipe-publish-browser-20261023.json`.
+
+The browser uses local route fixtures for every API call, and the backend boundary test uses Mockito. These results do not establish a live browser-to-Monolith transaction, Mongo persistence, Kafka/index delivery, a production moderation provider, or deployed behavior. The recipe live-persistence path remains open.
+
 ### Recipe publishing moderation fail-closed regression (2026-10-23)
 
 The broader moderation audit found a backend bypass in recipe publishing: `DraftService.publishRecipe` calls `AiIntegrationService.moderateRecipeContent` before scoring and saving, but that method previously rejected only `block`. A `flag` or unknown action returned normally, and a missing response raised a `NullPointerException`. A failure-first regression failed on all three cases before the fix. The backend now requires explicit `approve`; flag, block, unknown, and missing outcomes raise `RECIPE_MODERATION_FAILED`. The focused suite passes 4/4, and the full Monolith reactor passes 360 tests with 0 failures/errors/skips in 84 reports. Receipt: `evidence/member-recipe-moderation-fail-closed-20261023.json`. The test mocks the AI client; a headed recipe-publish browser spec and live persistence path remain unverified.
@@ -646,10 +660,10 @@ L39 (allergen) → L45
 > SSoT §5.7, §13.3
 
 - [x] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases — local-only outputs in `ai/out/senath-m-d-gismo-top20-v1`; provenance in LEAD v465
-- [ ] Generate lookup-frequency baseline ranked lists on same cases
-- [ ] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl`
-- [x] Verify determinism: two runs produce identical outputs — fresh replay and hashes in LEAD v465
-- [ ] **Acceptance:** Every case present; deterministic across runs
+- [x] Generate lookup-frequency baseline ranked lists on the same cases — local-only source-only arm, deterministic count-descending / graph-ID-ascending tie rule; historical `torch.topk` tie equivalence remains unknown (LEAD v466)
+- [x] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl` — local package path and four SHA-256 values in `evidence/lead-md-arm-output-package-20261021.json` (LEAD v467/v469); files are not in the current synced repositories
+- [x] Verify determinism: package outputs and manifest replay byte-identically — all four payload hashes unchanged after validator hardening (LEAD v468/v469)
+- [x] **Local written-artifact acceptance:** every validation/test case is present and the package is deterministic (LEAD v469). This does not resolve rights/release, historical lookup tie equivalence, inference/evaluation, method comparison, or L44.
 
 ### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
 > SSoT §12.2–12.7, §25.7 (P6)
@@ -740,7 +754,7 @@ L39 (allergen) → L45
 | T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty | **PASS** — FastAPI route comparison returned identical product response data with the request-scoped graph-preflight flag off/on and no research marker; only the mocked Gemini path was invoked. This proves this route invariant, not live deployment behavior. |
 | T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified | **PARTIAL** — headed system Chrome on desktop and iPhone-sized Chromium passed the fixture-backed network gate; a separate live local FE-to-Monolith run also passed against isolated legacy seed data. The recorded Act 3 and deployed/accepted-artifact run remain unavailable. Screenshots and receipts: `evidence/member-t10-network-isolated-graph-demo-20261023/` and `evidence/member-mc-live-graph-20261023/`. |
 | T-11 | No secret in any log/response/artifact | Scan clean | **PARTIAL** — provider exception response and FE error presentation pass sentinel regressions; captured build/test outputs contain no sentinel. A local graph response was rendered from isolated legacy seed data, but no full Act 3/demo output inventory scan or live error-path scan was performed; see `evidence/member-t11-error-output-20261023.json` and `evidence/member-mc-live-graph-20261023/`. |
-| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — latest verified runs: AI service 531 passed/11 skipped/28 warnings; FE 213 suites/861 tests; Monolith 360 tests in 84 reports. The full headed Chrome E2E suite passed 20 tests with 6 expected skips across desktop and iPhone-sized Chromium; the opt-in live FE-to-Monolith graph spec passed 2/2 viewports with mocks off. The research-enabled product route passed 2/2 viewports with fixture responses; the T56 handoff case passed on both viewports. No live research credential or accepted artifact was configured. This does not close M-C artifact acceptance, T-10 Act 3, T56/L44, or the full T-11 inventory scan. |
+| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS** — latest verified runs: AI service 531 passed/11 skipped/28 warnings; FE 213 suites/861 tests; Monolith 361 tests in 84 reports. The full headed Chrome E2E suite passed 22 tests with 6 expected skips across desktop and iPhone-sized Chromium; the opt-in live FE-to-Monolith graph spec previously passed 2/2 viewports with mocks off. Recipe publish moderation, research default-off, and T56 handoff browser cases passed on both viewports with fixtures. No live research credential or accepted artifact was configured. This does not close M-C artifact acceptance, T-10 Act 3, T56/L44, or the full T-11 inventory scan. |
 
 - [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
 - [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.
