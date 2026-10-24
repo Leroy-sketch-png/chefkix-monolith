@@ -17,6 +17,12 @@ Historical 327 LEAD / 91 MEMBER hours are full-source estimates, not remaining e
 - The current graph candidate remains provisional with ten preserved identity errors. Keep the feature off and fail closed; the next evidence path is source-backed resolution or continued explicit abstention, followed by real artifact/runtime review. Do not remap identities or rebuild from the interrupted T220 trace.
 - **Next:** advance a distinct source-backed artifact/runtime dependency; do not repeat FE cutoff fixtures or characterize this candidate as an accepted product result.
 
+## LEAD v527 — Close FoodNexus v4 as a C3 source lead only (2026-10-24)
+
+- Lead reconciled the existing T409 report against the official [Zenodo FoodNexus v4 record](https://zenodo.org/records/15710771), [project README](https://github.com/tail-unica/food-nexus), software license and release page. The DOI provides a versioned recipe/product ontology with HUMMUS/OFF components; the reviewed documentation does not establish C3 case/candidate joins, hard-allergen profiles with unknown semantics, or recorded-gold A/C/N/U judgments. Zenodo showed no dataset-license value; the repository MIT license is not evidence of embedded-data rights.
+- Disposition: `SOURCE_LEAD_ONLY` / `NOT_A_C3_INPUT`. No download, row/label access, transfer, rights inference or C3/operating-milestone credit. Do not repeat this broad FoodNexus documentation scan. Local evidence is in research worktree `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014`, T409 report SHA-256 `c62a85182583fe65e146d8f9c33893576e3986d2061c9ce6ddd1a8fbf13ab9de`; that checkout has no remote, so the detailed report is not published by this entry.
+- **Next:** use the already-prepared source-owner/counsel referral only to resolve exact C3 schema and dataset/component rights; continue independent work without treating this source as usable input.
+
 ## LEAD v525 — Reconcile focused T52 integration-suite evidence (2026-10-23)
 
 - On clean monolith commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82`, the offline Maven reactor selected the graph loader, manifest-backed provider, controller and three endpoint test classes. Build succeeded; 37 tests were reported, with 0 failures/errors and 3 expected skips for default-off opt-in real-bundle cases. Surefire XML hashes and the exact command are recorded in the research T52 map.
