@@ -1,867 +1,112 @@
-﻿# IRON CHEF v4: MEMBER BACKLOG
+﻿# IRON CHEF: MEMBER BACKLOG
 
-## Current LEAD/MEMBER Ownership - HUMAN Direction, 2026-10-24
+## Current Contract
 
-MEMBER owns the implementation and operational workload under LEAD-approved scientific contracts, including remaining execution portions of L-items below. This expands ownership beyond the historical 91-hour plan; it adds no scientific requirement and marks nothing complete. LEAD retains research design, estimands/protocol decisions, interpretation, thesis argument and final acceptance. This HUMAN direction supersedes older personal-execution assumptions while preserving actual scientific/access/resource gates.
+MEMBER owns complete implementation, experiment operations, integration, QA/demo and reproducibility packages in the work table. LEAD owns scientific/protocol decisions, major research questions, interpretation, thesis argument and final acceptance. An L-parent link does not return its engineering work to LEAD.
 
-| Existing MEMBER owner | Complete execution package | LEAD responsibility retained |
+Choose routine reversible implementation details inside the approved contract. Deliver code/artifacts, required checks and a usable evidence-linked result. Required independent review, real raters, source/access rules, resource assignment and human-only institutional/account actions retain their actual owners. Reconcile existing WIP before starting a duplicate package.
+
+## Shared Delivery
+
+1. Fetch the verified default branch at task start; inspect incoming changes and both current backlogs. Record the remote/default commit used in your checkpoint.
+2. Incorporate collaborator changes after checking local/index state; fast-forward/pull when safe, preserve unrelated work and reconcile overlaps. Never force-push shared history.
+3. Fetch again before integration/push. Publish coherent accepted commits promptly to the intended default branch, then fetch/verify publication and divergence. Respect actual branch protection; do not add mandatory feature branches/PR ceremony.
+4. The execution handoff names its owner, source repository/default commit, permitted inputs, paths/resources, finish condition and acceptance. A local-only path is not a remotely available artifact.
+5. Update the owning work row/checkpoint and link the evidence. Do not grow this backlog with another per-turn status section.
+
+These backlogs are shared through monolith origin/master. Research tools/receipts in a workspace without a remote remain unavailable by Git fetch until LEAD provides the permitted source/evidence handoff on an approved remote. Do not copy protected datasets or publish the workspace's unrelated history.
+
+## Member Work Packages
+
+| Owner | Remaining execution and LEAD parent | Existing evidence / remaining acceptance |
 | --- | --- | --- |
-| M-A | Graph construction/validation, provenance/coverage diagnostics and serving-input preparation under frozen identity/split rules | Scientific graph/identity interpretation and artifact acceptance; no guessed identity repair |
-| M-B | Source/schema/identity engineering, frames/pools, blinded packs and authorized reference/filter/crosswalk validation | L36/L37/L38/L40 sample/reference semantics and scientific interpretation; real raters remain independent |
-| M-C | FE/BE/API integration, contract corrections, auth/config boundaries, Explorer/evidence UI and runtime/regression proof | C5 interface/scientific evidence requirements and final acceptance |
-| M-D + M-I | Arm/API/benchmark orchestration, cost/accounting/recovery, frozen calibration/analysis implementation and reproducible result tables | L38/L39/L43/L44 estimands, method choice, resource authority and interpretation |
-| M-E | Dev-ops, authorized demo/test data, authenticated browser evidence, cross-stack QA, failure/recovery and demo/backup packaging | C5/L46 acceptance; actual human walkthrough/rehearsal cannot be simulated |
-| M-F + M-B | Source inventory, public access/terms investigation, acquisition/schema packaging and prepared source/institutional requests | L40/L41 source/method choices; human-only applications, consent and institutional/legal decisions remain with their owners |
-| M-G | Claims-register reconstruction, source/hash links, mechanical reconciliation and candidate evidence dispositions | L48 final claim adjudication and evidence ceiling |
-| M-H | Reproducible figures/tables, clean-checkout kit, methods/evidence appendix drafts, citations/formatting, document build and release preparation | L45/L47 scientific narrative, conclusions, authorship/publication choices and final review |
-
-Finish each execution package through implementation, required checks, coherent default-branch integration and evidence-linked handoff. Choose routine engineering details without repeated LEAD permission. Keep one execution owner/write scope, baseline and finish condition. Escalate changed scientific semantics or actual authority/resource boundaries; an L-parent ID does not return its engineering chores to LEAD. Preserve required independent review and data/exposure/attempt limits.
-
-Fetch the verified default branch at task start and before integration/push. Incorporate collaborator changes after checking local/index state; preserve unrelated edits, fast-forward when safe and reconcile overlap. Push coherent accepted commits promptly to that default, then fetch/verify publication and divergence. Do not accumulate completed work on private branches or require PR ceremony contrary to the direct-default policy. Respect actual branch protection; never force-push shared history; serialize conflicting writers/checkouts. Workspace Git and product Git are separate scopes.
-
-First reconcile current WIP and receipts. Prioritize available source-input/identity work and missing real artifact-to-browser/runtime evidence over another completed mock/refusal audit. Do not restart existing API runners, inventories or completed safety tests. If the real artifact is unavailable, identify which runtime subcriterion can advance and which remains blocked; keep unsupported features off.
-
-Re-estimate unfinished packages only, separating MEMBER execution, LEAD decisions/review, real external-human labor and waiting. Existing M-D/M-B/M-G/M-H/M-I receipts reduce remaining work; do not charge them again through a transferred L-item. Publish the revised remaining estimate with assumptions/dependencies before quoting a new total. The historical 327/91 split is not remaining capacity; no fabricated replacement total is adopted here.
-
-## Member integration checkpoint — 2026-10-24
-
-### Social moderation error-log privacy (2026-10-24)
-
-The Monolith AI client logged the complete moderation-service HTTP error body, and its fallback provider logged exception messages and stack traces. If an upstream error echoes a submitted story or post caption, that user-authored text could be written to application logs even though moderation correctly fails closed. The moderation HTTP path now records only the status; unexpected failures record only the exception class. The content-moderation adapter also records only the exception class and still returns a `flag` result when the provider is unavailable.
-
-Failure-first regressions used a local HTTP server that returned a 503 body containing a synthetic caption and a provider exception containing another synthetic caption. Before the fix, the first test captured the echoed caption in the Monolith log. Both tests now pass and assert the caption is absent while the HTTP status or exception class remains diagnosable. Focused tests pass **2/2**. The full offline Maven reactor passes **377 tests across 88 reports**, with 0 failures/errors and 2 expected skips. The headed Story moderation suite passes **6/6** on desktop and iPhone-sized system Chrome; its `/api/v1/**` requests are fixture-backed.
-
-An unmocked local FE probe was also attempted in system Chrome. The local Monolith rejected the intentionally synthetic unsigned test token and the protected Story route redirected to sign-in before the composer loaded; no story-create request was made. A valid local test identity and reachable moderation service are not configured, so no live authenticated FE-to-Monolith story publish is claimed. Receipt: `evidence/member-social-moderation-log-redaction-20261024.json`. T-11 remains partial.
-
-### Social group metadata moderation, tag persistence, and privacy confirmation (2026-10-23)
-
-The group create form collected names, descriptions, and tags without moderating them, while the Monolith discarded tags on create and omitted them from Explore responses. Group metadata updates also had no moderation boundary. Separately, the FE privacy action sent only `privacyType` even though the backend requires a nonblank confirmation password. In headed Chrome, the group create/settings dropdown options were also covered by the dialog overlay and could not be selected.
-
-The FE now requires an explicit moderation `approve` for group creation and for changed metadata on settings updates; privacy-only updates skip moderation. Group tags are saved and included in Explore responses. The backend independently moderates group create and changed metadata updates before persistence and fails closed on provider errors or non-approved results. Privacy changes now collect, validate, and send the confirmation password. The dropdown menus render above their dialogs.
-
-Failure-first regressions reproduced the absent create moderation request, unmoderated backend create/update, and the overlay-intercepted dropdown click. The privacy request test confirmed the password was missing from the old FE payload. Verification: the full flag-enabled headed system Chrome suite passes **36 tests with 6 expected skips** (42 total) across desktop and iPhone-sized Chromium; the focused group metadata/privacy cases pass **6/6**. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `GroupServiceTest` passes **10/10**; the full Maven reactor passes **370 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-group-metadata-20261023.json`.
-
-Browser API calls use local fixtures, and backend service tests use Mockito. This run does not exercise a live FE-to-Monolith transaction, Mongo persistence, or the production moderation provider. The broader social and backlog acceptance gates remain open.
-
-### Social group-post moderation boundary and failed-publish handling (2026-10-23)
-
-Code inspection found that the FE `GroupCreatePostBox` called the group-post endpoint without moderation and treated a returned `success: false` response as success, clearing the draft and closing the composer. The failure-first headed browser test reproduced the missing moderation request. The backend shared post pipeline started image uploads and profile/session reads before applying moderation; its failure-first service regression confirmed that a flagged caption still invoked the upload service.
-
-The group composer now requires a successful moderation response with the explicit `approve` action, fails closed on block/flag/missing/unknown/error results, checks the group-post API response before reporting success, and preserves the draft after refusal. The Monolith now moderates before starting image uploads or profile/session reads. The FE headed regression failed before the guard because the moderation call count was 0; the backend regression failed before the ordering fix because the upload service was called for rejected content.
-
-Verification: the group-post browser case passes in **2/2** headed system Chrome viewports. The full flag-enabled headed E2E suite passes **24 tests with 6 expected skips** across desktop and iPhone-sized Chromium; the skips are the live graph case (Monolith not listening on port 8080) and mutually exclusive flag-off cases. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `PostServiceTest` passes **10/10**; the full Maven reactor passes **362 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-group-post-moderation-20261023.json`.
-
-The browser test intercepts API calls with fixtures, and the backend regression uses Mockito. No live group-post-to-Monolith transaction, Mongo persistence, media-storage cleanup, Kafka/index delivery, or production moderation provider was exercised. The broader social and backlog acceptance gates remain open.
-
-### Social Story overlay moderation and upload ordering (2026-10-23)
-
-Code inspection found that Story overlays could contain user-authored text, but `StoryCreator` sent the story without moderation and uploaded image stickers before submitting it. The Monolith `StoryController` uploaded the background image before `StoryServiceImpl` checked the linked recipe, and the service had no moderation boundary. Failure-first headed-browser tests observed zero moderation calls for both blocked and approved stories; the backend service regression showed flagged overlay text did not throw or stop persistence.
-
-The FE now requires a successful moderation response with explicit `approve` for combined nonblank `TEXT` overlays before uploading stickers or sending the story. The backend independently checks all text overlays, rejects null or non-approved results with `CONTENT_MODERATION_FAILED`, validates a linked public recipe, and uploads the background only after those checks. The controller passes the multipart file through to the service so API callers cannot bypass the ordering.
-
-Verification: the full flag-enabled headed system Chrome suite passes **30 tests with 6 expected skips** across desktop and iPhone-sized Chromium; the story cases cover flag, block, unknown action, missing action, moderation-service failure, approval, and no-text publishing on both viewports. FE production build, typecheck, changed-file ESLint/Prettier, and **214 Jest suites / 864 tests** pass. Focused `StoryServiceImplTest` passes **7/7**, including moderation-before-upload ordering; the full Maven reactor passes **364 tests across 84 reports**, with 0 failures, errors, or skips. Receipt: `evidence/member-social-story-moderation-20261023.json`.
-
-The browser uses local API fixtures, and the service tests use Mockito. The run does not exercise the production moderation provider, Mongo persistence, real background/sticker storage, or a live FE-to-Monolith story transaction. Broader social and backlog acceptance gates remain open.
-
-### Epic 11 / LEAD v522 — T56 thesis exhibit handoff (2026-10-23)
-
-The FE thesis workspace manifest was still labeled `lead-v101-member-v2` from October 4, and the Chapter 8 capture brief asked for unsupported confidence and safety claims. Failure-first assertions reproduced both stale states. The manifest now identifies the v522 baseline and adds a Chapter 13 T56 saved-output exhibit card that stays `pending-data`; compound capture guidance now limits claims to documented overlap and keeps nutrition, functional suitability, and allergy safety unavailable without source evidence. The photo workflow and stack descriptions were also updated to reflect current model-readiness limits and IRON CHEF v4.
-
-The cited corrected saved-output exhibit is not present in the synced FE, Monolith, AI-service, or infrastructure repositories, and the historical `D:\code\chefkix` research-worktree path is unavailable here. The card therefore surfaces the dependency without importing or reconstructing results. It explicitly keeps the 200-case validation diagnostic separate from product quality, requests a measured browser workflow p95 once the exhibit path exists, and leaves presenter/listener rehearsal and backup video pending. T56/L44 remain open.
-
-The new manifest regressions failed before the changes and pass **4/4**. Full FE validation passes **213 Jest suites / 861 tests**, typecheck, lint, and Prettier. The full headed Playwright run passes **20 tests with 6 expected skips** across desktop Chrome and iPhone-sized Chromium; the T56 card/diagnostic-boundary case passes on both viewports and confirms no horizontal overflow. Receipt: `evidence/member-t56-thesis-workspace-20261023.json`. This is a pending-workspace handoff, not an integrated saved-output exhibit or human acceptance.
-
-### M-D checklist reconciliation to LEAD v469 (2026-10-23)
-
-The M-D checklist below still showed lookup-arm generation and four-file packaging as incomplete, while LEAD v469 records the local written-artifact criterion as met: 10,729 validation and 10,747 test cases, 20 candidates per arm, all four arm outputs and manifest hash-pinned, and an independent byte-identical replay with 36 focused tests. The lookup-arm and package/replay checkboxes now reflect that local completion. The receipt state is `LOCAL_M_D_ARM_OUTPUTS_PACKAGED_NOT_BENCHMARK`; it records no target-label reads, evaluation, or method selection.
-
-The package files live in the historical research checkout `ai/out/senath-m-d-arm-outputs-v1`, whose research branch had no remote. The files are absent from the currently synced AI-service checkout, so they were not reloaded or replayed here. Recipe1MSubs rights/release remain UNKNOWN, historical lookup tie equivalence is unestablished, and inference, evaluation, method comparison, and L44 remain open. Receipts: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
-
-### Recipe publish moderation boundary and headed browser follow-through (2026-10-23)
-
-Added a DraftService boundary regression proving that a moderation rejection propagates `RECIPE_MODERATION_FAILED` before quality scoring, repository save, or recipe-index event publication. The focused Maven test passes **2/2**; the full Monolith reactor passes **361 tests across 84 reports**, with 0 failures, errors, or skips.
-
-Added `chefkix-fe/tests/e2e/recipe-publish-moderation.spec.ts` and ran the built FE in headed system Chrome on desktop and iPhone-sized Chromium. The browser verifies that a flagged precheck never calls publish, a backend moderation rejection leaves the recipe in DRAFT and keeps the editor open, and an explicit approval can be retried through to the published route. The new case passes **2/2 viewports**. FE validation passes production build, typecheck, ESLint, and **213 Jest suites / 861 tests**; the full headed E2E suite passes **22 tests with 6 expected skips**. Receipt: `evidence/member-recipe-publish-browser-20261023.json`.
-
-The browser uses local route fixtures for every API call, and the backend boundary test uses Mockito. These results do not establish a live browser-to-Monolith transaction, Mongo persistence, Kafka/index delivery, a production moderation provider, or deployed behavior. The recipe live-persistence path remains open.
-
-### Recipe publishing moderation fail-closed regression (2026-10-23)
-
-The broader moderation audit found a backend bypass in recipe publishing: `DraftService.publishRecipe` calls `AiIntegrationService.moderateRecipeContent` before scoring and saving, but that method previously rejected only `block`. A `flag` or unknown action returned normally, and a missing response raised a `NullPointerException`. A failure-first regression failed on all three cases before the fix. The backend now requires explicit `approve`; flag, block, unknown, and missing outcomes raise `RECIPE_MODERATION_FAILED`. The focused suite passes 4/4, and the full Monolith reactor passes 360 tests with 0 failures/errors/skips in 84 reports. Receipt: `evidence/member-recipe-moderation-fail-closed-20261023.json`. The test mocks the AI client; a headed recipe-publish browser spec and live persistence path remain unverified.
-
-### M-F source and local database access probe (2026-10-23)
-
-Refreshed hidden/ignored-file scans covered 859 Monolith paths and 1,224 FE paths, excluding generated and dependency directories. The Monolith matches were graph/backlog evidence and IDE data-source descriptors; the FE matches were ingredient vocabulary and compound-index JSON. No recipe dataset or license inventory was located. The Monolith `Recipe` model records `userId`, visibility, cuisine, and status, but has no explicit first-party source or license fields. A read-only probe of the configured local MongoDB failed authentication before database access; zero documents were read and no writes were issued. Receipt: `evidence/member-mf-repository-and-schema-probe-20261023.json`. Recipe count and license status remain `UNKNOWN` / `NOT_ASSESSED`; all M-F checklist items remain open pending an authorized read-only data path and canonical first-party/private-Western criteria.
-
-### M-C / Exact alias resolution and live browser verification (2026-10-23)
-
-LEAD v525 is the latest checkpoint. It records 37 focused offline Monolith graph tests on commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82` (0 failures/errors; 3 expected skips for opt-in real-bundle cases) and 25/25 tests across three targeted FE suites on commit `eab2aaf69824213ee362e1f5a6951b6f24602343`. These are fixture/unit and mock-MVC checks; the AI-service T-09 receipt was reused rather than rerun. They do not establish deployment, accepted real-artifact behavior, graph validity, rights, or an end-to-end real-data demo. T52 T-12 is PASS only for those affected suites, with no T52/C5 acceptance or mission points.
-
-The synced FE, Monolith, AI-service, and infrastructure workspaces were searched, including hidden and ignored files outside version-control, dependency, and build-output directories, for `graph_product_v4`, `graph_eval_v4`, and `substitution_subgraph.pt`; no matching candidate was found. The historical `D:\code\chefkix` research worktree is unavailable. This is a bounded filename inventory, not a claim that no artifact exists elsewhere. No artifact was reconstructed or imported. Per LEAD v525, the next M-C step is to locate an eligible real artifact and establish its source/owner gates; do not repeat unchanged synthetic suites. Receipt: `evidence/member-mc-artifact-inventory-20261023.json`.
-
-T295 adds a narrow FE presentation result; it does not establish that returned provenance was recomputed. The research flow is wired as an opt-in product path through the recipe substitution panel and a same-origin, authenticated source-only proxy. LEAD v521's C2 boundary remains controlling: preserve all 200 cases and the 122/200 exact identity mismatches; spelling tiers recover 0/122; C3-G2 remains open. No cohort remapping, source-label change, or artifact, rights, calibration, or human-acceptance gate closure follows.
-
-The legacy Knowledge API had a product-path defect: graph edge construction looked up substitution targets by canonical name only. The isolated seed contains 25 ingredients and 59 substitution statements: 4 targets match canonical names, 1 matches the explicit `lemon juice` alias for canonical `lemon`, and 54 remain unresolved (0 ambiguous). The old live response exposed 4 edges and silently dropped the alias-backed relationship. The service now resolves exact canonical names and declared aliases, gives canonical identities precedence over aliases, rejects ambiguous aliases, and uses the same exact identity rule for root-neighborhood expansion. Unresolved statements remain omitted; no fuzzy mapping or invented node was added. Test-first regressions exposed both the dropped alias and a canonical/alias collision; the focused service suite now passes 10/10.
-
-Verification on this branch: full Monolith Maven reactor **360 tests, 0 failures/errors/skips in 84 reports**; FE **213 Jest suites / 861 tests**, lint, typecheck, and production build passed. The full headed Playwright suite passed **20 tests with 6 expected skips** across desktop Chrome and iPhone-sized Chromium. The opt-in live graph spec then passed **2/2 viewports** with API mocks off. It exercised the packaged FE against the running Monolith and isolated Mongo database: 25 nodes/5 edges, the alias-backed `salt` → `lemon` edge in the initial page and expanded root neighborhood, successful unknown search with zero nodes/edges, and a passing CORS preflight. The fresh run receipt is `evidence/member-mc-live-graph-20261023/live-browser-catchup-run-20261023.json`. Fixture-backed graph-evidence, cook-post, research-product route, and T56 handoff cases also passed. The research-enabled product browser case passed on both viewports; it used fixtures and confirms the ingredient-only request plus abstention behavior, not live AI-service inference or artifact acceptance. The social browser run is not a live authenticated persistence/moderation transaction.
-
-The FE compound-detail path also had a retry lockout: an empty overlap response left the edge marked as requested, so another selection could not retry after recovery. A regression failed before the fix because the second selection did not issue a request; the fix clears that marker on an empty response. The component regression and headed browser case pass, along with the full FE suite. The live FE-to-Monolith spec verifies real graph loading and alias expansion; its API mocks remain off.
-
-T295's FE presentation contract is now recorded narrowly: for `graph-evidence-v1`, the panel displays the exact returned graph manifest SHA-256 and source split in recommendation and abstention states, labels the hash as returned provenance, and omits absent provenance. Review added assertions for the source split in both abstention paths and fail-closed handling of a malformed non-null hash; the focused suite passes **15/15**. The recipe substitution panel now supplies an opt-in caller through `/api/v1/research/suggest_substitutions`; the proxy authenticates the user and sends only the source ingredient to the research service. The default-off route and browser cases pass with fixtures. No live research credential or accepted artifact is configured, so this does not verify live inference, artifact bytes, recommendation quality, or T55 acceptance; the AI route can still abstain without accepted ranking, filtering, and calibration evidence.
-
-The UI now labels the route as a bounded legacy API preview, states that unresolved alternatives are omitted, and says it makes no calibrated substitution or allergy-safety decision. The current browser harness is `chefkix-fe/tests/e2e/graph-explorer-live.spec.ts`. These checks do not accept the hash-pinned M-C artifact or change T-01–T-08/T-10/T-11 status; T-10 and T-11 remain partial and the Leader evidence gates remain open.
-
-The Graph Explorer default-off gate was also verified from a production build with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED`, `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED`, and `NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED` absent. Headed installed system Chrome passed on desktop and iPhone-sized Chromium (2/2): the disabled state rendered, graph content stayed absent, and no `/api/v1/knowledge/graph` request was made. Receipt: `evidence/member-mc-graph-default-off-20261023.json`. This verifies the UI feature gate only and does not accept the canonical graph artifact or demonstrate live graph serving.
-
-### AI service / latest main sync and full regression (2026-10-23)
-
-The `codex/member-evidence-contract` branch was current with its tracking branch but two commits behind `origin/main`. Merged upstream commits `58b831f` and `4e6ed39` with no file conflicts; merge commit `645815d` now includes the latest main. The first full test run exposed a shared rate-limit bucket causing the pantry log-privacy test to receive 429 after other tests. The test now resets its limiter before and after each case; its focused suite passed **2/2**. The full AI-service suite passed **531 tests, 11 skipped, 28 warnings**, with **76%** measured coverage on Python 3.13. The warnings are existing `datetime.utcnow()` deprecations in `src/models/health.py`.
-
-### Social / moderation flag fail-closed fix (2026-10-23)
-
-The AI-service content-guard contract returns `approve`, `flag`, or `block`; its rule engine uses `flag` for ambiguous/off-topic content, and the Monolith adapter also returns `flag` when the moderation service is unavailable. Before this fix, post, comment, reply, chat, and story-reply consumers rejected only `block`, so flagged content could be persisted or published despite the provider's review-required state. FE post, comment, reply, and quick-post composers also let `flag` continue after showing a warning, while the cook-post composer ignored flags and moderation failures. A new backend post regression failed before the fix because the flagged create completed without throwing.
-
-All five Monolith consumers and the FE post, comment, reply, quick-post, cook-post, and recipe-publish paths now require an explicit `approve`; flagged, missing, failed, and unknown decisions stop publication. Flagged content receives a truthful message that it was not published and must be retried later. Backend regressions cover flagged post, comment, reply, chat, and story-reply content. The focused backend set passed **17/17** and the latest full Monolith reactor passed **356 tests, 0 failures/errors/skips in 83 reports**. FE validation passed lint, typecheck, all **845 Jest tests**, and headed desktop/mobile Chrome tests. Evidence: `evidence/member-social-moderation-fail-closed-20261023.json`.
-
-Flagged content is rejected before persistence; no manual review queue is implemented, so the UI explains that it was not published and the user must retry after moderation is available. Browser requests are fixture-backed and do not establish a live FE-to-Monolith post transaction.
-
-### Social / cook-post browser and backend regression (2026-10-23)
-
-Installed system Chrome ran the headed FE cook-post browser flow on desktop Chromium and iPhone-sized Chromium: **2/2 passed**. It verifies blocked, flagged, and unexpected moderation decisions do not create or link a post; the flagged state displays the rejection message. An approved caption creates one post, links the cooking session once, and records 80 XP. The browser also inspects the outgoing multipart request and verifies its generated boundary plus the `content` and `sessionId` fields. FE commit `407f4726c20b0f821d25dac29c94ce8285ca3f4e`; test: `chefkix-fe/tests/e2e/cook-post-xp.spec.ts`.
-
-The latest full Monolith reactor passed **356 tests, 0 failures/errors/skips**; the Social module contributed **54 passing tests**. Receipt: `evidence/member-social-cook-post-browser-20261023.json`.
-
-This is scoped regression evidence: Playwright intercepts all `/api/v1/**` calls with local fixtures, and the Maven run uses unit/service tests. It does not verify real social-service persistence, live authentication/moderation, Kafka delivery, media upload, feed visibility, or deployed behavior. The FE production build used temporary Google Font test fixtures after the remote font response broke Next's parser; this validates app compilation and browser behavior, not live font fetching. Those end-to-end social flows remain open.
-
-### M-C / Initial local live FE-to-Monolith Graph Explorer baseline (2026-10-23)
-
-The initial headed in-app Chromium run loaded the FE Graph Explorer at `http://localhost:3000/explore/graph` with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`, graph mocks off, and the evidence panel off. The then-current Monolith JAR served the legacy Knowledge API on port 8080 against an isolated Mongo 7 container/database. Its response had 25 nodes and 4 edges; this baseline exposed the canonical-name-only alias-resolution defect corrected in the checkpoint above. No API route interception was used.
-
-Browser interactions passed for a `chicken` search and loaded ingredient details, an `unlisted spice` search with the “not in the current graph” message and no fabricated node, a Butter → Olive Oil relationship (recorded ratio 0.75 and context), relationship filtering from 4 visible links to 0 and back to 4, and loaded Butter/Chicken details. The browser reported no console errors. Compound profile/pair requests returned 503 from the FE AI proxy, so its compound and nutrition fallbacks appeared. Root cause in the local FE config: the two required AI rate-limit secrets are absent; the proxy fails closed before upstream, and its default AI service on port 8000 was not listening. Screenshot and run receipt: `evidence/member-mc-live-graph-20261023/`.
-
-This is a local legacy-seeder smoke test, not the accepted/hash-pinned M-C graph or a deployed integration. FooDB and USDA detail sections remain unavailable/pending because the AI proxy configuration is incomplete; evidence was deliberately disabled, `/actuator/health` returned 404, and the Kafka container was still reporting `health: starting`. Notification and event-dependent social flows were not exercised. A first browser attempt from port 3200 received a CORS 403; rerunning on the configured FE origin `localhost:3000` passed without code changes. T-10 remains partial pending the recorded Act 3 and deployed/accepted artifact run; T-11 remains partial because this run did not scan the complete demo/log/artifact inventory.
-
-### Earlier branch sync and regression checkpoint (2026-10-23)
-
-Fetched and fast-forward-checked Monolith `codex/member-sprint12-deliverables`, FE `codex/epic10-graph-e2e`, AI service `codex/member-evidence-contract`, and Infrastructure `master`; each was current with its tracking branch. Monolith contains current `origin/master`, and FE contains current `origin/main`. The AI-service branch was two commits behind `origin/main`; its merge had one conflict in `src/routers/pantry.py`. Resolution retained the branch's fail-closed `allergen_safe=None` and grounded compound provenance while merging the newer privacy-safe logging and guarded candidate-pool changes. The synchronized AI branch is pushed at `824b0cf`.
-
-Verification on the earlier synced source: AI service targeted pantry/compound tests **48/48**, full suite **503 passed, 11 skipped, 27 warnings**; changed-file Black check passed. FE Graph Explorer plus route tests **31/31**, full FE suite **213 suites / 845 tests**; Monolith reactor **347 tests / 81 Surefire reports, 0 failures/errors/skips**. The initial global-Python test attempt failed because it lacked `pytest-cov` and `slowapi`; rerunning in the repository `.venv` passed. The later Oct 23 AI-service main sync is recorded above; the social browser/backend validation is recorded below. These suite results do not close the missing artifact/rights/calibration gates or establish full social-flow behavior.
-
-### M-A / Graph-RAG artifact and loader readiness (2026-10-23)
-
-The current AI-service checkout contains the tracked `models/hgat_weights.pt` file (253,163 bytes; SHA-256 `05f2690a730cadd86d6339806eb63b67a03f45cb92e167750eb71927976fbd1f`), but `models/substitution_subgraph.pt` is absent. The registry's persisted entry says active/healthy, but has no health-check timestamp; a fresh `ModelRegistry.get_status_report()` now correctly says `serving_ready=false` for both the missing timestamp and missing required graph sidecar. The graph artifact census in the earlier v397/v398 receipts describes a different local file and is not evidence about this checkout. The model weights alone do not establish node/edge counts or isolates.
-
-The AI-service fix aligns the default registry path with the `hgat_weights.pt` file used by `MLLoader`, makes the graph sidecar a required serving artifact (including for older registry entries), and loads graph bundles with PyTorch `weights_only=True`, a narrow PyG-container allowlist, CPU mapping, and a required `HeteroData` result. A failure-driven test showed that the old loader executed a benign pickle payload; the new loader rejects it without the marker side effect. An actual PyG 2.8 `HeteroData` fixture also loads through the restricted path.
-
-The model itself is still not ready to serve: safe inspection of the tracked checkpoint found 22 state entries, including an uninitialized `recipe_lin.weight`; those keys do not match the bundled `src/research/hgat_model.py` implementation, and the legacy external `hgat_model.py` path in `MLLoader` does not exist in these checkouts. No matching architecture source was found across the current repos. No graph artifact was loaded and no inference was run. Keep M-A open until the exact compatible model source and graph artifact are provided with provenance and a successful health check; do not reuse the prior local census as current runtime truth.
-
-Four new regressions failed against the old code, then the AI-service suite at commit `928a2c7` passed **497 tests, 0 failures, 11 skips**. Changed-file Black, Flake8, `git diff --check`, and `pip check` passed. The code is pushed; evidence receipt: `evidence/member-ma-graph-rag-loader-audit-20261023.json`. The 11 skips and 27 existing deprecation warnings are reported by pytest; this verification does not close M-A, M-C, or the accepted-artifact gates.
-
-### M-A / Source-only seed graph statistics and degree invariant (2026-10-23)
-
-The source-pinned auditor reconstructs the ingredient section of `KnowledgeGraphSeeder.java` at SHA-256 `cb7befabc03897f45c3d3d5b3a4f29262d93ec82622e9d5a8cf285dd28b15174`. It finds 25 canonical source records and 59 directed substitution statements. The explicit source-only graph interpretation has 25 `seed_ingredient` vertices and 54 `unresolved_literal_target` vertices; five target strings match a source canonical name or alias (four canonical, one alias), and 54 remain unmatched. It preserves statements as a directed multigraph. Across all 79 vertices, in-degree is min/median/mean/max `0/1/0.747/1`, out-degree is `0/0/0.747/4`, and total degree is `1/1/1.494/4`; isolates: 0. The directed invariant passes: degree sums are in=59, out=59, total=118. Six standard-library tests pass, including alias collision, duplicate statement, blank target, pinned source counts, and byte-identical artifact generation.
-
-The CSV/JSON outputs, hash receipt, and reproducible command are in `evidence/member-ma-seed-graph-source-20261023/`; run `python tools/audit_seed_graph.py` and `python tools/test_audit_seed_graph.py`. This closes only the source-level count, degree-statistics, and directed-invariant checklist items. It does not show that the seeder ran, identify runtime AI-service contents, establish a Round-0 definition, or create `COVERAGE_CURVES.csv`; no authoritative query cohort/denominator is available, so coverage curves and M-A acceptance remain open.
-
-### M-C / T-11 — Graph Evidence error-output boundary (2026-10-23)
-
-The backend regression injects a synthetic secret marker into a provider exception and verifies the serialized response contains neither the marker nor the exception class; the endpoint returns typed `PROVIDER_ERROR`. The test failed when the controller catch was temporarily bypassed, then passed after restoring its fail-closed path; the focused controller suite passed **18/18**. The FE browser case returns a 503 fixture with diagnostic text and verifies the error panel stays generic and the marker does not appear in page text or browser console. The full Graph Explorer E2E suite passed **8** cases with **2 expected skips** (the default-off test is skipped because the production build explicitly enables the Explorer), using headed installed Chrome on desktop and iPhone-sized Chromium. Test and scan details: `evidence/member-t11-error-output-20261023.json`.
-
-T-11 remains **PARTIAL**. The scan confirms this synthetic marker is absent from the captured Surefire, Next production-build, and Playwright output artifacts. The T-11 error-presentation browser API is intercepted; the separate local live graph-render smoke is recorded in `evidence/member-mc-live-graph-20261023/`. Full Act 3/demo logs, responses, and artifact inventory are unavailable for a complete secret scan.
-
-### M-C / Explorer edge identity collision hardening (2026-10-23)
-
-The FE used colon-concatenated edge keys in graph merging, SVG/React rows, selection state, and evidence request state. Two distinct valid pairs (`a:b` → `c` and `a` → `b:c`) therefore collided: failure-driven regressions first observed the merge dropping one edge, a duplicate React key, and selection showing the wrong relationship details. A shared JSON-tuple key now keeps those paths aligned. All four Graph Explorer unit suites pass **29/29**; the enabled-flag headed browser suite passes **12** with **2** expected feature-flag skips on desktop and iPhone-sized Chromium, the focused collision browser check passes **2/2**, and the default-off headed route check passes **2/2** with no graph request. Receipt and screenshot: `evidence/member-mc-edge-identity-20261023/`.
-
-This hardens local FE edge identity only. Its browser API responses are fixtures; the separate local legacy-API smoke does not close accepted-artifact rendering, rights, calibration, or any remaining T-01–T-08/T-10/T-11 gate.
-
-### M-C / T-09 — Product substitution route flag isolation (2026-10-23)
-
-A FastAPI `TestClient` differential sends the same product request to `/api/v1/suggest_substitutions` with `graph_preflight_v2_enabled` false and true while the research marker is absent. Both calls return HTTP 200 and identical response data; the mocked Gemini path is invoked for both, while the identity resolver and graph-candidate gateway are not called. This confirms the graph-preflight flag alone does not change the product substitution contract. T-09 is **PASS** for this scoped route invariant; this does not test a deployed service or close the other M-C gates. Test and full-suite evidence: `evidence/member-t09-substitution-flag-contract-20261023.json`; AI-service commit `c560b6d`.
-
-### M-C / EPIC 10 — Default-off Graph Evidence shadow endpoint
-
-The monolith now has an additive, authenticated `GET /api/v1/graph/evidence` endpoint backed only by a caller-pinned `graph_eval_v4` bundle. It is disabled by default, validates the exact manifest and output inventory/hashes, requires train-only evidence with reconciled row provenance, and never falls back to the legacy graph or returns a substitution recommendation.
-
-The API now also requires a resolved response's canonical source and candidate IDs to match the exact requested pair. The FE checks that each resolved ID matches its request ID and that both request IDs match the pair it sent; mismatches fail closed instead of displaying evidence on the wrong edge.
-
-Available train-pair evidence must also declare the exact `TRAIN_PAIRS` unit; the backend rejects missing or incorrect units, and the FE treats them as incomplete evidence. Browser fixtures cover both wrong-identity and wrong-unit responses failing closed.
-
-The FE graph loader now refuses malformed API payloads that lack node/edge arrays, contain blank/duplicate ingredient identities, or use a missing/unknown relationship type. It preserves the known `substitutes` legacy alias and the supported chemical-similarity/co-occurrence labels; an unrecognized edge can no longer be mislabeled as a substitution. A failure-driven regression reproduced the old fallback failure and passed after the fix. An empty successful ingredient search now states that the ingredient is not in the current graph and does not create a node; component and browser fixtures cover that result. The route still reads the legacy knowledge API when explicitly enabled, so this hardening does not satisfy accepted-artifact requirements. T-09 passes only for product-route flag isolation; T-01–T-08, T-10, and T-11 remain open or partial, and the complete M-C package remains open.
-
-Fresh Windows `mvnw.cmd test` passed across all monolith modules: 347 tests, 0 failures, 0 errors, and 0 skips in 81 Surefire reports. The Graph Evidence slice accounts for 32 focused tests across the controller, manifest-backed provider, artifact loader, and security filter chain.
-
-The FE companion passed all 213 Jest suites (843 tests), TypeScript, changed-file ESLint/Prettier, and production builds with 62 static pages under both explicit-on and default-off graph flags. System Chrome Playwright passed 6/6 enabled graph cases across desktop and iPhone-sized Chromium, including unknown-search handling, wrong canonical IDs, wrong train-pair units, malformed relationship types, and late evidence for a previously selected edge; a separate default-off build/run passed 2/2 with zero graph API requests. Browser API responses are controlled fixtures; these checks do not prove a live FE-to-backend deployment. When explicitly enabled for local integration work, the current map still uses the legacy knowledge API and is not an accepted M-C artifact load. Canonical graph import, upstream row-level split provenance, rights acceptance, Explorer integration against accepted data, and C5/product acceptance remain open; do not mark T-01–T-11 or the full M-C package complete from this slice.
-
-A fresh production build with both graph flags explicitly false completed with 62 generated pages, and real Chrome Playwright confirmed `/explore/graph` stays disabled with zero graph API requests on desktop Chromium and iPhone-sized Chromium (2/2). This verifies the default-off route boundary only; the FE-to-monolith live browser path remains untested because Docker Desktop is unavailable and the backend is not running.
-
-### M-C / EPIC 10 — Context-path route fix and FE shadow wiring (2026-10-22)
-
-The monolith's external API prefix comes from `server.servlet.context-path: /api/v1`, so the Graph Evidence controller mapping is `/graph/evidence` and its external URL is `/api/v1/graph/evidence`. A context-path-aware regression first exposed the prior double-prefix mapping; after correction, the test reaches the real controller through the `/api/v1` context. Anonymous access returns 401; an authenticated request reaches the default-off controller and receives typed `FEATURE_DISABLED` (503). The controller stays additive and does not call the legacy graph or substitution service.
-
-The public `/explore/graph` route now mounts the Explorer only when `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`; absent or other values show a disabled state and issue no graph-data requests. This corrects the prior default-on route, but the explicitly enabled preview still reads the legacy knowledge API and cannot be counted as a real hash-pinned M-C artifact load. The FE graph Explorer requests pair evidence only after an edge is selected and only when `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true`; that flag remains absent by default. It shows a manifest fingerprint only after the expected and observed SHA-256 values match, plus train-pair count, calibration status, and `Abstain`. Typed unavailable/refused results remain visible, and malformed fingerprints or a non-abstaining decision fail closed. The panel states that it never recommends a substitute.
-
-Validation on the synced source: full monolith Maven reactor 345 tests, 0 failures/errors/skips in 81 reports; focused graph endpoint/provider/authentication tests 30/30; FE Jest 213 suites / 838 tests, changed-file ESLint and TypeScript checks, production build with 62 static pages, and three system Chrome Playwright configurations on desktop/mobile: default-off Explorer 4 passed / 2 flag-conditional skips, enabled Explorer + evidence 4 passed / 2 skips, and enabled Explorer with evidence unset 4 passed / 2 skips. The FE branch was merged with fetched `origin/main` through `44f9e1b` without conflicts; an existing recipe feedback test expectation was aligned with the six-argument substitution API call after the upstream update. Playwright responses are intercepted fixtures; there was no live authenticated FE-to-monolith browser run.
-
-Lead v521 remains authoritative: the fixed C2 cohort still has 122/200 exact slot-identity failures and lacks its release-specific producer/schema/custodian contract; C3-G2 remains open, the corrected campaign ledger is 1/25 (4%), and strict accepted C1–C5 contributions remain 0/5. No identity remapping, cohort reduction, data transfer, or acceptance claim follows. The canonical/rights-cleared graph artifacts and T-01–T-12 acceptance remain open.
-
-### M-C / EPIC 10 — Search recovery and responsive canvas (2026-10-23)
-
-FE PR #84 (`64ad156`, `codex/member-graph-search-mobile-recovery-20261023`) merged to FE `main` at `3837b171a8e33d115312c617dd2911012a8954a4`; its required build check passed. The change separates search errors from graph-load errors and clears the search warning after successful search or query clearing. It also measures the canvas container and recomputes force-layout dimensions on resize. A failure-first mobile browser regression caught the previous 620 px SVG inside a 357 px viewport; after the fix the SVG fits without horizontal overflow on desktop and iPhone-sized Chromium. FE PR #85 (`ac1d414`, `codex/member-graph-controls-clearance-20261023`) then merged at `e768911b58709feb60937b9b4aef46c374b77ac5`; its build check passed. It moves zoom controls into the map header after a live mobile screenshot showed the floating toolbar covering a graph-node label. The latest full FE Jest run passed 214 suites / 868 tests with one skipped; the feature-enabled build and 18 headed Graph Explorer browser checks passed with 2 expected feature-off skips. The responsive browser regression confirms the SVG fits its canvas and the toolbar stays outside the interactive map. Live FE-to-Monolith browser cases ran on both viewports with API interception off; the isolated legacy API returned 25 nodes and 5 edges. Receipts: `chefkix-fe/docs/evidence/graph-explorer-search-and-mobile-20261023.json` and `chefkix-fe/docs/evidence/graph-explorer-controls-layout-20261023.json`. These checks do not load or accept the hash-pinned product artifact, establish rights, or verify deployed behavior; M-C acceptance remains open.
-
-### Sprint 1–2 report traceability
-
-VoTrungTin's Sprint 1–2 requirements, Use Cases, Data Flows, UI-facing contracts, and scaffold acceptance are mapped in [the sprint report](docs/iron-chef/votrungtin-sprint-1-2.md). The Word/PDF package and browser captures are indexed in [the output README](output/sprints/2026-10-11/README.md). These documents record member-owned deliverables and dependencies; they do not claim acceptance of Lead-owned datasets, vocabulary, evaluation, models, deployment, or human review.
-
-### M-B / L44 — T52 provisional graph candidate and provenance boundary (2026-10-22)
-
-T154 produced a private, hash-bound `graph_eval_v4` candidate from train-designated inputs: 49,044 rows joined, 49,034 evidence records plus 10 sanitized identity-error records, 6,630 nodes, and 23,175 edges. Manifest SHA-256 is `60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140`; T157 PASSed narrowly for exact file inventory/manifest-bound hashes, schema, denominator, and the explicitly unaccepted state. T160 confirms train-only process selection and train-bound output provenance aggregates only; **upstream row-level split truth remains UNKNOWN**, with `source_split_audit_performed=false`. Ten rows remain preparation errors; M-B/L44/C5 are not accepted, and no quality, rights, or production claim follows. Detailed reports are local-only in the research worktree; see LEAD v516. Next: authoritative split provenance and applicable rights terms before acceptance or provider integration.
-
-### M-G/L48 — v12 claims-register integration boundary (2026-10-22)
-
-Research-local claims-register v12 (SHA-256 `00b7428c5dfafb1c2ab58dc567ef83fb33220aa46e5b9bd0061e97081f17b7a3`) is the current row-level index accepted by T134 after all 45 rows were reconciled. Counts are five narrowly VERIFIED, two narrowly PARTIAL (R26 provenance only; R42 attributed publication only), and 38 UNVERIFIED. Structural/local-byte validation is not claim truth; this is not a thesis-progress score or C1–C5 acceptance (still 0/5). Research `master` has no configured remote, so the CSV and detailed reports remain local-only and are not fetched by this monolith record. T83's HUMAN choice preserves nested alias groups as ingredient slots for C2 representation only; T99's separate case-3300 identity rule and T74 graph-owner decisions remain unresolved. See LEAD v515 and research task T134.
-
-### M-I / LEAD v510 — Abrupt runner-termination fail-closed regression (2026-10-21)
-
-T49 adds a synthetic regression that launches the actual local runner CLI, waits until its child has started and reserved its idempotency key, forcibly terminates only that runner, and verifies the reservation remains `RESERVED`, no terminal receipt is fabricated, inspection is read-only/`MANUAL_REVIEW_REQUIRED`, and same-key execution is refused. The 53-test runner suite passes on Windows (49 pass; four pre-existing symlink-privilege skips) and Ubuntu WSL (53/53); the independent review is PASS narrowly for the final source/evidence hashes. Research evidence is local-only at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-abrupt-runner-interruption-20261021/acceptance.md`; monolith summary receipt: `evidence/lead-mi-abrupt-runner-interruption-20261021.md`. This tests one synthetic process-termination boundary only—not power-loss durability, machine-crash recovery, sandboxing, provider hard caps, automated recovery, or scientific validity. `UNKNOWN` remains do-not-retry. No real job ran; M-I/L44 remain OPEN and C1–C5 remain 0/5 accepted.
-
-### M-D/L44 — Correct standalone ingestion receipt locator (2026-10-21)
-
-Follow-up inspection confirmed the standalone ingestion receipt exists locally at `ai/out/senath-validation-benchmark-v1-recovery-20261021/ingestion_receipt.json`, SHA-256 `89fa10c939d073ee10414742c1af0f01dfabf4255cae318c6fc9c216c3bb60600`, but `.git/info/exclude` keeps the path untracked and local-only. Chapter 5 now identifies that boundary; its final corrected SHA-256 is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. No output, metric, or claim changed. M-D/L44 remain OPEN.
-
-### M-A/L45 — Chapter 5 provenance-map repair (2026-10-21)
-
-Chapter 5 now points to the retained local validation evidence rather than an absent ignored `ai/out` path, and its Segment-11 sentence reflects the current session record: launch acknowledgement ambiguous; no step-701 run/evaluation/checkpoint established. Final chapter SHA-256 after the follow-up receipt-locator correction is `d892d49b6acd96a7f10e5f9a120177e5fc9462c7949296adc6ee69bef579625b`. The recovered bundle remains local-only/untracked in the research worktree. This repairs source navigation and status wording only; no result or thesis claim changed. M-A/L45 remain OPEN.
-
-### M-D/L44 — Validate retained benchmark artifact pointers (2026-10-21)
-
-The one-shot version-4 recovery receipt records one output-transfer invocation. A fresh local, read-only inventory comparison found 14 expected/14 actual files and zero missing, extra, or mismatched hashes; Chapter 5's three local Markdown source-map links resolve. No second transfer, inference, metric recomputation, or test-split run occurred. This strengthens artifact traceability only; M-D/L44 and claims remain OPEN.
-
-### M-A/L45 — Chapter 13 conclusion-to-evidence map (2026-10-21)
-
-Research `master` commit `44d3e14e3121463ac571d33e22ba6077b9199f72` integrates an eight-section map in Chapter 13 §13.10. It connects the discussion scaffold to the current v10 claim IDs/statuses and named primary artifacts where mapped, while preserving population/protocol, counterevidence, and unknowns. Lead rehashed the referenced local receipts and verified the chapter's relative links. The map explicitly leaves missing primary records unmapped; no claim status, score, metric, protocol, or thesis outcome changed. See mirrored evidence note `evidence/lead-l45-ch13-conclusion-map-20261021.md`. M-A/L45 remain OPEN; strict C1–C5 remains 0/5.
-
-### M-D/L44 — Chapter 5 receipt-to-text consistency check (2026-10-21)
-
-The pinned 200-case ingestion receipt's primary/sensitivity metrics, denominators, identity strata, method failures, unmapped generation count, latency, runtime projection, and test-split boundary match the current Chapter 5 text at displayed precision. Evidence note SHA-256 `fe34f9dce717eac0748aa5894aac2fcccc5a04f04e34b8c4892b3a1675ce5fba` is mirrored under `evidence/`. This is not an independent row-level recomputation or new inference; no Chapter 5 edit was needed. L44/M-D and claim statuses remain OPEN.
-
-### M-A/L45 — v26 rendered-review blocker (2026-10-21)
-
-The permitted local-file browser request was denied by URL policy, which explicitly rules out alternate browser/workaround routes. No visual inspection occurred; 15/15 existing static/content/structure tests pass and remain below the rendered-acceptance boundary. The failure record is mirrored under `evidence/` (SHA-256 `73a584d2a5b1c019617a608c587956c1450f5f21e0a69af89067f9bce18ee4d7`). Keep visual review OPEN pending a user-provided capture or another allowed, non-bypassing route. Human rehearsal remains NOT RUN; no thesis or claim status changes.
-
-### M-A/L45 — Chapter 11 exhibit-map integration (2026-10-21)
-
-Research commit `c00e283fe4f1693d4380b208b76658445190ad9c` adds a three-way exhibit map for the Senath validation diagnostic, v26 benchmark rejection, and unverified graph Explorer; it also clarifies the runtime-check prerequisite. Chapter SHA-256 `5927023c71358c57410ce1f785736e83b49055585bef7e0449567594120730d5`. Receipt SHA-256 `aca8ddd4ec03a79c12c52febfd1562c37b206142f06ce0692e9813e9690e0a18` is mirrored under `evidence/`. This is internal presentation organization, not advisor acceptance, a product demo, protocol validation, or a status/percentage change. L45 and M-A remain OPEN; no research checkout remote is configured.
-
-### M-A/L45 — Chapter 3 source-only seed-graph interpretation (2026-10-21)
-
-Research commit `11ca5d58238319eb002bba7034a9bcf34f7de23a` integrates the current pinned seed-source interpretation into the Chapter 3 draft without calling it historical R0 reproduction: 25 canonical records, 59 embedded directed statements, and a typed interpretation of 79 vertices / 59 arcs. Receipt SHA-256 `3ddd1a045e865ef360e9df252b802f714cbe7786b24f32c17c36bc6b44091f1d` is mirrored under `evidence/`. This does not show the seeder ran, the output persisted, or the AI service loaded it; the historical input snapshot and metric definitions remain unavailable. R39/R40 stay UNVERIFIED; M-A/L45 stay OPEN; no claim or thesis status changes. Research detail remains in the local-only research checkout.
-
-### M-G/L48 / LEAD v494 owner-boundary reconciliation
-
-T26 found bounded candidates for portions of the targeted claims, but not exact current owners of each complete empirical outcome. R18's v9 pointer to L20 is historical-only relative to the active Lead table; L48 remains the register-reconciliation owner, not an R18 outcome owner. Research v10 corrects only the R18 mapping field; evidence statuses and package states are unchanged. This is backlog/crosswalk maintenance, not claim progress or thesis acceptance. See research commit `ea8c21e` and T26 report SHA-256 `2f77189ab806f97849e3f6879acb3de6acf85496bc1896f94113f491f6590ee7`.
-
-### M-G/L48 / LEAD v493 local R26 hash representation trace
-
-T25 traced the Segment-7 builder/runtime hash functions. The local advancement receipt matches the package's raw CRLF bytes (`0b553…`); the manifest hash matches the same local source normalized CRLF→LF (`3568e…`). This makes upload-time newline normalization plausible but does not verify the remote executed bytes. The dated R26 package still has pinned-note and exact-receipt-path gaps, so R26 remains UNVERIFIED and no register row changed. No Kaggle, labels, inference, model loading, or quality analysis occurred; details and report hash are in LEAD v493.
-
-### M-G/L48 / LEAD v492 R26 provenance review boundary
-
-Independent T24 passed narrowly for local Segment-9/Segment-7 checkpoint and retained-best hash inventories plus trainer-state metadata, but found the dated provenance package incomplete: the pinned R26 note hash differs from current bytes, the expected Segment-9 receipt is absent at the task-pinned v99 path (a separate receipt path was not substituted or revalidated), and the launch-receipt/manifest script hashes are not bound by an inspected schema. R26 stays UNVERIFIED; no register application, inference, quality, or Stage-3 completion claim follows. Detailed report is local-only in the research campaign; see LEAD v492.
-
-### M-G/L48 / LEAD v491 R14 eligibility gate (2026-10-21)
-
-The existing local both-endpoint coverage report is hash-pinned, but its producer reads test-label target endpoints. No test-label rows were reopened and no fresh reproduction/register application occurred; R14 remains UNVERIFIED pending the explicit gate and independent review. This is eligibility triage only, not a new result or C1–C5 progress. See LEAD v491.
-
-### M-G/L48 / LEAD v490 bounded R12 inventory reproduction (2026-10-21)
-
-The research-local R12 reproduction and independent T22 review agree on 971 normalized food keys, 206 distinct lowercased compound-name strings, and 125,992 local profile rows/links; the pinned service loads 971 profiles. Current research register v9 has five narrowly verified rows and 40 unverified. The 206 names are not verified unique authoritative compound IDs; the sidecar's CC BY-NC declaration is not rights clearance. This advances only the local evidence-register row, not M-G/L48 acceptance or C1–C5. Research evidence is local-only because that checkout has no remote; see LEAD v490 for hashes and full limits.
-
-### M-I / LEAD v489 post-launch failure-receipt provenance (2026-10-21)
-
-Normal and post-launch exception receipts now share the same validated run identity; failures additionally retain stop/error/termination details, elapsed time, observable diagnostics/usage, collection errors, and output hashes. An injected runner failure with diagnostic and usage collection also failing still produces a receipt with the rest of the provenance. Research commit `e795628`; 52 runner tests pass on Ubuntu WSL/Linux and Windows has 48 passes/four symlink-privilege skips; compile/diff and 164/164 Agent OS structural checks pass. Local-only evidence is at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-failure-receipt-provenance-20261021.md` / `.json`. This is best-effort receipt behavior, not forced-crash recovery, provider-side spend truth, or M-I closure. M-I/L44 remain OPEN; C1–C5 remain 0/5 accepted; no real job/external service ran.
-
-### M-I / LEAD v488 narrow freeze-protocol byte correspondence (2026-10-21)
-
-The research-local runner now requires a `FROZEN_APPROVED` manifest to identify one exact protocol input already included in and verified through `inputs`; the local approval record's `protocol_sha256` must match those bytes. Duplicate-key and nonstandard-constant record JSON is refused, while `EXPLORATORY` behavior is unchanged. Research commit `cefcb28`; 51 runner tests pass in Ubuntu WSL/Linux, while Windows has 47 passes and four symlink-privilege skips; compile/diff checks and the 164/164 structural verifier pass. Evidence remains local-only at `D:/code/chefkix/.git-worktrees/root-master-segment10-20261014/ai/evidence/member-backlog/mi-freeze-protocol-byte-binding-20261021.md` / `.json` because the research checkout has no remote. This proves only local byte correspondence: the approval JSON/approver is unauthenticated, confirmatory claims stay disabled, and protocol choice/adequacy is not established. M-I and L44 remain OPEN; no real job or external service ran.
-
-### M-I / LEAD v487 narrow symlink-path containment (2026-10-21)
-
-Research-local T17 hardens the idempotency reservation ledger against pre-existing symlink redirection: it rejects symlink path components, verifies the created ledger directory resolves under the selected root, rejects a symlinked reservation filename, and checks unsafe paths before duplicate-key probing. The 45-test suite passes on Ubuntu WSL/Linux; Windows runs 45 with four symlink tests skipped because symlink privilege is unavailable. Research commit `65bb7bc`; detailed note and JSON are local-only at `ai/evidence/member-backlog/mi-ledger-path-containment-20261021.md` / `.json` because the research checkout has no remote. Final AoE review also repaired a malformed timeout fixture and preserved the failed-run diagnosis. This is not race-free containment or a sandbox. Freeze binding, provider hard caps, complete failure provenance and forced-crash recovery remain open; M-I stays OPEN, with no external job or service run.
-
-### M-I / LEAD v486 cross-platform local regression (2026-10-21)
-
-The runner's existing 43-test suite passes on native Windows and Ubuntu WSL/Linux, covering timeout, operator-interrupt, and unexpected-error process-tree cleanup paths on both platforms. A first WSL run exposed test-harness coupling from patching the shared `time.sleep`; the runner/test now isolate the polling hook, and the failure/correction is retained in the T15 receipt. Research source commit `6ea0464a5cb8c3d67b8c939a0343e914091e6871`; detailed note and JSON receipt are local-only at `ai/evidence/member-backlog/mi-runner-cross-platform-20261021.md` / `.json`. This is two-environment regression evidence only—not independent review, general platform certification, sandboxing, provider cap, or forced-crash recovery. M-I remains OPEN; no real job or external service ran.
-
-### L48 / LEAD v478 mapping-only register overlay
-
-LEAD v221/v241 had explicit bounded mappings for 14 rows that were left unresolved by the fresh v3 register builder. A hash-bound overlay applies those existing mappings to the v4 derivative, changing only the 14 named `L_item_mapping` cells; statuses and all evidence fields are preserved. Receipt SHA-256 `5f9c1f5912fbb9dd10b073b1bd4045b782556d73c388ff8a31e94b0a9e13f59c`; v4 register SHA-256 `8b9e652d4b2ed8254c6c24b192f2bc0c66cacb7ab97c55d29e35ee361347d9f7`. This corrects v477's wording: the gap was in v3's overlay, not the historical Lead crosswalk. R18 remains a narrow partition result only; 44 claims remain UNVERIFIED. L48/M-G and package acceptance remain open. Research artifacts are local-only because that checkout has no remote.
-
-### L48 / LEAD v477 bounded R18 reproduction (2026-10-21)
-
-The pinned OFF snapshot's tag-count maps were independently recounted and matched, then partitioned against the preserved later taxonomy with 8/8 semantic mutation checks. Research-local report SHA-256 `0055df06e2af4299b64ef882de79cf14d6e4d7eae32dbec719d5e605c52aec32`; v3 register SHA-256 `6153d70c6ca522292bec037c0aa2616c203790ad1c94b08a34ac3d2092d1c574`. This supports only R18's named deterministic partition, not allergen safety or L20/L39/C3 acceptance. R18 maps to the L20 subdeliverable; L48 reconciliation continues, 44 claims remain UNVERIFIED and 14 mappings remain unresolved. Research artifacts remain local-only because that checkout has no remote.
-
-### L48 / LEAD v476 crosswalk addendum and current register bind (2026-10-21)
-
-The earlier row-by-row crosswalk remains unchanged; a separate R26 addendum (SHA-256 `2e0eac9f9974e7b454103abe3b6f7f68627d15426a0550579e4376da74897816`; research commit `7f3f8e3c28b17d20f92d45f8e8031a57dc781439`) captures Segment-7 launch/promotion provenance and keeps claim ownership/status bounded. The register was regenerated against Lead v476: SHA-256 `d8f7965af834ba06c9f935643b5a67d5918d1288c426678384d2f3c48eff91a4`; ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; receipt `235f62ebb8a839237c8f9491b85d5b0bcc04b70fbf58805a6a50ba0694007893` (research commit `b45eeba2a6bdbc1b3aa7c36c6ee6206ff0873079`). All 45 rows remain UNVERIFIED, zero reproductions; 15 owner mappings unresolved; M-G/L48 remain OPEN.
-
-### L48 / LEAD v475 R26 Segment-7 provenance extension (2026-10-21)
-
-R26’s tracked note now binds the recorded one-attempt Segment-7 version-1 launch and subsequent COMPLETE promotion at step 444 to local hashes of all 12 checkpoint and eight retained-best files. Trainer state records evals at 187/374; manifest schedule metadata lists 561 but does not prove a Segment-7 step-561 eval. Note SHA-256 `134a2b33e5cc7a31127e052837d497042b89a5010310814a7e5840575f0d542c`; register `ea2429994b17929d38cc2278a7b55f81be60530365fe6582bbd6d489e8bec412`; mismatch ledger `a1bb78cecfe5243a6845b0e9d0a657b97883935d94feb478e50727c0b03c570f`; build receipt `6affa899a3d51f7aa6fb7ddea4cee6142ad9a1285a41abc655006cd84f57e4a5`. Tests pass 5/5 builder and 21/21 validator; these prove local structure/bytes only. All 45 claims remain UNVERIFIED, zero reproductions, M-G/L48 OPEN; no inference or quality conclusion.
-
-### L48 / LEAD v474 original Segment-9 checkpoint recheck (2026-10-21)
-
-The original `checkpoint-561/` was found in the dirty root checkout and read-only checked at 12/12 files against the Segment-9 manifest; the separate retained-best adapter matches 8/8 manifest hashes. Updated R26 evidence note SHA-256 `b6feea712b8441eeeda026c90088441da017dd1aed662b16b3ed105c3607ca90`; register SHA-256 `28c12b8a81755d497114ae9b233076ecdfda2b567da342af9e12985656f6a988`; mismatch ledger SHA-256 `4c4ebd4db785ffd7958a3dbb007d05da57d0d859dbe7be0ae960abec7d2b5a91`. This hash-bound local evidence does not establish R26's downstream outcome, inference quality, or human value. All 45 rows remain UNVERIFIED; M-G/L48 remain OPEN.
-
-R26 now references the tracked local recheck note (SHA-256 `e1b40fddfb586c402e23febb8048768e5cfa13f9c1205c3f6366cc8ca63b9f52`) binding the Segment-9 receipt/manifest and eight retained-best adapter files. The full 12-file checkpoint is not locally present and remains receipt-attested; R26 stays UNVERIFIED. Register SHA-256 `09ef8466ff35e4a76cbbf25cde8361ac2aee42f9c1469735a5e16ab525d44cdd`; mismatch ledger `0103e1e832746e8b23d3635d74a67222b83851f5c7d46f38b463601a7cc988a0`. M-G/L48 remain OPEN.
-
-### L48 / LEAD v472 bounded historical-register search (2026-10-21)
-
-The updated crosswalk-review note (SHA-256 `0cce3de5ee6643b4952db2ab376aec6bd57898c695dc30c7be332a8c838c3bd4`; research commit `f989a5f52356c8c3bff36001ac03b958ac36eeeb`) records that the available worktree file inventory/Git history has no v171/v197 register bytes. This does not exclude an external/archive copy. All 45 statuses remain UNVERIFIED; M-G/L48 remain OPEN.
-
-### L48 / LEAD v471 row-level crosswalk review (2026-10-21)
-
-The 45 mapping dispositions were checked against the pinned §15.1 wording and current Lead/Member package IDs; review note SHA-256 `ca4e1f891009215e5293b12ca9dd3fb5c6a76a8c662c97a6086dcae7f5bac72e`. All current referenced IDs resolve except L29/L30 in R30/R31, which are explicitly historical pointers rather than active owners. Fifteen claims remain unmapped; all 45 remain UNVERIFIED with no reproductions or backlog-status promotion. M-G/L48 remain OPEN.
-
-### L48 / LEAD v470 conservative R01–R45 register draft (2026-10-21)
-
-Research `master` commit `f5a14dc` creates a deterministic, source-pinned 45-row inventory at `ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v1.csv` (SHA-256 `7e8bc939cb7954f28ff6072ba515fadb42218dacde56da4c32822fcbd38727db`) with `EVIDENCE_VS_CLAIM.csv` (SHA-256 `2ae2bf2c8ef72eb90869d76b8f52790c1862201418d3432ea3e85c36dbba4476`). All rows remain UNVERIFIED, with no outcomes or reproduction status; 30 have explicit/bounded crosswalks and 15 remain unmapped. Builder/validator checks establish structure and local-byte integrity only. Historical v171/v197 files were unavailable and not imported. The research commit is local-only because that checkout has no configured remote. This is a first reviewable draft, not claim reconciliation or a scoreboard; **M-G and L48 remain OPEN**. See LEAD v470 for full provenance and limits.
-
-### M-D / LEAD v469 written-artifact acceptance met locally (2026-10-21)
-
-The literal §17.2 M-D criterion—four deterministic full-split GISMo/lookup files—is now **met locally**: every validation/test case is present, all four outputs and the package manifest replay byte-identically, and 36 focused tests pass. This does not resolve external handoff, rights/release, unspecified historical lookup tie equivalence, model comparison, or L44. Those remain separately open; no labels were read or scored for this packaging work. Receipts: `evidence/lead-md-arm-output-package-20261021.json` and `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
-
-### M-D / LEAD v468 package validator AoE hardening (2026-10-21)
-
-The package validator now checks label-like keys recursively and rejects boolean/invalid graph IDs and ranks. The three new boundary regressions pass within the 36-test focused suite; a fresh package replay retains identical output/manifest hashes. This is integrity hardening only. Rights remain UNKNOWN, lookup tie equivalence remains unresolved, and there is no inference/quality result. M-D/L44 remain open. Receipt: `evidence/lead-md-arm-output-validator-hardening-20261021.json`.
-
-### M-D / LEAD v467 local full-split arm package and replay (2026-10-21)
-
-The four expected `arm_outputs/{gismo,lookup}_{val,test}.jsonl` files are assembled with a hash-bound package manifest. Full validation/test coverage is 10,729/10,747 cases; cross-arm case identity and candidate uniqueness/ranks/scores are checked; a fresh package replay is byte-identical; 33 focused preparation tests pass. This is a local-only, label-free output-preparation artifact, not inference or evaluation. Dataset rights remain UNKNOWN, and historical equivalence of the deterministic lookup tie rule is unestablished; M-D/L44 stay open pending remaining authorization and downstream acceptance. Receipt: `evidence/lead-md-arm-output-package-20261021.json`.
-
-### M-D / LEAD v466 deterministic lookup-frequency top-20 preparation (2026-10-21)
-
-The second arm is now materialized for every source-only validation/test case using the released GISMo LTFreq training-pair count rule: 10,729/10,747 cases, 20 unique ranked graph IDs each. The lookup files and manifest replay byte-identically; the combined preparation suite passes 27/27. GISMo's already-generated full-split arm remains unchanged. No labels were opened, and no scoring/evaluation or method selection occurred. The lookup tie rule (count descending, graph ID ascending) is an explicit deterministic transcription; historical `torch.topk` tie equivalence is unknown. Output files are still local-only and not rights-cleared or in final shared packaging. **M-D and L44 remain open.** Receipt: `evidence/lead-md-lookup-top20-preparation-20261021.json`.
-
-### M-D / LEAD v465 GISMo full-split top-20 materialization (2026-10-21)
-
-Research `master` commit `f0282c4` materializes the deterministic GISMo arm by taking the first 20 candidates from each pinned, verified source-only top-50 row: 10,729 validation and 10,747 test cases. A fresh build replay is byte-identical; all output rows match their source-pool top-20 prefix with exact case order/ranks and no label fields. The 21-test focused source-pool/builder suite passes. This does not rerun GISMo, read labels, score/evaluate, establish rights, or select a method. Lookup-frequency is still missing a pinned executable contract; **M-D and L44 remain open**. Details and hashes: `evidence/lead-md-gismo-top20-preparation-20261021.json`.
-
-### L44 / LEAD v464 showcase regression suite rerun (2026-10-21)
-
-Fresh rerun of the source-bound benchmark and midterm-exhibit test suites passes 30/30, including receipt-to-table-order assertions for both arms. The test/source hashes and renderer commit are in `evidence/lead-l44-showcase-regression-rerun-20261021.md`. The corrected HTML remains a local-only artifact; no browser visual review or listener rehearsal was performed, so L44 stays open.
-
-### L44 / LEAD v463 recovered validation-benchmark diagnostics (2026-10-21)
-
-The existing one-shot Kaggle version-4 recovery receipt is bound to a 14-file inventory that was rechecked against disk with zero missing, extra, or mismatched files. Saved-output validation covers 200 fixed validation cases with zero method failures. GISMo identity Hit@1/5/10 is 1.5%/7.5%/14.5% for GISMo top-50 + Senath reranking and 3.0%/11.5%/14.0% for Senath top-20 generation; raw-string sensitivity and per-case latency are separately recorded in `evidence/lead-l44-validation-benchmark-results-20261021.md`. This is descriptive fixed-validation diagnostic evidence only, not an independent test, human-usefulness result, superiority claim, or L44 completion. No new Kaggle operation was performed.
-
-### L48 / LEAD v462 R04/R05 source-reproduction crosswalk (2026-10-21)
-
-The local full-split audit now maps to the two matching seed claims: R04 identity counts and R05 split row counts/raw CSV-to-GISMo-pickle joins. The note `evidence/lead-l48-r04-r05-reproduction-20261021.md` records exact values and limitations, linked to the hash-bound M-B receipt. The migration seed's provenance remains checklist-only; no register row is promoted or verified, and L48 remains open.
-
-### L45 / LEAD v461 all-chapter structural link sweep (2026-10-21)
-
-Across 14 active chapter drafts, a read-only scan found 60 local file links, zero missing targets, and zero duplicate headings; all source-file hashes and scan limits are recorded in `evidence/lead-l45-chapter-structure-sweep-20261021.json`. External links/fragments, citations, claims, content, rendering and advisor acceptance were not reviewed. L45 remains open; the research checkout has no remote.
-
-### M-B / LEAD v460 Chapter 3 and local receipt synchronized (2026-10-21)
-
-Research `master` commit `42f1111` commits the full-split receipt (SHA-256 `c2429fbad69d5ffc83d62fbd118c9c26bed6868511cb71c49c5dae4e9165d6420`) and corrects Chapter 3 (SHA-256 `57b2086f607e8163bdc238f783bfdc60175bf44593d3012c00103d7bc6b04bc`) to distinguish the old clean-room-directory observation from the later wider-archive source discovery. The research checkout has no remote; the matching receipt and backlog update are shared in this monolith. M-B remains open; R04/R05 remain unverified.
-
-### M-B / LEAD v459 complete raw-split join and identity-frame rerun (2026-10-21)
-
-The exact pinned test CSV was found outside the previously designated clean-room directory, and all pinned GISMo assets were assembled and verified. Full train/validation/test CSV↔pickle joins pass; validation/test identity counts are 10,729/10,747 with GISMo-primary and Senath-normalized strata recorded separately. The machine receipt `evidence/lead-mb-full-split-source-join-20261021.json` binds inputs, outputs, hashes, and limitations. This resolves the scoped join gap only: M-B acceptance and R04/R05 remain open/unverified; no rights, human-label, independent-evaluation, or model-quality claim is made.
-
-### L45 / LEAD v458 Chapter 3 provenance-bound update (2026-10-21)
-
-Research `master` commit `43d4a2f` updates the internal Chapter 3 draft with the direct edge-count derivation and candidate legacy producer trace, preserving missing producer/output binding, random-feature fallback, and no-runtime/no-quality boundaries. Chapter SHA-256 `49db7b05a497d1f1f391907a99b975fe9b04e957708817a37a14c372115c5be2`. This is local-only, advisor-unreviewed draft progress; the research checkout has no remote and L45 remains open.
-
-### M-A / LEAD v457 legacy producer source trace (2026-10-21)
-
-Found the committed legacy subgraph extractor (`59e8560`): it emits only features and directed edges, with a random-feature fallback if optional feature inputs are absent. The local production inputs and any output-binding receipt are missing; the current source fail-fast retirement guard was not bypassed. Candidate producer identified, lineage still unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-legacy-producer-trace-20261021.json`.
-
-### M-A / LEAD v456 direct serialized-edge count recheck (2026-10-21)
-
-The pinned graph edge tensor was rechecked with the restricted, hash-pinned inspector; direct set construction confirms 4,591 unordered pairs including four self-loops (4,587 excluding them), alongside 4,883 unique directed pairs and 7,247 arc entries. This supports a count-convention hypothesis only; historical convention and provenance remain unknown. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
-
-### M-A / LEAD v455 undirected-count convention check (2026-10-21)
-
-The local artifact's 4,883 distinct directed pairs, 292 reciprocal non-self pairs, and four self-loops yield exactly 4,591 unique unordered endpoint pairs including loops (4,587 excluding loops). This is a plausible count-convention explanation only; it does not establish Round-0 method, artifact lineage, runtime use, or quality. M-A stays OPEN; R39/R40 stay UNVERIFIED. Receipt: `evidence/lead-ma-undirected-count-convention-20261021.json`.
-
-### M-A / LEAD v454 source-family coverage revalidation (2026-10-21)
-
-The shared receipt binds the GISMo-v23 matrix and records an independent 35/35 arithmetic reconstruction; the focused test was rerun and passed 2/2. The ≥2-family tier covers 31,974/45,988 top-50 occurrences and 57,641/141,040 full-vocabulary occurrences. This is source-linkage support only, not runtime graph coverage, semantic equivalence, rights, or safety. Generator/test/CSV remain local-only. **M-A stays OPEN; R39/R40 stay UNVERIFIED.** Receipt: `evidence/lead-ma-source-family-coverage-curve-20261021.json`.
-
-### L45 / LEAD v453 Chapter 14 internal draft (2026-10-21)
-
-Chapter 14 now exists as an internal v0.1 evidence-bound conclusion/future-work draft on research `master` (`94a0f253`; SHA-256 `bc786827…ef8583395fa`). All 14 §21 chapter slots have draft files, but this does not imply advisor acceptance or L45 completion. The research repository has no remote; the chapter is local-only. See `evidence/lead-l45-chapter14-draft-20261021.json`.
-
-### M-A / LEAD v452 preserved Round-0 evidence search (2026-10-21)
-
-The v4.2 and preserved pre-migration strategy documents contain attributed Round-0 assertions, not the source report or raw measurements. A bounded local text/history search found no underlying report path; its scope excludes unavailable remote history and unsearched ignored/hidden content. The result does not change acceptance: M-A stays OPEN and R39/R40 stay UNVERIFIED. See `evidence/lead-ma-round0-preserved-source-search-20261021.json`.
-
-### M-A / LEAD v451 source-seed directed-graph reconstruction (2026-10-21)
-
-The current monolith seeder statically parses to 25 canonical ingredient source records and 59 directed substitution statements. With exact unique canonical/alias resolution and unmatched targets retained as literal vertices, the interpreted graph has 79 vertices, 59 arcs, and max total degree 4; in/out sums are 59/59. Seven parser/graph fixtures pass 7/7 three consecutive runs. This partially reconciles source numbers, not the original Round-0 artifact/definitions or runtime lineage. **M-A remains OPEN; R39/R40 remain UNVERIFIED.** Report/test hashes and limits: `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`.
-
-### M-G / LEAD v450 fail-closed claims-register validator (2026-10-21)
-
-Added the missing structural/local-byte claims-register validator in the research checkout. Its 21 tests and compile check pass; it rejects the migration seed's checklist-only provenance with no success summary. This is a validator/tooling increment only: no register was instantiated, no claim verified, and no scoreboard generated. M-G and L48 remain open; the research commit is local-only because that checkout has no remote. Receipt: `evidence/lead-mg-validator-implementation-20261021.json`.
-
-### M-I / LEAD v449 operator-interrupt recovery (2026-10-21)
-
-Ctrl+C during the research runner's child-poll loop now terminates and reaps the direct child, records `OPERATOR_INTERRUPTED`, finalizes cooperative usage, and preserves a blocked receipt/ledger with the idempotency reservation consumed. Regression verifies a second execution is refused. The 36-test focused suite passes three consecutive runs; compile, CLI help, and diff checks pass. This does not handle forced process/machine crashes or descendant processes; no paid/API job ran, the research source has no remote, and M-I remains open. Receipt: `evidence/lead-mi-operator-interrupt-recovery-20261021.json`.
-
-### M-I / LEAD v448 missing-case and diagnostic stops (2026-10-21)
-
-Jobs must now emit a standard `job_diagnostics.json`; missing/malformed/incomplete reports, missing cases, and unresolved diagnostics fail closed. The runner contract documents the schema and operator sequence, and 35 fixtures pass three consecutive runs. Counts are child-reported and not independently audited. M-I remains open: the runner is local-only, unsandboxed, has no provider hard cap, and needs independent/platform/recovery review. Receipt: `evidence/lead-mi-diagnostics-completion-contract-20261021.json`.
-
-### M-I / LEAD v447 explicit validation-only preflight (2026-10-21)
-
-Added a no-side-effect preflight mode so manifests can be checked before a run: it verifies the script/data identities, parameter-derived idempotency, environment requirements, limits, and freeze record but neither launches nor creates a ledger/output folder. Thirty-one tests pass three consecutive runs. M-I remains open because the implementation is local-only, usage accounting is cooperative, execution is unsandboxed, and broader review/platform work remains. Receipt: `evidence/lead-mi-runner-preflight-mode-20261021.json`.
-
-### M-I / LEAD v446 child environment isolation (2026-10-21)
-
-The runner no longer forwards every parent environment variable to arbitrary child jobs. A small OS baseline is combined only with manifest-declared, required variable names; names are included in the execution identity and receipt, values are not. The 29-test suite passes three consecutive runs, including an explicit secret-noninheritance fixture. Allowlisted secrets are still available to the child and this is not a sandbox; no credentialed job was run. M-I remains open and the source repository has no remote. Receipt: `evidence/lead-mi-child-environment-isolation-20261021.json`.
-
-### M-I / LEAD v445 enforced stop-policy ceilings (2026-10-21)
-
-The runner now refuses any manifest that weakens the strategy's 5% API-error or 2% invalid-output maximum stop thresholds; exact-threshold fixtures confirm strict `>` behavior. The 27-test suite passes twice consecutively. M-I remains open; usage remains child-reported/cooperative, the runner has no OS sandbox, and the implementation is still local to a research checkout without a remote. Receipt: `evidence/lead-mi-stop-threshold-contract-20261021.json`.
-
-### M-I / LEAD v444 strict manifest parsing (2026-10-21)
-
-Third-pass parser review removed last-value-wins duplicate JSON keys and Python's `true == 1` schema-version ambiguity; the usage monitor now reads appended journal bytes rather than rescanning the full file every 50 ms. The 24-test suite passed twice consecutively. M-I remains open: local-only implementation, provider-hard budgeting, sandboxing, full recovery/platform coverage and independent review remain outstanding. Receipt: `evidence/lead-mi-strict-manifest-parse-20261021.json`.
-
-### M-I / LEAD v443 idempotency binding and collision controls (2026-10-21)
-
-Follow-up review found that merely accepting a hash-shaped idempotency key did not meet the active §13.1 identity contract. The research-local runner now derives the key from canonical script hash, sorted input identities, and runtime parameters; it refuses mismatches before launch. Regression coverage also exercises concurrent same-key execution, preflight not consuming the key, prior-ledger preservation, and output-collision non-overwrite. The 22-test suite passed three consecutive runs. M-I remains open: the source is local to research `master` without a remote, and provider hard caps, sandboxing, broader platform/recovery tests, and independent review remain. Receipt: `evidence/lead-mi-idempotency-hardening-20261021.json`.
-
-### M-I / LEAD v442 local runner prototype and refusal fixtures (2026-10-21)
-
-An independently implemented Python runner on the research repository's local `master` now passes 18 focused fixtures for hash-bound manifests/inputs, fresh outputs, idempotency, time/call/cooperatively reported spend limits, stop thresholds, receipts, freeze-record shape, and failure preservation. The runner explicitly does not provide an OS sandbox or provider-side hard budget, and a local unsigned approval record grants no confirmatory-claim permission. The implementation commits are local-only because that repository has no configured remote; no real API job ran. M-I remains open for broader invalid-manifest, concurrency, recovery, platform and independent-review coverage. Receipt: `evidence/lead-mi-runner-prototype-20261021.json`.
-
-### M-B / LEAD v436 split and identity recount (2026-10-21)
-
-The research-default-branch local recheck reproduced validation/test case-frame counts (10,729/10,747) and GISMo-primary/Senath-sensitivity partitions from the hash-pinned identity map. Available training/validation CSV row counts and hashes matched the audit manifest. The raw test CSV is not in the designated clean-room folder, and the original GISMo joins were not rerun. Evidence note: `ai/evidence/claims-register/r04-r05-split-identity-recheck-20261021.md`, research commit `03ab020`, SHA-256 `57bb6d4ca2f22485f2a8926fcaecc643144ecf14c93e3db21c91b430d5011974`. This is interim local count/integrity evidence; M-B acceptance and R04/R05 claim verification remain open. Research checkout has no remote.
-
-### L48 / LEAD v433 synchronized active register status (2026-10-21)
-
-The active LEAD summary now points to the v4.2 R01–R45 inventory (research commit `d6341cf`, SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`), with all 45 rows still `UNVERIFIED`. The old 11/6/28 overlay and v171/v197 pointers remain historical only. M-G's evidence contract was corrected in LEAD v432; no claim-by-claim mapping or reproduction has been accepted. L48 remains open; the research checkout has no remote.
-
-### L48 / LEAD v431 unverified R01–R45 inventory (2026-10-21)
-
-Created and locally committed `ai/evidence/claims-register/claims-register-r01-r45-unverified-seed-20261021.csv` (research commit `d6341cf`, inventory SHA-256 `871ED9937D5C366744B5759F51238A944AEC6FCC8F3002D59E53AD74821EAA36`). It contains 45 unique checklist rows, all `UNVERIFIED`, with migration-checklist-only provenance and no reproduction values. Builder tests pass 4/4; validator tests pass 8/8; the produced file validates structurally but this is not verification of claims, source findings, or reproduction. L48 remains open for artifact/provenance reconciliation; no scoreboard or progress percentage is authorized by this artifact. Research `master` has no configured remote, so the file is not yet fetchable by collaborators.
-
-### Q124 / LEAD v430 browser-rendered exhibit inspection (2026-10-21)
-
-Read-only browser inspection of the local offline exhibit (source SHA-256 `47D9AA1D7F5E1F3F704D43EA32AF5773EF2CF94AA906D94AFF232457E11C15FF`) found the desktop hierarchy legible and metric cards stacked/readable at a narrow-width zoom stress approximation (~320 CSS px; not device emulation). The evidence table scrolls horizontally and exposes a named region/instruction. No screenshot was saved. Keyboard/focus validation remains inconclusive; actual handset/breakpoint checks and timed human rehearsal/listener responses remain NOT RUN. Q124 stays open; no accessibility, comprehension, or demo-acceptance claim. This later observation supplements, but does not erase, the historical v416 source-contract record.
-
-### L45 / LEAD v429 evidence-bounded introduction draft (2026-10-21)
-
-Added `research/chapters/01-introduction.md` to the research checkout's default `master`, commit `6eeac1a77e99e45a1df5a830c2cb7de898bbfcdf`, SHA-256 `3a9e9402b593d54de46d9e2ac35642a681cdeed5afd78580386b6cb09ee829a`. The 76-line v0.1 draft follows active §21 and §§2–3: it defines the question and H1–H5 boundaries, separates the intended C1–C5 contributions, and explicitly rejects unsupported safety, usefulness, superiority, and novelty claims. It uses 8 resolving Markdown links, has no duplicate headings, and passes `git diff --check`. No new source verification or empirical result is claimed; chapter acceptance remains open, and the research checkout has no remote.
-
-### L45 / LEAD v428 archive-boundary correction (2026-10-21)
-
-Rechecked the active chapter map against the canonical document's archive delimiters: the older `§8 — Thesis Chapters` table is inside fenced Appendix Y, explicitly marked superseded v3 text, while §21 is the active chapter map. Updated the Chapter 6, 7, and 13 draft cautions to use §21 without implying an unresolved conflict. Research-default-branch commit `ebb1a1404e1823c37ed42b4c6cc2b08b397a0ef2`; hashes: `1b62b33df4330bd57e4135188e09703005e723c53564c1805e1c0cbaac778c7b`, `bed6756f73265ef246f3ff2c2addfbb9760a2be0abd6df3ed5880e9738f31bfb2`, `3135cf5c9bf8a68f11b7e84d8192814d518876328ffa612b23fd68e8072213ca`. Research checkout has no remote; chapter acceptance and overall L45 completion remain open.
-
-### L45 / LEAD v427 evidence-bound discussion chapter scaffold (2026-10-21)
-
-A twelfth internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/13-discussion-and-threats.md`, commit `9a19f6d`, SHA-256 `2144a89d948bfd12ee046e08618e70e8cedfcb4f862b30746922f7264812383a`. It synthesizes the canonical result ledger while preserving the validation-only, partial, negative, and unresolved boundaries; it introduces no independent analysis or new claim. All nine linked sources resolve. The source checkout has no remote; L45 review, final evidence reconstruction, and chapter acceptance remain open.
-
-### L45 / LEAD v426 bounded guardrail chapter scaffold (2026-10-21)
-
-An eleventh internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/07-guardrail-design-and-assumptions.md`, commit `fdd7caa`, SHA-256 `b1b0db055607c8a1766292fdcd19a8ebffbac10a1363793f55ef200d7fca0e05`. It records the proposed rank-conformal construction and failure semantics while leaving PR02/04–08/15 unresolved and treating Appendix A as non-executable reference only. No calibration result, coverage guarantee, safety claim, or deployment readiness is claimed. The source checkout has no remote; L45 acceptance, independent protocol/code validation, and thesis review remain open.
-
-### L45 / LEAD v425 human-validity audit chapter scaffold (2026-10-21)
-
-A tenth internal v0.1 thesis draft now exists on the separate local research `master`: `research/chapters/06-human-validity-audit.md`, commit `b3163a8`, SHA-256 `88ee3f1ed0f209a9467908724bb17a6bef1f19b96226af6c0ad06924e0448314`. It integrates the proposed audit question, identity/rubric/sampling/reliability boundaries, and evidence needs while preserving PR01–03/05/09/10/13 and the §21-versus-legacy-§8 chapter-number conflict. No human audit, protocol approval, or result is claimed. The research checkout has no remote, so the source remains local-only; L45 review, citations, evidence gates, and chapter acceptance remain open.
-
-### M-I / LEAD v424 regression expansion across both showcase methods (2026-10-21)
-
-Extended the v423 cell-order regression to verify both method rows—not only generation—against the receipt's grouped GISMo-primary and raw-string-sensitivity metrics. The combined Senath renderer and existing midterm-exhibit suites pass 30/30. This is static/contract evidence; it does not complete browser visual QA, timed listener rehearsal, L44, or any quality/usefulness gate. See LEAD v424 and the research-local evidence note `ai/evidence/senath-inference/showcase-column-order-fix-20261021.md` (note SHA-256 `e71fe95cceb2f03035e2d8829c58e5f77d2b4d786e7593a38db66e7b34d40269`). The research checkout remains local-only.
-
-### M-I / LEAD v423 saved-output showcase metric-column correction (2026-10-21)
-
-AoE review found that the generated HTML interleaved primary GISMo-identity and raw-string-sensitivity metrics beneath grouped headers. The renderer now places the two Hit@1/5/10 groups in header order, and the 15-test focused suite compares rendered values with the validated receipt. The 200-case outputs and metrics did not change; this repairs their presentation only. The corrected local HTML is structurally checked, but browser visual QA and timed human rehearsal remain NOT RUN. This is not a quality claim, human-usefulness result, or L44 completion. See LEAD v423 and `ai/evidence/senath-inference/showcase-column-order-fix-20261021.md` in the research checkout; that checkout remains local-only with no remote.
-
-### L45 / LEAD v419 manuscript drafting progress (2026-10-21)
-
-Nine internal v0.1 drafts now exist on the separate local research `master`: Chapters 12, 5, 2, 10, 3, 8, 4, 11, and 9. Chapter 4 leaves PR01–03/05/09/10 unresolved and approves no human protocol. Chapter 8 preserves allergen holds and claims no comparison or safety result. Chapter 11 now explicitly distinguishes an earlier successful local restart from a later route 404 caused by a different loaded artifact; lineage, Explorer behavior, public deployment, and user value remain open. Chapter 9 is only a Vietnamese-pilot planning scaffold; it creates no data, labels, or authorization. These are working drafts, not accepted chapters or evidence of thesis completion; full L45 writing, review, citation reconstruction, evidence gates, and defense work remain open. The research checkout has no configured remote, so these files are not yet shared/fetchable. See LEAD v417–v422 for exact commit IDs, hashes, paths, and per-chapter limitations. This derived status note changes no member-package acceptance criteria and does not claim a member package complete.
-
-### Q124 / LEAD v416 offline exhibit source-contract recheck (2026-10-21)
-
-Focused suite passes 15/15. Static assertions and source inspection confirm the exhibit has no external URL/remote asset or fetch/XHR patterns and includes visible focus styling plus a named, keyboard-focusable table region. The browser-level navigation/focus check did not run: the computer-use policy stopped before navigation because the Windows browser URL was not sufficiently determined. The timed human rehearsal and listener answers remain NOT RUN. This does not close Q124 or prove rendered accessibility/runtime offline behavior. See LEAD v416 and `evidence/lead-q124-offline-contract-check-20261021.json`.
-
-### M-I / LEAD v410 recovered validation benchmark and replayable showcase (2026-10-21)
-
-This monitor's v4 output recovery and local validator passed for all 200 fixed validation cases with 0 method failures per arm; ingestion recomputed identity-separated Hit@1/5/10 and latency, and a saved-output HTML showcase was rendered. A previous validated recovery already existed; both 14-file hash inventories match, so this retransfer was redundant and adds no independent benchmark result. Measured process wall time was about 4h50m. These are validation diagnostics, not product-quality evidence. Outputs remain local; a compact hash receipt is committed. Do not recover/download again. See LEAD v410.
-
-### M-A / LEAD v409 live runtime/default-master artifact drift (2026-10-21)
-
-The existing port-8080 service returns 404 for the graph endpoint and loads a culinary JAR byte-identical to the dirty nested checkout's target, not the clean default-master artifact whose controller contains `/graph`. Its loaded controller bytecode lacks the mapping. No process was changed; producer lineage remains unknown and M-A stays open. See LEAD v409 and its evidence receipt.
-
-### M-A / LEAD v408 source-family coverage curve (2026-10-21)
-
-Recomputed the frozen GISMo-v23 top-N source-family support curve and independently matched all 35 emitted family/tier records; focused tests pass 2/2. The 2+ independent-family source-linkage tier reaches 57,641/141,040 endpoint occurrences at top-5,000 (40.87%). This is not live graph coverage, semantic equivalence, rights clearance, safety, or M-A completion; R39/R40 remain open/quarantined. The generator and aggregate stay local-only. See LEAD v408 and its receipt.
-
-### M-I / LEAD v407 one-shot recovery failure-control tests (2026-10-21)
-
-Six mocked/temporary-directory tests pass for the no-retry recovery helper: no download while RUNNING, exactly one download after COMPLETE, preserved partial/invalid bundles, and refusal to overwrite an existing destination. No remote call occurred. This validates helper control flow only; the already-recovered real bundle remains separate evidence. See LEAD v407 and the shared evidence JSON.
-
-### M-I / LEAD v406 CPU benchmark-contract tests (2026-10-21)
-
-The 15-test benchmark suite passes on CPU, including both inference arms on a tiny Mistral and the score/parser/failure/logging contracts. This validates harness behavior only; it is not the real GPU smoke, another validation run, or quality evidence. No retry or new Kaggle launch occurred. See LEAD v406 and its shared evidence receipt.
-
-### M-B / LEAD v405 wider data-preparation test sweep (2026-10-21)
-
-Six focused local modules covering identity/join audit, source-only pools, partition packaging, output collection, and scoring contracts pass 44/44. These are CPU contract tests on the dirty research checkout, not GPU inference, benchmark quality, rights clearance, or M-B acceptance. See LEAD v405 and its shared evidence JSON.
-
-### M-B / LEAD v404 focused pool-builder and verifier tests (2026-10-21)
-
-The focused pytest suite for source-only case construction, GISMo candidate ranking, and fail-closed pool verification passes 15/15, covering label-key exclusion, identity/hash checks, candidate validation, and graph catalog mapping. This supplements LEAD v403's full-split artifact verification but is still synthetic-contract/input-preparation evidence, not inference, evaluation, rights clearance, or M-B completion. M-B/M-D/L44 remain open. See LEAD v404 and the shared evidence JSON.
-
-### M-B / L44 full-split pool replay verification (2026-10-21; derived from LEAD v403)
-
-Independent verification confirms deterministic full validation and test source-only GISMo top-50 pools: 10,729/10,747 cases and 536,450/537,350 candidates, with matching pool and manifest hashes across each original/replay pair. All candidate IDs match the pinned graph catalog; target labels were not read and no evaluation or selection occurred. This is input-preparation evidence, not M-B completion, Senath inference, or model-quality evidence. Rights/protocol and blinded-fixture gates remain open. See LEAD v403 and its evidence JSON.
-
-### M-A / LEAD v402 current HGAT kernel metadata (2026-10-21)
-
-The official SDK reports current saved kernel version 10, last-run time Oct 17, and attached source `paultimothymooney/recipenlg`. It provides no dataset version/hash or binding between version 10 and the listed outputs, so this narrows input identity only. M-A remains open; see LEAD v402 and evidence JSON.
-
-### M-A / LEAD v401 Kaggle output-list schema check (2026-10-21)
-
-The official SDK output-list response exposes filenames and signed URLs, but no file hashes or explicit run/version binding. URLs were not printed or fetched. This confirms the queried inventory endpoint cannot close M-A provenance; it does not rule out another run-history source. See LEAD v401 and evidence JSON.
-
-### M-A / LEAD v400 current Kaggle HGAT inventory (2026-10-21)
-
-The official CLI reports the separate HGAT kernel COMPLETE and lists expected producer outputs. Its currently saved notebook source hashes to `45e44b7e01b02bb4593e5bf88e49abab8b00d356014a6dcc6eb88cc73e8e9e0b` and shows a RecipeNLG-based graph/HGAT pipeline. The interface did not bind that source to a completed run version or expose output hashes, so provenance remains partial and these files are not Senath artifacts. No outputs were downloaded; see LEAD v400 and evidence JSON.
-
-### M-A / LEAD v399 installer retrieval trace and scope correction (2026-10-21)
-
-The broader workspace contains a tracked installer for a separate HGAT Kaggle kernel, and its ignored local mirror is byte-identical to the current service files. The installer records no output version, manifest, or expected digests and does no post-download hash check, so it does not establish Senath provenance or runtime readiness. This narrows LEAD v398's “not found” observation to the AI-service subtree; the unsafe deserialization finding remains. M-A stays open. See LEAD v399 and its evidence JSON.
-
-### M-I / LEAD v385–v386 recovered validation execution and replayable showcase (2026-10-20)
-
-The one-shot v4 output recovery and local ingester validated 200/200 records for each arm with no method failures; the showcase is regenerated from saved outputs and receipt-bound. This advances M-I's execution slice but does not settle its separately listed PR15 reference-code defects or complete M-I's acceptance. Full-split validation/test, protocol, rights, and human-evidence gates remain separate. L44 and M-I stay open; no method choice or product-quality claim follows. See LEAD v385–v386 and the canonical strategy's L44 boundary.
-
-### M-A / LEAD v398 graph artifact deserialization and provenance blocker (2026-10-21)
-
-The tracked AI-service loader reads the ignored, untracked PyG subgraph with `weights_only=False`; a replacement artifact could execute pickle code. The local bytes were inspected only with a restricted loader, but provenance is missing and runtime serving is not ready. Preserve the files; M-A remains open until artifact provenance and safe loading are established. See LEAD v398 and its evidence JSON.
-
-### M-A / LEAD v397 AI-service graph artifact and readiness boundary (2026-10-21)
-
-The registry marks `graph-rag` active but not serving-ready; a restricted local inspection counted 195,600 nodes and 7,247 serialized arcs without establishing that the artifact is loaded or usable. The 4,591-arc historical claim remains unreconciled. M-A stays open; R39/R40 stay quarantined. See LEAD v397 and its evidence JSON.
-
-### M-A / LEAD v396 live route on source-built artifact (2026-10-21)
-
-After a backed-up local Maven install and guarded monolith restart, the graph route returns 200 from the exact source-built JAR. It exposes 92 nodes/25 canonical edges, not all 109 embedded statements (3 alias-only, 81 unresolved). Local runtime binding improved; producer lineage, AI-service artifact, and Round-0 reconciliation remain open. See LEAD v396 and evidence JSON.
-
-### M-A / LEAD v395 full Culinary reactor suite (2026-10-21)
-
-Offline reactor tests pass 140/140 (including graph controller 2/2 and graph service 6/6). This validates current source tests, not live artifact lineage or runtime graph truth; M-A remains open. See LEAD v395 and evidence JSON.
-
-### M-A / LEAD v394 reproducible source build (2026-10-21)
-
-Current monolith `master` builds offline with the graph route present; the focused controller test passes 2/2. This does not prove the running process uses that artifact; no install/restart occurred. See LEAD v394 and its evidence JSON.
-
-### M-A / LEAD v393 artifact provenance metadata (2026-10-21)
-
-The loaded Maven artifact has no sources JAR, SCM/commit metadata, or Maven build timestamp/number in the inspected POM/metadata. Its source revision remains unknown; see LEAD v393 and its evidence JSON.
-
-### M-A / LEAD v392 loaded graph-controller artifact (2026-10-21)
-
-The live Java classpath resolves a local Maven `culinary:1.0.0-SNAPSHOT` jar whose controller bytecode has no graph route, explaining the 404 despite the current worktree source declaring it. The artifact’s build-source commit remains unknown; M-A stays OPEN. See LEAD v392 and its evidence JSON.
-
-### M-A / LEAD v391 substitution endpoint spot check (2026-10-21)
-
-For `butter`, the dedicated substitutions endpoint returns 2 items, matching the ingredient record’s embedded count. This is a one-record API contract cross-check only; M-A remains OPEN. See LEAD v391 and the compact evidence JSON.
-
-### M-A / LEAD v390 graph route check (2026-10-21)
-
-Local ingredient and technique collection GETs return 200, while the source-declared graph GET returns 404. This is evidence of route availability mismatch, not proof of the running artifact’s identity or of any graph source. M-A remains OPEN; see LEAD v390 and `evidence/lead-ma-graph-route-check-20261021.json`.
-
-### M-A / LEAD v389 local knowledge API snapshot (2026-10-21)
-
-Read-only local knowledge endpoints returned HTTP 200 and yielded 92 ingredient and 25 technique records. Seed-name overlap is 17/25 ingredients and 3/16 techniques, not lineage proof. In the analyst interpretation, all 109 embedded substitution statements are retained as arcs (28 exact-name resolutions; 81 literal unmatched targets). This does not prove persisted graph edges, seeder provenance, deployment state, or reconcile the quarantined Round-0/HGAT claims. M-A stays OPEN and R39/R40 stay quarantined. See LEAD v389 and `evidence/lead-ma-local-runtime-snapshot-20261021.json` for hashes and scope limits.
-
-### M-A / LEAD v388 static graph/coverage recheck (2026-10-20)
-
-The source-family coverage curve regenerated byte-identically and the focused graph-truth/coverage suite passes 8/8. The current local graph-truth builder emits a new schema/output hash versus the historical snapshot, adding an explicitly source-only seed-literal interpretation; this is not runtime graph evidence. The builder is still untracked in the dirty root worktree, so no implementation is promoted. M-A remains open pending runtime lineage/access and Round-0 claim reconciliation. See root SCOPE LEAD v388.
-
-### M-D / L44 full-split source-only candidate pools (2026-10-20; derived from LEAD v387)
-
-Existing GISMo top-50 candidate pools are freshly verified for all validation/test source-only cases (10,729/10,747; 50 candidates each; exact pinned graph ID/name identity). The verifier confirms target labels were not read and no evaluation or method selection occurred. These are local input-preparation artifacts, not model outputs; rights, protocol, partition and execution gates remain open. See canonical SSoT §17, SCOPE/SESSION v387 and the LEAD evidence note.
-
-### M-D / L44 recovered 200-case validation comparison (2026-10-20; derived from LEAD v385–v386)
-
-The frozen 200-case validation run is recovered and locally ingested: both arms have 200/200 records and zero method failures. GISMo-identity Hit@1/5/10 is 3.0/11.5/14.0% for generation and 1.5/7.5/14.5% for top-50 likelihood reranking; raw-string sensitivity is reported separately. Latency and case-level outputs are preserved in the local recovery bundle. LEAD v386 verifies its replayable 200-case saved-output showcase (hash-pinned HTML; focused renderer/ingester suite 15/15). This is a bounded validation diagnostic, not full deterministic GISMo/lookup outputs for every case, an independent test, method choice, quality, or human-usefulness evidence. M-D and L44 remain open. See canonical SSoT §§1.2/17 and LEAD v385–v386.
-
-### M-D / L44 scorer join-integrity update (2026-10-20; derived from LEAD v384)
-
-AoE review tightened the local evaluator to require label and identity-map rows to agree on split, row index, recipe ID, and case ID, in addition to the target graph ID check. A resealed adversarial identity row is rejected; the focused scorer suite passes 10/10. This only strengthens future local analysis; no collected full-split outputs were scored and M-D/L44 remain open. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
-
-### M-D / L44 analysis-preparation update (2026-10-20; derived from LEAD v383)
-
-A new label-local evaluator is ready for future collected validation/test outputs. It validates independent provenance pins, exact source/label/identity joins and full case coverage; verifies GISMo reranker candidates against each frozen top-50 pool; and recomputes Hit@1/5/10 under GISMo graph identity and a separately reported Senath-normalized raw-string sensitivity. Explicit method failures remain in the denominator and ambiguous generated names do not receive a GISMo identity. Nine synthetic tests pass, and the real local-only source-only shard packages load at their frozen 10,729/10,747 case denominators. No collected output has been scored, no inference is claimed, and this does not complete M-D/L44. Rights/protocol gates remain open. Evidence: root `ai/evidence/senath-inference/full-split-local-score-recomputation-preparation-20261020.md`.
-
-> **AUTHORITY:** `academic_vision_and_strategy.md` (canonical SSoT) is the single source of truth. This backlog is derived from §17.2 (Member Packages), §12 (Product Proof), §13 (Compute), §25 (Bounded Task Recipes), and the critical dependency path in §17.4. When they conflict, the strategy file wins.
-> **MIGRATION:** Updated from v3 on 2026-10-12 (LEAD v113). v3 "four trained models" UI work retired. New focus: graph v4, Explorer, evidence endpoint, demo, reproducibility.
-
-> **Aligned 2026-10-04 with LEAD v101**, monolith `origin/master` commit `e2e0dfc` (latest update dated 2026-10-02).
-> **Authority:** `academic_vision_and_strategy.md`, then `ai/out/iron-chef-lead-v2/BACKLOG_LEDGER.md`, then current updates in [BACKLOG_LEAD.md](BACKLOG_LEAD.md). The strategy and atomic ledger are absent from these four checkouts. Lead scientific claims below are attributed summaries, not independently reconstructed results.
-> This replaces the historical member backlog, preserved in Git history. A checked engineering task means code exists with the cited checks; it does **not** certify a model, deployment, clinical safety or thesis result.
-
-### M-I / L44 preparation update (2026-10-20; derived from LEAD v382)
-
-A local-only structural collector now prepares deterministic recombination of future full-split partition output records. It independently pins the source-input and execution manifests, verifies every case appears once in its scheduled shard, checks source joins and rerank candidate identities against the frozen pool, rejects target-derived fields and invalid scores/ranks, and preserves explicit method failures as denominator misses. Eight synthetic collector tests and the combined source-shard/pool/catalog/benchmark suite pass 46/46. This does not create inference outputs, evaluate labels, authorize upload or complete M-I/L44; rights and protocol gates remain open. Evidence: root `ai/evidence/senath-inference/full-split-output-collector-v1-20261020.md`.
-
-### M-I / L44 input-preparation update (2026-10-20; derived from LEAD v381)
-
-The full validation and test source-only candidate inputs are now reproducibly partitioned into 54 ≤200-case local-only shards per split. All 108 shards passed independent hash, coverage, join, firewall, and pinned GISMo catalog-identity checks; focused preparation tests pass 35/35. This prepares an input-materialization subtask only; protocol/rights gates remain, shards are not uploadable/runnable packages, and no new inference/evaluation or M-I/L44 acceptance is claimed. Evidence: root `ai/evidence/senath-inference/full-split-source-only-partitions-v1-20261020.md`.
-
-### M-B / L44 preparation update (2026-10-20; derived from LEAD v380)
-
-The local-only full validation/test GISMo top-50 pools now pass an independent candidate ID/name check against the pinned 6,653-item ingredient catalog, using the released helper's 1-based row-position ID semantics. All 1,073,800 candidate entries passed; focused source-pool and benchmark tests pass 30/30. This closes a structural input-integrity subtask only. M-B acceptance remains open (including its blinded adversarial fixture and protocol prerequisites), and no inference or evaluation result is claimed. Evidence: root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
-
-## Current handoff
-
-The v4 thesis demonstrates **measurement, not models**. Your work makes the measurement visible:
-
-| Contribution | What You Make Visible | SSoT Reference |
-|--------------|----------------------|----------------|
-| **C1 Instrument** | Strata breakdown, audit pool construction, blinded labeling UI | §5, §6, §25.2–25.3 |
-| **C2 Measurement** | Per-cell Hit@k / valid@k tables with intervals, collapse map figure | §5.4, §6.9, §12.8 Act 2 |
-| **C3 Guardrail** | Cost-of-trust curves, cell status badges (ok/vacuous/no_guarantee), abstention panel | §8.7–8.8, §12.4, §12.6 |
-| **C4 Human Evidence** | Rater agreement dashboard (κ with cluster CI), judge calibration report | §6.8, §7.5, §14.6 |
-| **C5 Product Proof** | `/explore/graph` (real artifact), `/api/v1/graph/evidence` (shadow), 5-min recorded demo | §12.4–12.8, §25.7 |
-
-**Progress boundary (2026-10-20; derived, not a completion score):** the L44-supporting M-B slice now has full local joins/identity strata for 49,044 train, 10,729 validation, and 10,747 test rows; source-only val/test frames with local-only labels; and byte-identical rebuild evidence. A hash-pinned FooDB endpoint-presence audit reports both-profiled pairs of 1,121/10,729 validation and 1,162/10,747 test, with partial/none and occurrence denominators separate; focused test suites pass. The earlier frozen 200-case/10,000-candidate package and label-free preflight remain distinct evidence. This is presence-only, not chemistry or quality, and does **not** satisfy PR03/PR09 prerequisites or M-B's blinded 40-case fixture; M-B remains open. See LEAD v369/v370 and root `SCOPE.md` for receipts and limits.
-
-**M-I / L44 readiness update (2026-10-20):** a read-only preflight rechecked the prepared 200-case validation package's payload hashes, closed file inventory, frozen case/pool identities, and label firewall; six preflight tests and 21 benchmark/recovery tests pass. No network action was made, and this does not identify/verify a remote run or produce benchmark outputs. See LEAD v372 and the root package-preflight evidence note.
-
-**M-B / M-D / L44 preparation update (2026-10-20):** source-only GISMo top-50 candidate pools now cover all 10,729 frozen validation source cases (536,450 candidates). The independent verifier checks exact case/source joins, split and manifest hashes, candidate count/uniqueness/finite scores/order, closed inventory, and target-key exclusion; a separate full replay reproduces pool and manifest hashes byte-for-byte. The generalized verifier's unchanged default also accepts the preserved full-test pool at its original hashes; the combined focused suite passes 28/28. Artifacts and pinned model/source assets remain local-only; labels were not read or uploaded. This is input preparation only—not Senath inference, an evaluation, a method choice, or quality evidence. M-B still has rights, protocol and blinded-fixture gates; M-D/L44 still need inference outputs and all downstream acceptance. See LEAD v379 and root `ai/evidence/senath-inference/full-validation-source-only-gismo-pools-v1-20261020.md`.
-
-**M-B / M-D preparation update (2026-10-20; neither package is complete):** a new deterministic CPU builder produced 50 GISMo-ranked candidates for all 10,747 frozen, source-only test cases (537,350 candidates total), and a second complete build was byte-identical. The test-label pickle and local label frames were not opened; hashes bind the case frame, GISMo model/vocabulary/helper, and pinned FlavorGraph graph inputs. Exact row joins, 50 unique candidate IDs per case, finite logits, tie order, output inventory, and label-key exclusion verify; 8 focused tests pass. This is a source-only candidate-pool preparation artifact, not Senath inference, a benchmark result, method selection, or model-quality evidence. M-B still requires its blinded fixture and remaining rights/protocol gates; M-D/L44 still require arm outputs and inference. Evidence: LEAD v373–v374 and root `ai/evidence/senath-inference/test-source-only-gismo-pools-20261020.md`.
-
-**M-B synthetic fixture preparation (2026-10-21; M-B remains OPEN):** a local protocol-neutral synthetic-only fixture now contains 40 fabricated cases and three opaque arms. Its rater view uses opaque shuffled case/arm keys and omits method, rank, score, gold, stratum, sequential case identity, and source-order fields. Adversarial tests cover deterministic replay, toy gold inclusion, missing arms/metadata, duplicate candidates, insufficient explicitly parameterized toy strata, response-leak fields/content, and retained ambiguous identity. Generator SHA-256 `c9a6873de03d0dbd9fb8ab6295d316c0c1f5d809044183d51cb5620bbe5503d2`; corrected v2 fixture/receipt SHA-256 `f17b0adb361e06106aadc4a482622e6efbd0a787aa4ed3e4a3d4e638aa9fd189` / `33dd0a7d2c2a3e46ee03fbd24111f3b9a5019388b951ce682b70d3867f31da6e`; 13 focused tests pass. This is a plumbing subdeliverable only—not a blinded human fixture, real-data M-B, protocol decision, rights clearance, C1/C2 acceptance, or product evidence. PR03/PR09/PR15, real-data, ethics, and human-review gates remain open. Evidence and limitations are recorded in the research worktree at `ai/evidence/member-backlog/mb-synthetic-fixture-20261021-v2.md`; those files are local-only because the research checkout has no configured remote. See Lead v483.
-
-**M-I runner process-tree stop slice (2026-10-21; M-I remains OPEN):** timeout, operator interrupt, and unexpected runner exceptions now invoke best-effort termination of the runner-created process tree and record cleanup observations/errors. Thirty-nine focused tests pass, including Windows descendant-stop cases; POSIX runtime behavior remains unverified. Research source commit `01f819b15ddc3730e1b28fdca7c3af849fe74925`; evidence note/receipt are in that local-only research checkout. This does not provide a sandbox, provider cap, hostile-child containment, crash recovery, cross-platform approval, or confirmatory-job readiness. See LEAD v484.
-
-**M-I read-only reservation inspection (2026-10-21; M-I remains OPEN):** `--inspect-reservation <sha256>` reports a reservation, persisted output hashes, and receipt cross-checks without mutating or rerunning anything. Synthetic `RESERVED`/partial-output inspection returns `MANUAL_REVIEW_REQUIRED`; it does not infer that the runner is dead or authorize retry. Forty-three focused tests pass, including read-only byte preservation and terminal identity/inventory checks. Research source commit `4c89fe18b3f17414a37b669756f73826caa399bb`; evidence note/receipt remain local-only. Forced crash recovery, cross-platform independent review, provider-side hard caps, sandboxing, and confirmatory readiness remain unresolved. See LEAD v485.
-
-**No VLM/CLIP camera integration.** No "four trained models" UI. No behavioral learning dashboard. The bounded negatives chapter covers what didn't work.
-
-**Rights boundary (2026-10-20; M-F remains open):** official Recipe1M/GISMo pages inspected so far do not establish dataset-specific or per-case Recipe1MSubs reuse/redistribution permission. GISMo's code-license statement is not a dataset grant; per-case rights remain `UNKNOWN`. Preserve the actual registered access terms for the dataset/version used and map them to research, derived data, storage, and release—or keep case-level content out of release. See LEAD v371 and the bounded audit note in root `ai/evidence/senath-inference/`.
-
-## EPIC 1: Graph explorer infrastructure — IMPLEMENTED, coverage partial
-
-## Member Work Packages (from SSoT §17.2)
-
-Historical packages/estimates below remain for provenance. Apply current ownership above to unfinished execution, including linked L-parent portions; the original M-A through M-I estimates do not cover all newly assigned work.
-
-| ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
-|----|--------------------------|--------------|--------------|
-| **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed arrays are located and their recorded source hash matches; runtime artifact statistics and Round 0 reconciliation remain open. | Runtime artifact access and Round 0 definition | 10h |
-| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Interim v3 split/identity recount exists (LEAD v436; note in research commit `03ab020`), but raw test CSV/source-join reproduction and remaining M-B acceptance are open. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
-| **M-C** | **Explorer & evidence endpoint (flagged, shadow):** the additive endpoint is implemented and default-off. T-09 and T-12 pass narrowly; T-11 is partial; T-01–T-08 and T-10 remain open or partial per the §12.7 status table. Accepted-artifact rendering, calibration, allergy, and product acceptance remain incomplete. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
-| **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. **Artifact acceptance met locally (LEAD v469)**; recursive label firewall and strict ID/rank typing are regression-tested. Keep handoff/rights, historical tie-equivalence, and downstream L44 separate and open; they do not undo the local file-generation result. | M-B case frames; official GISMo checkpoint | 8h |
-| **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10 remains open; T-11 is partial; T-12 passes for suites covering the current FE and monolith graph slice. Act 3 and a network-isolated demo are not verified. | M-C Explorer; L38/L39 results | 12h |
-| **M-F** | **First-party recipe inventory & license check:** Count and license table. Number stated; unclear licenses marked `UNKNOWN`. | App access; legal review | 4h |
-| **M-G** | **Reconstruct the R01–R45 claims register from §15.1:** reconcile claim provenance and current Lead-item mappings; preserve unsupported rows as UNVERIFIED/OPEN/PARTIAL. No statuses inherit from the migration seed. | SSoT §15; source artifacts and reproductions | 6h |
-| **M-H** | **README & reproducibility kit:** One command from clean checkout to a main figure. Third person reproduces Table 1 on their machine. | All evidence + scripts | 8h |
-| **M-I** | **Job manifests & runner (fixture-tested):** independent implementation of the active §13.1–13.2 contract plus refusal/happy-path fixtures. The Appendix A reference code is not reusable unless PR15 is separately resolved. | Active §13.1–13.2 contract; no dependency on copying Appendix A | 6h |
-
-## EPIC 2: Evaluation dashboard shell — IMPLEMENTED, evidence contract partial
-
-## Critical Dependency Path (from SSoT §17.4)
-
-```
-L41 (raters/ethics) → L36 (audit) → L43 (judge) → L38 (calibration) → L45 (writing) → L46 (defense)
-         ↑                              ↑
-    M-B (pools)                   M-D (arm outputs) ← L44 (inference)
-M-A (graph truth) → M-C (Explorer) → M-E (demo)
-L42 (novelty) → L45 (claim wording)
-L39 (allergen) → L45
-```
-
-**Your blocking items:** M-A (unblocks M-C), M-B (unblocks L36/L38), M-D (unblocks L38/L44). Prioritize M-A → M-B → M-D → M-C → M-E.
-
-## EPIC 4: Camera scaffold — IMPLEMENTED, model capability open
-
-## Phase 1: Truth & Infrastructure (Weeks 0–2)
-
-### M-A: Graph & Coverage Truth (10h) — **START WEEK 0**
-> SSoT §12.1–12.3, §25.1 (P1)
-
-- [x] Locate actual seed arrays (`culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java`) — current file SHA-256 still matches the source-bound receipt in `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`; it describes 25 canonical ingredient source records and 59 directed substitution statements. This proves source location only, not current runtime inventory or Round-0 acceptance.
-- [x] Compute by-type nodes/edges, degree min/median/mean/max, isolates — source-only directed multigraph; provenance and scope in `evidence/member-ma-seed-graph-source-20261023/GRAPH_TRUTH.csv`.
-- [x] Verify degree-sum invariant appropriate to graph type (not blindly undirected) — in=59, out=59, total=118 for 59 directed statements; source-only evidence above.
-- [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
-- [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line) — the tracked Markdown scan found `output/sprints/2026-10-11/README.md:7`, which records 25 ingredients/four edges for that dated local screenshot package and explicitly says it is not an imported Lead graph. This is a historical demo claim, not current runtime or accepted graph truth.
-- [x] Emit source-only `GRAPH_TRUTH.csv` with source path/hash and an explicit source-only provenance label.
-- [ ] Emit `COVERAGE_CURVES.csv` only after the authoritative query cohort and denominator are available; the current report records `NOT_COMPUTED_NO_QUERY_COHORT_DENOMINATOR`.
-- [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
-
-### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**
-> SSoT §5.5, §25.2 (P2), Appendix A functions (review only, not mandatory)
-
-- [ ] Implement `build_strata.py`: GISMo primary identity, Senath secondary, seen/unseen (one frozen function on train/val/test), evidence_coverage (FooDB both-endpoints), cell key (seen\|unseen × profiled\|not)
-- [ ] Emit: `cases_val.jsonl`, `cases_test.jsonl`, `strata_counts.csv`, `identity_map.csv`, `manifest.json` (hashes + script git SHA)
-- [ ] Implement `build_pools.py` using `stratified_sample()` and `blinded_pool()` from Appendix A (do not reimplement)
-- [ ] **FIXTURE FIRST:** 40-case / 3-arm fixture → tests proving:
-  - (a) Rerun with same seed = identical
-  - (b) Rater view contains no arm name/rank
-  - (c) Gold appears in pool
-  - (d) Missing arm output fails closed
-  - (e) Per-stratum minimums honored
-  - Test duplicate candidates, insufficient strata, identity collisions, missing metadata
-- [ ] After fixture passes: run on real val/test case files; report actual counts/hashes
-- [ ] **Acceptance:** Regenerate bit-for-bit; pool builder deterministic; fixture tests pass
-
-### M-F: First-Party Recipe Inventory & License Check (4h) — **START WEEK 1**
-> SSoT §17.2 M-F, §10.8, U8
-
-- [ ] Count first-party ChefKix recipes available for private-Western cell
-- [ ] Record license per recipe/source
-- [ ] Mark unclear licenses `UNKNOWN`
-- [ ] **Acceptance:** Count + license table delivered; numbers stated
-
-## EPIC 6: Allergen safety UI — IMPLEMENTED surface, comparison open
-
-## Phase 2: Arms & Explorer (Weeks 2–4)
-
-### M-D: GISMo & Lookup Arm Outputs (8h) — **START WEEK 2**
-> SSoT §5.7, §13.3
-
-- [x] Generate ranked top-M (M=20) lists for GISMo released checkpoint on all val (10,729) + test (10,747) cases — local-only outputs in `ai/out/senath-m-d-gismo-top20-v1`; provenance in LEAD v465
-- [x] Generate lookup-frequency baseline ranked lists on the same cases — local-only source-only arm, deterministic count-descending / graph-ID-ascending tie rule; historical `torch.topk` tie equivalence remains unknown (LEAD v466)
-- [x] Emit `arm_outputs/gismo_val.jsonl`, `gismo_test.jsonl`, `lookup_val.jsonl`, `lookup_test.jsonl` — local package path and four SHA-256 values in `evidence/lead-md-arm-output-package-20261021.json` (LEAD v467/v469); files are not in the current synced repositories
-- [x] Verify determinism: package outputs and manifest replay byte-identically — all four payload hashes unchanged after validator hardening (LEAD v468/v469)
-- [x] **Local written-artifact acceptance:** every validation/test case is present and the package is deterministic (LEAD v469). This does not resolve rights/release, historical lookup tie equivalence, inference/evaluation, method comparison, or L44.
-
-### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
-> SSoT §12.2–12.7, §25.7 (P6)
-
-- [ ] Build `graph_eval_v4` (train-derived substitution evidence only; held-out rows never contribute edge evidence, but a held-out occurrence of a train-supported pair does not remove its valid train support) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
-- [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
-- [x] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — servlet-relative `/graph/evidence` under the `/api/v1` context; additive, read-only, default-off, and does not change `/suggest_substitutions` (context-path/auth regression in `application/src/test/java/com/chefkix/config/GraphEvidenceEndpointAuthenticationTest.java`)
-- [x] T295 FE presentation subdeliverable: display returned graph manifest SHA-256 and source split in recommendation/abstention states; omit null provenance and label the digest as returned provenance. Focused FE component suite passes 15/15. An opt-in recipe-panel caller and same-origin authenticated source-only proxy are also integrated and covered by fixture-backed route and headed browser checks. Manifest bytes, live research inference, recommendation quality, and acceptance remain unverified.
-- [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
-- [ ] Run acceptance tests T-01 through T-12 (§12.7) + existing suites covering touched code
-- [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
-
-> Progress (2026-10-22): the route-level `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED` gate defaults off and its disabled state makes no graph request. The FE rejects graph responses with missing node/edge arrays or blank/duplicate ingredient IDs. The remaining Explorer acceptance stays open because enabling the local preview still reads the legacy API; a real accepted hash-pinned graph artifact, provenance footer, tamper-refusal proof, and T-01–T-12 evidence are not yet integrated.
-
-### M-I: Job Manifests & Runner (6h) — **START WEEK 2**
-> SSoT §13.1–13.2 and §25.1. Appendix A/reference-code reuse is conditional on a separate PR15 resolution; an independently implemented runner may proceed without copying that code.
-
-- [ ] Implement the §13.1 manifest fields: job ID, script and hash, input paths and hashes, fresh output directory, maximum USD/calls/minutes, stop conditions, idempotency key, and freeze eligibility.
-- [ ] Implement an independent fail-closed runner: verify script/input hashes and eligibility before launch; enforce budgets/stop conditions; create a unique output directory; bind identities, outputs, exit status, spend/call/time counts, and logs in a receipt.
-- [ ] **FIXTURE FIRST:** Happy path plus refusal/stop fixtures for script or input hash mismatch, missing inputs, placeholder/invalid manifest fields, ineligible freeze, zero/exceeded budget, repeated idempotency key, output collision, nonzero child exit, API error rate >5%, judge invalid-output rate >2%, and missing required outputs.
-- [ ] **Acceptance:** Fixture tests pass; runner refuses bad manifests
-
-## EPIC 7: Feedback instrument — IMPLEMENTED, product evidence partial
-
-## Phase 3: Demo & Reproducibility (Weeks 4–6)
-
-### M-E: Demo Build & Test Suite (12h) — **START WEEK 4 (after M-C, L38/L39 results)**
-> SSoT §12.7–12.8, §25.7 (P6)
-
-- [ ] Record Act 3 from frozen files (side-by-side raw LLM vs filtered+calibrated on same input) — **not live API**
-- [ ] Implement T-10: demo runs with network disabled except API arms (recorded fallback exists)
-- [ ] Implement T-11: no secret in any log/response/artifact (scan clean)
-- [x] Implement T-12: all existing suites covering touched code still pass (report verbatim)
-- [ ] **Acceptance:** T-10, T-11, T-12 pass; recorded Act 3 loads; abstain panel reachable
-
-### M-G: Claims Register Artifact Reconstruction (6h) — **START WEEK 4**
-> SSoT §15, §25.5 (P5), §17.2 M-G
-
-- [ ] Start from the current 45-row §15.1 migration inventory; do not inherit the old seed's statuses, dates, dummy hashes, L-item mappings, or self-test claims.
-- [ ] Reconcile each row's claim wording, source provenance, citation, and actual Lead-item boundary. Find the primary local artifact where applicable, hash its actual bytes, and reproduce the claimed value before marking VERIFIED. Keep citations separate from local artifact hashes.
-- [ ] Write claim/evidence mismatches to `EVIDENCE_VS_CLAIM.csv`; never silently rewrite the empirical claim to fit a convenient artifact. Preserve unresolved items as UNVERIFIED/OPEN/PARTIAL and leave reproduction fields empty unless the row is VERIFIED under §15.
-- [ ] Run `python ai/tools/validate_claims_register.py <register.csv>` and record its output. A pass establishes schema/local-byte integrity only; it does not execute reproductions or prove claim truth. Do not generate a progress scoreboard from the seed or validator output.
-- [ ] **Acceptance:** all R01–R45 IDs are unique and complete; required fields, provenance, citations, paths, hashes, and status-specific reproduction requirements validate; every mismatch is documented; no status exceeds its actual evidence. L48 stays open until lead review accepts the reconciled register.
-
-### M-H: README & Reproducibility Kit (8h) — **START WEEK 6**
-> SSoT §17.2 M-H, §24.3
-
-- [ ] One-command script from clean checkout → main figure (collapse map or cost-of-trust)
-- [ ] Third-person clean-machine reproduction test (documented)
-- [ ] README: data sources, licenses, how to run each pipeline, artifact locations, freeze dates
-- [ ] **Acceptance:** Third person reproduces Table 1 on their machine
-
-## EPIC 8: Photo intelligence — ADAPTERS IMPLEMENTED, accepted models blocked
-
-## Phase 4: Parallel Support (Ongoing)
-
-### Overnight Factory Jobs (from SSoT §13.5)
-> Eligible for unattended runs (idempotent, hash-logged, stop conditions):
-
-| Job | Inputs | Output | Stop Condition |
-|-----|--------|--------|----------------|
-| Strata/identity regeneration | Official splits | `cases_*.jsonl`, `strata_counts.csv`, manifest | Count mismatch |
-| Candidate pool builder | Arm outputs, audit sample | Blinded pools + private key | Missing arm output |
-| Arm inference (rank arms) | Cases | Top-M lists | Missing case, nondeterminism |
-| Arm inference (API) | Cases, key | Top-M lists + call logs | Cost cap, error rate >5% |
-| Judge labeling | Pools | Judgments JSON | Invalid rate >2%, cost cap |
-| Calibration + diagnostics | Val labels | `t̂` tables (`t-hat tables`, `t_hat`), diagnostics | Any diagnostic flag (no auto-continue) |
-| Coverage curves | Adjudicated identities | `COVERAGE_CURVES.csv` | Identity hash mismatch |
-| Graph build + verifier | Sources | Two artifacts + stats | Provenance gap |
-| Novelty query runner | Query list | Hashed raw responses | Rate limits hit repeatedly |
-
-**Morning review (10 min daily):** Receipt present, exit status, spend vs cap, stop conditions, diagnostics, row counts, warnings. **You decide; factory does not.** See §13.8 for the canonical review policy.
-
-## EPIC 10: Graph with real data — BOUNDED API IMPLEMENTED, import pending
-
-## Acceptance Test Checklist (from SSoT §12.7 — all must be automated/scripted)
-
-| ID | Test | Pass Condition | Status (2026-10-23) |
-|----|------|----------------|--------------------|
-| T-01 | Two distinct train rows support a directed pair and a held-out row repeats it: retain train support count 2; held-out provenance contributes no edge evidence; known-node and seen-pair remain distinct | 0 held-out evidence leaks; valid train support retained | **OPEN** — no authoritative upstream row-level split receipt or source builder is available here. |
-| T-02 | Rebuild from sources reproduces both artifacts bit-for-bit | Hashes equal | **OPEN** — rebuildable source inputs and accepted artifact pair are unavailable. |
-| T-03 | Explorer loads with real artifact, hash shown | Visible hash | **OPEN** — the FE preview still reads the legacy API, not the accepted hash-pinned product artifact. |
-| T-04 | Explorer with tampered artifact refuses render | Refusal message | **PARTIAL** — Monolith `VerifiedGraphArtifactLoaderTest` passed 6/6, including mismatched manifest pins and tampered-output refusal. FE `graphExplorerService.test.ts` passed 20/20, and the headed Graph Explorer browser case passed on desktop and iPhone-sized Chromium (2/2); a mismatched expected/observed fingerprint shows the unavailable state and no hash or decision. Browser API responses are fixtures, and the Explorer product map still reads the bounded legacy API; no accepted graph-product artifact/route is installed, so artifact-backed render refusal remains unverified. Receipt: `evidence/member-mc-tampered-fingerprint-20261023.json`. |
-| T-05 | Unknown ingredient → "not in graph", no invented node | Verified | **PARTIAL** — fixture-backed cases and a live local legacy-API browser search for `unlisted spice` show “not in the current graph,” with no fabricated node; verification against the canonical graph artifact remains open. |
-| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | 0 vacuous cases shown | **OPEN** — no accepted per-cell calibration artifact is configured. |
-| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | No show outside the gate | **OPEN** — the current shadow provider always abstains; no reviewed calibrated show rule is integrated. |
-| T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Unknown candidate withheld | **OPEN** — accepted allergen evidence and the real graph-backed request path are unavailable. |
-| T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty | **PASS** — FastAPI route comparison returned identical product response data with the request-scoped graph-preflight flag off/on and no research marker; only the mocked Gemini path was invoked. This proves this route invariant, not live deployment behavior. |
-| T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified | **PARTIAL** — headed system Chrome on desktop and iPhone-sized Chromium passed the fixture-backed network gate; a separate live local FE-to-Monolith run also passed against isolated legacy seed data. The recorded Act 3 and deployed/accepted-artifact run remain unavailable. Screenshots and receipts: `evidence/member-t10-network-isolated-graph-demo-20261023/` and `evidence/member-mc-live-graph-20261023/`. |
-| T-11 | No secret in any log/response/artifact | Scan clean | **PARTIAL** — provider exception response and FE error presentation pass sentinel regressions; captured build/test outputs contain no sentinel. A local graph response was rendered from isolated legacy seed data, but no full Act 3/demo output inventory scan or live error-path scan was performed; see `evidence/member-t11-error-output-20261023.json` and `evidence/member-mc-live-graph-20261023/`. |
-| T-12 | All existing suites covering touched code pass | Report verbatim | **PASS for the recorded affected suites; this is not graph-product acceptance.** FE PR #84 (`64ad156`) merged at `3837b171a8e33d115312c617dd2911012a8954a4`; FE PR #85 (`ac1d414`) merged at `e768911b58709feb60937b9b4aef46c374b77ac5`; both build checks passed. Latest full FE Jest: 214 suites / 868 tests, 1 skipped; the feature-enabled production build/type validation and changed-file ESLint/Prettier passed. Headed Graph Explorer browser tests passed 18/18 with 2 expected flag-off skips across desktop and iPhone-sized Chromium; the regression verifies responsive canvas fit and controls outside the map. Both live FE-to-Monolith cases ran with route interception off; the local legacy API returned 25 nodes / 5 edges. Earlier FE full Jest at `819f1bb` recorded 214 suites / 867 tests, 1 skip; the default-off build/browser check passed on both viewports. Monolith full Maven at `be62cf8`: 375 tests across 86 Surefire reports, 0 failures/errors, and 2 skips; verified artifact loader passed 6/6 at `2f78046`, and PR #43's Maven reactor CI passed before the current docs/evidence-only merge at `b9b841f`. Latest AI-service run in `evidence/member-social-group-metadata-20261023.json`: 546 tests passed, 11 skipped, 28 warnings, 77% coverage. No accepted graph artifact or live research credential is configured. This does not close M-C artifact acceptance, T-10 Act 3, T56/L44, or the full T-11 inventory scan. |
-
-- [x] G2: `/thesis` maps all 14 Lead chapters, replacing retired member numbering.
-- [x] Compound → 8; safety → 9; photo → 11; architecture → 12; behavioral/evaluation → 13. Remaining chapters have explicit Lead handoff entries.
-- [x] Unique artifact IDs and pending source-dependent captures; ready-to-capture is not completed evidence.
-- [ ] G9: obtain canonical strategy/atomic ledger, audit captions and capture real-source figures/screenshots.
-- [ ] G9: deployed regions/URLs, source fingerprints, auth/quotas/recovery and measured costs; no $0 claim from a plan.
-- [ ] G9: ethics/recruitment/user study, independent allergen/image reviews and recorded/scored defense rehearsal are human/Lead dependencies.
-- [ ] Reconcile preserved sprint drafts before submission. They are schedule drafts, not current completion evidence.
-
-## Evidence Integrity Rules (same as Lead)
-
-- Never mark COMPLETE because code was written — require executable evidence.
-- Never compare cancelled run or paper number to locally executed result.
-- Never report metric without dataset, split, protocol version, seed count.
-- Negative results are thesis contributions — report honestly.
-- Every number carries a claim ID. Unverified = say so.
-- Fixture-test before real data. Durable scripts in approved files. Full paths, `-LiteralPath`.
-- Label numbers: `COMPUTED_NOW`, `QUOTED_FROM_ARTIFACT` (path/key), or `UNVERIFIED`.
-
-Contract/check: frontend `docs/epic-12-voice-vision-copilot.md`, `src/features/voice-copilot/__tests__/voiceCopilotService.test.ts`.
-
-## Appendix: Mapping from v3 Member Backlog (for reference only)
-
-| v3 Epic | v4 Treatment |
-|---------|--------------|
-| EPIC 1 (Graph Explorer) | M-C (real-data Explorer, feature-flagged, hash-pinned) |
-| EPIC 2 (Eval Dashboard) | M-E (demo) + thesis figures regenerated from scripts |
-| EPIC 3 (Allergen Onboarding) | Separate product work; not thesis contribution |
-| EPIC 4 (Camera Scaffold) | Retired — no VLM/voice in v4 |
-| EPIC 5 (Compound UI) | C5 product proof: evidence endpoint shows compound presence (presence only, not flavor) |
-| EPIC 6 (Allergen Killshot UI) | C5: evidence endpoint + Explorer show allergen flags + abstention |
-| EPIC 7 (Feedback Instrument) | Separate product work; behavioral learning not a thesis contribution |
-| EPIC 8 (Photo Pipeline) | Retired — photo chain is bounded negative (179/783 correct) |
-| EPIC 9 (Eval Dashboard Wire) | M-E + thesis figure regeneration |
-| EPIC 10 (Graph Explorer Wire) | M-C |
-| EPIC 11 (Thesis Screenshots) | M-H reproducibility kit; figures regenerate from scripts |
-| EPIC 12 (Voice Copilot) | Retired — Tier C, not in v4 scope |
+| M-A | Graph artifact construction/validation; provenance, counts and coverage; serving-input packaging | Source seed statistics exist. Accepted source-bound runtime artifact, correct split/identity provenance and relevant coverage denominators remain open |
+| M-B | Source/schema/identity engineering, deterministic frames/pools, blinded audit material, reference/filter/crosswalk validation for L36/L37/L38/L40 | Source-only pools and bounded identity receipts exist. Complete actual frozen source joins/unknown semantics and bit-identical regeneration; do not guess aliases or drop failures |
+| M-C | Cross-stack endpoint/Explorer/evidence integration, configuration/auth contracts and regression/runtime proof for C5 | Default-off endpoint and FE consumer exist. Accepted artifact/calibration, real rendering and complete T-01-T-12 coverage remain incomplete |
+| M-D | Maintain/reproduce deterministic GISMo and lookup val/test outputs and matched result handoff for L38/L44 | Local deterministic file-generation acceptance exists. Preserve it; rights/handoff, historical tie equivalence and downstream matched-arm acceptance remain separate |
+| M-E | Dev-ops, authorized demo/test data, authenticated browser path, network/failure/recovery evidence, recorded demo and backup for C5/L46 | Fixture and legacy-data browser evidence exists. Accepted-artifact Act 3/product demo, complete inventory/privacy review and actual rehearsal remain open |
+| M-F | Source inventory, public access/terms research, source-acquisition packaging and prepared institutional/source requests for L40/L41 | Record exact source/version/terms and explicit UNKNOWNs. HUMAN-only applications, consent and rulings cannot be simulated |
+| M-G | Reconstruct R01-R45 evidence register, source/hash links, mechanical crosswalk and candidate dispositions for L48 | Preserve unverified/partial rows and mismatch ledger. Validate schema/bytes and reproduce the actual claim before proposing VERIFIED; LEAD adjudicates scientific status |
+| M-H | Reproducibility kit, figures/tables, methods/evidence appendix drafts, references, formatting, document/release build for L45/L47 | Produce one clean-checkout command and documented third-person reproduction. Drafts and production work do not substitute for LEAD's argument or accepted results |
+| M-I | API/benchmark/job orchestration, cost/accounting/recovery and frozen calibration/statistical implementation for L38/L39/L43/L44 | Reuse existing runner/journal/cost helpers and recovered diagnostic. Complete only missing executable boundaries; no extra provider caller, training or remote retry without the actual contract |
+
+## Next Execution Packages
+
+| Priority | Owner / package | Finish condition and handoff |
+| --- | --- | --- |
+| 1 | M-B/M-F: current source/identity/reference input | Reconcile newly found local/official artifacts with frozen source hashes and permissions; deliver exact schema/join/unknown findings and the permitted fetchable package. LEAD resolves scientific semantics |
+| 1 | M-C/M-E: real artifact-to-browser path | Close the exact eligible runtime criterion on the current default source. Verify an existing authorized session/configuration before requesting a precise sign-in or fixture handoff; do not manufacture login or enable a rejected artifact |
+| 2 | M-I: remaining C2/analysis executable boundary | Consume existing reviewed runner/projection WIP, finish missing checks and integrate one coherent package. Real provider calls remain gated on actual capacity, transfer rights and the frozen release/attempt rules |
+| 2 | M-G/M-H: usable evidence/writing production | Publish permitted register/table/figure/reproduction inputs and candidate results at source commits; LEAD performs bounded claim/argument review |
+
+An unavailable source or session blocks its actual operation, not all independent work. Do not repeat a completed source scan, mock/refusal suite or benchmark recovery to fill time. Show the changed dependency or stop that support lane. An active collaborator's package cannot be silently duplicated by LEAD workers.
+
+## Acceptance Details
+
+### M-A / M-B: Inputs And Graph
+
+- Keep canonical source names, release hashes, split/row identity, allowed data scope and transformation revision.
+- Distinguish known node, seen pair and exact ingredient-slot identity. Preserve ambiguous/unresolved rows and their denominator.
+- Build graph evidence only from authoritative train-row provenance; legitimate cross-split pair overlap is not held-out supervision.
+- Rebuild accepted artifacts bit-for-bit under the actual authorized build contract. Keep labels/pools/private rater keys out of public/shared outputs.
+- Verify frames/pools deterministically, including insufficient strata, duplicate candidates, identity collision, missing metadata/arms, gold inclusion without forced acceptance, and arm/rank-blind rater material.
+- Appendix A is a review reference, not a requirement to copy an unvalidated implementation. Follow the accepted active contract.
+
+### M-C / M-E: Product Proof
+
+| Criterion | Current scope and remaining proof |
+| --- | --- |
+| T-01 Train provenance | OPEN: authoritative upstream row/split binding; no held-out evidence leaks |
+| T-02 Rebuild | OPEN for accepted artifacts: exact source-built artifact pair reproduces |
+| T-03 Artifact render | OPEN: real accepted artifact rendered with visible recomputed/bound hash |
+| T-04 Tamper refusal | PARTIAL: loader/mock/browser and real provisional-bundle refusal evidence exist; accepted-product render path remains unproven |
+| T-05 Unknown identity | PARTIAL: no-invented-node and retained-error behavior have evidence; canonical accepted graph behavior remains open |
+| T-06 Vacuous cell | OPEN: accepted calibration drives abstention; no fabricated entry/confidence |
+| T-07 Supported show | OPEN: endpoint/consumer guards alone do not prove a calibrated show path; enforce exact frozen status/cutoff |
+| T-08 Allergy unknowns | OPEN at accepted graph-backed boundary: withhold unsupported candidates and preserve unknown/cross-contact limitations |
+| T-09 Isolation | PASS narrowly for existing suggestion-route flag isolation; wider Explorer/domain-data non-mutation runtime remains open |
+| T-10 Demo | PARTIAL: fixture and legacy-data network/runtime checks exist; accepted-artifact Act 3/recorded backup and required walkthrough remain open |
+| T-11 Privacy inventory | PARTIAL: sentinel/log/response fixes and bounded scans exist; complete actual demo/log/artifact inventory remains open |
+| T-12 Regressions | PASS for recorded affected suites only; rerun checks affected by new source/runtime changes, not every unchanged history edit |
+
+Keep unsupported research functionality default-off/refusing. Do not present fixture or legacy-seeder evidence as accepted scientific-artifact runtime. Preserve typed abstention, error non-disclosure and legacy-route behavior.
+
+### M-D / M-I: Experiment Execution
+
+- Use exact frozen model/cohort/serializer/scoring contracts and matched case IDs; retain explicit errors and fixed denominators.
+- Reuse existing manifests, request/journal, accounting and recovery implementations. Bind actual inputs/outputs and preserve per-case attempt limits.
+- Use meaningful independent expected results: shared constants alone cannot prove compatibility with the real protocol/artifact.
+- Fixture-test success, failure, missing/hash-mismatched inputs, budget/call-cap refusal, interruption and checkpoint recovery. Reconcile uncertain remote execution before retry.
+- Local conditional planning is different from verified affordability or dispatch. No actual call, reservation, upload, GPU job or source transfer occurs without its governing authority/capacity/evidence.
+- Calibration implements the frozen recorded-gold reference, filter/rank/set, infinity/failure/tie and all-cell rules. Synthetic agreement does not satisfy real-cell agreement or human validity.
+
+### M-F / M-G / M-H: Evidence Production
+
+- Inventory permitted source/license metadata and prepare exact missing-access/terms questions; public information research is MEMBER work.
+- Keep source/code license scope separate from dataset/derived-artifact/processor transfer permissions.
+- For the register, retain unique R01-R45 IDs, provenance/citations, actual paths/hashes, evidence ceilings and status-specific reproduction. Record mismatches instead of rewriting the claim to fit an artifact.
+- A structural validator does not prove claim truth. Keep unsupported reproduction fields empty; no seed-derived scoreboards.
+- Reproducibility includes sources/licenses, pipeline commands, actual artifact locations, freeze versions and a clean-checkout path to accepted figures/tables.
+- Independent human/third-person reproduction and LEAD's scientific review remain actual gates.
+
+## Current Evidence Pointers
+
+These are scope-bound receipts, not whole-package completion:
+
+| Evidence | Location / limitation |
+| --- | --- |
+| Seed graph source counts/invariants | `evidence/member-ma-seed-graph-source-20261023/`; source-only, not accepted runtime graph |
+| Safe loader/readiness audit | `evidence/member-ma-graph-rag-loader-audit-20261023.json`; missing graph/architecture compatibility still prevents serving |
+| Legacy graph browser smoke | `evidence/member-mc-live-graph-20261023/`; legacy seed data, not accepted product artifact |
+| Suggestion flag isolation | `evidence/member-t09-substitution-flag-contract-20261023.json`; narrow route differential only |
+| Error-output privacy | `evidence/member-t11-error-output-20261023.json`; bounded sentinel/output inventory |
+| Latest moderation privacy | `evidence/member-social-moderation-log-redaction-20261024.json`; local regressions/suites, live authenticated story publish unverified |
+| FE cutoff consumer | FE default commit `42d3ba339b4c83d79c935fb15e5ca943e5cebd4b`; default-off contract checks, not C5 acceptance |
+
+Fetch the owning source repository before using a receipt. A source-only/local report does not prove deployment, model quality, source rights, clinical safety or human usefulness.
+
+## Effort And Maintenance
+
+The old nine-package 91-hour budget excludes the engineering portions now assigned from L36-L48; it is not current remaining capacity. Re-estimate unfinished execution from actual receipts, with LEAD decision/review time, external-human labor and elapsed waiting separate. Deduct completed and overlapping work; publish the remaining estimate per owning package without inventing totals.
+
+Update these rows and evidence links in place. Detailed pre-consolidation chronology, old estimates and sprint material are preserved at monolith commit `6884b5975c39df0c0d43a149f2c19bc4ff3f7281`: `git show 6884b5975c39df0c0d43a149f2c19bc4ff3f7281:BACKLOG_MEMBER.md`. Git retains recovery; no manual archive copy is needed.
