@@ -1,5 +1,28 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+## Current LEAD/MEMBER Ownership - HUMAN Direction, 2026-10-24
+
+MEMBER owns the implementation and operational workload under LEAD-approved scientific contracts, including remaining execution portions of L-items below. This expands ownership beyond the historical 91-hour plan; it adds no scientific requirement and marks nothing complete. LEAD retains research design, estimands/protocol decisions, interpretation, thesis argument and final acceptance. This HUMAN direction supersedes older personal-execution assumptions while preserving actual scientific/access/resource gates.
+
+| Existing MEMBER owner | Complete execution package | LEAD responsibility retained |
+| --- | --- | --- |
+| M-A | Graph construction/validation, provenance/coverage diagnostics and serving-input preparation under frozen identity/split rules | Scientific graph/identity interpretation and artifact acceptance; no guessed identity repair |
+| M-B | Source/schema/identity engineering, frames/pools, blinded packs and authorized reference/filter/crosswalk validation | L36/L37/L38/L40 sample/reference semantics and scientific interpretation; real raters remain independent |
+| M-C | FE/BE/API integration, contract corrections, auth/config boundaries, Explorer/evidence UI and runtime/regression proof | C5 interface/scientific evidence requirements and final acceptance |
+| M-D + M-I | Arm/API/benchmark orchestration, cost/accounting/recovery, frozen calibration/analysis implementation and reproducible result tables | L38/L39/L43/L44 estimands, method choice, resource authority and interpretation |
+| M-E | Dev-ops, authorized demo/test data, authenticated browser evidence, cross-stack QA, failure/recovery and demo/backup packaging | C5/L46 acceptance; actual human walkthrough/rehearsal cannot be simulated |
+| M-F + M-B | Source inventory, public access/terms investigation, acquisition/schema packaging and prepared source/institutional requests | L40/L41 source/method choices; human-only applications, consent and institutional/legal decisions remain with their owners |
+| M-G | Claims-register reconstruction, source/hash links, mechanical reconciliation and candidate evidence dispositions | L48 final claim adjudication and evidence ceiling |
+| M-H | Reproducible figures/tables, clean-checkout kit, methods/evidence appendix drafts, citations/formatting, document build and release preparation | L45/L47 scientific narrative, conclusions, authorship/publication choices and final review |
+
+Finish each execution package through implementation, required checks, coherent default-branch integration and evidence-linked handoff. Choose routine engineering details without repeated LEAD permission. Keep one execution owner/write scope, baseline and finish condition. Escalate changed scientific semantics or actual authority/resource boundaries; an L-parent ID does not return its engineering chores to LEAD. Preserve required independent review and data/exposure/attempt limits.
+
+Fetch the verified default branch at task start and before integration/push. Incorporate collaborator changes after checking local/index state; preserve unrelated edits, fast-forward when safe and reconcile overlap. Push coherent accepted commits promptly to that default, then fetch/verify publication and divergence. Do not accumulate completed work on private branches or require PR ceremony contrary to the direct-default policy. Respect actual branch protection; never force-push shared history; serialize conflicting writers/checkouts. Workspace Git and product Git are separate scopes.
+
+First reconcile current WIP and receipts. Prioritize available source-input/identity work and missing real artifact-to-browser/runtime evidence over another completed mock/refusal audit. Do not restart existing API runners, inventories or completed safety tests. If the real artifact is unavailable, identify which runtime subcriterion can advance and which remains blocked; keep unsupported features off.
+
+Re-estimate unfinished packages only, separating MEMBER execution, LEAD decisions/review, real external-human labor and waiting. Existing M-D/M-B/M-G/M-H/M-I receipts reduce remaining work; do not charge them again through a transferred L-item. Publish the revised remaining estimate with assumptions/dependencies before quoting a new total. The historical 327/91 split is not remaining capacity; no fabricated replacement total is adopted here.
+
 ## Member integration checkpoint — 2026-10-24
 
 ### Social moderation error-log privacy (2026-10-24)
@@ -632,6 +655,8 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 ## EPIC 1: Graph explorer infrastructure — IMPLEMENTED, coverage partial
 
 ## Member Work Packages (from SSoT §17.2)
+
+Historical packages/estimates below remain for provenance. Apply current ownership above to unfinished execution, including linked L-parent portions; the original M-A through M-I estimates do not cover all newly assigned work.
 
 | ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
 |----|--------------------------|--------------|--------------|

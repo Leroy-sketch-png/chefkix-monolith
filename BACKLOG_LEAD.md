@@ -1,5 +1,15 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## Current LEAD/MEMBER Ownership - HUMAN Direction, 2026-10-24
+
+The HUMAN requires regular collaboration through each repository's verified default branch and rebalances execution toward MEMBER. LEAD owns research questions, scientific/protocol decisions, prioritization, interpretation, thesis argument and final acceptance. MEMBER owns substantial end-to-end implementation, experiment operations, integration, QA/demo operations, evidence production and reproducibility inside approved contracts. LEAD stays hands-on for major research problems; it does not absorb routine engineering because a research lane is blocked.
+
+L-items remain parent research outcomes, not a requirement that LEAD implement every part. The assignment matrix is in [MEMBER ownership](BACKLOG_MEMBER.md#current-leadmember-ownership---human-direction-2026-10-24). Transfer remaining execution as complete packages to existing M-items with inputs, write scope and acceptance. Preserve statuses, reconcile active work first and do not count reassignment as delivery. MEMBER chooses reversible engineering details; LEAD reviews material scientific/integration boundaries rather than approving each small step. Authors cannot supply their own required independent review.
+
+Fetch the verified default branch at task start and before integration/push. Incorporate collaborator changes after checking local/index state; preserve unrelated edits, fast-forward when safe and reconcile overlap. Push coherent accepted commits promptly to that default, then fetch/verify publication and divergence. Do not accumulate completed work on private branches or require PR ceremony contrary to the direct-default policy. Respect actual branch protection; never force-push shared history; serialize conflicting writers/checkouts.
+
+Historical 327 LEAD / 91 MEMBER hours are full-source estimates, not remaining effort or the new allocation. Re-estimate unfinished work from current receipts: LEAD decisions/review, MEMBER execution, external-human labor and elapsed waiting separately. Reuse overlapping M-B/M-G/M-H/M-I work instead of counting it twice. MEMBER should carry the majority of remaining executable work; balance actual capacity and critical-path load rather than inventing a reassuring hour ratio. Scientific ownership stays with LEAD when implementation moves.
+
 ## LEAD v526 — Integrate reviewed FE cutoff guard receipt (2026-10-24)
 
 - FE `main` now contains commit `42d3ba339b4c83d79c935fb15e5ca943e5cebd4b` (`fix(research): require supported graph cutoff`), directly pushed after fetch and verified at 0/0 divergence. The four-path scope adds the default-off `graph-evidence-v2` consumer cutoff check and keeps v1 abstention-only. Focused consumer suite: 36 passed; typecheck, lint, and scoped diff check passed.
@@ -2687,6 +2697,8 @@ DPO Segment 5 version 1 remains transactionally verified at exact step 174/261 w
 ---
 
 ## Work Packages (from SSoT §17.1 — Lead Items)
+
+These are parent-outcome and historical effort records. Apply current ownership above to remaining implementation; the Effort column is not LEAD-only remaining labor.
 
 | ID | Deliverable / Acceptance | Dependencies | Effort | Fallback (proposal; HUMAN decision required) |
 |----|--------------------------|--------------|--------|----------|
