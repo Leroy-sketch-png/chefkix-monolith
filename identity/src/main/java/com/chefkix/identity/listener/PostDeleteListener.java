@@ -43,7 +43,8 @@ public class PostDeleteListener {
       statisticsService.incrementCounter(event.getUserId(), "totalRecipesPublished", -1);
     } catch (Exception e) {
       idempotencyService.removeProcessed(event.getEventId(), POST_DELETED_IDEMPOTENCY_SCOPE);
-      log.error("Failed to process PostDeletedEvent for userId={}, eventId={}: {}", event.getUserId(), event.getEventId(), e.getMessage(), e);
+      log.error("Failed to process PostDeletedEvent for userId={}, eventId={} ({})",
+          event.getUserId(), event.getEventId(), e.getClass().getSimpleName());
       throw e;
     }
   }

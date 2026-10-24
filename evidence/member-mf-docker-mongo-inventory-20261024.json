@@ -1,0 +1,57 @@
+{
+  "record_type": "read_only_docker_recipe_inventory_probe",
+  "observed_on": "2026-10-24",
+  "backlog_item": "M-F: First-Party Recipe Inventory & License Check",
+  "operation": "authenticated metadata and aggregate count queries only; no recipe documents or user identifiers returned",
+  "container": {
+    "name": "chefkix-mongo",
+    "image": "mongo:7.0",
+    "state_before_probe": "exited",
+    "state_after_probe": "running_healthy",
+    "host_port": 27017,
+    "persistent_data_mount": "/data/db"
+  },
+  "connection": {
+    "source": "Monolith local .env MONGODB_URI",
+    "host": "localhost",
+    "port": 27017,
+    "database": "chefkix",
+    "auth_source": "admin",
+    "credential_presence": "configured locally; matched container initialization credentials; values not recorded",
+    "authenticated": true,
+    "read_only": true
+  },
+  "inventory": {
+    "recipe_collection": "recipes",
+    "recipe_count": 44,
+    "recipe_visibility_counts": {
+      "PRIVATE": 2,
+      "PUBLIC": 42
+    },
+    "recipe_status_counts": {
+      "DRAFT": 2,
+      "PUBLISHED": 42
+    },
+    "user_id_present": 44,
+    "cuisine_type_present": 44,
+    "top_level_source_or_license_fields_found": false,
+    "first_party_private_western_count": null,
+    "per_recipe_license": "NOT_ASSESSED"
+  },
+  "other_container_disambiguation": {
+    "name": "codex-chefkix-graph-mongo",
+    "host_port": 27018,
+    "database": "chefkix_codex_graph_smoke",
+    "recipe_count": 0,
+    "purpose": "isolated graph smoke database; not the application's chefkix database"
+  },
+  "disposition": "PARTIAL_INVENTORY_COUNT_ONLY",
+  "limitations": [
+    "The running Mongo container initially found at port 27018 is a smoke database; its recipes collection is empty.",
+    "The application container chefkix-mongo had been stopped. It was started and completed WiredTiger recovery before the authenticated read-only probe.",
+    "All 44 recipe records have a userId, but that field alone does not establish first-party ownership.",
+    "No explicit top-level source or license fields were found; source/license rights and the private-Western eligibility rule remain unresolved.",
+    "No recipe content, titles, ingredient lists, user identifiers, credentials, or other document values were exported."
+  ],
+  "next_step": "Apply the canonical first-party and private-Western definitions, then obtain source/license provenance per eligible recipe or keep unclear terms UNKNOWN."
+}

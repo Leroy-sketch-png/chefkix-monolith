@@ -1,5 +1,9 @@
 package com.chefkix.social.chat.service;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -137,6 +142,98 @@ class ChatMessageServiceTest {
 
         verify(chatMessageRepository, never()).save(any(ChatMessage.class));
         verify(conversationLookupService, never()).findById("conversation-1");
+    }
+
+    @Test
+    void createDoesNotLogSharedPostContentOrSignedMediaUrl() {
+        String conversationId = new org.bson.types.ObjectId().toHexString();
+        String recipeTitle = "private-recipe-title-72aef";
+        String signedImageUrl = "https://cdn.example/private-image.jpg?token=secret-937bd";
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId(conversationId)
+                .type(MessageType.POST_SHARE)
+                .relatedId("post-1")
+                .build();
+        Conversation conversation = Conversation.builder()
+                .id(conversationId)
+                .participants(List.of(ParticipantInfo.builder().userId("user-1").build()))
+                .build();
+        ChatMessage mappedMessage = ChatMessage.builder().conversationId(conversationId).build();
+
+        when(postService.getPostDetail("post-1")).thenReturn(com.chefkix.social.api.dto.PostDetail.builder()
+                .photoUrls(List.of(signedImageUrl))
+                .recipeTitle(recipeTitle)
+                .build());
+        when(contentModerationProvider.moderate("Post shared: " + recipeTitle, "chat"))
+                .thenReturn(ContentModerationProvider.ModerationResult.approved());
+        when(conversationLookupService.findById(conversationId))
+                .thenReturn(java.util.Optional.of(conversation));
+        when(profileProvider.getBasicProfile("user-1")).thenReturn(BasicProfileInfo.builder()
+                .userId("user-1")
+                .displayName("Test User")
+                .build());
+        when(chatMessageMapper.toChatMessage(request)).thenReturn(mappedMessage);
+        when(chatMessageRepository.save(any(ChatMessage.class))).thenAnswer(invocation -> {
+            ChatMessage message = invocation.getArgument(0);
+            message.setId("message-1");
+            return message;
+        });
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ChatMessageService.class);
+        Level originalLevel = logger.getLevel();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.setLevel(Level.DEBUG);
+        logger.addAppender(appender);
+        try {
+            ChatMessageResponse response = service.create(request);
+
+            assertThat(response.getSharedPostTitle()).isEqualTo(recipeTitle);
+            String loggedText = appender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .reduce("", (left, right) -> left + "\n" + right);
+            assertThat(loggedText)
+                    .doesNotContain(recipeTitle)
+                    .doesNotContain(signedImageUrl)
+                    .doesNotContain("Post shared: " + recipeTitle);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+            logger.setLevel(originalLevel);
+        }
+    }
+
+    @Test
+    void createDoesNotLogPostIdentifierOrProviderExceptionMessage() {
+        String postId = "private-post-id-3a8c1";
+        String providerMessage = "private-provider-response-4b6d2";
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId("conversation-1")
+                .type(MessageType.POST_SHARE)
+                .relatedId(postId)
+                .build();
+        when(postService.getPostDetail(postId)).thenThrow(new IllegalStateException(providerMessage));
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ChatMessageService.class);
+        Level originalLevel = logger.getLevel();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.setLevel(Level.DEBUG);
+        logger.addAppender(appender);
+        try {
+            assertThatThrownBy(() -> service.create(request)).isInstanceOf(AppException.class);
+
+            String loggedText = appender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .reduce("", (left, right) -> left + "\n" + right);
+            assertThat(loggedText)
+                    .doesNotContain(postId)
+                    .doesNotContain(providerMessage);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+            logger.setLevel(originalLevel);
+        }
     }
 
     @Test

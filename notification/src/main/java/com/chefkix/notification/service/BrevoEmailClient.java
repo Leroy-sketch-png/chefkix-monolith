@@ -36,7 +36,7 @@ public class BrevoEmailClient {
             log.warn("=========================================================");
             log.warn("[BREVO] WARNING: BREVO_API_KEY is not set or empty.");
             log.warn("[BREVO] Email sending is DISABLED for this session.");
-            log.warn("[BREVO] OTPs will be printed to the console log instead.");
+            log.warn("[BREVO] Email requests will be dropped until an API key is configured.");
             log.warn("[BREVO] Set BREVO_API_KEY in .env to enable real emails.");
             log.warn("=========================================================");
         } else {

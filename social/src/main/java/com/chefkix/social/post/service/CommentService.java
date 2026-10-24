@@ -153,7 +153,8 @@ public class CommentService {
           kafkaTemplate.send("comment-delivery", event);
           log.debug("Comment notification sent for comment {} on post {}", comment.getId(), post.getId());
       } catch (Exception e) {
-          log.error("Failed to send comment notification", e);
+          log.error("Failed to send comment notification ({})",
+                  e.getClass().getSimpleName());
       }
   }
 
@@ -168,7 +169,8 @@ public class CommentService {
                     .build();
             kafkaTemplate.send("xp-delivery", xpEvent);
         } catch (Exception e) {
-            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+            log.error("Failed to send social XP event: userId={}, source={}, postId={} ({})",
+                    userId, source, postId, e.getClass().getSimpleName());
         }
     }
 
@@ -196,7 +198,8 @@ public class CommentService {
                 kafkaTemplate.send("tag-delivery", event);
 
             } catch (Exception e) {
-                log.error("Failed to send tag notification for comment {} to user {}", comment.getId(), taggedUserId, e);
+                log.error("Failed to send tag notification for comment {} to user {} ({})",
+                        comment.getId(), taggedUserId, e.getClass().getSimpleName());
             }
         }
     }
@@ -263,7 +266,8 @@ public class CommentService {
 
                     response.getTaggedUsers().add(taggedUserInCmt);
                 } catch (Exception e) {
-                    log.warn("Could not resolve tagged user {}", taggedUserId, e);
+                    log.warn("Could not resolve tagged user {} ({})",
+                            taggedUserId, e.getClass().getSimpleName());
                 }
             }
         }

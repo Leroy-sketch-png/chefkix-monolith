@@ -179,7 +179,8 @@ public class PushNotificationService {
 
                 handleFailedTokens(fcmTokens, response, userId);
             } catch (FirebaseMessagingException e) {
-                log.error("Failed to send push to user={}: {}", userId, e.getMessage());
+                log.error("Failed to send push to user={} ({})",
+                        userId, e.getClass().getSimpleName());
             }
         }, taskExecutor);
     }

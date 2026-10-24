@@ -1,4 +1,4 @@
-﻿# IRON CHEF: MEMBER BACKLOG
+# IRON CHEF: MEMBER BACKLOG
 
 ## Current Contract
 
@@ -21,11 +21,11 @@ These backlogs are shared through monolith origin/master. Research tools/receipt
 | Owner | Remaining execution and LEAD parent | Existing evidence / remaining acceptance |
 | --- | --- | --- |
 | M-A | Graph artifact construction/validation; provenance, counts and coverage; serving-input packaging | Source seed statistics exist. Accepted source-bound runtime artifact, correct split/identity provenance and relevant coverage denominators remain open |
-| M-B | Source/schema/identity engineering, deterministic frames/pools, blinded audit material, reference/filter/crosswalk validation for L36/L37/L38/L40 | Source-only pools and bounded identity receipts exist. Complete actual frozen source joins/unknown semantics and bit-identical regeneration; do not guess aliases or drop failures |
+| M-B | Source/schema/identity engineering, deterministic frames/pools, blinded audit material, reference/filter/crosswalk validation for L36/L37/L38/L40 | Recipe1MSubs payloads are downloaded outside Git and audited in `evidence/member-mb-mf-recipe1msubs-source-license-audit-20261024.json`: hashes, actual counts, row keys, repeated IDs/pairs, and zero cross-split recipe-ID overlap are recorded. The pinned GISMo split files are integer indices into preprocessed arrays, not recipe IDs. Exact Recipe1M release/ID-to-index join, denominator reconciliation, protocol decisions, and bit-identical regeneration remain open; preserve unresolved rows and do not guess aliases |
 | M-C | Cross-stack endpoint/Explorer/evidence integration, configuration/auth contracts and regression/runtime proof for C5 | Default-off endpoint and FE consumer exist. Accepted artifact/calibration, real rendering and complete T-01-T-12 coverage remain incomplete |
 | M-D | Maintain/reproduce deterministic GISMo and lookup val/test outputs and matched result handoff for L38/L44 | Local deterministic file-generation acceptance exists. Preserve it; rights/handoff, historical tie equivalence and downstream matched-arm acceptance remain separate |
 | M-E | Dev-ops, authorized demo/test data, authenticated browser path, network/failure/recovery evidence, recorded demo and backup for C5/L46 | Fixture and legacy-data browser evidence exists. Accepted-artifact Act 3/product demo, complete inventory/privacy review and actual rehearsal remain open |
-| M-F | Source inventory, public access/terms research, source-acquisition packaging and prepared institutional/source requests for L40/L41 | Record exact source/version/terms and explicit UNKNOWNs. HUMAN-only applications, consent and rulings cannot be simulated |
+| M-F | Source inventory, public access/terms research, source-acquisition packaging and prepared institutional/source requests for L40/L41 | The Recipe1MSubs source/license audit is recorded in `evidence/member-mb-mf-recipe1msubs-source-license-audit-20261024.json`: experiment code declares Apache-2.0; GISMo states most ingredient-substitution is CC-BY-NC 4.0, but exact pickle-file coverage and underlying Recipe1M/comment rights are unconfirmed. Keep dataset/model/production/redistribution rights UNKNOWN pending exact terms or written permission. Existing 44-record ChefKix DB inventory remains a separate internal-use deliverable |
 | M-G | Reconstruct R01-R45 evidence register, source/hash links, mechanical crosswalk and candidate dispositions for L48 | Preserve unverified/partial rows and mismatch ledger. Validate schema/bytes and reproduce the actual claim before proposing VERIFIED; LEAD adjudicates scientific status |
 | M-H | Reproducibility kit, figures/tables, methods/evidence appendix drafts, references, formatting, document/release build for L45/L47 | Produce one clean-checkout command and documented third-person reproduction. Drafts and production work do not substitute for LEAD's argument or accepted results |
 | M-I | API/benchmark/job orchestration, cost/accounting/recovery and frozen calibration/statistical implementation for L38/L39/L43/L44 | Reuse existing runner/journal/cost helpers and recovered diagnostic. Complete only missing executable boundaries; no extra provider caller, training or remote retry without the actual contract |
@@ -34,7 +34,7 @@ These backlogs are shared through monolith origin/master. Research tools/receipt
 
 | Priority | Owner / package | Finish condition and handoff |
 | --- | --- | --- |
-| 1 | M-B/M-F: current source/identity/reference input | Reconcile newly found local/official artifacts with frozen source hashes and permissions; deliver exact schema/join/unknown findings and the permitted fetchable package. LEAD resolves scientific semantics |
+| 1 | M-B/M-F: Recipe1MSubs source/identity/rights input | Upstream code is pinned at `14014ad501afd0c7da95ed90de19096c7f12ff75`; all three official pickle payloads are now locally downloaded outside Git, hashed and structurally audited. GISMo split indices are pinned and hashed, but they do not directly map Recipe1MSubs recipe IDs. Remaining: obtain an authorized exact Recipe1M ID-to-split/order input, validate joins/denominators and deterministic regeneration, confirm CC-BY-NC coverage and underlying source permissions, and have LEAD resolve scientific semantics before any transferable package. |
 | 1 | M-C/M-E: real artifact-to-browser path | Close the exact eligible runtime criterion on the current default source. Verify an existing authorized session/configuration before requesting a precise sign-in or fixture handoff; do not manufacture login or enable a rejected artifact |
 | 2 | M-I: remaining C2/analysis executable boundary | Consume existing reviewed runner/projection WIP, finish missing checks and integrate one coherent package. Real provider calls remain gated on actual capacity, transfer rights and the frozen release/attempt rules |
 | 2 | M-G/M-H: usable evidence/writing production | Publish permitted register/table/figure/reproduction inputs and candidate results at source commits; LEAD performs bounded claim/argument review |
@@ -102,6 +102,9 @@ These are scope-bound receipts, not whole-package completion:
 | Error-output privacy | `evidence/member-t11-error-output-20261023.json`; bounded sentinel/output inventory |
 | Latest moderation privacy | `evidence/member-social-moderation-log-redaction-20261024.json`; local regressions/suites, live authenticated story publish unverified |
 | FE cutoff consumer | FE default commit `42d3ba339b4c83d79c935fb15e5ca943e5cebd4b`; default-off contract checks, not C5 acceptance |
+| Runtime graph inventory tooling | `evidence/member-ma-runtime-graph-inventory-20261024.json`; registered artifact missing in the current AI checkout, so runtime counts remain unavailable |
+| M-F recipe inventory | `evidence/member-mf-recipe-license-inventory-20261024.json` and `.csv`; 44 DB-held records, 0 private-Western, all license entries `UNKNOWN`; internal-use scope only |
+| M-B/M-F Recipe1MSubs source, identity and license audit | `evidence/member-mb-mf-recipe1msubs-source-license-audit-20261024.json`; upstream code and GISMo split-index source pinned; official payloads downloaded outside Git with local hashes/count/schema/duplicate checks; exact Recipe1M ID-to-split join, denominator/regeneration checks, file-level license coverage, underlying comment/Recipe1M rights, and product/redistribution permission remain open or UNKNOWN |
 
 Fetch the owning source repository before using a receipt. A source-only/local report does not prove deployment, model quality, source rights, clinical safety or human usefulness.
 

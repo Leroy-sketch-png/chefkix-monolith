@@ -109,7 +109,8 @@ public class RecipeService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("[RECIPE_UPDATE] Failed to update recipe", e);
+            log.error("[RECIPE_UPDATE] Failed to update recipe ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to update recipe");
         }
     }
@@ -156,7 +157,8 @@ public class RecipeService {
 
         CompletableFuture<AuthorResponse> authorFuture = asyncHelper.getProfileAsync(recipe.getUserId())
                 .exceptionally(ex -> {
-                    log.error("[AUTHOR] Failed to fetch profile: {}", ex.getMessage());
+                    log.error("[AUTHOR] Failed to fetch profile ({})",
+                            ex.getClass().getSimpleName());
                     return AuthorResponse.builder().userId(recipe.getUserId()).displayName("Unknown Chef").build();
                 });
 
@@ -184,7 +186,8 @@ public class RecipeService {
             query.setCurrentUserId(currentUserId);
             query.setFriendIds(profileProvider.getFriendIds(currentUserId));
         } catch (Exception e) {
-            log.debug("Could not resolve user context for recipe search: {}", e.getMessage());
+            log.debug("Could not resolve user context for recipe search ({})",
+                    e.getClass().getSimpleName());
         }
         return recipeRepository.searchRecipes(query, pageable).map(recipeMapper::toRecipeDetailResponse);
     }
@@ -201,7 +204,8 @@ public class RecipeService {
         try {
             friendIds = profileProvider.getFriendIds(currentUserId);
         } catch (Exception e) {
-            log.error("Failed friend list {}", currentUserId, e);
+            log.error("Failed to load friend list for user {} ({})",
+                    currentUserId, e.getClass().getSimpleName());
             throw new AppException(ErrorCode.EMPTY);
         }
 
@@ -288,7 +292,8 @@ public class RecipeService {
         try {
             rawUserId = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (Exception e) {
-            log.debug("Could not resolve user from security context for tonight's pick", e);
+            log.debug("Could not resolve user from security context for tonight's pick ({})",
+                    e.getClass().getSimpleName());
             rawUserId = null;
         }
         final String currentUserId = rawUserId;
@@ -316,13 +321,15 @@ public class RecipeService {
                 List<String> prefs = profileProvider.getUserPreferences(currentUserId);
                 userPreferences = new HashSet<>(prefs);
             } catch (Exception e) {
-                log.debug("[TONIGHTS_PICK] Could not load preferences for {}: {}", currentUserId, e.getMessage());
+                log.debug("[TONIGHTS_PICK] Could not load preferences for {} ({})",
+                        currentUserId, e.getClass().getSimpleName());
             }
 
             try {
                 userLevel = profileProvider.getUserLevel(currentUserId);
             } catch (Exception e) {
-                log.debug("[TONIGHTS_PICK] Could not load level for {}: {}", currentUserId, e.getMessage());
+                log.debug("[TONIGHTS_PICK] Could not load level for {} ({})",
+                        currentUserId, e.getClass().getSimpleName());
             }
 
             List<CookingSession> recentSessions = cookingSessionRepository
@@ -698,7 +705,8 @@ difficultyScore = 0.5;
                                 .cookUsername(cookerProfile.getUsername());
                         }
                     } catch (Exception e) {
-                        log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
+                        log.warn("Failed to resolve profile for cooker {} ({})",
+                                session.getUserId(), e.getClass().getSimpleName());
                         item.cookDisplayName("Chef");
                     }
 
@@ -903,7 +911,8 @@ if (durationMs > 0 && durationMs < 7200000) {
                               .avatarUrl(profile.getAvatarUrl());
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to resolve profile for cooker {}: {}", session.getUserId(), e.getMessage());
+                        log.warn("Failed to resolve profile for cooker {} ({})",
+                                session.getUserId(), e.getClass().getSimpleName());
                     cooker.displayName("Chef");
                 }
                 uniqueRecentCookers.put(uniqueCookerKey, cooker.build());

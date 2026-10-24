@@ -8,6 +8,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.chefkix.culinary.features.ai.dto.internal.AIModerationRequest;
+import com.chefkix.culinary.features.ai.dto.internal.AIProcessRequest;
 import com.chefkix.shared.exception.AppException;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -19,6 +20,52 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 class AIRestClientModerationLoggingTest {
+
+    @Test
+    void recipeHttpErrorsDoNotWriteEchoedSubmittedTextToLogs() throws IOException {
+        String privateRecipe = "private-recipe-text-c7b313";
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/api/v1/process_recipe",
+                exchange -> {
+                    byte[] response = ("{\"detail\":\"" + privateRecipe + "\"}")
+                            .getBytes(StandardCharsets.UTF_8);
+                    exchange.getResponseHeaders().add("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(503, response.length);
+                    try (OutputStream output = exchange.getResponseBody()) {
+                        output.write(response);
+                    }
+                });
+        server.start();
+
+        Logger logger = (Logger) LoggerFactory.getLogger(AIRestClient.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            AIRestClient client = new AIRestClient(
+                    "http://127.0.0.1:" + server.getAddress().getPort(), "");
+
+            assertThatThrownBy(() -> client.processRecipe(AIProcessRequest.builder()
+                            .rawText(privateRecipe)
+                            .userId("user-7")
+                            .build()))
+                    .isInstanceOf(AppException.class);
+
+            String capturedLogs = appender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .collect(Collectors.joining("\n"));
+            assertThat(capturedLogs)
+                    .contains("503")
+                    .doesNotContain(privateRecipe);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+            server.stop(0);
+        }
+    }
 
     @Test
     void moderationHttpErrorsDoNotWriteEchoedUserContentToLogs() throws IOException {

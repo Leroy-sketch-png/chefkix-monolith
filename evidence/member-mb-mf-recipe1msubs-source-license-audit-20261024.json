@@ -1,0 +1,161 @@
+{
+  "schema_version": "member-recipe1msubs-source-license-audit-v1",
+  "observed_at": "2026-10-24",
+  "status": "partial",
+  "scope": "M-B/M-F source, schema, identity, split, and rights audit for the official Recipe1MSubs/GISMo inputs",
+  "upstream_code_checkout": {
+    "repository": "https://github.com/human-agent-teaming/efficient-ingredient-substitution",
+    "branch": "master",
+    "commit": "14014ad501afd0c7da95ed90de19096c7f12ff75",
+    "working_tree_clean": true,
+    "license": "Apache-2.0",
+    "license_scope": "Repository code only; not treated as a license for external benchmark payloads or upstream recipe/comment content"
+  },
+  "dataset_payload": {
+    "present_in_code_checkout": false,
+    "acquired_for_local_audit_at": "2026-10-24",
+    "storage_boundary": "Downloaded outside Git checkouts; raw pickle payloads are not committed or published.",
+    "files": [
+      {
+        "split": "train",
+        "filename": "train_comments_subs.pkl",
+        "url": "https://dl.fbaipublicfiles.com/gismo/train_comments_subs.pkl",
+        "record_count_reported_in_paper": 49044,
+        "record_count_verified_locally": 49044,
+        "bytes": 3914545,
+        "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+        "unique_recipe_ids": 31097,
+        "duplicate_recipe_id_rows": 17947,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 25623
+      },
+      {
+        "split": "validation",
+        "filename": "val_comments_subs.pkl",
+        "url": "https://dl.fbaipublicfiles.com/gismo/val_comments_subs.pkl",
+        "record_count_reported_in_paper": 10729,
+        "record_count_verified_locally": 10729,
+        "bytes": 910636,
+        "sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+        "unique_recipe_ids": 6670,
+        "duplicate_recipe_id_rows": 4059,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 3834
+      },
+      {
+        "split": "test",
+        "filename": "test_comments_subs.pkl",
+        "url": "https://dl.fbaipublicfiles.com/gismo/test_comments_subs.pkl",
+        "record_count_reported_in_paper": 10747,
+        "record_count_verified_locally": 10747,
+        "bytes": 919937,
+        "sha256": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174",
+        "unique_recipe_ids": 6662,
+        "duplicate_recipe_id_rows": 4085,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 3916
+      }
+    ],
+    "rows_match_reported_paper_counts": true,
+    "row_schema_verified": "Every row is a mapping with exactly id, ingredients, and subs; id is a non-empty string, ingredients is a list of lists of strings, and subs is a two-string tuple.",
+    "cross_split_recipe_id_overlap": {
+      "train_validation": 0,
+      "train_test": 0,
+      "validation_test": 0
+    },
+    "payload_downloaded_and_audited": true,
+    "pickle_load_safety_check": "Opcode scan found no GLOBAL, STACK_GLOBAL, REDUCE, BUILD, NEWOBJ, or NEWOBJ_EX opcodes; records were loaded with a restricted unpickler that denies global class resolution."
+  },
+  "source_and_identity_findings": {
+    "paper_provenance": "The authors describe extracting substitution pairs from comments on websites associated with Recipe1M recipes.",
+    "paper_identity_contract": "Each benchmark item contains a directional substitution pair and a Recipe1M recipe ID; train/validation/test assignment follows the Recipe1M recipe-ID splits.",
+    "upstream_record_fields": {
+      "id": "Recipe ID string",
+      "ingredients": "List of ingredient synonym lists",
+      "subs": "Two-item source and target ingredient substitution tuple"
+    },
+    "upstream_translation_behavior": [
+      "For each ingredient synonym list, select the first vocabulary match and stop searching that list.",
+      "Collapse translated recipe ingredients into a set of vocabulary IDs.",
+      "Exclude a row if fewer than two recipe ingredients map, or if the source or target ingredient is absent from the vocabulary.",
+      "Report aggregate missing-ingredient and dropped-row counters by split; the translated output does not retain a per-source-row refusal record or comment/source URL."
+    ],
+    "gismo_split_metadata": {
+      "repository": "https://github.com/facebookresearch/gismo",
+      "commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+      "files": [
+        {"filename": "train.txt", "rows": 252547, "unique_indices": 252547, "sha256": "baeaea86102cc5157ac9f3284de03ce57947388361e3229df7df7088b09ebb8c"},
+        {"filename": "val_all.txt", "rows": 54255, "unique_indices": 54255, "sha256": "ced3882bccf2db9c6de6a5896d682c26587202ef826bc6417d960ba155ac5f76"},
+        {"filename": "val.txt", "rows": 5000, "unique_indices": 5000, "sha256": "34924521773b58d9fde31ad784418ff31e383a08171c69c95e78f9da026756ae"},
+        {"filename": "test.txt", "rows": 54506, "unique_indices": 54506, "sha256": "a704b7a73e1e791167a256da2e5218ae7124638bb702bacfafe5999311b7ffcf"}
+      ],
+      "interpretation": "These are integer indices into GISMo's preprocessed Recipe1M split arrays; val.txt is a 5,000-index subset of val_all.txt. They are not Recipe1M recipe IDs and cannot alone establish the Recipe1MSubs row-to-source split join.",
+      "implementation_evidence": "At the pinned commit, inv_cooking/datasets/recipe1m/loader.py reads validation indices and passes them to Recipe1M; dataset.py applies them to the ordered preprocessed dataset after filtering."
+    },
+    "cross_split_recipe_id_overlap": 0,
+    "unverified_identity_items": [
+      "The exact Recipe1M release and source files needed to bind Recipe1MSubs recipe IDs to the original/preprocessed split order are not present.",
+      "No original website/comment identifier or per-comment source URL is exposed by the audited upstream loader contract.",
+      "Full row-to-source joins, source split denominators, transformation-retention reconciliation, and byte-identical regeneration have not been verified.",
+      "Repeated recipe IDs and directed substitution pairs occur within each pickle split; their semantic unit (comment, substitution event, or pair) remains to be confirmed before deduplication or denominator changes."
+    ]
+  },
+  "rights_findings": {
+    "gismo_repository": {
+      "commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+      "readme_statement": "The majority of ingredient-substitution is licensed under CC-BY-NC.",
+      "license_file": "https://github.com/facebookresearch/gismo/blob/f5d2394c7ade897987ce584d2a75d8bbbbae058e/LICENSE.md",
+      "license_text": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "coverage_of_the_three_external_pickle_files": "Not explicitly mapped in the README/license notice; exact file coverage remains unconfirmed."
+    },
+    "recipe1m_and_comment_source": {
+      "recipe1m_access": "GISMo README says Recipe1M access requires registration.",
+      "source_content": "The benchmark paper describes mining user comments from Recipe1M-associated recipe websites.",
+      "terms_or_permission_in_local_checkout": "Not found",
+      "underlying_source_rights": "UNKNOWN"
+    },
+    "use_boundary": {
+      "intended_chefkix_use_confirmed_by_user": null,
+      "technical_audit_use": "Officially linked payloads were downloaded and inspected locally for source/schema/hash/split audit; no product integration or redistribution was performed.",
+      "redistribution_permission": "UNKNOWN",
+      "commercial_product_permission": "UNKNOWN",
+      "derived_model_or_artifact_permission": "UNKNOWN",
+      "status": "Do not infer that the Apache-2.0 code license covers dataset files or third-party recipe/comment content. Obtain precise rights confirmation before product use or redistribution."
+    }
+  },
+  "acceptance": {
+    "completed": [
+      "Pinned and checked the user-provided official experiment-code checkout.",
+      "Recorded the published source, record fields, recipe-ID split lineage, and upstream vocabulary filtering behavior.",
+      "Separated code license from dataset and underlying source rights; recorded the official GISMo CC-BY-NC notice and its unresolved payload scope.",
+      "Downloaded all three pickle files from the official GISMo public-file URLs outside Git and recorded byte sizes and SHA-256 hashes.",
+      "Safely inspected all pickle records with a restricted unpickler; verified reported row counts, exact row keys, valid pair shape, within-split duplicate counts, and zero recipe-ID overlap across pickle splits.",
+      "Pinned and hashed GISMo Recipe1M split index files; confirmed these are ordered preprocessed-array indices, with val.txt a subset of val_all.txt, rather than direct recipe-ID split files."
+    ],
+    "open": [
+      "Obtain the exact authorized Recipe1M source/release input or an authoritative ID-to-split table that maps the Recipe1MSubs IDs to the pinned GISMo split order; validate joins and retained denominators.",
+      "Confirm whether CC-BY-NC 4.0 covers these exact Recipe1MSubs files and whether its licensor can grant rights in the underlying comments/recipe records.",
+      "Reconcile repeated recipe IDs/substitution pairs with the accepted scientific unit before any deduplication or denominator change.",
+      "Record the intended use boundary and any terms acceptance, written permission, or access grant for model training, derived artifacts, production use, and redistribution.",
+      "Regenerate the relevant outputs and establish byte-identical replay after the authorized source and split inputs are available."
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://github.com/human-agent-teaming/efficient-ingredient-substitution/tree/14014ad501afd0c7da95ed90de19096c7f12ff75",
+      "type": "official experiment-code repository and download instructions"
+    },
+    {
+      "url": "https://github.com/facebookresearch/gismo/blob/f5d2394c7ade897987ce584d2a75d8bbbbae058e/README.md",
+      "type": "official GISMo repository README and general license scope notice"
+    },
+    {
+      "url": "https://github.com/facebookresearch/gismo/blob/f5d2394c7ade897987ce584d2a75d8bbbbae058e/LICENSE.md",
+      "type": "official GISMo license text"
+    },
+    {
+      "url": "https://arxiv.org/html/2302.07960v1",
+      "type": "original benchmark paper, source and identity/split description"
+    }
+  ]
+}

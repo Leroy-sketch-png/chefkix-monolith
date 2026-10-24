@@ -66,12 +66,12 @@ public class AIRestClient {
 
             return wrapper.getData();
         } catch (WebClientResponseException e) {
-            log.error("AI process_recipe HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI process_recipe HTTP error: {}", e.getStatusCode());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("AI process_recipe failed", e);
+            log.error("AI process_recipe failed ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
@@ -94,12 +94,12 @@ public class AIRestClient {
 
             return wrapper.getData();
         } catch (WebClientResponseException e) {
-            log.error("AI calculate_metas HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI calculate_metas HTTP error: {}", e.getStatusCode());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("AI calculate_metas failed", e);
+            log.error("AI calculate_metas failed ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
@@ -126,12 +126,12 @@ public class AIRestClient {
 
             return wrapper.getData();
         } catch (WebClientResponseException e) {
-            log.error("AI validate_recipe HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI validate_recipe HTTP error: {}", e.getStatusCode());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
 throw e;
         } catch (Exception e) {
-            log.error("AI validate_recipe failed", e);
+            log.error("AI validate_recipe failed ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
@@ -188,12 +188,12 @@ throw e;
 
             return wrapper.getData();
         } catch (WebClientResponseException e) {
-            log.error("AI generate_meal_plan HTTP error: {} {}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("AI generate_meal_plan HTTP error: {}", e.getStatusCode());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("AI generate_meal_plan failed", e);
+            log.error("AI generate_meal_plan failed ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
@@ -218,7 +218,8 @@ throw e;
 
             return wrapper.getData();
         } catch (Exception e) {
-            log.warn("AI score_recipe_quality failed — skipping RQS: {}", e.getMessage());
+            log.warn("AI score_recipe_quality failed — skipping RQS ({})",
+                    e.getClass().getSimpleName());
             return null;
         }
     }
@@ -255,7 +256,8 @@ throw e;
             }
             return vector;
         } catch (Exception e) {
-            log.warn("Embedding generation failed (search falls back to keyword): {}", e.getMessage());
+            log.warn("Embedding generation failed (search falls back to keyword): {}",
+                    e.getClass().getSimpleName());
             return null;
         }
     }
@@ -283,7 +285,8 @@ throw e;
                     .toBodilessEntity()
                     .block(Duration.ofSeconds(10));
         } catch (Exception e) {
-            log.error("AI substitution feedback delivery failed for eventId={}", event.getEventId(), e);
+            log.error("AI substitution feedback delivery failed ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
         }
     }
