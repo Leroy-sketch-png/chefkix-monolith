@@ -13,31 +13,58 @@
   },
   "dataset_payload": {
     "present_in_code_checkout": false,
+    "acquired_for_local_audit_at": "2026-10-24",
+    "storage_boundary": "Downloaded outside Git checkouts; raw pickle payloads are not committed or published.",
     "files": [
       {
         "split": "train",
         "filename": "train_comments_subs.pkl",
         "url": "https://dl.fbaipublicfiles.com/gismo/train_comments_subs.pkl",
         "record_count_reported_in_paper": 49044,
-        "sha256": null
+        "record_count_verified_locally": 49044,
+        "bytes": 3914545,
+        "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+        "unique_recipe_ids": 31097,
+        "duplicate_recipe_id_rows": 17947,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 25623
       },
       {
         "split": "validation",
         "filename": "val_comments_subs.pkl",
         "url": "https://dl.fbaipublicfiles.com/gismo/val_comments_subs.pkl",
         "record_count_reported_in_paper": 10729,
-        "sha256": null
+        "record_count_verified_locally": 10729,
+        "bytes": 910636,
+        "sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+        "unique_recipe_ids": 6670,
+        "duplicate_recipe_id_rows": 4059,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 3834
       },
       {
         "split": "test",
         "filename": "test_comments_subs.pkl",
         "url": "https://dl.fbaipublicfiles.com/gismo/test_comments_subs.pkl",
         "record_count_reported_in_paper": 10747,
-        "sha256": null
+        "record_count_verified_locally": 10747,
+        "bytes": 919937,
+        "sha256": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174",
+        "unique_recipe_ids": 6662,
+        "duplicate_recipe_id_rows": 4085,
+        "malformed_substitution_rows": 0,
+        "duplicate_directed_pair_rows": 3916
       }
     ],
-    "counts_are_published_claims_not_recomputed_local_counts": true,
-    "payload_downloaded_or_loaded": false
+    "rows_match_reported_paper_counts": true,
+    "row_schema_verified": "Every row is a mapping with exactly id, ingredients, and subs; id is a non-empty string, ingredients is a list of lists of strings, and subs is a two-string tuple.",
+    "cross_split_recipe_id_overlap": {
+      "train_validation": 0,
+      "train_test": 0,
+      "validation_test": 0
+    },
+    "payload_downloaded_and_audited": true,
+    "pickle_load_safety_check": "Opcode scan found no GLOBAL, STACK_GLOBAL, REDUCE, BUILD, NEWOBJ, or NEWOBJ_EX opcodes; records were loaded with a restricted unpickler that denies global class resolution."
   },
   "source_and_identity_findings": {
     "paper_provenance": "The authors describe extracting substitution pairs from comments on websites associated with Recipe1M recipes.",
@@ -53,10 +80,24 @@
       "Exclude a row if fewer than two recipe ingredients map, or if the source or target ingredient is absent from the vocabulary.",
       "Report aggregate missing-ingredient and dropped-row counters by split; the translated output does not retain a per-source-row refusal record or comment/source URL."
     ],
+    "gismo_split_metadata": {
+      "repository": "https://github.com/facebookresearch/gismo",
+      "commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+      "files": [
+        {"filename": "train.txt", "rows": 252547, "unique_indices": 252547, "sha256": "baeaea86102cc5157ac9f3284de03ce57947388361e3229df7df7088b09ebb8c"},
+        {"filename": "val_all.txt", "rows": 54255, "unique_indices": 54255, "sha256": "ced3882bccf2db9c6de6a5896d682c26587202ef826bc6417d960ba155ac5f76"},
+        {"filename": "val.txt", "rows": 5000, "unique_indices": 5000, "sha256": "34924521773b58d9fde31ad784418ff31e383a08171c69c95e78f9da026756ae"},
+        {"filename": "test.txt", "rows": 54506, "unique_indices": 54506, "sha256": "a704b7a73e1e791167a256da2e5218ae7124638bb702bacfafe5999311b7ffcf"}
+      ],
+      "interpretation": "These are integer indices into GISMo's preprocessed Recipe1M split arrays; val.txt is a 5,000-index subset of val_all.txt. They are not Recipe1M recipe IDs and cannot alone establish the Recipe1MSubs row-to-source split join.",
+      "implementation_evidence": "At the pinned commit, inv_cooking/datasets/recipe1m/loader.py reads validation indices and passes them to Recipe1M; dataset.py applies them to the ordered preprocessed dataset after filtering."
+    },
+    "cross_split_recipe_id_overlap": 0,
     "unverified_identity_items": [
-      "The exact Recipe1M release, its source files, split-file hashes, and authorized join inputs are not present in the checkout.",
+      "The exact Recipe1M release and source files needed to bind Recipe1MSubs recipe IDs to the original/preprocessed split order are not present.",
       "No original website/comment identifier or per-comment source URL is exposed by the audited upstream loader contract.",
-      "Current payload hashes, actual row counts, duplicate IDs/pairs, denominator retention, and byte-identical regeneration have not been verified."
+      "Full row-to-source joins, source split denominators, transformation-retention reconciliation, and byte-identical regeneration have not been verified.",
+      "Repeated recipe IDs and directed substitution pairs occur within each pickle split; their semantic unit (comment, substitution event, or pair) remains to be confirmed before deduplication or denominator changes."
     ]
   },
   "rights_findings": {
@@ -75,6 +116,7 @@
     },
     "use_boundary": {
       "intended_chefkix_use_confirmed_by_user": null,
+      "technical_audit_use": "Officially linked payloads were downloaded and inspected locally for source/schema/hash/split audit; no product integration or redistribution was performed.",
       "redistribution_permission": "UNKNOWN",
       "commercial_product_permission": "UNKNOWN",
       "derived_model_or_artifact_permission": "UNKNOWN",
@@ -85,12 +127,17 @@
     "completed": [
       "Pinned and checked the user-provided official experiment-code checkout.",
       "Recorded the published source, record fields, recipe-ID split lineage, and upstream vocabulary filtering behavior.",
-      "Separated code license from dataset and underlying source rights; recorded the official GISMo CC-BY-NC notice and its unresolved payload scope."
+      "Separated code license from dataset and underlying source rights; recorded the official GISMo CC-BY-NC notice and its unresolved payload scope.",
+      "Downloaded all three pickle files from the official GISMo public-file URLs outside Git and recorded byte sizes and SHA-256 hashes.",
+      "Safely inspected all pickle records with a restricted unpickler; verified reported row counts, exact row keys, valid pair shape, within-split duplicate counts, and zero recipe-ID overlap across pickle splits.",
+      "Pinned and hashed GISMo Recipe1M split index files; confirmed these are ordered preprocessed-array indices, with val.txt a subset of val_all.txt, rather than direct recipe-ID split files."
     ],
     "open": [
-      "Obtain or identify the exact authorized split payloads and Recipe1M release/split metadata; compute file hashes and validate counts/joins/duplicates/retained denominators.",
+      "Obtain the exact authorized Recipe1M source/release input or an authoritative ID-to-split table that maps the Recipe1MSubs IDs to the pinned GISMo split order; validate joins and retained denominators.",
       "Confirm whether CC-BY-NC 4.0 covers these exact Recipe1MSubs files and whether its licensor can grant rights in the underlying comments/recipe records.",
-      "Record the intended use boundary and any terms acceptance, written permission, or access grant for model training, derived artifacts, production use, and redistribution."
+      "Reconcile repeated recipe IDs/substitution pairs with the accepted scientific unit before any deduplication or denominator change.",
+      "Record the intended use boundary and any terms acceptance, written permission, or access grant for model training, derived artifacts, production use, and redistribution.",
+      "Regenerate the relevant outputs and establish byte-identical replay after the authorized source and split inputs are available."
     ]
   },
   "sources": [
