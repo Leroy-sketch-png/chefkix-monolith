@@ -1,0 +1,23 @@
+{
+  "checked_at_utc": "2026-10-24T02:25:14.397495+00:00",
+  "edge_counts_by_type": null,
+  "graph_artifact": {
+    "exists": false,
+    "path": "C:\\Users\\LENOVO\\IdeaProjects\\chefkix-ai-service\\models\\substitution_subgraph.pt",
+    "sha256": null
+  },
+  "isolated_node_counts_by_type": null,
+  "node_counts_by_type": null,
+  "registry": {
+    "bridge": false,
+    "name": "graph-rag",
+    "path": "local:models/hgat_weights.pt",
+    "readiness_reasons": [
+      "no_verified_health_check",
+      "artifact_missing:models/substitution_subgraph.pt"
+    ],
+    "version": "hgat-v1"
+  },
+  "schema_version": 1,
+  "status": "blocked_missing_graph_artifact"
+}

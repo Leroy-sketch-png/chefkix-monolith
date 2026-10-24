@@ -28,7 +28,8 @@ public class StoryEventPublisher {
             try {
                 profile = profileProvider.getBasicProfile(actorId);
             } catch (Exception e) {
-                log.warn("Could not fetch profile for user {}: {}", actorId, e.getMessage());
+                log.warn("Could not fetch profile for user {} ({})",
+                        actorId, e.getClass().getSimpleName());
             }
 
             String displayName = profile != null ? profile.getDisplayName() : "A user";
@@ -48,7 +49,8 @@ public class StoryEventPublisher {
             log.info("Published STORY_INTERACTED ({}) for story {}", interactionType, storyId);
 
         } catch (Exception e) {
-            log.error("Failed to publish story interaction event", e);
+            log.error("Failed to publish story interaction event ({})",
+                    e.getClass().getSimpleName());
         }
     }
 
@@ -67,7 +69,8 @@ public class StoryEventPublisher {
             log.info("Published STORY_REPLIED event for story {}", storyId);
 
         } catch (Exception e) {
-            log.error("Failed to publish story reply event", e);
+            log.error("Failed to publish story reply event ({})",
+                    e.getClass().getSimpleName());
         }
     }
 }

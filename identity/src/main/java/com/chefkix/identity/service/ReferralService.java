@@ -82,7 +82,8 @@ public class ReferralService {
             BasicProfileInfo profile = profileProvider.getBasicProfile(userId);
             referredUsername = profile.getUsername() != null ? profile.getUsername() : "someone";
         } catch (Exception e) {
-            log.warn("Could not fetch profile for referred user {}: {}", userId, e.getMessage());
+            log.warn("Could not fetch profile for referred user {} ({})",
+                    userId, e.getClass().getSimpleName());
             referredUsername = "someone";
         }
 
@@ -115,7 +116,8 @@ public class ReferralService {
                         username = profile.getUsername() != null ? profile.getUsername() : "Unknown";
                         avatar = profile.getAvatarUrl();
                     } catch (Exception e) {
-                        log.warn("Could not fetch profile for user {}: {}", r.getReferredUserId(), e.getMessage());
+                        log.warn("Could not fetch profile for user {} ({})",
+                                r.getReferredUserId(), e.getClass().getSimpleName());
                     }
                     return ReferralStatsResponse.ReferralDetail.builder()
                             .referredUsername(username)

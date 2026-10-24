@@ -431,7 +431,8 @@ response.setIsBlocked(false);
               .build());
       keycloakAdminClient.deleteUser("Bearer " + token.getAccessToken(), userId);
     } catch (Exception e) {
-      log.error("Failed to delete Keycloak user {}: {}", userId, e.getMessage(), e);
+      log.error("Failed to delete Keycloak user {} ({})",
+          userId, e.getClass().getSimpleName());
       throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete account from identity provider");
     }
 
@@ -719,7 +720,8 @@ response.setIsBlocked(false);
       return new ProfileWithPostsResponse(profile, posts);
 
     } catch (Exception e) {
-      log.error("Failed to load profile and posts in parallel: {}", e.getMessage(), e);
+      log.error("Failed to load profile and posts in parallel ({})",
+          e.getClass().getSimpleName());
       throw new AppException(
           ErrorCode.INTERNAL_SERVER_ERROR, "Failed to load profile data");
     }
@@ -975,7 +977,8 @@ response.setIsBlocked(false);
       log.info("Password successfully reset for userId={}", userId);
 
     } catch (Exception e) {
-      log.error("Failed to reset password in Keycloak for userId={}", userId, e);
+      log.error("Failed to reset password in Keycloak for userId={} ({})",
+          userId, e.getClass().getSimpleName());
       throw errorNormalizer.handleKeyCloakException(e);
     }
   }

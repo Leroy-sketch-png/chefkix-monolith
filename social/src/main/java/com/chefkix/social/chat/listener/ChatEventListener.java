@@ -32,7 +32,8 @@ public class ChatEventListener {
             }
 
         } catch (Exception e) {
-            log.error("Error processing event {}: {}", event.getEventId(), e.getMessage(), e);
+            log.error("Error processing event {} ({})",
+                    event.getEventId(), e.getClass().getSimpleName());
         }
     }
 }

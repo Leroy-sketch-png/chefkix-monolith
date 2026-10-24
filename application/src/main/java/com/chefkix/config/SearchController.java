@@ -195,14 +195,15 @@ public class SearchController {
         try {
             float[] embedding = generateEmbedding(query);
             if (embedding != null) {
-                log.debug("Using hybrid search for query: '{}'", query);
+                log.debug("Using hybrid search for query");
                 return typesenseService.hybridSearch(
                         "recipes", query, queryBy, embedding, limit, page, filterBy);
             }
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("Vector search failed, falling back to keyword: {}", e.getMessage());
+            log.warn("Vector search failed, falling back to keyword ({})",
+                    e.getClass().getSimpleName());
         }
 
         Map<String, String> params = searchParams(query, queryBy, limit, page);
@@ -286,7 +287,8 @@ public class SearchController {
 
             return vector;
         } catch (Exception e) {
-            log.warn("Embedding generation failed (search falls back to keyword): {}", e.getMessage());
+            log.warn("Embedding generation failed (search falls back to keyword): {}",
+                    e.getClass().getSimpleName());
             return null;
         }
     }

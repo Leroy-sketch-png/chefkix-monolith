@@ -83,7 +83,8 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
                     log.warn("Unknown message type: {}", signal.getType());
             }
         } catch (Exception e) {
-            log.error("Error handling message", e);
+            log.error("Error handling video signaling message ({})",
+                    e.getClass().getSimpleName());
         }
     }
 
@@ -180,7 +181,8 @@ public class VideoSignalingHandler extends TextWebSocketHandler {
                     }
                 }
             } catch (IOException e) {
-                log.error("Error sending leave notification", e);
+                log.error("Error sending leave notification ({})",
+                        e.getClass().getSimpleName());
             }
 
             if (roomSessions.isEmpty()) {

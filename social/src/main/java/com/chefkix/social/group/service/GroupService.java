@@ -97,7 +97,8 @@ public class GroupService {
 
             return response;
         } catch (DataAccessException e) {
-            log.error("Database error while creating group for user {}", currentUserId, e);
+            log.error("Database error while creating group for user {} ({})",
+                    currentUserId, e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }

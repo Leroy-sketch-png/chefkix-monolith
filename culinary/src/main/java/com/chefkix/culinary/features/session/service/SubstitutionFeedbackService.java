@@ -48,7 +48,8 @@ public class SubstitutionFeedbackService {
         try {
             kafkaTemplate.send(TOPIC, userId, event).get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("Failed to durably publish substitution feedback eventId={}", event.getEventId(), e);
+            log.error("Failed to durably publish substitution feedback event ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
         log.info(

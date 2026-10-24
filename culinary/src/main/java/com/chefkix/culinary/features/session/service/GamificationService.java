@@ -113,7 +113,8 @@ public class GamificationService {
                 throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "No data received from Profile Service");
             }
         } catch (Exception e) {
-            log.error("Error connecting to Profile Service: ", e);
+            log.error("Error connecting to Profile Service ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Error syncing user profile");
         }
 

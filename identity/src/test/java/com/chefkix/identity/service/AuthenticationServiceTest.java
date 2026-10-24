@@ -8,6 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.chefkix.identity.client.KeycloakAdminClient;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
 import com.chefkix.identity.dto.request.AuthenticationRequest;
@@ -24,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -144,6 +149,40 @@ class AuthenticationServiceTest {
                 .isInstanceOf(AppException.class)
                 .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
                         .isEqualTo(ErrorCode.INVALID_CREDENTIALS));
+    }
+
+    @Test
+    void authenticateDoesNotLogCredentialsOrKeycloakErrorBody() {
+        String email = "private-login-echo-91@example.test";
+        String password = "private-login-password-91";
+        String echoedBody = "private-keycloak-error-91";
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername(email)
+                .password(password)
+                .build();
+        when(keycloakService.login(email, password))
+                .thenThrow(new RuntimeException(echoedBody));
+
+        Logger logger = (Logger) LoggerFactory.getLogger(AuthenticationService.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            assertThatThrownBy(() -> authenticationService.authenticate(request))
+                    .isInstanceOf(AppException.class);
+
+            String capturedLogs = appender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .collect(java.util.stream.Collectors.joining("\n"));
+            assertThat(capturedLogs)
+                    .contains("RuntimeException")
+                    .doesNotContain(email, password, echoedBody);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
     }
 
             @Test

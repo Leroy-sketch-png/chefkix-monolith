@@ -1,4 +1,4 @@
-﻿# IRON CHEF: MEMBER BACKLOG
+# IRON CHEF: MEMBER BACKLOG
 
 ## Current Contract
 
@@ -102,6 +102,8 @@ These are scope-bound receipts, not whole-package completion:
 | Error-output privacy | `evidence/member-t11-error-output-20261023.json`; bounded sentinel/output inventory |
 | Latest moderation privacy | `evidence/member-social-moderation-log-redaction-20261024.json`; local regressions/suites, live authenticated story publish unverified |
 | FE cutoff consumer | FE default commit `42d3ba339b4c83d79c935fb15e5ca943e5cebd4b`; default-off contract checks, not C5 acceptance |
+| Runtime graph inventory tooling | `evidence/member-ma-runtime-graph-inventory-20261024.json`; registered artifact missing in the current AI checkout, so runtime counts remain unavailable |
+| M-F recipe inventory | `evidence/member-mf-recipe-license-inventory-20261024.json` and `.csv`; 44 DB-held records, 0 private-Western, all license entries `UNKNOWN`; internal-use scope only |
 
 Fetch the owning source repository before using a receipt. A source-only/local report does not prove deployment, model quality, source rights, clinical safety or human usefulness.
 

@@ -44,7 +44,7 @@ public class KeycloakService {
   }
 
   public TokenExchangeResponse login(String usernameOrEmail, String password) {
-    log.debug(">>> [KEYCLOAK] Attempting login for user: {}", usernameOrEmail);
+    log.debug(">>> [KEYCLOAK] Attempting login");
 
     MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
     body.add("grant_type", "password");
@@ -69,21 +69,19 @@ public class KeycloakService {
                           log.debug(">>> [KEYCLOAK] Response status: {}", response.statusCode());
 
                           if (response.statusCode().isError()) {
-                            log.warn(
-                                ">>> [KEYCLOAK] Login failed for user '{}'. Error: {}",
-                                usernameOrEmail,
-                                respBody);
+                            log.warn(">>> [KEYCLOAK] Login failed with status {}",
+                                response.statusCode());
                             return Mono.error(new AppException(ErrorCode.INVALID_CREDENTIALS));
                           }
 
                           try {
                             TokenExchangeResponse tokenResponse =
                                 objectMapper.readValue(respBody, TokenExchangeResponse.class);
-                            log.debug(
-                                ">>> [KEYCLOAK] Login successful for user: {}", usernameOrEmail);
+                            log.debug(">>> [KEYCLOAK] Login successful");
                             return Mono.just(tokenResponse);
                           } catch (Exception e) {
-                            log.error(">>> [KEYCLOAK] Failed to parse token response", e);
+                            log.error(">>> [KEYCLOAK] Failed to parse token response ({})",
+                                e.getClass().getSimpleName());
                             return Mono.error(
                                 new AppException(ErrorCode.INVALID_CREDENTIALS));
                           }
@@ -92,8 +90,7 @@ public class KeycloakService {
           .block();
 
     } catch (Exception e) {
-      log.error(
-          ">>> [KEYCLOAK] Login exception for user '{}': {}", usernameOrEmail, e.getMessage());
+      log.error(">>> [KEYCLOAK] Login exception ({})", e.getClass().getSimpleName());
       throw new AppException(ErrorCode.INVALID_CREDENTIALS);
     }
   }
@@ -203,10 +200,11 @@ public class KeycloakService {
 return true;
 
         } catch (WebClientResponseException.Unauthorized | WebClientResponseException.BadRequest e) {
-            log.warn("Password verification failed for user: {}", username);
+            log.warn("Password verification failed");
             return false;
         } catch (Exception e) {
-            log.error("Error communicating with Keycloak for password verification", e);
+            log.error("Error communicating with Keycloak for password verification ({})",
+                e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }

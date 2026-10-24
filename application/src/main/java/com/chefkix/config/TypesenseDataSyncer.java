@@ -291,7 +291,7 @@ public class TypesenseDataSyncer {
                 log.info("Real-time removed recipe {} from Typesense", recipeId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for recipe {}: {}", recipeId, e.getMessage());
+            log.error("Real-time Typesense index failed for recipe {} ({})", recipeId, e.getClass().getSimpleName());
         }
     }
 
@@ -436,7 +436,7 @@ public class TypesenseDataSyncer {
                 log.info("Real-time removed post {} from Typesense", postId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for post {}: {}", postId, e.getMessage());
+            log.error("Real-time Typesense index failed for post {} ({})", postId, e.getClass().getSimpleName());
         }
     }
 
@@ -481,7 +481,7 @@ public class TypesenseDataSyncer {
                 log.info("Real-time removed user {} from Typesense", userId);
             }
         } catch (Exception e) {
-            log.error("Real-time Typesense index failed for user {}: {}", userId, e.getMessage());
+            log.error("Real-time Typesense index failed for user {} ({})", userId, e.getClass().getSimpleName());
         }
     }
 

@@ -66,7 +66,8 @@ public class GroupEventPublisher {
                 log.info("Published {} for group {}", event.getEventType(), group.getId());
 
             } catch (Exception e) {
-                log.error("Failed to publish group membership event", e);
+                log.error("Failed to publish group membership event ({})",
+                        e.getClass().getSimpleName());
             }
         }, taskExecutor);
     }
@@ -86,7 +87,8 @@ public class GroupEventPublisher {
                 log.info("Published GROUP_REQUEST_APPROVED for group {}", group.getId());
 
             } catch (Exception e) {
-                log.error("Failed to publish approval event", e);
+                log.error("Failed to publish approval event ({})",
+                        e.getClass().getSimpleName());
             }
         }, taskExecutor);
     }
@@ -106,7 +108,8 @@ public class GroupEventPublisher {
                 log.info("Published GROUP_OWNERSHIP_TRANSFERRED for group {}", group.getId());
 
             } catch (Exception e) {
-                log.error("Failed to publish ownership transfer event", e);
+                log.error("Failed to publish ownership transfer event ({})",
+                        e.getClass().getSimpleName());
             }
         }, taskExecutor);
     }

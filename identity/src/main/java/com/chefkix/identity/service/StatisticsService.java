@@ -862,7 +862,8 @@ nextRankPosition = i;
                         }
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to enrich gamification notification for session {}: {}", sessionId, e.getMessage());
+                    log.warn("Failed to enrich gamification notification for session {} ({})",
+                            sessionId, e.getClass().getSimpleName());
                 }
             }
 

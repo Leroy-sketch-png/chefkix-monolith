@@ -94,7 +94,8 @@ registry.setSendTimeLimit(20_000);
                         accessor.setUser(authentication);
                         log.info("STOMP user connected: {}", authentication.getName());
                     } catch (Exception e) {
-                        log.error("STOMP CONNECT rejected: JWT validation failed: {}", e.getMessage());
+                        log.error("STOMP CONNECT rejected: JWT validation failed ({})",
+                                e.getClass().getSimpleName());
                         throw new MessageDeliveryException("Invalid or expired authentication token");
                     }
                 }
@@ -151,11 +152,13 @@ registry.setSendTimeLimit(20_000);
                                     }
                                 }
                             } catch (Exception e) {
-                                log.warn("Failed to verify room membership for {}: {}", roomCode, e.getMessage());
+                                log.warn("Failed to verify room membership ({})",
+                                        e.getClass().getSimpleName());
                             }
 
                             if (!isRoomParticipant) {
-                                log.warn("STOMP subscription blocked: user {} is not participant of room {}", userId, roomCode);
+                                log.warn("STOMP subscription blocked: user {} is not a participant of a room",
+                                        userId);
                                 throw new MessageDeliveryException("Cannot subscribe to a room you are not part of");
                             }
                         }

@@ -41,7 +41,7 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
             String json = objectMapper.writeValueAsString(room);
             redisTemplate.opsForValue().set(key(room.getRoomCode()), json, TTL_SECONDS, TimeUnit.SECONDS);
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize CookingRoom {}: {}", room.getRoomCode(), e.getMessage());
+            log.error("Failed to serialize cooking room ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Failed to save cooking room");
         }
     }
@@ -54,7 +54,7 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
         try {
             return Optional.of(objectMapper.readValue(json, CookingRoom.class));
         } catch (JsonProcessingException e) {
-            log.error("Failed to deserialize CookingRoom {}: {}", roomCode, e.getMessage());
+            log.error("Failed to deserialize cooking room ({})", e.getClass().getSimpleName());
             return Optional.empty();
         }
     }
@@ -86,7 +86,7 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
                     try {
                         return objectMapper.readValue(json, CookingRoom.class);
                     } catch (JsonProcessingException e) {
-                        log.warn("Failed to deserialize room: {}", e.getMessage());
+                        log.warn("Failed to deserialize room ({})", e.getClass().getSimpleName());
                         return null;
                     }
                 })

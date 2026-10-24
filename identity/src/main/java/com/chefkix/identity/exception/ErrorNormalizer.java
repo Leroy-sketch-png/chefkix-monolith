@@ -29,7 +29,8 @@ public class ErrorNormalizer {
 
   public AppException handleKeyCloakException(Exception exception) {
     try {
-      log.warn("Cannot complete request", exception);
+      log.warn("Cannot complete request ({})",
+          exception.getClass().getSimpleName());
 
       String body = "";
       if (exception instanceof WebClientResponseException wcre) {
@@ -45,7 +46,8 @@ public class ErrorNormalizer {
         return new AppException(errorCodeMap.get(response.getErrorMessage()));
       }
     } catch (JsonProcessingException e) {
-      log.error("Cannot deserialize content", e);
+      log.error("Cannot deserialize identity-provider error ({})",
+          e.getClass().getSimpleName());
     }
 
     return new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);

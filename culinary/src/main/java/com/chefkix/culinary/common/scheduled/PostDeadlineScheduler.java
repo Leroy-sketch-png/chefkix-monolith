@@ -110,7 +110,8 @@ public class PostDeadlineScheduler {
                 displayName = profile.getDisplayName();
             }
         } catch (Exception e) {
-            log.warn("Failed to fetch profile for user {}: {}", session.getUserId(), e.getMessage());
+            log.warn("Failed to fetch profile for user {} ({})",
+                    session.getUserId(), e.getClass().getSimpleName());
         }
 
         String content;
