@@ -14,9 +14,10 @@
     "repository_head": "57089201aa1ce479ec825f0e142fb8d4597cb371",
     "script": "tools/build_member_strata.py",
     "script_sha256": "d36ee0ac5b18f86d9a4df312558b497dc3562be6d964236ec475d4f193a82348",
-    "script_committed": false,
+    "script_committed": true,
     "focused_tests": "2 passed",
-    "black_check": "PASS"
+    "black_check": "PASS",
+    "published_commit": "aaba0fc05578363c1efc5178e86f089eb8802e1f"
   },
   "inputs": {
     "recipe1msubs": {
@@ -68,7 +69,7 @@
     "The user reports that required dataset permissions have been granted; no written permission receipt was added to the repository.",
     "The FooDB profile-key artifact was not found locally, so both-endpoint evidence coverage and profiled/not-profiled cells remain unassigned.",
     "The held-out target pairs were read only to assign seen/unseen strata; no ranking scores, metrics, or method comparisons were computed.",
-    "The builder is uncommitted; its working-tree SHA-256 and repository HEAD are recorded in the output manifest.",
+    "The builder is committed in chefkix-ai-service at aaba0fc05578363c1efc5178e86f089eb8802e1f; the output manifest retains the working-tree script hash and original repository HEAD observed during generation.",
     "M-B pool generation, frozen protocol, rights/provenance review, and final package acceptance remain open."
   ]
 }
