@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-10-25T04:01:18.0171398Z",
+  "status": "LOCAL_TRAIN_ONLY_LOOKUP_ARTIFACT_BUILT_AND_VERIFIED",
+  "source": {
+    "dataset": "Recipe1MSubs",
+    "directory": "C:\\Users\\LENOVO\\ResearchData\\Recipe1MSubs",
+    "source_split_pair_rows": {
+      "train": 49044,
+      "val": 10729,
+      "test": 10747
+    },
+    "files_sha256": {
+      "train_comments_subs.pkl": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+      "val_comments_subs.pkl": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+      "test_comments_subs.pkl": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174"
+    }
+  },
+  "artifact": {
+    "directory": "C:\\Users\\LENOVO\\ResearchData\\recipe1msubs-train-pool-20261025",
+    "file": "candidate_pool.json",
+    "sha256": "816c60970eb321206d4a8cbe8e73e3b6240216de2afb0048e767ace956de1b75",
+    "manifest_file": "manifest.json",
+    "manifest_sha256": "ef3086d591f913b3f1cf8eb2fabc507782c0b6d7ae77f60072471d3da7f17f8a",
+    "included_split": "train",
+    "included_pair_rows": 49044,
+    "unique_directed_pairs": 23421,
+    "exact_source_ingredient_identities": 3566,
+    "identity_policy": "exact raw UTF-8 strings hashed with SHA-256; no aliasing or normalization",
+    "output_contains": "ingredient strings and aggregate directed pair counts; no recipe IDs or recipe context",
+    "external_transfer": "not performed; not cleared"
+  },
+  "verification": {
+    "focused_tests": "11 passed",
+    "full_ai_service_suite": {
+      "passed": 558,
+      "skipped": 11,
+      "warnings": 28
+    },
+    "real_data_rebuild": "artifact SHA-256 matched byte-for-byte",
+    "provider_smoke": "PASS; exact source lookup and pinned manifest verified",
+    "black": "PASS",
+    "py_compile": "PASS",
+    "git_diff_check": "PASS",
+    "quality_metrics_or_benchmark_claims": "none"
+  },
+  "rights_status": "exact Recipe1MSubs file-level grant remains unverified; private local non-commercial thesis use is the declared scope; public redistribution and Kaggle/third-party transfer are not cleared",
+  "code_sha256": {
+    "chefkix-ai-service/tools/recipe1mplus_bridge.py": "d6e2fc7e1fbabdf418d6d1aa0189fc7d293987f38b1bea1f60fc14e8b829fdc3",
+    "chefkix-ai-service/tools/build_recipe1msubs_train_pool.py": "c66f3b181597ccd3d2788953c520d5a773cd094b5435d04c30cfdbc971d3b2d3",
+    "chefkix-ai-service/src/research/recipe1msubs_pool.py": "39e80b6f59b4428835e9d8de4b8e3c7b208d2670ac953a74b59c2e91dc8c296e",
+    "chefkix-ai-service/tests/test_recipe1msubs_train_pool.py": "1bbfdb42240eaa82fd38661811a0d7fd5347295ea508b40c95af7073e65af1ab",
+    "chefkix-ai-service/docs/research/recipe1msubs-train-pool.md": "b6a8b4f9b343c0d59a1c9ce86f9bd5ef56757998c7e744c0fa787cd406a8969f"
+  }
+}

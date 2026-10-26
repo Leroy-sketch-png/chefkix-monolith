@@ -36,7 +36,8 @@ public class TasteProfileRedisRepository {
             }
             return Optional.of(objectMapper.readValue(payload, MAP_TYPE));
         } catch (Exception e) {
-            log.warn("Failed to read taste profile cache for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to read taste profile cache for user {} ({})",
+                    userId, e.getClass().getSimpleName());
             return Optional.empty();
         }
     }
@@ -50,9 +51,11 @@ public class TasteProfileRedisRepository {
             String payload = objectMapper.writeValueAsString(tasteProfile);
             redisTemplate.opsForValue().set(key(userId), payload, TTL);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to serialize taste profile cache for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to serialize taste profile cache for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         } catch (Exception e) {
-            log.warn("Failed to write taste profile cache for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to write taste profile cache for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
     }
 
@@ -64,7 +67,8 @@ public class TasteProfileRedisRepository {
         try {
             redisTemplate.delete(key(userId));
         } catch (Exception e) {
-            log.warn("Failed to evict taste profile cache for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to evict taste profile cache for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
     }
 

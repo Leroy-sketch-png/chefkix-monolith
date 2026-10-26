@@ -198,7 +198,7 @@ public class RecipeHelper {
         } catch (AppException e) {
 throw e;
         } catch (Exception e) {
-            log.error("Post Service Error: {}", e.getMessage());
+            log.error("Post Service Error ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.POST_SERVICE_ERROR);
         }
     }

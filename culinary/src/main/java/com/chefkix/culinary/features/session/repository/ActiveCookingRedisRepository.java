@@ -42,7 +42,8 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
             String json = objectMapper.writeValueAsString(presence);
             redisTemplate.opsForValue().set(key(presence.getUserId()), json, TTL_SECONDS, TimeUnit.SECONDS);
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize ActiveCookingPresence for user {}: {}", presence.getUserId(), e.getMessage());
+            log.error("Failed to serialize ActiveCookingPresence for user {} ({})",
+                    presence.getUserId(), e.getClass().getSimpleName());
         }
     }
 
@@ -60,7 +61,8 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
         try {
             return Optional.of(objectMapper.readValue(json, ActiveCookingPresence.class));
         } catch (JsonProcessingException e) {
-            log.error("Failed to deserialize ActiveCookingPresence for user {}: {}", userId, e.getMessage());
+            log.error("Failed to deserialize ActiveCookingPresence for user {} ({})",
+                    userId, e.getClass().getSimpleName());
             return Optional.empty();
         }
     }
@@ -81,7 +83,8 @@ private static final long TTL_SECONDS = 4 * 60 * 60;
                     try {
                         return objectMapper.readValue(json, ActiveCookingPresence.class);
                     } catch (JsonProcessingException e) {
-                        log.warn("Failed to deserialize cooking presence: {}", e.getMessage());
+                        log.warn("Failed to deserialize cooking presence ({})",
+                                e.getClass().getSimpleName());
                         return null;
                     }
                 })

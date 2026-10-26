@@ -120,7 +120,8 @@ public class KeycloakAdminClient {
                     .block();
             log.info("All sessions revoked for Keycloak user {}", userId);
         } catch (Exception e) {
-            log.error("Failed to revoke sessions for user {}: {}", userId, e.getMessage());
+            log.error("Failed to revoke sessions for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
     }
 
@@ -154,7 +155,8 @@ public class KeycloakAdminClient {
                     formData.add(name, value.toString());
                 }
             } catch (IllegalAccessException e) {
-                log.warn("Failed to read field {} for form data: {}", field.getName(), e.getMessage());
+                log.warn("Failed to read field {} for form data ({})",
+                        field.getName(), e.getClass().getSimpleName());
             }
         }
         return formData;

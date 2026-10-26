@@ -74,7 +74,8 @@ public class VideoWebSocketConfig implements WebSocketConfigurer {
                     attributes.put("userId", authentication.getName());
                     return true;
                 } catch (Exception exception) {
-                    log.warn("Video WebSocket rejected: JWT validation failed: {}", exception.getMessage());
+                    log.warn("Video WebSocket rejected: JWT validation failed ({})",
+                            exception.getClass().getSimpleName());
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return false;
                 }

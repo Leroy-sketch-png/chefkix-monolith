@@ -171,7 +171,7 @@ public class AiIntegrationService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
 
-        log.info("Calculating metas for recipe: {}", recipe.getTitle());
+        log.info("Calculating metas for recipe");
 
         AIMetaRequest request = buildMetaRequest(recipe);
 
@@ -278,7 +278,7 @@ public class AiIntegrationService {
      *
      */
     public AIValidationResponse validateRecipeForPublish(Recipe recipe) {
-        log.info("Validating recipe for publish: {} (id={})", recipe.getTitle(), recipe.getId());
+        log.info("Validating recipe for publish: id={}", recipe.getId());
 
         List<String> ingredientNames = recipe.getFullIngredientList() != null
                 ? recipe.getFullIngredientList().stream()
@@ -305,7 +305,9 @@ public class AiIntegrationService {
         AIValidationResponse response = aiRestClient.validateRecipe(request);
 
         if (!response.isContentSafe()) {
-            log.warn("Recipe {} failed content safety validation: {}", recipe.getId(), response.getIssues());
+            int issueCount = response.getIssues() == null ? 0 : response.getIssues().size();
+            log.warn("Recipe {} failed content safety validation (issueCount={})",
+                    recipe.getId(), issueCount);
             throw new AppException(ErrorCode.RECIPE_VALIDATION_FAILED);
         }
 
@@ -318,7 +320,7 @@ public class AiIntegrationService {
      *
      */
     public AIModerationResponse moderateRecipeContent(Recipe recipe) {
-        log.info("Moderating recipe content: {} (id={})", recipe.getTitle(), recipe.getId());
+        log.info("Moderating recipe content: id={}", recipe.getId());
 
         StringBuilder textBuilder = new StringBuilder();
         textBuilder.append("Title: ").append(recipe.getTitle()).append("\n");
@@ -357,7 +359,7 @@ public class AiIntegrationService {
     /**
      */
     public boolean scoreRecipeQuality(Recipe recipe) {
-        log.info("Scoring recipe quality: {} (id={})", recipe.getTitle(), recipe.getId());
+        log.info("Scoring recipe quality: id={}", recipe.getId());
         try {
             List<java.util.Map<String, Object>> stepMaps = new ArrayList<>();
             if (recipe.getSteps() != null) {

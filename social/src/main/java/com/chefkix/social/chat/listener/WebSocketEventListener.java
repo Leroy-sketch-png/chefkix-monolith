@@ -29,7 +29,7 @@ public class WebSocketEventListener {
             try {
                 profileProvider.updateUserOnlineStatus(user.getName(), true);
             } catch (Exception e) {
-                log.error("Failed to update ONLINE status: {}", e.getMessage());
+                log.error("Failed to update ONLINE status ({})", e.getClass().getSimpleName());
             }
         }
     }
@@ -44,7 +44,7 @@ public class WebSocketEventListener {
             try {
                 profileProvider.updateUserOnlineStatus(user.getName(), false);
             } catch (Exception e) {
-                log.error("Failed to update OFFLINE status: {}", e.getMessage());
+                log.error("Failed to update OFFLINE status ({})", e.getClass().getSimpleName());
             }
         }
     }

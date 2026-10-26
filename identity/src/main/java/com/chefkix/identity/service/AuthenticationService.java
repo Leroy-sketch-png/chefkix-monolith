@@ -69,12 +69,12 @@ public class AuthenticationService {
 
   @Transactional
   public AuthenticationResponse authenticate(AuthenticationRequest request) {
-    log.debug(">>> [AUTH] Start authenticate for username/email={}", request.getEmailOrUsername());
+    log.debug(">>> [AUTH] Start authenticate");
 
     TokenExchangeResponse tokenResponse;
 
     try {
-      log.debug(">>> [AUTH] Calling Keycloak login for user={}", request.getEmailOrUsername());
+      log.debug(">>> [AUTH] Calling Keycloak login");
 
       tokenResponse = keycloakService.login(request.getEmailOrUsername(), request.getPassword());
 
@@ -89,7 +89,7 @@ public class AuthenticationService {
     } catch (AppException e) {
       throw e;
     } catch (Exception e) {
-      log.error(">>> [AUTH] Login failed. Raw Keycloak Message: {}", e.getMessage());
+      log.error(">>> [AUTH] Login failed ({})", e.getClass().getSimpleName());
 
       String errorMessage = e.getMessage();
       if (errorMessage != null) {
@@ -153,7 +153,7 @@ public class AuthenticationService {
 
     OidcUserInfoResponse userInfo = keycloakService.getUserInfo(tokenResponse.getAccessToken());
     User user = syncGoogleUser(userInfo);
-    log.info("Google sign-in completed for email={}", userInfo.getEmail());
+    log.info("Google sign-in completed");
 
     return buildAuthenticationResponse(tokenResponse, user);
   }
@@ -200,7 +200,8 @@ public class AuthenticationService {
       log.info("Password successfully changed for userId={}", userId);
 
     } catch (Exception e) {
-      log.error("Failed to reset password in Keycloak for userId={}", userId, e);
+      log.error("Failed to reset password in Keycloak for userId={} ({})",
+          userId, e.getClass().getSimpleName());
       throw errorNormalizer.handleKeyCloakException(e);
     }
   }
@@ -229,7 +230,7 @@ public class AuthenticationService {
       keycloakService.logout(refreshToken);
       return "Successfully logged out";
     } catch (Exception e) {
-      log.warn("Error logging out user: {}", e.getMessage());
+      log.warn("Error logging out user ({})", e.getClass().getSimpleName());
     }
     return "Failed to log out";
   }

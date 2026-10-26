@@ -95,7 +95,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
                 .build();
 
         roomRepository.save(room);
-        log.info("Room {} created by {} for recipe {}", roomCode, userId, request.getRecipeId());
+        log.info("Cooking room created for recipe {}", request.getRecipeId());
 
         return toResponse(room, sessionId);
     }
@@ -158,7 +158,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         promoteRoomToCookingIfReady(room);
 
         roomRepository.save(room);
-        log.info("User {} joined room {} as {}", userId, roomCode, role);
+        log.info("User {} joined a cooking room as {}", userId, role);
 
         broadcastEvent(roomCode, RoomEventType.PARTICIPANT_JOINED, userId, displayName,
                 Map.of("userId", userId, "displayName", displayName,
@@ -180,7 +180,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         promoteRoomToCookingIfReady(room);
         roomRepository.save(room);
 
-        log.info("User {} upgraded from spectator to cook in room {}", userId, room.getRoomCode());
+        log.info("User {} upgraded from spectator to cook", userId);
         broadcastEvent(
                 room.getRoomCode(),
                 RoomEventType.PARTICIPANT_ROLE_CHANGED,
@@ -224,7 +224,8 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
                 roomCodes.add(room.getRoomCode());
             } catch (AppException e) {
                 if (e.getErrorCode() == ErrorCode.ROOM_NOT_FOUND || e.getErrorCode() == ErrorCode.NOT_IN_ROOM) {
-                    log.warn("Skipped stale active-room cleanup for user {} room {}: {}", userId, room.getRoomCode(), e.getMessage());
+                    log.warn("Skipped stale active-room cleanup for user {} ({})",
+                            userId, e.getClass().getSimpleName());
                     continue;
                 }
                 throw e;
@@ -257,7 +258,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
             room.setStatus(CookingRoom.STATUS_DISSOLVED);
             roomRepository.delete(roomCode);
             dissolved = true;
-            log.info("Room {} dissolved (last participant left)", roomCode);
+            log.info("Cooking room dissolved after its last participant left");
 
             broadcastEvent(roomCode, RoomEventType.ROOM_DISSOLVED, userId, null, Map.of());
         } else {
@@ -270,7 +271,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
                 room.setHostUserId(newHost.getUserId());
                 newHostUserId = newHost.getUserId();
 
-                log.info("Room {} host transferred from {} to {}", roomCode, userId, newHostUserId);
+                log.info("Cooking room host transferred from {} to {}", userId, newHostUserId);
 
                 broadcastEvent(roomCode, RoomEventType.HOST_TRANSFERRED, userId, null,
                         Map.of("newHostUserId", newHostUserId, "reason", "host_left"));
@@ -378,7 +379,7 @@ private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
                 .build();
 
         kafkaTemplate.send(REMINDER_TOPIC, event);
-        log.info("Room invite sent: {} → {} for room {}", senderId, request.getUserId(), roomCode);
+        log.info("Cooking room invite sent: {} → {}", senderId, request.getUserId());
     }
 
 

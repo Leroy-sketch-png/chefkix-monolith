@@ -124,13 +124,13 @@ public class ChatMessageService {
 
                 if (postInfo.getPhotoUrls() != null && !postInfo.getPhotoUrls().isEmpty()) {
                     cachedPostImage = postInfo.getPhotoUrls().get(0);
-                    log.debug("Cached post image: {}", cachedPostImage);
+                    log.debug("Cached image for shared post");
                 }
 
                 if (postInfo.getRecipeTitle() != null
                         && !postInfo.getRecipeTitle().trim().isEmpty()) {
                     cachedPostTitle = postInfo.getRecipeTitle();
-                    log.debug("Cached recipe title: {}", cachedPostTitle);
+                    log.debug("Cached title for shared post");
                 }
 
                 if (finalMessageContent == null || finalMessageContent.trim().isEmpty()) {
@@ -145,12 +145,12 @@ public class ChatMessageService {
                         finalMessageContent =
                                 (snippet != null && !snippet.isEmpty()) ? "Shared: " + snippet : "Post shared.";
                     }
-                    log.debug("Auto-filled message content: {}", finalMessageContent);
+                    log.debug("Generated default message content for shared post");
                 }
             } catch (AppException e) {
                 throw e;
             } catch (Exception e) {
-                log.error("Failed to verify post {}: {}", request.getRelatedId(), e.getMessage());
+                log.error("Failed to verify shared post");
                 throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
             }
         } else {

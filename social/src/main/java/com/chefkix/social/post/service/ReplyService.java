@@ -177,7 +177,8 @@ public class ReplyService {
                 log.info("Sent tag notification for reply {} to user {}", reply.getId(), taggedUserId);
 
             } catch (Exception e) {
-                log.error("Failed to send reply tag notification to user {}", taggedUserId, e);
+                log.error("Failed to send reply tag notification to user {} ({})",
+                        taggedUserId, e.getClass().getSimpleName());
             }
         }
     }

@@ -195,7 +195,8 @@ public class RecipeProviderImpl implements RecipeProvider {
                 try {
                         activeCookingRepository.removeActive(userId);
                 } catch (Exception e) {
-                        log.warn("Failed to clear active cooking presence for deleted user {}: {}", userId, e.getMessage());
+                        log.warn("Failed to clear active cooking presence for deleted user {} ({})",
+                                userId, e.getClass().getSimpleName());
                 }
 
                 return affectedRecords;
@@ -211,7 +212,8 @@ public class RecipeProviderImpl implements RecipeProvider {
                                         try {
                                                 cookingRoomService.leaveRoom(userId, roomCode);
                                         } catch (Exception e) {
-                                                log.warn("Failed to evict deleted user {} from cooking room {}: {}", userId, roomCode, e.getMessage());
+                                                log.warn("Failed to evict deleted user {} from cooking room ({})",
+                                                        userId, e.getClass().getSimpleName());
                                         }
                                 });
         }

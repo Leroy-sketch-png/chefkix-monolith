@@ -51,10 +51,10 @@ public class TypesenseService {
                 log.debug("Collection already exists: {}", schema.get("name"));
                 return true;
             }
-            log.error("Failed to create collection {}: {}", schema.get("name"), e.getMessage());
+            log.error("Failed to create collection {} ({})", schema.get("name"), e.getClass().getSimpleName());
             return false;
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize schema: {}", e.getMessage());
+            log.error("Failed to serialize schema ({})", e.getClass().getSimpleName());
             return false;
         }
     }
@@ -76,7 +76,7 @@ public class TypesenseService {
             }
             return updateCollectionSchema(collection, Map.of("fields", List.of(field)));
         } catch (Exception e) {
-            log.error("Failed to ensure field {} on {}: {}", field.get("name"), collection, e.getMessage());
+            log.error("Failed to ensure field {} on {} ({})", field.get("name"), collection, e.getClass().getSimpleName());
             return false;
         }
     }
@@ -93,10 +93,10 @@ public class TypesenseService {
                     .toBodilessEntity();
             return true;
         } catch (RestClientException e) {
-            log.error("Failed to index document in {}: {}", collection, e.getMessage());
+            log.error("Failed to index document in {} ({})", collection, e.getClass().getSimpleName());
             return false;
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize document: {}", e.getMessage());
+            log.error("Failed to serialize document ({})", e.getClass().getSimpleName());
             return false;
         }
     }
@@ -113,10 +113,10 @@ public class TypesenseService {
                     .toBodilessEntity();
             return true;
         } catch (RestClientException e) {
-            log.error("Failed to upsert document in {}: {}", collection, e.getMessage());
+            log.error("Failed to upsert document in {} ({})", collection, e.getClass().getSimpleName());
             return false;
         } catch (JsonProcessingException e) {
-            log.error("Failed to serialize document: {}", e.getMessage());
+            log.error("Failed to serialize document ({})", e.getClass().getSimpleName());
             return false;
         }
     }
@@ -130,7 +130,7 @@ public class TypesenseService {
                     .toBodilessEntity();
             return true;
         } catch (RestClientException e) {
-            log.debug("Failed to delete document {} from {}: {}", documentId, collection, e.getMessage());
+            log.debug("Failed to delete document {} from {} ({})", documentId, collection, e.getClass().getSimpleName());
             return false;
         }
     }
@@ -171,7 +171,7 @@ public class TypesenseService {
             } while (ids.size() < found);
             return Optional.of(ids);
         } catch (Exception e) {
-            log.error("Failed to enumerate document IDs in {}: {}", collection, e.getMessage());
+            log.error("Failed to enumerate document IDs in {} ({})", collection, e.getClass().getSimpleName());
             return Optional.empty();
         }
     }
@@ -224,9 +224,9 @@ public class TypesenseService {
 
     private void logSearchFailure(String collection, boolean required, Exception error) {
         if (required) {
-            log.error("Required search failed in collection {}: {}", collection, error.getMessage());
+            log.error("Required search failed in collection {} ({})", collection, error.getClass().getSimpleName());
         } else {
-            log.debug("Optional search unavailable for collection {}: {}", collection, error.getMessage());
+            log.debug("Optional search unavailable for collection {} ({})", collection, error.getClass().getSimpleName());
         }
     }
 
@@ -247,7 +247,7 @@ public class TypesenseService {
             log.info("Imported {} documents into {}", documents.size(), collection);
             return documents.size();
         } catch (Exception e) {
-            log.error("Failed to import documents into {}: {}", collection, e.getMessage());
+            log.error("Failed to import documents into {} ({})", collection, e.getClass().getSimpleName());
             return 0;
         }
     }
@@ -257,7 +257,7 @@ public class TypesenseService {
             restClient.get().uri("/health").retrieve().toBodilessEntity();
             return true;
         } catch (Exception e) {
-            log.debug("Typesense health check failed: {}", e.getMessage());
+            log.debug("Typesense health check failed ({})", e.getClass().getSimpleName());
             return false;
         }
     }
@@ -332,7 +332,7 @@ public class TypesenseService {
             log.info("Updated Typesense collection schema: {}", collection);
             return true;
         } catch (Exception e) {
-            log.error("Failed to update collection {} schema: {}", collection, e.getMessage());
+            log.error("Failed to update collection {} schema ({})", collection, e.getClass().getSimpleName());
             return false;
         }
     }

@@ -1,5 +1,27 @@
 # IRON CHEF v4: LEAD BACKLOG
 
+## LEAD v528 -- Record Recipe1M / Recipe1M+ terms email (2026-10-25)
+
+- The user provided an email attributed to the dataset rights holder that supplies Recipe1M / Recipe1M+ download access under non-commercial research and educational terms. The user-declared graduation-thesis scope fits that stated purpose, provided the user accepts the terms when downloading. The email also bars redistribution of the supplied URLs and assigns responsibility to the user.
+- **Progress:** Recipe1M/Recipe1M+ access terms are now available for the assets listed in the email. The exact-ID join still needs the authorized layer files placed locally.
+- **Still open:** the email does not expressly permit third-party cloud processing, so it does not clear Kaggle upload. It does not name the separate GISMo Recipe1MSubs pkl files, so those file-level terms remain `UNKNOWN`. No raw download URLs are reproduced in the backlog.
+- Receipt: `evidence/member-recipe1m-rights-holder-email-terms-20261025.md`. Preserve the non-commercial boundary; do not claim commercial, product, redistribution, or cloud-transfer rights.
+
+
+## LEAD v527 -- Prepare Recipe1MSubs train-only Kaggle T4 pipeline (2026-10-25)
+
+- Member added a self-contained BPR trainer that reads only the Recipe1MSubs train split, rejects unsafe pickle opcodes/schema, selects CUDA in Kaggle, and writes a hash-bound private research artifact. Validation/test files are never opened and no benchmark metric is computed.
+- A private Kaggle T4 training kernel is saved with Internet disabled and no datasets attached. The separate synthetic smoke kernel completed three CUDA epochs on a Tesla T4. Its output identifies `synthetic_fixture`; the downloaded artifact passed the manifest/hash loader and ranked fixture targets on local CPU. Receipt: `evidence/member-recipe1msubs-kaggle-t4-setup-20261025.json`.
+- Verification: focused bridge/train-pool/ranker tests 14/14; complete AI-service suite 561 passed, 11 skipped, 28 warnings; Black, Python compile, and whitespace checks pass.
+- **Open gate:** exact `.pkl` file-level terms and third-party cloud-transfer permission remain `UNKNOWN`. No real Recipe1MSubs data or derived model artifact was uploaded, and no real-data Kaggle training ran. Keep actual training, benchmark claims, M-A/M-B/M-D acceptance, publication, and product use open until applicable terms or written permission clear this transfer and the exact dataset is attached.
+- **Next:** confirm the cloud-transfer grant; then attach the authorized train split to the private T4 kernel and run the already prepared train-only job. Preserve the current validation/test and benchmark gates.
+
+## LEAD v526 — Record the local Recipe1MSubs train-only baseline (2026-10-25)
+
+- Member implemented and ran a deterministic local lookup-pool builder using only the Recipe1MSubs train split. The three source splits validate; 49,044 train pairs yield 23,421 unique directed pairs and 3,566 exact-string source identities. The artifact and hash-bound manifest remain under `C:\Users\LENOVO\ResearchData\recipe1msubs-train-pool-20261025`; real-data rebuild matches the saved artifact; focused tests pass 11/11 and the full AI-service suite passes 558 tests with 11 skips and 28 warnings. Receipt: `evidence/member-recipe1msubs-train-pool-20261025.json`.
+- This is source-only baseline plumbing, not HGAT inference, calibration, blinded evaluation, or product serving. M-A and M-B remain open. Recipe1MSubs exact file-level terms are still unverified, so the derived artifact remains local; no external-provider transfer is cleared.
+- **Next:** after Recipe1M+ access arrives, perform the existing exact-ID audit while preserving Recipe1MSubs labels and split; separately resolve the compatible HGAT artifact and M-B rights/protocol gates. Do not report benchmark quality from this baseline.
+
 ## LEAD v525 — Reconcile focused T52 integration-suite evidence (2026-10-23)
 
 - On clean monolith commit `613a80ae2f94397fd2788a5c4acd3522a4bf5e82`, the offline Maven reactor selected the graph loader, manifest-backed provider, controller and three endpoint test classes. Build succeeded; 37 tests were reported, with 0 failures/errors and 3 expected skips for default-off opt-in real-bundle cases. Surefire XML hashes and the exact command are recorded in the research T52 map.

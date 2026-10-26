@@ -65,12 +65,13 @@ public class ResetPasswordService {
             .body("Your password reset code is: " + otp)
             .build();
 
-    log.info("Sending password reset OTP to Kafka for email={}", request.getEmail());
+    log.info("Sending password reset OTP to Kafka");
     try {
       var result = kafkaTemplate.send("otp-delivery", notificationEmailEvent).get(5, TimeUnit.SECONDS);
       log.info("Kafka message sent successfully to topic {}", result.getRecordMetadata().topic());
     } catch (Exception e) {
-      log.error("Failed to send forgot-password OTP message to Kafka", e);
+      log.error("Failed to send forgot-password OTP message to Kafka ({})",
+          e.getClass().getSimpleName());
       throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Could not send reset OTP", e);
     }
   }

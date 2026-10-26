@@ -48,7 +48,8 @@ private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;
             return extractOptimizedImageUrl(uploadResult);
 
         } catch (IOException e) {
-            log.error("Error uploading file to Cloudinary", e);
+            log.error("Error uploading file to Cloudinary ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE);
         }
     }
@@ -146,7 +147,8 @@ private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;
                 log.warn("[UPLOAD_MULTI] Rejected upload: {}", appException.getMessage());
                 throw appException;
             }
-            log.error("[UPLOAD_MULTI] Error during parallel upload", e);
+            log.error("[UPLOAD_MULTI] Error during parallel upload ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "One or more files failed to upload");
         }
 

@@ -36,11 +36,11 @@ public class EmailNotificationListener {
         }
 
         if (message.getEventId() == null || message.getEventId().isBlank()) {
-            log.error("Received EmailEvent with missing eventId for recipient={}, skipping", message.getRecipientEmail());
+            log.error("Received EmailEvent with missing eventId, skipping");
             return;
         }
 
-        log.info("Received OTP email event for: {}", message.getRecipientEmail());
+        log.info("Received OTP email event");
 
         if (!idempotencyService.tryProcess(message.getEventId())) {
             log.warn("Duplicate email event skipped: {}", message.getEventId());
@@ -48,7 +48,7 @@ public class EmailNotificationListener {
         }
 
         if (message.getRecipientEmail() == null || message.getRecipientEmail().isBlank()) {
-            log.error("Cannot send email: recipientEmail is null or blank. Event: {}", message);
+            log.error("Cannot send email: recipientEmail is null or blank");
             return;
         }
 

@@ -1,6 +1,74 @@
 ﻿# IRON CHEF v4: MEMBER BACKLOG
 
+### Recipe1M / Recipe1M+ rights-holder email terms (2026-10-25)
+
+- [x] Record the terms in the email supplied by the user for the listed Recipe1M and Recipe1M+ assets: use is limited to non-commercial research and education; do not redistribute the supplied download URLs; the provider gives no warranties and the user accepts responsibility and indemnity obligations. Dataset URLs are intentionally not copied into this repository.
+- [x] Download the authorized layer files to the local research workspace and run the exact-ID join while preserving the Recipe1MSubs split and labels. `layer1.json` scanned 1,029,720 records; all 31,097 / 6,670 / 6,662 train/val/test Recipe1MSubs recipe IDs matched uniquely, covering all 70,520 pair rows with zero unmatched rows, ambiguous IDs, or partition mismatches. Aggregate report and source hashes: `C:\Users\LENOVO\ResearchData\recipe1mplus-join-20261026\overlap-report.json`.
+- [ ] Keep Kaggle/third-party cloud transfer and the separate GISMo Recipe1MSubs pkl files gated: the email does not explicitly address either use.
+- Evidence and scope: `evidence/member-recipe1m-rights-holder-email-terms-20261025.md`.
+
+### Recipe1M+ layer1 exact-ID overlap audit (2026-10-26)
+
+- [x] Extract only `layer1.json` from the downloaded archive and run the local exact-ID overlap audit against the existing Recipe1MSubs train/val/test files.
+- [x] All 70,520 pair rows matched: train 49,044, validation 10,729, test 10,747; 44,429 unique Recipe1MSubs recipe IDs matched exactly once, with zero unmatched rows, ambiguous layer IDs, or partition mismatches. Original Recipe1MSubs splits and labels remain authoritative; report emits aggregate counts and hashes only.
+- Evidence: `C:\Users\LENOVO\ResearchData\recipe1mplus-join-20261026\overlap-report.json`. Layer1 SHA-256: `ad76f06eb4e191194fe2c20506bbd5ac9a4f1be5ec0241916b47be0433f02a98`.
+- Boundary: local non-commercial overlap only. Recipe1MSubs pkl terms remain `UNKNOWN`; no data was uploaded to Kaggle or redistributed.
+
+### M-B GISMo/Senath strata rebuild (2026-10-26)
+
+- [x] Add `chefkix-ai-service/tools/build_member_strata.py` and generate `cases_val.jsonl`, `cases_test.jsonl`, `identity_map.csv`, `strata_counts.csv`, and a hash-bound manifest under `C:\Users\LENOVO\ResearchData\member-strata-20261026-v2`.
+- [x] Rebuild the validation/test seen-unseen strata with GISMo primary identity and normalized-string sensitivity. Counts exactly match the prior pinned reproduction: validation 6,827/3,902 and 6,771/3,958; test 6,932/3,815 and 6,866/3,881. A separate rebuild matched all five output files byte-for-byte; focused tests pass 2/2.
+- [ ] Add FooDB both-endpoint coverage. The profile-key artifact is not present in the current workspace; coverage is explicitly `NOT_ASSESSED`, and no profiled/not-profiled cell is assigned.
+- Evidence: `evidence/member-mb-strata-build-20261026.json`. The builder remains uncommitted; the output manifest binds its working-tree SHA-256 and repository HEAD. This does not complete M-B pool generation or acceptance.
+
+### M-B Recipe1MSubs ranker validation-score check (2026-10-26)
+
+- [x] Evaluate BPR v4, BPR v5, and the train-target-popularity baseline on the same local train/validation inputs using `closed-world-all-train-targets-v1`; test was not opened. v4 is validation-favored across all 12 Recall/NDCG/MRR measures at K=1, 5, 10, and 20, but is not declared optimal or final.
+- [x] Replay both checkpoint evaluations from their manifest-pinned artifacts. Each Markdown report is byte-identical to the saved report; JSON metrics and coverage match after excluding runtime-only `elapsed_seconds`. AI-service focused suite: 21 passed.
+- [ ] Freeze the model and protocol before one-time test evaluation. Validation is now a development/selection split. Keep test sealed until the M-B protocol and evaluation plan are accepted.
+- Limits: exact-string ingredient-to-ingredient substitution ranking, not member-personalized recommendations; closed-world positives are incomplete and do not establish human preference, chemical validity, allergen safety, release rights, or product readiness. FooDB is not needed for this aggregate validation score, but remains missing for profile-based M-B coverage.
+- Evidence: `evidence/member-recipe1msubs-validation-evaluation-20261026.json`; method and reproduction notes: `chefkix-ai-service/docs/research/recipe1msubs-ranker-validation.md`.
+
+### Kaggle T4 Recipe1MSubs train-only ranker setup (2026-10-25)
+
+- [x] Add `C:\Users\LENOVO\IdeaProjects\chefkix-ai-service\tools\train_recipe1msubs_ranker.py`: a self-contained BPR ranker that safely reads only `train_comments_subs.pkl`, trains on CUDA when run in Kaggle, and writes a hash-bound private research artifact. It does not open validation/test files, report benchmark scores, or activate a product route.
+- [x] Save the private Kaggle T4 training kernel: [Recipe1MSubs Train Only Ranker T4](https://www.kaggle.com/code/tnvtrung/recipe1msubs-train-only-ranker-t4). The source pulled back from Kaggle matches the current trainer. The initial setup receipt described the kernel before real-data execution; on 2026-10-26, actual train-only v4 and v5 artifacts were produced and evaluated locally (see the ranker validation section above).
+- [x] Run the separate private synthetic smoke kernel on a Tesla T4/CUDA: [Recipe1MSubs Ranker T4 Smoke Test](https://www.kaggle.com/code/tnvtrung/recipe1msubs-ranker-t4-smoke-test). Three synthetic epochs completed; the artifact was downloaded and safely reloaded on local CPU. Manifest declares `synthetic_fixture` and `validation_or_test_files_opened: false`.
+- [x] Verify focused Recipe1M+ bridge/train-pool/ranker tests **14/14**, full AI-service suite **561 passed, 11 skipped**, Black check, Python compile, and `git diff --check`. Receipt: `evidence/member-recipe1msubs-kaggle-t4-setup-20261025.json`.
+- [x] Run actual Recipe1MSubs train-only training on Kaggle: v4 (10 epochs) and v5 (35 epochs, best train-loss epoch 34) artifacts are hash-pinned and their training manifests bind the same 49,044-row train file. The training manifests state that validation/test files were not opened.
+- [ ] Resolve and archive the applicable Recipe1MSubs file terms and Kaggle/third-party transfer permission. The user attests authorization for current research use; provider-specific external-transfer terms are not independently archived. Avoid further external data transfer while this evidence gap remains.
+
+The synthetic smoke validates only the T4 code path; the separate real-data validation result is recorded above. Neither the smoke nor the validation score closes M-A/M-B/M-D or authorizes publication, model deployment, or product use.
+
+### Recipe1MSubs/GISMo permission update (2026-10-26)
+
+- [x] User reports authorization to use all datasets required for the current member research work. This is recorded as a user attestation; no separate written permission file was added to the repository.
+- Actual v4/v5 training used the Recipe1MSubs train split on Kaggle according to the artifact manifests; this historical transfer is not independently cleared by the Recipe1M/Recipe1M+ email terms. Local validation replay on 2026-10-26 initiated no new external transfer.
+- No source rows, ingredient labels, or raw recipe IDs were added to the repository. Keep checkpoints and aggregate reports private pending applicable terms review.
+
 ## Member integration checkpoint — 2026-10-24
+
+### Recipe1MSubs + GISMo readiness while Recipe1M+ approval is pending (2026-10-24)
+
+- [x] Validate the local Recipe1MSubs train/val/test files by hash, safe-pickle opcode allowlist, row schema, and split-ID disjointness: 49,044 / 10,729 / 10,747 pairs (70,520 total). Aggregate receipt: `C:\Users\LENOVO\ResearchData\gismo-runtime-20261024\Recipe1MSubsAudit.json`.
+- [x] Assemble the GISMo checkpoint, ingredient vocabulary, merged dictionary, pinned FlavorGraph files, and the three substitution splits under `C:\Users\LENOVO\ResearchData\gismo-runtime-20261024`; `MANIFEST.json` binds source URLs/commits, sizes, and SHA-256 values. GISMo source is pinned to `f5d2394c7ade897987ce584d2a75d8bbbbae058e`; FlavorGraph is pinned to `8d3472d0823f4542b2ce47f83e28046c41d2f06`.
+- [x] Verify the released `GIN_MLP` checkpoint in an isolated Python 3.8 / PyTorch 1.7.1 CPU / DGL 0.6.1 container. A local-only GISMo compatibility patch maps CUDA tensors to the selected device, restores the checkpoint's separate `epoch` / `mrr` metadata, rejects other weight mismatches, and makes the padding row device-aware. Exact weight values load and one synthetic CPU forward pass succeeds; receipt: `GISMoCheckpointAudit.json`. No validation/test labels or benchmark metrics were read or produced.
+- [x] Add `chefkix-ai-service/tools/recipe1mplus_bridge.py`: safe Recipe1MSubs validation plus a streaming, exact-recipe-ID Recipe1M+ overlap audit. It keeps the Recipe1MSubs split as the benchmark split, reports mismatches/ambiguous IDs, and emits only aggregate counts and file hashes. Focused tests pass **7/7**.
+- [x] Review the publicly documented Recipe1MSubs/GISMo use scope. The user's declared purpose is a non-commercial academic thesis; this matches the published research/non-commercial scope and supports private/local thesis research with attribution. Evidence and limits: `evidence/member-recipe1msubs-use-terms-review-20261025.md`.
+- [x] Run the exact-ID join after the authorized Recipe1M+ layer data was placed locally; completed 2026-10-26 with all 70,520 pair rows matching and no split mismatch. Exact GISMo Recipe1MSubs pkl terms and Kaggle cloud-transfer rights remain independently undocumented. See the current join result above and `evidence/member-recipe1m-rights-holder-email-terms-20261025.md`.
+
+These source-readiness tasks do not close the separate M-A ChefKix Graph-RAG artifact gate: `models/substitution_subgraph.pt` is still absent, and GISMo's `.chkpnt` is a different artifact. M-B's protocol and blinded-fixture gates remain open; the user reports dataset authorization on 2026-10-26, but no written permission receipt is archived. M-D's local arm-output acceptance remains as reconciled to LEAD v469; those historical arm files are still outside the synced AI-service checkout.
+
+### Recipe1MSubs train-only lookup baseline (2026-10-25)
+
+- [x] Implement and run a deterministic local candidate-pool baseline from **train only**. The builder validates the train/val/test source files and split disjointness, aggregates exact directed substitution strings, excludes recipe IDs and context rows from the output, and writes a hash-bound artifact plus manifest under `C:\Users\LENOVO\ResearchData\recipe1msubs-train-pool-20261025`. Actual input: 49,044 train pairs; output: 23,421 unique directed pairs and 3,566 exact source identities. Real-data rebuild is byte-identical; local provider smoke passes.
+- [x] Verify the exact-string local provider and pinned manifest contract. Focused AI-service tests pass **11/11** (7 bridge + 4 train-pool tests); the full AI-service suite passes **558**, with 11 skipped and 28 warnings. The real-data rebuild matches the artifact hash. Receipt: `evidence/member-recipe1msubs-train-pool-20261025.json`. The artifact is private/local research output; no Kaggle/API transfer or product route activation occurred.
+
+M-A still needs the compatible HGAT architecture/weights, a provenance-bound `substitution_subgraph.pt`, and a successful runtime health check. M-B still needs its accepted pool cohort/protocol, FooDB profile coverage, pool builder and blinded fixture, and applicable rights/provenance gates. The separate ranker validation check is recorded above; this lookup baseline does not close those items. Keep research artifacts local and do not claim product readiness.
+
+### M-A runtime graph artifact inventory tooling (2026-10-24)
+
+Implemented `tools/inspect_runtime_graph.py` in the AI service. It resolves the active `graph-rag` registry path inside the service root, safely loads the PyG graph bundle when present, and reports its SHA-256, node/edge counts by type, and isolated-node counts. `py_compile` and a synthetic HeteroData inventory smoke check pass. The current local run found `models/substitution_subgraph.pt` missing; receipt: `evidence/member-ma-runtime-graph-inventory-20261024.json`. No runtime graph counts or load are claimed. The M-A runtime-artifact checkbox and acceptance remain open until the required bundle is available.
 
 ### M-A Graph-RAG model image packaging (2026-10-24)
 
@@ -644,7 +712,7 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 | ID | Deliverable / Acceptance | Dependencies | Effort `[P]` |
 |----|--------------------------|--------------|--------------|
 | **M-A** | **Graph & coverage truth:** `GRAPH_TRUTH.csv`, `COVERAGE_CURVES.csv` with provenance labels. Seed arrays are located and their recorded source hash matches; runtime artifact statistics and Round 0 reconciliation remain open. | Runtime artifact access and Round 0 definition | 10h |
-| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** Files in §5.5; pool builder using Appendix A functions. Interim v3 split/identity recount exists (LEAD v436; note in research commit `03ab020`), but raw test CSV/source-join reproduction and remaining M-B acceptance are open. Regenerate bit-for-bit; pool builder deterministic; fixture-tested adversarially. | PR03/PR09 resolved; official splits | 12h |
+| **M-B** | **Deterministic strata, identity map, candidate pool builder, validation-score check:** GISMo/Senath strata and exact-string ranker validation comparison are now reproduced locally. FooDB profile coverage, canonical pool protocol/function source, pool-generation/blinded-fixture gates, and remaining M-B acceptance are open. | PR03/PR09/PR15 protocol/source resolution; official splits; FooDB profile keys for that coverage slice | 12h |
 | **M-C** | **Explorer & evidence endpoint (flagged, shadow):** the additive endpoint is implemented and default-off. T-09 and T-12 pass narrowly; T-11 is partial; T-01–T-08 and T-10 remain open or partial per the §12.7 status table. Accepted-artifact rendering, calibration, allergy, and product acceptance remain incomplete. | M-A graph artifacts; PR04/PR06/PR11/PR12 resolved | 25h |
 | **M-D** | **Complete deterministic GISMo & lookup outputs:** `arm_outputs/{gismo,lookup}_{val,test}.jsonl`. Every case present; deterministic across two runs. **Artifact acceptance met locally (LEAD v469)**; recursive label firewall and strict ID/rank typing are regression-tested. Keep handoff/rights, historical tie-equivalence, and downstream L44 separate and open; they do not undo the local file-generation result. | M-B case frames; official GISMo checkpoint | 8h |
 | **M-E** | **Demo build, recorded Act 3, test suite:** §12.7–12.8. T-10 remains open; T-11 is partial; T-12 passes for suites covering the current FE and monolith graph slice. Act 3 and a network-isolated demo are not verified. | M-C Explorer; L38/L39 results | 12h |
@@ -678,7 +746,7 @@ L39 (allergen) → L45
 - [x] Locate actual seed arrays (`culinary/src/main/java/com/chefkix/culinary/features/knowledge/service/KnowledgeGraphSeeder.java`) — current file SHA-256 still matches the source-bound receipt in `evidence/lead-ma-seed-graph-source-reconstruction-20261021.json`; it describes 25 canonical ingredient source records and 59 directed substitution statements. This proves source location only, not current runtime inventory or Round-0 acceptance.
 - [x] Compute by-type nodes/edges, degree min/median/mean/max, isolates — source-only directed multigraph; provenance and scope in `evidence/member-ma-seed-graph-source-20261023/GRAPH_TRUTH.csv`.
 - [x] Verify degree-sum invariant appropriate to graph type (not blindly undirected) — in=59, out=59, total=118 for 59 directed statements; source-only evidence above.
-- [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
+- [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes — inventory tooling is implemented at `chefkix-ai-service/tools/inspect_runtime_graph.py`; the required `models/substitution_subgraph.pt` is absent, so the receipt records the missing artifact and leaves counts unavailable.
 - [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line) — the tracked Markdown scan found `output/sprints/2026-10-11/README.md:7`, which records 25 ingredients/four edges for that dated local screenshot package and explicitly says it is not an imported Lead graph. This is a historical demo claim, not current runtime or accepted graph truth.
 - [x] Emit source-only `GRAPH_TRUTH.csv` with source path/hash and an explicit source-only provenance label.
 - [ ] Emit `COVERAGE_CURVES.csv` only after the authoritative query cohort and denominator are available; the current report records `NOT_COMPUTED_NO_QUERY_COHORT_DENOMINATOR`.
@@ -687,8 +755,8 @@ L39 (allergen) → L45
 ### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**
 > SSoT §5.5, §25.2 (P2), Appendix A functions (review only, not mandatory)
 
-- [ ] Implement `build_strata.py`: GISMo primary identity, Senath secondary, seen/unseen (one frozen function on train/val/test), evidence_coverage (FooDB both-endpoints), cell key (seen\|unseen × profiled\|not)
-- [ ] Emit: `cases_val.jsonl`, `cases_test.jsonl`, `strata_counts.csv`, `identity_map.csv`, `manifest.json` (hashes + script git SHA)
+- [ ] Implement the complete strata builder: GISMo primary identity, Senath secondary, seen/unseen (one frozen function on train/val/test), evidence_coverage (FooDB both-endpoints), cell key (seen\|unseen × profiled\|not) — `chefkix-ai-service/tools/build_member_strata.py` and GISMo/Senath outputs exist, but FooDB coverage is unassessed because the profile-key artifact is missing.
+- [ ] Emit the complete source-pinned package: `cases_val.jsonl`, `cases_test.jsonl`, `strata_counts.csv`, `identity_map.csv`, `manifest.json` — these outputs and hashes exist locally, but the script is uncommitted and FooDB coverage is still missing.
 - [ ] Implement `build_pools.py` using `stratified_sample()` and `blinded_pool()` from Appendix A (do not reimplement)
 - [ ] **FIXTURE FIRST:** 40-case / 3-arm fixture → tests proving:
   - (a) Rerun with same seed = identical
@@ -703,10 +771,10 @@ L39 (allergen) → L45
 ### M-F: First-Party Recipe Inventory & License Check (4h) — **START WEEK 1**
 > SSoT §17.2 M-F, §10.8, U8
 
-- [ ] Count first-party ChefKix recipes available for private-Western cell
-- [ ] Record license per recipe/source
-- [ ] Mark unclear licenses `UNKNOWN`
-- [ ] **Acceptance:** Count + license table delivered; numbers stated
+- [x] Count first-party ChefKix recipes available for private-Western cell
+- [x] Record license per recipe/source
+- [x] Mark unclear licenses `UNKNOWN`
+- [x] **Acceptance:** Count + license table delivered; numbers stated
 
 ## EPIC 6: Allergen safety UI — IMPLEMENTED surface, comparison open
 
@@ -818,7 +886,7 @@ L39 (allergen) → L45
 - [ ] G9: obtain canonical strategy/atomic ledger, audit captions and capture real-source figures/screenshots.
 - [ ] G9: deployed regions/URLs, source fingerprints, auth/quotas/recovery and measured costs; no $0 claim from a plan.
 - [ ] G9: ethics/recruitment/user study, independent allergen/image reviews and recorded/scored defense rehearsal are human/Lead dependencies.
-- [ ] Reconcile preserved sprint drafts before submission. They are schedule drafts, not current completion evidence.
+- [x] Reconcile preserved sprint drafts before submission. They are schedule drafts, not current completion evidence.
 
 ## Evidence Integrity Rules (same as Lead)
 

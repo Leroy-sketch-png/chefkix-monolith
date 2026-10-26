@@ -212,7 +212,8 @@ public class PostService {
                             } catch (AppException e) {
                                 throw e;
                             } catch (Exception e) {
-                                log.error("Error fetching session [{}]", request.getSessionId(), e);
+                                log.error("Error fetching cooking session ({})",
+                                        e.getClass().getSimpleName());
                                 throw new AppException(
                                         ErrorCode.INTERNAL_SERVER_ERROR,
                                         "Failed to load cooking session for post creation");
@@ -239,7 +240,8 @@ public class PostService {
             return savePostToDb(request, userId, userProfile, photoUrls, session, type, groupId, status, isHidden);
 
         } catch (CompletionException e) {
-            log.error("Parallel error in processAndSavePost", e);
+            log.error("Parallel error in processAndSavePost ({})",
+                    e.getClass().getSimpleName());
             Throwable cause = e.getCause();
             if (cause instanceof AppException) throw (AppException) cause;
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -341,7 +343,8 @@ post.setBattleEndsAt(Instant.now().plusSeconds(48 * 60 * 60));
                                 .collect(Collectors.toList()));
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to populate co-chefs for room {}: {}", session.getRoomCode(), e.getMessage());
+                    log.warn("Failed to populate co-chefs for cooking room ({})",
+                            e.getClass().getSimpleName());
                 }
             }
         }
@@ -371,7 +374,8 @@ if (taggedUserId.equals(userId)) continue;
                             .build();
                     kafkaTemplate.send("tag-delivery", event);
                 } catch (Exception e) {
-                    log.error("Failed to send post mention notification to user {}: {}", taggedUserId, e.getMessage());
+                    log.error("Failed to send post mention notification to user {} ({})",
+                            taggedUserId, e.getClass().getSimpleName());
                 }
             }
         }
@@ -579,7 +583,8 @@ if (taggedUserId.equals(userId)) continue;
                 try {
                     profile = profileProvider.getBasicProfile(userId);
                 } catch (Exception e) {
-                    log.warn("Failed to fetch profile for like notification, userId={}: {}", userId, e.getMessage());
+                    log.warn("Failed to fetch profile for like notification, userId={} ({})",
+                            userId, e.getClass().getSimpleName());
                 }
                 String displayName = profile != null ? profile.getDisplayName() : "Someone";
                 String avatarUrl = profile != null ? profile.getAvatarUrl() : null;
@@ -595,7 +600,8 @@ if (taggedUserId.equals(userId)) continue;
 
                 kafkaTemplate.send("post-liked-delivery", event);
             } catch (Exception e) {
-                log.error("Error sending like notification", e);
+                log.error("Error sending like notification ({})",
+                        e.getClass().getSimpleName());
             }
 }, taskExecutor);
     }
@@ -611,7 +617,8 @@ if (taggedUserId.equals(userId)) continue;
                     .build();
             kafkaTemplate.send("xp-delivery", xpEvent);
         } catch (Exception e) {
-            log.error("Failed to send social XP event: userId={}, source={}, postId={}", userId, source, postId, e);
+            log.error("Failed to send social XP event: userId={}, source={}, postId={} ({})",
+                    userId, source, postId, e.getClass().getSimpleName());
         }
     }
 
@@ -699,7 +706,8 @@ if (taggedUserId.equals(userId)) continue;
                     tasteWeights = bootstrapWeights;
                 }
             } catch (Exception e) {
-                log.debug("[FEED] Could not load preferences for cold start: {}", e.getMessage());
+                log.debug("[FEED] Could not load preferences for cold start ({})",
+                        e.getClass().getSimpleName());
             }
         }
 
@@ -1600,7 +1608,7 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
 
         eventPublisher.publishEvent(PostIndexEvent.index(post));
 
-        log.info("Auto-created RECENT_COOK post for user {} (recipe: {})", request.getUserId(), request.getRecipeTitle());
+        log.info("Auto-created RECENT_COOK post for user {}", request.getUserId());
     }
 
 
