@@ -28,6 +28,8 @@ Lead reviewed T470 against T457/T448/T376. The publisher paper describes positiv
 
 The reviewed public sources do not establish the hosted binary schema/checksums, per-comment provenance, complete candidate acceptability states, allergen profiles, project-case joins, or artifact-specific local/transfer/retention/publication rights. No data bytes or rows were acquired/opened; no source-owner or legal contact occurred. The exact rights question remains in the research-worktree T470 card. No C3 input or milestone is accepted.
 
+**Cross-receipt reconciliation (ARCHITECT, 2026-10-26):** the preceding statement is T470's public-metadata evidence ceiling, not a workspace-wide absence finding. `member-mb-mf-recipe1msubs-source-license-audit-20261024.json` already reports local all-split payload acquisition, hashes/counts and actual `id/ingredients/subs` structural checks. Reuse that evidence subject to its source identity and limits. It does not supply missing complete reference/filter/profile/join semantics or clear transfers. A named legal reviewer is not inherently required: HUMAN owns the concrete unresolved research-use risk decision. Do not infer a third-party grant from that ownership or ask legal counsel to provide missing technical data.
+
 ## Current disposition
 
 Fixed measure remains **3/25 (12 points)** and fully accepted C1–C5 contributions remain **0/5**. Keep C2 transfer/provider work parked until its actual rights, compatible release, current account/capacity and reserved-cost gates are satisfied. Keep C3 input acquisition scoped to actual access/rights terms and the missing source-backed profiles, candidate references, joins, and provenance; do not infer any of these from positive tuples or repository-level licensing.
