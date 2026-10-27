@@ -1,0 +1,190 @@
+{
+  "execution": {
+    "ijson": "3.6.0",
+    "json_processing": "streaming array parser; SQLite ID lookups; no full JSON loaded into RAM",
+    "python": "3.13.14"
+  },
+  "gismo_preprocess_replay": {
+    "candidate_imageful_count_gaps_vs_pinned_split_files": {
+      "test": 220,
+      "train": 1044,
+      "validation": 230
+    },
+    "filtered_array_lengths": {
+      "test": 137434,
+      "train": 642003,
+      "val": 138061
+    },
+    "imageful_array_lengths": {
+      "test": 54286,
+      "train": 251503,
+      "val": 54025
+    },
+    "pinned_source_commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+    "positional_index_mapping_status": "NOT_VERIFIED; do not use candidate map for strata regeneration",
+    "val_indices_in_candidate_imageful_range": 4983,
+    "val_indices_out_of_candidate_imageful_range": 17,
+    "val_is_subset_of_val_all": true,
+    "vocabulary_sha256": "ad8c62dee7d1314be6e173c3f3bbde473c2c79352bd6e3ccf656a6ac9a488ed4"
+  },
+  "inputs": {
+    "det_ingrs.json": {
+      "bytes": 361085654,
+      "sha256": "e1399c338b004f83f3dd9d85a8479dd04f120666e35f4d67c4b6947fae07aa50"
+    },
+    "flavorgraph": {
+      "merge_dict_sha256": "f39f877c1ad738856e138e22944d75be8bea742031c3f0e524d43374e1425ec1",
+      "nodes_sha256": "ea59d1858ae3a41de14aeabda32e6274693ea7897eb6ae1a3b7262bac5526d5a"
+    },
+    "gismo_index_files": {
+      "test": {
+        "bytes": 370432,
+        "rows": 54506,
+        "sha256": "a704b7a73e1e791167a256da2e5218ae7124638bb702bacfafe5999311b7ffcf"
+      },
+      "train": {
+        "bytes": 1909266,
+        "rows": 252547,
+        "sha256": "baeaea86102cc5157ac9f3284de03ce57947388361e3229df7df7088b09ebb8c"
+      },
+      "val": {
+        "bytes": 33955,
+        "rows": 5000,
+        "sha256": "34924521773b58d9fde31ad784418ff31e383a08171c69c95e78f9da026756ae"
+      },
+      "val_all": {
+        "bytes": 368675,
+        "rows": 54255,
+        "sha256": "ced3882bccf2db9c6de6a5896d682c26587202ef826bc6417d960ba155ac5f76"
+      }
+    },
+    "layer1.json": {
+      "bytes": 1405719644,
+      "sha256": "ad76f06eb4e191194fe2c20506bbd5ac9a4f1be5ec0241916b47be0433f02a98"
+    },
+    "layer2.json": {
+      "bytes": 131490086,
+      "sha256": "663230a870e55520fe78ae44277502b1e7a2a841d3648e9d9141948cd01d46a2"
+    },
+    "recipe1M_layers.tar.gz": {
+      "bytes": 399115593,
+      "sha256": "e180260dcd438be96e63c1c68b5f09a6415d1d1c51b1f2c2bc0b08079cb5d6c3"
+    },
+    "test_comments_subs.pkl": {
+      "bytes": 919937,
+      "sha256": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174"
+    },
+    "train_comments_subs.pkl": {
+      "bytes": 3914545,
+      "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81"
+    },
+    "val_comments_subs.pkl": {
+      "bytes": 910636,
+      "sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd"
+    },
+    "vocab_ingrs.pkl": {
+      "bytes": 318134,
+      "sha256": "ad8c62dee7d1314be6e173c3f3bbde473c2c79352bd6e3ccf656a6ac9a488ed4"
+    }
+  },
+  "limitations": [
+    "The source ID-to-Recipe1M partition join is verified, but replayed GISMo imageful array lengths do not match the pinned integer-index files.",
+    "The released ingredient vocabulary does not exactly equal the vocabulary rebuilt from the pinned preprocessing code; exact historical cache/order is still needed for index-to-ID claims.",
+    "Retained-by-filter counts above are diagnostic under the released vocabulary, not accepted denominator changes.",
+    "Rights, scientific unit, protocol, pool construction, and LEAD acceptance remain separate gates."
+  ],
+  "observed_date": "2026-10-27",
+  "outputs": {
+    "aggregate_report_sha256": "5d7b878953b67b150cd145b935752afe79d30a1ca8fdc8e7f0617f51a4ffed20",
+    "local_manifest_sha256": "9b67b2501a64635584056e916f9ebe26fcbe338d5bbc9f7851875550dc9940f4",
+    "local_only_directory": "C:\\Users\\LENOVO\\ResearchData\\recipe1m-gismo-index-join-20261027",
+    "preaccess_log_sha256": "1e976295b4c17c67ddb00188ff935d75e15445731e1eb20415a995035edb3f0b",
+    "raw_id_maps_committed": false,
+    "streaming_join_builder_sha256": "e221585336aa83d168929938bf1866c7425413866f7452ea106f7bd324ea51aa",
+    "vocabulary_audit_builder_sha256": "5bc1a7990a1971603d6b57e178c25fc8707f14c4e58559554714835ee68b1ec0"
+  },
+  "owner": "M-B/M-F execution; LEAD owns scientific interpretation and acceptance",
+  "preprocess_vocabulary_audit": {
+    "canonical_groups_rebuilt": 6631,
+    "exact_mapping_equal": false,
+    "note": "Pinned source matcher uses Python set iteration and drops the first set-derived entry; hash-seed-dependent mapping is a plausible explanation, not proven. Exact historical preprocessing cache/vocabulary remains unavailable.",
+    "rebuilt_vocabulary_sha256": "77ba6880ed0c05507925049539f8e1efec7d18b1f5823d5eee1b509d0ccd59d1",
+    "release_only_keys": 3,
+    "released_vocabulary_sha256": "ad8c62dee7d1314be6e173c3f3bbde473c2c79352bd6e3ccf656a6ac9a488ed4",
+    "shared_key_group_index_differences": 5708
+  },
+  "protocol_and_rights": {
+    "recipe1msubs_and_comment_rights": "Separate from code license and not resolved by this technical join.",
+    "redistribution_or_product_use": "Not assessed or claimed.",
+    "test_partition": "EXPOSED; read only for recipe-ID/source-split identity. No test outcomes or ranking metrics computed."
+  },
+  "recipe1m_source": {
+    "cross_partition_duplicate_ids": 0,
+    "det_ingrs_rows": 1029720,
+    "det_ingrs_unique_ids": 1029720,
+    "duplicate_recipe_ids": 0,
+    "layer1_rows": 1029720,
+    "layer2_rows": 402760,
+    "layer2_unique_ids": 402760,
+    "raw_partition_rows": {
+      "test": 154045,
+      "train": 720639,
+      "val": 155036
+    },
+    "unique_recipe_ids": 1029720
+  },
+  "recipe1msubs_source_split_join": {
+    "by_split": {
+      "test": {
+        "duplicate_recipe_id_rows": 4085,
+        "ids_retained_by_candidate_gismo_filter": 6266,
+        "ids_with_candidate_imageful_occurrence": 4406,
+        "missing_source_id_rows": 0,
+        "recipe1msubs_rows": 10747,
+        "source_id_matched_rows": 10747,
+        "source_partition_match_unique_ids": 6662,
+        "unique_recipe_ids": 6662,
+        "wrong_source_partition_rows": 0
+      },
+      "train": {
+        "duplicate_recipe_id_rows": 17947,
+        "ids_retained_by_candidate_gismo_filter": 29197,
+        "ids_with_candidate_imageful_occurrence": 20069,
+        "missing_source_id_rows": 0,
+        "recipe1msubs_rows": 49044,
+        "source_id_matched_rows": 49044,
+        "source_partition_match_unique_ids": 31097,
+        "unique_recipe_ids": 31097,
+        "wrong_source_partition_rows": 0
+      },
+      "val": {
+        "duplicate_recipe_id_rows": 4059,
+        "ids_retained_by_candidate_gismo_filter": 6262,
+        "ids_with_candidate_imageful_occurrence": 4363,
+        "missing_source_id_rows": 0,
+        "recipe1msubs_rows": 10729,
+        "source_id_matched_rows": 10729,
+        "source_partition_match_unique_ids": 6670,
+        "unique_recipe_ids": 6670,
+        "wrong_source_partition_rows": 0
+      }
+    },
+    "cross_split_recipe_id_overlap": 0,
+    "rows_found_in_recipe1m": 70520,
+    "rows_missing_from_recipe1m": 0,
+    "rows_total": 70520,
+    "rows_with_wrong_source_partition": 0,
+    "unique_recipe_ids_total": 44429
+  },
+  "record_id": "member-mb-recipe1m-gismo-source-split-join-20261027",
+  "remote_default_commit_used": "833c9d3d49ff39ad379ca75b82f4c7fdf21b76c3",
+  "schema_version": 1,
+  "scope": "Streamed source identity/split/denominator reconciliation only. No ranker inference, scores, metrics, model selection, tuning, calibration, or test outcome analysis.",
+  "sources": {
+    "gismo_repository_commit": "https://github.com/facebookresearch/gismo/tree/f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+    "local_preaccess_record": "C:\\Users\\LENOVO\\ResearchData\\preaccess-recipe1m-gismo-index-join-20261027.md",
+    "recipe1m_ingredient_detections": "http://wednesday.csail.mit.edu/temporal/release/det_ingrs.json",
+    "recipe1m_layers": "http://wednesday.csail.mit.edu/temporal/release/recipe1M_layers.tar.gz"
+  },
+  "status": "SOURCE_ID_SPLIT_JOIN_VERIFIED; GISMO_POSITIONAL_INDEX_JOIN_NOT_VERIFIED"
+}
