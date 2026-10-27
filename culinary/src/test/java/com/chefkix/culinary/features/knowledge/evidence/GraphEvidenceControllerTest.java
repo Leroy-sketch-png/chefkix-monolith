@@ -36,6 +36,84 @@ class GraphEvidenceControllerTest {
     }
 
     @Test
+    void snapshotRejectsInvalidBoundsBeforeProviderAndRemainsDisabledByDefault() {
+        ObjectProvider<GraphEvidenceProvider> providers = mock(ObjectProvider.class);
+        GraphEvidenceController controller = new GraphEvidenceController(new GraphEvidenceProperties(), providers);
+
+        var invalid = controller.getSnapshot("1", 3, 100);
+        assertEquals(HttpStatus.BAD_REQUEST, invalid.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.INVALID_QUERY, invalid.getBody().unavailableReason());
+        assertEquals(GraphEvidenceContractV1.SNAPSHOT_VERSION, invalid.getBody().contractVersion());
+
+        var invalidCenter = controller.getSnapshot("01", 1, 100);
+        assertEquals(HttpStatus.BAD_REQUEST, invalidCenter.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.INVALID_QUERY, invalidCenter.getBody().unavailableReason());
+
+        var disabled = controller.getSnapshot("1", 1, 100);
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, disabled.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.FEATURE_DISABLED, disabled.getBody().unavailableReason());
+        verifyNoInteractions(providers);
+    }
+
+    @Test
+    void snapshotRouteReturnsOnlyPinnedAggregateGraphAndExplicitlyUnpinnedC3Status() {
+        GraphSnapshot snapshot = validSnapshot(new SnapshotStats(2, 1, 1, 0, 0, 10, true),
+                new SnapshotProvenance("recipe1msubs-train", "UNKNOWN_NOT_REVIEWED", "TRAIN",
+                        "PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED", HASH_B, HASH_A));
+
+        var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(SnapshotStatus.AVAILABLE, response.getBody().status());
+        assertEquals(C3CellStatus.NOT_SEPARATELY_PINNED, response.getBody().snapshot().c3CellStatus());
+        assertEquals(1, response.getBody().snapshot().stats().returnedNodes());
+        String json = assertDoesNotThrow(() -> new ObjectMapper().writeValueAsString(response.getBody()));
+        assertFalse(json.contains("source_row_key"));
+        assertFalse(json.contains("evidence_id"));
+        assertFalse(json.contains("artifactSha256"));
+        assertTrue(json.contains("sourceManifestSha256"));
+        assertFalse(json.contains("confidencePercentage"));
+    }
+
+    @Test
+    void snapshotRejectsProviderTotalsBelowReturnedInventory() {
+        GraphSnapshot snapshot = validSnapshot(new SnapshotStats(0, 0, 1, 0, 0, 10, false),
+                validSnapshotProvenance());
+
+        var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().snapshot());
+    }
+
+    @Test
+    void snapshotRejectsMalformedSourceManifestHash() {
+        GraphSnapshot snapshot = validSnapshot(new SnapshotStats(2, 1, 1, 0, 0, 10, true),
+                new SnapshotProvenance("recipe1msubs-train", "UNKNOWN_NOT_REVIEWED", "TRAIN",
+                        "PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED", HASH_B, "not-a-sha256"));
+
+        var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().snapshot());
+    }
+
+    @Test
+    void snapshotRejectsValidButMismatchedBundleManifestProvenanceHash() {
+        GraphSnapshot snapshot = validSnapshot(new SnapshotStats(2, 1, 1, 0, 0, 10, true),
+                new SnapshotProvenance("recipe1msubs-train", "UNKNOWN_NOT_REVIEWED", "TRAIN",
+                        "PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED", HASH_A, HASH_A));
+
+        var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().snapshot());
+    }
+
+    @Test
     void enabledWithoutProviderFailsClosedRatherThanUsingLegacySeedGraph() {
         GraphEvidenceProperties properties = enabledProperties();
         ObjectProvider<GraphEvidenceProvider> providers = mock(ObjectProvider.class);
@@ -289,6 +367,9 @@ class GraphEvidenceControllerTest {
         GetMapping evidenceMapping = GraphEvidenceController.class
                 .getMethod("getEvidence", String.class, String.class).getAnnotation(GetMapping.class);
         assertArrayEquals(new String[]{"/graph/evidence"}, evidenceMapping.value());
+        GetMapping snapshotMapping = GraphEvidenceController.class
+                .getMethod("getSnapshot", String.class, int.class, int.class).getAnnotation(GetMapping.class);
+        assertArrayEquals(new String[]{"/graph/evidence/snapshot"}, snapshotMapping.value());
 
         RequestMapping legacyPrefix = KnowledgeGraphController.class.getAnnotation(RequestMapping.class);
         GetMapping legacyGraph = KnowledgeGraphController.class
@@ -305,6 +386,76 @@ class GraphEvidenceControllerTest {
         ObjectProvider<GraphEvidenceProvider> providers = mock(ObjectProvider.class);
         when(providers.getIfAvailable()).thenReturn(provider);
         return new GraphEvidenceController(enabledProperties(), providers);
+    }
+
+    private static GraphEvidenceController controllerWith(GraphEvidenceProvider provider, String expectedManifestHash) {
+        ObjectProvider<GraphEvidenceProvider> providers = mock(ObjectProvider.class);
+        when(providers.getIfAvailable()).thenReturn(provider);
+        GraphEvidenceProperties properties = enabledProperties();
+        properties.setExpectedManifestSha256(expectedManifestHash);
+        return new GraphEvidenceController(properties, providers);
+    }
+
+    private static GraphEvidenceProvider snapshotProvider(GraphSnapshot snapshot) {
+        return new GraphEvidenceProvider() {
+            @Override
+            public ProviderResult findEvidence(Request request) {
+                return null;
+            }
+
+            @Override
+            public SnapshotResult getSnapshot(SnapshotRequest request) {
+                return new SnapshotResult(new ArtifactIntegrity(ArtifactIntegrityStatus.VERIFIED, HASH_B, HASH_B),
+                        new SnapshotCenter(IdentityStatus.RESOLVED, request.centerIngredientId(),
+                                request.centerIngredientId()), snapshot);
+            }
+        };
+    }
+
+    @Test
+    void snapshotRejectsNodeMetadataOutsideManifestBackedVocabularyContract() {
+        List<SnapshotNode> invalidNodes = List.of(
+                new SnapshotNode("1", "one", "guessed", "ingredient", List.of("gismo_vocabulary", "gismo_node_catalog")),
+                new SnapshotNode("1", "one", "resolved", "dish", List.of("gismo_vocabulary", "gismo_node_catalog")),
+                new SnapshotNode("1", "one", "resolved", "ingredient", List.of("unverified_alias")),
+                new SnapshotNode("1", " ", "resolved", "ingredient", List.of("gismo_vocabulary", "gismo_node_catalog")));
+
+        for (SnapshotNode node : invalidNodes) {
+            GraphSnapshot snapshot = new GraphSnapshot("PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED",
+                    List.of(node), List.of(), new SnapshotStats(1, 0, 1, 0, 0, 10, false),
+                    validSnapshotProvenance(), C3CellStatus.NOT_SEPARATELY_PINNED, "No C3 artifact is pinned.");
+            var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals(SnapshotUnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+            assertNull(response.getBody().snapshot());
+        }
+    }
+
+    @Test
+    void snapshotRejectsZeroCountEdgeInconsistentWithVerifiedArtifactContract() {
+        GraphSnapshot snapshot = new GraphSnapshot("PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED",
+                List.of(new SnapshotNode("1", "one", "resolved", "ingredient", List.of("gismo_vocabulary", "gismo_node_catalog"))),
+                List.of(new SnapshotEdge("1", "1", "substitution", true, 0, 0)),
+                new SnapshotStats(1, 1, 1, 1, 0, 10, false), validSnapshotProvenance(),
+                C3CellStatus.NOT_SEPARATELY_PINNED, "No C3 artifact is pinned.");
+
+        var response = controllerWith(snapshotProvider(snapshot), HASH_B).getSnapshot("1", 0, 10);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+        assertEquals(SnapshotUnavailableReason.PROVIDER_RESULT_INVALID, response.getBody().unavailableReason());
+        assertNull(response.getBody().snapshot());
+    }
+
+    private static GraphSnapshot validSnapshot(SnapshotStats stats, SnapshotProvenance provenance) {
+        return new GraphSnapshot("PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED",
+                List.of(new SnapshotNode("1", "one", "resolved", "ingredient",
+                        List.of("gismo_vocabulary", "gismo_node_catalog"))),
+                List.of(), stats, provenance, C3CellStatus.NOT_SEPARATELY_PINNED, "No C3 artifact is pinned.");
+    }
+
+    private static SnapshotProvenance validSnapshotProvenance() {
+        return new SnapshotProvenance("recipe1msubs-train", "UNKNOWN_NOT_REVIEWED", "TRAIN",
+                "PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED", HASH_B, HASH_A);
     }
 
     private static GraphEvidenceProperties enabledProperties() {

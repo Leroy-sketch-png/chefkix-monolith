@@ -89,6 +89,60 @@ class ManifestBackedGraphEvidenceProviderTest {
     }
 
     @Test
+    void boundedSnapshotUsesDeterministicCanonicalIdOrderAndOmitsRowEvidenceIds() throws Exception {
+        Path root = writeBundle(tempDir.resolve("snapshot"), false);
+        String pin = sha256(Files.readAllBytes(root.resolve("manifest.json")));
+        ManifestBackedGraphEvidenceProvider provider = provider(root, pin);
+
+        SnapshotResult result = provider.getSnapshot(new SnapshotRequest("1", 1, 2));
+        SnapshotResult repeated = provider.getSnapshot(new SnapshotRequest("1", 1, 2));
+
+        assertTrue(result.artifactIntegrity().isVerified());
+        assertEquals(new SnapshotCenter(IdentityStatus.RESOLVED, "1", "1"), result.center());
+        assertEquals(List.of("1", "2"), result.snapshot().nodes().stream().map(SnapshotNode::canonicalId).toList());
+        assertEquals(List.of(new SnapshotEdge("1", "2", "substitution", true, 1, 1)),
+                result.snapshot().edges());
+        assertEquals(new SnapshotStats(2, 1, 2, 1, 1, 2, false), result.snapshot().stats());
+        assertEquals(C3CellStatus.NOT_SEPARATELY_PINNED, result.snapshot().c3CellStatus());
+        assertEquals(result.artifactIntegrity().observedSha256(), result.snapshot().provenance().manifestSha256());
+        assertEquals(SOURCE_MANIFEST, result.snapshot().provenance().sourceManifestSha256());
+        assertEquals(result, repeated);
+        String json = JSON.writeValueAsString(result);
+        assertFalse(json.contains("source_row_key"));
+        assertFalse(json.contains("evidence_id"));
+    }
+
+    @Test
+    void snapshotIsBoundedAndRetainsUnknownCenterWithoutGuessing() throws Exception {
+        Path root = writeBundle(tempDir.resolve("snapshot-bounded"), false);
+        String pin = sha256(Files.readAllBytes(root.resolve("manifest.json")));
+        ManifestBackedGraphEvidenceProvider provider = provider(root, pin);
+
+        SnapshotResult bounded = provider.getSnapshot(new SnapshotRequest("1", 1, 1));
+        SnapshotResult unknown = provider.getSnapshot(new SnapshotRequest("999", 1, 10));
+
+        assertEquals(List.of("1"), bounded.snapshot().nodes().stream().map(SnapshotNode::canonicalId).toList());
+        assertTrue(bounded.snapshot().stats().hasMore());
+        assertEquals(1, bounded.snapshot().stats().returnedNodes());
+        assertEquals(IdentityStatus.UNKNOWN, unknown.center().status());
+        assertNull(unknown.snapshot());
+    }
+
+    @Test
+    void depthLimitDoesNotReportUnreturnedEdgesBeyondRequestedBfsDepthAsTruncated() throws Exception {
+        Path root = writeBundle(tempDir.resolve("snapshot-depth-zero"), false);
+        String pin = sha256(Files.readAllBytes(root.resolve("manifest.json")));
+
+        SnapshotResult result = provider(root, pin).getSnapshot(new SnapshotRequest("1", 0, 10));
+
+        assertEquals(List.of("1"), result.snapshot().nodes().stream().map(SnapshotNode::canonicalId).toList());
+        assertTrue(result.snapshot().edges().isEmpty());
+        assertFalse(result.snapshot().stats().hasMore());
+        assertEquals(2, result.snapshot().stats().totalNodes());
+        assertEquals(1, result.snapshot().stats().totalEdges());
+    }
+
+    @Test
     void knownPairAbsentFromArtifactIsAnExplicitZeroNotAnInferredEdge() throws Exception {
         Path root = writeBundle(tempDir.resolve("absent"), false);
         String pin = sha256(Files.readAllBytes(root.resolve("manifest.json")));
