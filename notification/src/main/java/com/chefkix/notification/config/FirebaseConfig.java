@@ -56,7 +56,7 @@ public class FirebaseConfig {
             log.info("Firebase initialized successfully for push notifications");
 
         } catch (IOException e) {
-            log.error("Failed to initialize Firebase: {}", e.getMessage());
+            log.error("Failed to initialize Firebase ({})", e.getClass().getSimpleName());
         }
     }
 }

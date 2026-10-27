@@ -156,7 +156,8 @@ public class CookingSessionService {
         try {
             challengeService.checkAndAdvanceCommunityChallenge(userId, recipe);
         } catch (Exception e) {
-            log.warn("Community challenge check failed for user {}: {}", userId, e.getMessage());
+            log.warn("Community challenge check failed for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
 
         Optional<ChallengeRewardResult> seasonalResult = challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe);
@@ -227,7 +228,8 @@ public class CookingSessionService {
                 }
             }
         } catch (Exception e) {
-            log.warn("Failed to auto-create RECENT_COOK post for session {}: {}", sessionId, e.getMessage());
+            log.warn("Failed to auto-create RECENT_COOK post for session {} ({})",
+                    sessionId, e.getClass().getSimpleName());
         }
 
         String challengeTitles = String.join(" & ", completedChallengeRewards.stream()
@@ -258,7 +260,8 @@ public class CookingSessionService {
                 throw new IllegalStateException("Identity completion returned no result");
             }
         } catch (Exception e) {
-            log.error("Failed to sync XP with identity service for user {}: {}", userId, e.getMessage());
+            log.error("Failed to sync XP with identity service for user {} ({})",
+                    userId, e.getClass().getSimpleName());
             helper.sendXpEventWithChallenge(
                     userId,
                     baseXp,
@@ -273,13 +276,15 @@ public class CookingSessionService {
         try {
             newAchievements = achievementService.evaluateAfterCookingCompletion(userId, session, recipe);
         } catch (Exception e) {
-            log.warn("Achievement evaluation failed for user {}: {}", userId, e.getMessage());
+            log.warn("Achievement evaluation failed for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
 
         try {
             duelService.onSessionCompleted(userId, session);
         } catch (Exception e) {
-            log.warn("Duel linkage failed for user {}: {}", userId, e.getMessage());
+            log.warn("Duel linkage failed for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
 
         int baseXpInt = (int) Math.round(baseXp);
@@ -334,7 +339,8 @@ public class CookingSessionService {
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Failed to persist post xpEarned for post {}: {}", request.getPostId(), e.getMessage());
+            log.error("Failed to persist post xpEarned for post {} ({})",
+                    request.getPostId(), e.getClass().getSimpleName());
             throw new AppException(ErrorCode.POST_SERVICE_ERROR);
         }
 
@@ -703,7 +709,8 @@ public class CookingSessionService {
                     .build();
             activeCookingRepository.setActive(presence);
         } catch (Exception e) {
-            log.warn("Failed to set cooking presence for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to set cooking presence for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
     }
 
@@ -713,7 +720,8 @@ public class CookingSessionService {
         try {
             activeCookingRepository.removeActive(userId);
         } catch (Exception e) {
-            log.warn("Failed to remove cooking presence for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to remove cooking presence for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
     }
 

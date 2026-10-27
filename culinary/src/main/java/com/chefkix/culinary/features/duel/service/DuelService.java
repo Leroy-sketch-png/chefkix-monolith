@@ -326,7 +326,8 @@ public class DuelService {
 
             kafkaTemplate.send(REMINDER_TOPIC, event);
         } catch (Exception e) {
-            log.warn("Failed to send duel notification for duel {}: {}", duel.getId(), e.getMessage());
+            log.warn("Failed to send duel notification for duel {} ({})",
+                    duel.getId(), e.getClass().getSimpleName());
         }
     }
 
@@ -336,12 +337,12 @@ public class DuelService {
         try {
             challengerProfile = profileProvider.getBasicProfile(duel.getChallengerId());
         } catch (Exception e) {
-            log.warn("Failed to get challenger profile: {}", e.getMessage());
+            log.warn("Failed to get challenger profile ({})", e.getClass().getSimpleName());
         }
         try {
             opponentProfile = profileProvider.getBasicProfile(duel.getOpponentId());
         } catch (Exception e) {
-            log.warn("Failed to get opponent profile: {}", e.getMessage());
+            log.warn("Failed to get opponent profile ({})", e.getClass().getSimpleName());
         }
 
         return DuelResponse.builder()

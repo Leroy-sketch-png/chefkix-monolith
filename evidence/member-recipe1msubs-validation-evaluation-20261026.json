@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "mission": "M-B Recipe1MSubs ranker validation-score check",
+  "evaluation_date": "2026-10-26",
+  "status": "VALIDATION_SCORE_CHECK_REPLAYED_M_B_REMAINS_OPEN",
+  "scope": "Local exact-string ingredient-substitution ranker evaluation on train and validation only. This is not a final test result, member personalization, human study, safety result, product acceptance, or release-rights determination.",
+  "protocol": {
+    "id": "closed-world-all-train-targets-v1",
+    "query_unit": "exact source ingredient, macro-averaged",
+    "candidate_universe": "unique targets in train, excluding source-specific train-positive targets and identity target",
+    "relevance": "unique validation directed pairs absent from train with both endpoints in train vocabulary",
+    "unlabeled_candidate_assumption": "treated as non-relevant for this closed-world proxy; may include valid unannotated substitutions",
+    "bootstrap": {
+      "method": "percentile bootstrap over source queries",
+      "replicates": 2000,
+      "seed": 20261026,
+      "confidence_level": 0.95,
+      "caveat": "source queries may be correlated"
+    }
+  },
+  "data_integrity": {
+    "train_file": {
+      "name": "train_comments_subs.pkl",
+      "bytes": 3914545,
+      "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+      "rows": 49044,
+      "unique_directed_pairs": 23421,
+      "unique_recipe_ids": 31097
+    },
+    "validation_file": {
+      "name": "val_comments_subs.pkl",
+      "bytes": 910636,
+      "sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+      "rows": 10729,
+      "unique_directed_pairs": 6895,
+      "unique_recipe_ids": 6670
+    },
+    "train_validation_recipe_id_overlap": 0,
+    "validation_pair_exclusions_or_coverage": {
+      "duplicate_rows_collapsed": 3834,
+      "already_seen_pairs": 3067,
+      "source_out_of_vocabulary": 286,
+      "target_out_of_vocabulary": 217,
+      "eligible_unseen_in_vocabulary_pairs": 3325,
+      "eligible_pair_fraction": 0.48223350253807107,
+      "source_vocabulary_coverage": 0.864313292884721,
+      "target_vocabulary_coverage": 0.8966041561074506,
+      "evaluated_source_queries": 1320,
+      "validation_source_queries": 1813
+    },
+    "test_split_accessed": false
+  },
+  "artifacts": {
+    "v4": {
+      "manifest_sha256": "caf0eb47c2f5c0e5aa0f0b4188eaf2a3b6311378b702ef724bcb413d29e135eb",
+      "checkpoint_sha256": "8a79bc4f04732aa259bfbad4e615329059c14340322b2a6d7905cea13cc48c36",
+      "epochs": 10,
+      "best_or_final_train_loss": 0.00922111,
+      "validation_metrics": {
+        "recall@10": {"mean": 0.15426062735419852, "ci95": [0.1377174482006446, 0.17214049369276024]},
+        "ndcg@10": {"mean": 0.09862611078229451, "ci95": [0.08820309911267309, 0.10983083776410625]},
+        "mrr@10": {"mean": 0.11379479316979317, "ci95": [0.09986471109908608, 0.12813590518278017]}
+      }
+    },
+    "v5": {
+      "manifest_sha256": "6a7a1fd9d8ac87a35ad756e725f57b4ced3cf41936cda828d6752887fb43036f",
+      "checkpoint_sha256": "cd002cf84b282a7d7c5c5210a0354547f53b7f28fe96d0442d29e10f8cd0dd09",
+      "epochs": 35,
+      "best_train_loss_epoch": 34,
+      "best_train_loss": 0.00409818,
+      "validation_metrics": {
+        "recall@10": {"mean": 0.13186752600510926, "ci95": [0.11641304422269745, 0.14799409830377644]},
+        "ndcg@10": {"mean": 0.08128105838629929, "ci95": [0.07205374314538347, 0.09149127442200793]},
+        "mrr@10": {"mean": 0.09288870851370852, "ci95": [0.08122204184704185, 0.10459290824915825]}
+      }
+    },
+    "train_target_popularity_baseline": {
+      "recall@10": {"mean": 0.0395778022482568, "ci95": [0.03139885367158095, 0.04800105097974415]},
+      "ndcg@10": {"mean": 0.025885542501302674, "ci95": [0.02080510507916929, 0.031476643947840444]},
+      "mrr@10": {"mean": 0.03310906685906686, "ci95": [0.025884131493506494, 0.040956672378547374]}
+    },
+    "selection_note": "v4 has a higher reported mean than v5 on all 12 Recall/NDCG/MRR metrics at K=1,5,10,20; this makes it validation-favored among these two checkpoints only, not globally optimal. The v4-v5 paired confidence interval was not computed."
+  },
+  "replay": {
+    "outputs": {
+      "v4_original_report": "C:\\Users\\LENOVO\\ResearchData\\kaggle-recipe1msubs-validation-20261026\\reports-v4\\validation_report.md",
+      "v4_replay_report": "C:\\Users\\LENOVO\\ResearchData\\kaggle-recipe1msubs-validation-20261026\\replay-v4-20261026\\validation_report.md",
+      "v5_original_report": "C:\\Users\\LENOVO\\ResearchData\\kaggle-recipe1msubs-validation-20261026\\reports\\validation_report.md",
+      "v5_replay_report": "C:\\Users\\LENOVO\\ResearchData\\kaggle-recipe1msubs-validation-20261026\\replay-v5-20261026\\validation_report.md"
+    },
+    "v4_markdown_byte_identical": true,
+    "v5_markdown_byte_identical": true,
+    "json_metrics_and_coverage_identical_after_removing_runtime_elapsed_seconds": true,
+    "focused_ai_service_tests": {
+      "passed": 21,
+      "failed": 0,
+      "scope": "ranker, evaluator, train-pool, Recipe1M+ bridge, and member strata focused suites; not the full AI-service suite"
+    }
+  },
+  "source_hashes": {
+    "evaluator_script_sha256": "079de76a64edb2bfbfcd43fef5fd412cd9a781e1cc2a824e8b56d50b899183aa",
+    "evaluator_test_sha256": "a309de71b25ecf35fd3d7e5009789bc89734f5c10218ed82a6e11e5c77740c8b",
+    "user_supplied_pdf_sha256": "9b492342a3771632c50be34a867ca215480cc117712fdac33b52399143d41a2a",
+    "v4_report_sha256": "6cda3482098949a62675a7f28fe003d3f3490be094d4fb38e9f69df82632e168",
+    "v5_report_sha256": "09b006ac5f9ec9636a5bdc94358fdf96e3c4ca869d5f43841f2d72548c759d25"
+  },
+  "rights_and_privacy": {
+    "user_attestation": "User has reported authorization for required member research datasets.",
+    "evaluation_data_handling": "The replay ran locally and initiated no external transfer. Source rows and ingredient strings are not copied into this receipt or repository.",
+    "remaining_boundary": "Provider-specific Recipe1MSubs terms and rights for external transfer/public release are not independently documented here; keep artifacts private."
+  },
+  "remaining_member_backlog": [
+    "M-B remains open: FooDB profile-key artifact and resulting both-endpoint coverage are missing; canonical pool protocol/function source and blinded evaluation gates remain unresolved.",
+    "Keep validation as a development/selection split. Freeze method and protocol before one-time test evaluation.",
+    "M-D historical arm-output package is not present in the currently synced AI-service checkout; output handoff, rights, and downstream evaluation gates remain separate.",
+    "M-A remains with the lead and requires the missing provenance-bound runtime graph artifact and acceptance evidence."
+  ]
+}

@@ -1,8 +1,6 @@
 package com.chefkix.notification.service;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -27,24 +25,11 @@ public class EmailService {
 
     BrevoEmailClient brevoEmailClient;
 
-    private static final Pattern OTP_PATTERN = Pattern.compile(
-            "otp-box[^>]*>\\s*(\\d{4,8})\\s*<",
-            Pattern.CASE_INSENSITIVE);
-
     public EmailResponse sendEmail(SendEmailRequest request) {
-        log.info("Preparing to send email to: {}", request.getTo().getEmail());
+        log.info("Preparing to send email");
 
         if (!brevoEmailClient.isConfigured()) {
-            log.warn("=========================================================");
-            log.warn("[DEV EMAIL BYPASS] Brevo not configured — email NOT sent.");
-            log.warn("[DEV EMAIL BYPASS] Recipient : {}", request.getTo().getEmail());
-            log.warn("[DEV EMAIL BYPASS] Subject   : {}", request.getSubject());
-            String extracted = extractCode(request.getHtmlContent());
-            if (extracted != null) {
-                log.warn("[DEV EMAIL BYPASS] *** OTP CODE: {} ***", extracted);
-            }
-            log.warn("=========================================================");
-            log.debug("[DEV EMAIL BYPASS] Full HTML body:\n{}", request.getHtmlContent());
+            log.warn("Brevo is not configured; email was not sent");
             return EmailResponse.builder().messageId("dev-bypass-no-brevo").build();
         }
 
@@ -59,17 +44,12 @@ public class EmailService {
                 .build();
         try {
             EmailResponse response = brevoEmailClient.sendEmail(emailRequest);
-            log.info("Email sent successfully via Brevo: {}", response);
+            log.info("Email sent successfully via Brevo");
             return response;
         } catch (RestClientException e) {
-            log.error("Error sending email via Brevo: {}", e.getMessage());
+            log.error("Error sending email via Brevo ({})", e.getClass().getSimpleName());
             throw new AppException(ErrorCode.CANNOT_SEND_EMAIL);
         }
     }
 
-    private String extractCode(String html) {
-        if (html == null) return null;
-        Matcher m = OTP_PATTERN.matcher(html);
-        return m.find() ? m.group(1) : null;
-    }
 }

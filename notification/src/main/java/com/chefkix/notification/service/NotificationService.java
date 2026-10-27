@@ -371,7 +371,7 @@ public class NotificationService {
         NotificationResponse response = notificationMapper.toNotificationResponse(notification);
         broadcastNotification(recipientId, response, "CREATE");
 
-        log.info("Created {} notification for user: {} - {}", reminderType, recipientId, event.getContent());
+        log.info("Created {} notification for user: {}", reminderType, recipientId);
     }
 
     private Integer extractXpAmount(String content) {

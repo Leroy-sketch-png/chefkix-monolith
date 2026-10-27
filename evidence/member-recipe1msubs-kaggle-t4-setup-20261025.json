@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-25",
+  "status": "synthetic_t4_smoke_pass_real_data_training_blocked_pending_cloud_transfer_rights",
+  "trainer": {
+    "path": "C:/Users/LENOVO/IdeaProjects/chefkix-ai-service/tools/train_recipe1msubs_ranker.py",
+    "sha256": "5ca3a7abc957c22165eacead2a7804e37d1751b44d62fa67d868f72483ce7c34",
+    "architecture": "exact-string-dot-product-bpr-v1",
+    "training_source_policy": "train_comments_subs.pkl only; validation/test files are not opened",
+    "artifact_policy": "hash-bound private research artifact; keep outside Git unless applicable terms permit transfer or publication"
+  },
+  "local_train_file_inventory_only": {
+    "path": "C:/Users/LENOVO/ResearchData/Recipe1MSubs/train_comments_subs.pkl",
+    "bytes": 3914545,
+    "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+    "training_performed_from_this_file": false,
+    "uploaded_to_kaggle": false
+  },
+  "kaggle_real_data_kernel": {
+    "url": "https://www.kaggle.com/code/tnvtrung/recipe1msubs-train-only-ranker-t4",
+    "private": true,
+    "gpu_enabled": true,
+    "machine_shape": "NvidiaTeslaT4",
+    "internet_enabled": false,
+    "dataset_sources": [],
+    "saved_without_running": true,
+    "pulled_source_matches_current_trainer_by_line_content": true,
+    "actual_recipe1msubs_training_performed": false
+  },
+  "kaggle_synthetic_smoke": {
+    "url": "https://www.kaggle.com/code/tnvtrung/recipe1msubs-ranker-t4-smoke-test",
+    "status": "T4_SYNTHETIC_SMOKE_PASS",
+    "gpu": "Tesla T4",
+    "device": "cuda",
+    "epochs": 3,
+    "train_rows": 6,
+    "source_dataset": "synthetic_fixture",
+    "final_training_loss": 0.67181832,
+    "checkpoint_sha256": "c90b9f7269f86ac1d9f8f9a5690d7beb8ef5549f6f87f368f9db64ca743c77a3",
+    "manifest_sha256": "e20a9195a12e3bba3cd8f598b1d5f2ce7b97c4c5bd730e085f17d46cbecee20e",
+    "validation_or_test_files_opened": false,
+    "recipe1msubs_uploaded": false,
+    "downloaded_artifact_cpu_reload": "PASS",
+    "downloaded_artifact_fixture_ranking_count": 2
+  },
+  "verification": {
+    "focused_tests": "14 passed",
+    "full_ai_service_suite": "561 passed, 11 skipped, 28 warnings",
+    "black_check": "PASS",
+    "python_compile": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "rights_and_scope": {
+    "user_declared_scope": "non-commercial academic thesis research",
+    "exact_pickle_file_level_grant": "UNKNOWN",
+    "external_provider_cloud_transfer_right": "UNKNOWN",
+    "real_data_upload_or_training": "NOT PERFORMED",
+    "benchmark_quality_or_product_readiness_claimed": false,
+    "next_gate": "Confirm applicable terms or written permission explicitly allow third-party cloud processing; then attach the authorized train split and run the prepared private T4 kernel."
+  }
+}

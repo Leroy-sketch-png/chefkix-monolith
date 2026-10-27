@@ -1,0 +1,45 @@
+{
+  "record_type": "member_mf_recipe_inventory_and_license_table",
+  "observed_on": "2026-10-24",
+  "definition": {
+    "first_party_operational": "Recipe record held in ChefKix-owned application database and authorized for internal project use per user attestation; this is not an authorship or redistribution claim.",
+    "private": "recipeVisibility == PRIVATE",
+    "western": "cuisineType is a Western cuisine label; candidate labels used for this bounded count: American, British, Canadian, French, German, Greek, Irish, Italian, Portuguese, Spanish, Western",
+    "note": "Only PRIVATE rows are tested against Western labels; both observed PRIVATE rows are Filipino/Japanese."
+  },
+  "source": {
+    "database": "chefkix",
+    "collection": "recipes",
+    "container": "chefkix-mongo",
+    "host_port": 27017,
+    "access": "authenticated read-only metadata query",
+    "document_count": 44,
+    "document_content_exported": false,
+    "user_identifiers_exported": false
+  },
+  "counts": {
+    "first_party_operational_count": 44,
+    "private_count": 2,
+    "private_western_count": 0,
+    "private_cuisine_counts": [
+      {
+        "cuisine_type": "Filipino",
+        "count": 1
+      },
+      {
+        "cuisine_type": "Japanese",
+        "count": 1
+      }
+    ],
+    "public_published_count": 42,
+    "licenses_unknown": 44
+  },
+  "inventory_csv": "evidence/member-mf-recipe-license-inventory-20261024.csv",
+  "inventory_csv_sha256": "eed30600a6e54bf07fa1c17b11a1436d81e46b4b426aa87c8be4ea0e6db86c41",
+  "limitations": [
+    "Database ownership and owner attestation establish internal use for this inventory only, not recipe authorship or external redistribution rights.",
+    "No per-record source or license metadata is stored; all 44 rows are explicitly UNKNOWN.",
+    "The private-Western count uses the stated operational cuisine label set; both PRIVATE records are Filipino or Japanese, so count is zero under this definition."
+  ],
+  "disposition": "CHECKLIST_EVIDENCE_DELIVERED_WITH_UNKNOWN_LICENSES"
+}

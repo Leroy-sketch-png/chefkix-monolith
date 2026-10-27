@@ -1,0 +1,82 @@
+{
+  "state": "EXACT_ID_OVERLAP_AUDITED_LOCAL_ONLY",
+  "recipe1msubs": {
+    "files": {
+      "train": {
+        "name": "train_comments_subs.pkl",
+        "bytes": 3914545,
+        "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81"
+      },
+      "val": {
+        "name": "val_comments_subs.pkl",
+        "bytes": 910636,
+        "sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd"
+      },
+      "test": {
+        "name": "test_comments_subs.pkl",
+        "bytes": 919937,
+        "sha256": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174"
+      }
+    },
+    "split_pair_rows": {
+      "train": 49044,
+      "val": 10729,
+      "test": 10747
+    },
+    "split_unique_recipe_ids": {
+      "train": 31097,
+      "val": 6670,
+      "test": 6662
+    },
+    "total_pair_rows": 70520,
+    "rights_status": "UNKNOWN; inspect the accepted dataset-specific terms"
+  },
+  "recipe1mplus": {
+    "state": "EXACT_ID_OVERLAP_AUDITED_LOCAL_ONLY",
+    "join_key": "exact Recipe1M recipe id only",
+    "split_policy": "preserve the original Recipe1MSubs split; report any layer1 partition mismatch",
+    "metadata_policy": "never replace Recipe1MSubs ingredients or directed substitution labels",
+    "layer1": {
+      "name": "layer1.json",
+      "bytes": 1405719644,
+      "sha256": "ad76f06eb4e191194fe2c20506bbd5ac9a4f1be5ec0241916b47be0433f02a98"
+    },
+    "overlap": {
+      "layer1_records_scanned": 1029720,
+      "ambiguous_recipe_ids": 0,
+      "split": {
+        "train": {
+          "source_pair_rows": 49044,
+          "source_recipe_ids": 31097,
+          "unique_exact_match_recipe_ids": 31097,
+          "exact_match_pair_rows": 49044,
+          "unmatched_pair_rows": 0,
+          "ambiguous_match_recipe_ids": 0,
+          "ambiguous_pair_rows": 0,
+          "layer1_partition_mismatch_recipe_ids": 0
+        },
+        "val": {
+          "source_pair_rows": 10729,
+          "source_recipe_ids": 6670,
+          "unique_exact_match_recipe_ids": 6670,
+          "exact_match_pair_rows": 10729,
+          "unmatched_pair_rows": 0,
+          "ambiguous_match_recipe_ids": 0,
+          "ambiguous_pair_rows": 0,
+          "layer1_partition_mismatch_recipe_ids": 0
+        },
+        "test": {
+          "source_pair_rows": 10747,
+          "source_recipe_ids": 6662,
+          "unique_exact_match_recipe_ids": 6662,
+          "exact_match_pair_rows": 10747,
+          "unmatched_pair_rows": 0,
+          "ambiguous_match_recipe_ids": 0,
+          "ambiguous_pair_rows": 0,
+          "layer1_partition_mismatch_recipe_ids": 0
+        }
+      }
+    }
+  },
+  "output_policy": "aggregate counts and file hashes only; no recipe rows, labels, or text emitted"
+}

@@ -139,7 +139,8 @@ private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024;
         } catch (AppException e) {
 throw e;
         } catch (IOException e) {
-            log.error("[VIDEO_UPLOAD] Failed to upload video", e);
+            log.error("[VIDEO_UPLOAD] Failed to upload video ({})",
+                    e.getClass().getSimpleName());
             throw new AppException(ErrorCode.CAN_NOT_UPLOAD_IMAGE, "Failed to upload video");
         }
     }

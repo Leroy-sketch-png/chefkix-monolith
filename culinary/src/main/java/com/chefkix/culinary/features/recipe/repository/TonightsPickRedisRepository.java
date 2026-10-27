@@ -27,7 +27,7 @@ public class TonightsPickRedisRepository {
             }
             return Optional.of(objectMapper.readValue(payload, RecommendationResponse.class));
         } catch (Exception e) {
-            log.warn("Failed to read tonight's pick cache for key {}: {}", key, e.getMessage());
+            log.warn("Failed to read tonight's pick cache ({})", e.getClass().getSimpleName());
             return Optional.empty();
         }
     }
@@ -41,9 +41,9 @@ public class TonightsPickRedisRepository {
             String payload = objectMapper.writeValueAsString(response);
             redisTemplate.opsForValue().set(key, payload, ttl);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to serialize tonight's pick cache for key {}: {}", key, e.getMessage());
+            log.warn("Failed to serialize tonight's pick cache ({})", e.getClass().getSimpleName());
         } catch (Exception e) {
-            log.warn("Failed to write tonight's pick cache for key {}: {}", key, e.getMessage());
+            log.warn("Failed to write tonight's pick cache ({})", e.getClass().getSimpleName());
         }
     }
 }

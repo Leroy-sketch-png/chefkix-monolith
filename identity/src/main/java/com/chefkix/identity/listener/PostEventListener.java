@@ -39,7 +39,8 @@ public class PostEventListener {
     try {
       statisticsService.incrementCounter(event.getUserId(), "totalRecipesPublished", 1);
     } catch (Exception e) {
-      log.error("Failed to process PostCreatedEvent for userId={}, eventId={}: {}", event.getUserId(), event.getEventId(), e.getMessage(), e);
+      log.error("Failed to process PostCreatedEvent for userId={}, eventId={} ({})",
+          event.getUserId(), event.getEventId(), e.getClass().getSimpleName());
     }
   }
 }

@@ -69,7 +69,8 @@ public class SessionProviderImpl implements SessionProvider {
                             .toList())
                     .orElse(Collections.emptyList());
         } catch (Exception e) {
-            log.warn("Failed to get co-chefs for room {}: {}", roomCode, e.getMessage());
+            log.warn("Failed to get co-chefs for cooking room ({})",
+                    e.getClass().getSimpleName());
             return Collections.emptyList();
         }
     }

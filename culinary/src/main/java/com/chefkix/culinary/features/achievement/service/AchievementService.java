@@ -176,7 +176,8 @@ public class AchievementService {
                 log.info("User {} unlocked {} achievements after cooking: {}", userId, newlyUnlocked.size(), newlyUnlocked);
             }
         } catch (Exception e) {
-            log.error("Achievement evaluation failed for user {}: {}", userId, e.getMessage(), e);
+            log.error("Achievement evaluation failed for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
 
         return newlyUnlocked;
@@ -192,7 +193,8 @@ public class AchievementService {
             newlyUnlocked.addAll(evaluateCriteria(userId, CriteriaType.RECIPES_PUBLISHED, null));
             newlyUnlocked.addAll(evaluateCriteria(userId, CriteriaType.OTHERS_COOKED_YOUR_RECIPES, null));
         } catch (Exception e) {
-            log.error("Social achievement evaluation failed for user {}: {}", userId, e.getMessage(), e);
+            log.error("Social achievement evaluation failed for user {} ({})",
+                    userId, e.getClass().getSimpleName());
         }
         return newlyUnlocked;
     }
@@ -324,7 +326,8 @@ public class AchievementService {
             var stats = profileProvider.getAchievementStats(userId);
             return stats.getStreakCount();
         } catch (Exception e) {
-            log.warn("Could not get streak for user {}: {}", userId, e.getMessage());
+            log.warn("Could not get streak for user {} ({})",
+                    userId, e.getClass().getSimpleName());
             return 0;
         }
     }
@@ -366,7 +369,8 @@ public class AchievementService {
             var stats = profileProvider.getAchievementStats(userId);
             return (int) stats.getFollowerCount();
         } catch (Exception e) {
-            log.warn("Could not get follower count for user {}: {}", userId, e.getMessage());
+            log.warn("Could not get follower count for user {} ({})",
+                    userId, e.getClass().getSimpleName());
             return 0;
         }
     }
