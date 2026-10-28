@@ -3,7 +3,10 @@
 This bundle contains the exact 11 reviewed, data-free tooling/specification/
 notice files from ChefKix workspace commit
 `c73bf260e6ef1dbc429045e76b1680959e13649b`. Per-file SHA-256 values and source
-and destination paths are listed in [`SOURCE.json`](SOURCE.json).
+and destination paths are listed in [`SOURCE.json`](SOURCE.json). The scoped
+`.gitattributes` rule (`* -text`) keeps these hash-pinned bytes unchanged in
+Windows checkouts even when the repository's normal `core.autocrlf=true` is set;
+this behavior was verified in a fresh checkout without overriding Git config.
 
 ## Local checks
 

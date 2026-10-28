@@ -6,6 +6,12 @@
   "destination_repository": "https://github.com/Leroy-sketch-png/chefkix-monolith",
   "destination_default_branch": "master",
   "destination_root": "tools/research/t535/",
+  "delivery_controls": {
+    "path": "tools/research/t535/.gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "rule": "* -text",
+    "purpose": "Preserve the 11 accepted source-file byte hashes under Windows core.autocrlf=true."
+  },
   "test_command_from_destination_root": "python -m pytest -q ai/tools/test_prepare_t535_kaggle_package.py ai/tools/test_export_c3_recipe1m_order.py ai/tools/test_bootstrap_t535_kaggle.py",
   "files": [
     {
