@@ -76,6 +76,7 @@ public enum ErrorCode {
     DRAFT_VALIDATION_FAILED(400, "Draft validation failed", HttpStatus.BAD_REQUEST),
     RECIPE_VALIDATION_FAILED(400, "Recipe failed safety validation and cannot be published", HttpStatus.BAD_REQUEST),
     RECIPE_MODERATION_FAILED(400, "Recipe content was flagged by moderation and cannot be published", HttpStatus.BAD_REQUEST),
+    RECIPE_CONCURRENT_UPDATE(409, "Recipe was modified by another operation. Please refresh and retry.", HttpStatus.CONFLICT),
     AI_SERVICE_UNAVAILABLE(503, "AI service is temporarily unavailable. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
     VALIDATION_ERROR(400, "Validation error", HttpStatus.BAD_REQUEST),
     SESSION_NOT_FOUND(404, "Cooking session not found", HttpStatus.NOT_FOUND),

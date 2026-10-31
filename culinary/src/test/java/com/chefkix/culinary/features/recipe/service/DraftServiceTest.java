@@ -107,6 +107,26 @@ class DraftServiceTest {
         verifyNoInteractions(eventPublisher);
     }
 
+    @Test
+    void autoSaveDraftThrowsRecipeConcurrentUpdateOnOptimisticLockingFailure() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("creator-1", null));
+        Recipe draft = Recipe.builder()
+                .id("draft-1")
+                .userId("creator-1")
+                .status(RecipeStatus.DRAFT)
+                .version(2L)
+                .build();
+        when(recipeRepository.findById("draft-1")).thenReturn(Optional.of(draft));
+        when(recipeRepository.save(draft)).thenThrow(
+                new org.springframework.dao.OptimisticLockingFailureException("Concurrent draft save conflict"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                        service().autoSaveDraft("draft-1", new com.chefkix.culinary.features.recipe.dto.request.RecipeRequest()))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.RECIPE_CONCURRENT_UPDATE);
+    }
+
     private DraftService service() {
         return new DraftService(
                 recipeRepository,

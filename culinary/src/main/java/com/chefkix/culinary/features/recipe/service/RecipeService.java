@@ -43,6 +43,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -108,6 +109,9 @@ public class RecipeService {
 
         } catch (AppException e) {
             throw e;
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("[RECIPE_UPDATE] Concurrent update detected for recipe {}: {}", recipeId, e.getMessage());
+            throw new AppException(ErrorCode.RECIPE_CONCURRENT_UPDATE);
         } catch (Exception e) {
             log.error("[RECIPE_UPDATE] Failed to update recipe ({})",
                     e.getClass().getSimpleName());

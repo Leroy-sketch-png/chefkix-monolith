@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 class GlobalExceptionHandlerTest {
 
@@ -21,6 +22,19 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getStatusCode()).isEqualTo(400);
         assertThat(response.getBody().getMessage())
                 .isEqualTo("One or more request parameters are invalid.");
+    }
+
+    @Test
+    void optimisticLockingFailureReturnsConflictStatusAndSafeMessage() {
+        var response = new GlobalExceptionHandler()
+                .handleOptimisticLocking(new OptimisticLockingFailureException("Version conflict"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().isSuccess()).isFalse();
+        assertThat(response.getBody().getStatusCode()).isEqualTo(409);
+        assertThat(response.getBody().getMessage())
+                .isEqualTo(ErrorCode.RECIPE_CONCURRENT_UPDATE.getMessage());
     }
 
     @Test

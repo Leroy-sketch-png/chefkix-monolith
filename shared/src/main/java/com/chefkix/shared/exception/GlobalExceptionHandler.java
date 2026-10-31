@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 /**
  */
@@ -128,6 +129,18 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .build();
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    ResponseEntity<ApiResponse<?>> handleOptimisticLocking(OptimisticLockingFailureException ex) {
+        log.warn("Optimistic locking conflict: {}", ex.getMessage());
+        ErrorCode errorCode = ErrorCode.RECIPE_CONCURRENT_UPDATE;
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .statusCode(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 
     @ExceptionHandler(RuntimeException.class)
