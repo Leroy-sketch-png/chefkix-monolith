@@ -15,5 +15,7 @@ public interface CommentRepository extends MongoRepository<Comment, String> {
 
     List<Comment> findByPostId(String postId, Pageable pageable);
 
+    List<Comment> findByPostIdAndUserIdNotIn(String postId, List<String> userIds, Pageable pageable);
+
     void deleteAllByPostId(String postId);
 }

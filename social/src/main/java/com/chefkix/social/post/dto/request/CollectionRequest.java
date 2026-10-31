@@ -1,6 +1,7 @@
 package com.chefkix.social.post.dto.request;
 
 import com.chefkix.social.post.entity.DifficultyStep;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -25,6 +26,7 @@ public class CollectionRequest {
     @Size(max = 200, message = "Description must be 200 characters or less")
     String description;
 
+    @JsonProperty("isPublic")
     boolean isPublic;
 
     String collectionType;

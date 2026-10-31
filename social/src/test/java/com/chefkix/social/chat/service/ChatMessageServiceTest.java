@@ -1,6 +1,7 @@
 package com.chefkix.social.chat.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -21,6 +22,8 @@ import com.chefkix.social.chat.mapper.ChatMessageMapper;
 import com.chefkix.social.chat.repository.ChatMessageRepository;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.shared.event.StoryReplyEvent;
 import java.time.Instant;
 import java.util.List;
@@ -117,6 +120,26 @@ class ChatMessageServiceTest {
         assertThat(response.getMessage()).isEqualTo("legacy conversation send");
         verify(conversationLookupService).touchModifiedDate(eq(conversationId), any(Instant.class));
         verify(conversationRepository, never()).save(any());
+    }
+
+    @Test
+    void blockedPostShareUsesSenderIdentityAndStopsBeforeChatPersistence() {
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId("conversation-1")
+                .message("Sharing this recipe")
+                .type(MessageType.POST_SHARE)
+                .relatedId("blocked-post")
+                .build();
+        when(postService.getPostDetail("blocked-post", "user-1"))
+                .thenThrow(new AppException(ErrorCode.POST_NOT_FOUND));
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(AppException.class);
+
+        verify(postService).getPostDetail("blocked-post", "user-1");
+        verify(chatMessageRepository, never()).save(any(ChatMessage.class));
+        verify(conversationRepository, never()).save(any(Conversation.class));
+        verify(contentModerationProvider, never()).moderate(any(), any());
     }
 
     @Test

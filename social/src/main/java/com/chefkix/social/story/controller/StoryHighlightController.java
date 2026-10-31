@@ -34,14 +34,15 @@ public class StoryHighlightController {
     public ApiResponse<List<HighlightResponse>> getUserHighlights(
             @PathVariable("userId") String userId
     ) {
-        return ApiResponse.success(highlightService.getUserHighlights(userId), "Highlight list retrieved");
+        return ApiResponse.success(
+                highlightService.getUserHighlights(getCurrentUserId(), userId), "Highlight list retrieved");
     }
 
     @GetMapping("/{highlightId}/stories")
     public ApiResponse<List<StoryResponse>> getHighlightStories(
             @PathVariable("highlightId") String highlightId
     ) {
-        return ApiResponse.success(highlightService.getStoriesInHighlight(highlightId));
+        return ApiResponse.success(highlightService.getStoriesInHighlight(getCurrentUserId(), highlightId));
     }
 
     @PutMapping("/{highlightId}")

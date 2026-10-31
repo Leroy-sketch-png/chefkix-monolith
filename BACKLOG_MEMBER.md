@@ -18,6 +18,8 @@ The v4 thesis demonstrates **measurement, not models**. Your work makes the meas
 
 **No VLM/CLIP camera integration.** No "four trained models" UI. No behavioral learning dashboard. The bounded negatives chapter covers what didn't work.
 
+**Rights boundary (2026-10-20; M-F remains open):** official Recipe1M/GISMo pages inspected so far do not establish dataset-specific or per-case Recipe1MSubs reuse/redistribution permission. GISMo's code-license statement is not a dataset grant; per-case rights remain `UNKNOWN`. Preserve the actual registered access terms for the dataset/version used and map them to research, derived data, storage, and release—or keep case-level content out of release. See LEAD v371 and the bounded audit note in root `ai/evidence/senath-inference/`.
+
 ---
 
 ## Member Work Packages (from SSoT §17.2)
@@ -53,16 +55,18 @@ L39 (allergen) → L45
 
 ## Phase 1: Truth & Infrastructure (Weeks 0–2)
 
-### M-A: Graph & Coverage Truth (10h) — **START WEEK 0**
+### M-A: Graph & Coverage Truth (10h) — **PARTIAL; STARTED WEEK 0**
 > SSoT §12.1–12.3, §25.1 (P1)
 
-- [ ] Locate actual seed arrays (`KnowledgeGraphSeeder.java`, `18-knowledge-graph.js` or equivalents)
+- [x] Locate actual seed arrays — monolith `KnowledgeGraphSeeder.java` (`seedIngredients()` / `List.of(...)`); no workspace match for the alternative `18-knowledge-graph.js` path. Source-level only; no claim about live Mongo population.
 - [ ] Compute by-type nodes/edges, degree min/median/mean/max, isolates
 - [ ] Verify degree-sum invariant appropriate to graph type (not blindly undirected)
 - [ ] Load runtime AI service artifact: path, SHA-256, node/edge counts by type, isolated nodes
-- [ ] Locate hardcoded node/ingredient count claims in docs/README/pitch (file+line)
+- [x] Locate hardcoded claims for node/ingredient counts in docs/README/pitch (file+line). The bounded file/line census and README/pitch negative search are recorded in root `SCOPE.md` under “M-A graph/runtime provenance audit”; location is not validation or reconciliation.
 - [ ] Emit `GRAPH_TRUTH.csv` and `COVERAGE_CURVES.csv` with provenance labels
 - [ ] **Acceptance:** Seed-graph degree-sum check passes; every Round 0 number reproduced or struck
+
+Progress note (not acceptance): a hash-pinned top-N source-family support curve, provenance-separated static inventory, explicitly constructed source-only seed interpretation, and a safely inspected hash-pinned local HGAT subgraph artifact now exist. The artifact report is integrated into a repeatable `GRAPH_TRUTH.csv` output with provenance labels; it records 195,600 ingredient feature rows and 7,247 directed arcs, but does not establish producer identity, active registry selection, graph_eval_v4/product graph, Mongo contents, loaded process, or deployed runtime coverage. Runtime remains unknown, and Round-0 reconciliation is incomplete. See root `SCOPE.md` under “M-A graph/runtime provenance audit.” M-A stays open.
 
 ### M-B: Deterministic Strata, Identity Map, Pool Builder (12h) — **START WEEK 1**
 > SSoT §5.5, §25.2 (P2), Appendix A functions (review only, not mandatory)
@@ -104,10 +108,12 @@ L39 (allergen) → L45
 ### M-C: Explorer & Evidence Endpoint (25h) — **START WEEK 2 (after M-A artifacts)**
 > SSoT §12.2–12.7, §25.7 (P6)
 
+Bounded route check (2026-10-13; not acceptance): the frontend has a general `(main)/explore` page, while the monolith `KnowledgeGraphController` exposes `/knowledge/*`; a source search found no graph-specific `/explore/graph` route or planned `GET /api/v1/graph/evidence` endpoint. This does not rule out every indirect/dynamic implementation, but these files do not satisfy the listed M-C contracts. Explorer/endpoint and T-03–T-09 remain open.
+
 - [ ] Build `graph_eval_v4` (train-only substitution edges; test asserts no val/test pair) and `graph_product_v4` (all rights-permitted) with provenance fields (§12.2)
 - [ ] Emit statistics: nodes/edges by type, degree distribution, components, source families per ingredient, occurrence-weighted coverage (top-N: 50/100/250/500/1000/2000/5000), both-endpoint coverage on test
 - [ ] Implement shadow endpoint `GET /api/v1/graph/evidence` (§12.5) — **additive, read-only, does not change `/suggest_substitutions`**
-- [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network; unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
+- [ ] Implement `/explore/graph` (§12.4): feature flag OFF by default; real artifact only; search → 1–2 hop ego network (1-2 hop ego network); unknown identity explicit; provenance footer; <1s laptop render; tampered artifact refuses render
 - [ ] Run acceptance tests T-01 through T-12 (§12.7) + existing suites covering touched code
 - [ ] **Acceptance:** T-01–T-12 pass; existing suites pass; feature flag OFF by default
 
@@ -124,6 +130,8 @@ L39 (allergen) → L45
 
 ### M-E: Demo Build & Test Suite (12h) — **START WEEK 4 (after M-C, L38/L39 results)**
 > SSoT §12.7–12.8, §25.7 (P6)
+
+Evidence boundary (2026-10-13; not acceptance): the existing frontend `demo-cockpit-deep` certification is a separate ChefKix product scenario, not the IRON CHEF frozen-file Act 3. Its latest payload was generated 2026-05-28 and reports `pass=false` (2/3 child runs passed; one failed at integrity 55 with a strict assertion failure). Do not count it as M-E evidence. The thesis demo remains open pending its own frozen-file recording and T-10–T-12 acceptance.
 
 - [ ] Record Act 3 from frozen files (side-by-side raw LLM vs filtered+calibrated on same input) — **not live API**
 - [ ] Implement T-10: demo runs with network disabled except API arms (recorded fallback exists)
@@ -161,12 +169,12 @@ L39 (allergen) → L45
 | Arm inference (rank arms) | Cases | Top-M lists | Missing case, nondeterminism |
 | Arm inference (API) | Cases, key | Top-M lists + call logs | Cost cap, error rate >5% |
 | Judge labeling | Pools | Judgments JSON | Invalid rate >2%, cost cap |
-| Calibration + diagnostics | Val labels | `t̂` tables, diagnostics | Any diagnostic flag (no auto-continue) |
+| Calibration + diagnostics | Val labels | `t̂` tables (`t-hat tables`, `t_hat`), diagnostics | Any diagnostic flag (no auto-continue) |
 | Coverage curves | Adjudicated identities | `COVERAGE_CURVES.csv` | Identity hash mismatch |
 | Graph build + verifier | Sources | Two artifacts + stats | Provenance gap |
 | Novelty query runner | Query list | Hashed raw responses | Rate limits hit repeatedly |
 
-**Morning review (10 min daily, §13.8):** Receipt present, exit status, spend vs cap, stop conditions, diagnostics, row counts, warnings. **You decide; factory does not.**
+**Morning review (10 min daily):** Receipt present, exit status, spend vs cap, stop conditions, diagnostics, row counts, warnings. **You decide; factory does not.** See §13.8 for the canonical review policy.
 
 ---
 
@@ -179,8 +187,8 @@ L39 (allergen) → L45
 | T-03 | Explorer loads with real artifact, hash shown | Visible hash |
 | T-04 | Explorer with tampered artifact refuses render | Refusal message |
 | T-05 | Unknown ingredient → "not in graph", no invented node | Verified |
-| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell | Verified |
-| T-07 | Evidence endpoint returns `show` only when `status=ok` and `t_hat ≤ gate` | Verified |
+| T-06 | Evidence endpoint returns `abstain` for `vacuous` cell (abstain for vacuous) | Verified |
+| T-07 | Evidence endpoint returns `show` only when `status=ok` (show only when status=ok) and `t_hat ≤ gate` (t_hat <= gate) | Verified |
 | T-08 | Allergen: unknown candidate withheld for allergy-sensitive request | Verified |
 | T-09 | `/suggest_substitutions` unchanged by feature flag | Diff empty |
 | T-10 | Demo runs with network disabled except API arms (fallback recorded) | Verified |

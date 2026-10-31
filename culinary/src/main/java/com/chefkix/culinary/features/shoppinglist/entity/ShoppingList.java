@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -15,6 +16,11 @@ import java.util.List;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Document(collection = "shopping_lists")
+@CompoundIndex(
+        name = "user_cook_plan_unique",
+        def = "{'userId': 1, 'sourceCookPlanId': 1}",
+        unique = true,
+        partialFilter = "{'sourceCookPlanId': {'$type': 'string'}}")
 public class ShoppingList {
     @Id String id;
     @Indexed String userId;

@@ -1,8 +1,11 @@
 package com.chefkix.config;
 
+import java.util.Arrays;
+
 import com.chefkix.social.chat.service.ConversationLookupService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,10 +49,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final ConversationLookupService conversationLookupService;
     private final Validator validator;
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000,https://*.chefkix.com}")
+    private String allowedOriginPatterns;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:3000", "https://*.chefkix.com");
+                .setAllowedOriginPatterns(Arrays.stream(allowedOriginPatterns.split(","))
+                        .map(String::trim)
+                        .filter(origin -> !origin.isBlank())
+                        .toArray(String[]::new));
     }
 
     @Override

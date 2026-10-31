@@ -41,3 +41,7 @@ cp.txt
 *.env.local
 *.keys
 !.env.example
+
+.git-worktrees/
+*.bak*
+

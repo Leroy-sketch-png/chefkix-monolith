@@ -16,6 +16,9 @@ public interface ReplyRepository extends MongoRepository<Reply, String> {
 
     List<Reply> findByParentCommentId(String commentId, Pageable pageable);
 
+    List<Reply> findByParentCommentIdAndUserIdNotIn(
+            String commentId, Collection<String> userIds, Pageable pageable);
+
     List<Reply> findByParentCommentIdIn(Collection<String> commentIds);
 
     void deleteAllByParentCommentId(String commentId);

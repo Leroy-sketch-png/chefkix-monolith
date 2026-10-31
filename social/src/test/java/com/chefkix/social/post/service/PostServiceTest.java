@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +16,7 @@ import com.chefkix.culinary.api.SessionProvider;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.shared.event.PostDeletedEvent;
 import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.group.entity.Group;
 import com.chefkix.social.group.enums.PrivacyType;
 import com.chefkix.social.group.repository.GroupMemberRepository;
@@ -38,6 +41,7 @@ import com.chefkix.social.post.repository.ReportRepository;
 import com.chefkix.social.post.repository.TasteProfileRedisRepository;
 import com.chefkix.social.post.mapper.PostMapper;
 import com.chefkix.social.post.policy.TrendingPolicy;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.shared.util.UploadImageFile;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -115,12 +119,15 @@ class PostServiceTest {
     private Executor taskExecutor;
         @Mock
         private TasteProfileRedisRepository tasteProfileRedisRepository;
+    @Mock
+    private BlockedContentPolicy blockedContentPolicy;
 
     @InjectMocks
     private PostService postService;
 
     @BeforeEach
     void setUp() {
+        lenient().when(blockedContentPolicy.invisibleUserIds(any())).thenReturn(List.of());
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("user-1", "password"));
     }
@@ -193,11 +200,9 @@ class PostServiceTest {
 
         when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
         when(groupMemberRepository.findByGroupIdAndUserId(groupId, currentUserId)).thenReturn(Optional.empty());
-        when(postRepository.findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
-                groupId,
-                PostType.GROUP,
-                PostStatus.ACTIVE,
-                pageable)).thenReturn(new PageImpl<>(List.of(post), pageable, 1));
+        when(blockedContentPolicy.invisibleUserIds(currentUserId)).thenReturn(List.of());
+        when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of(post));
+        when(mongoTemplate.count(any(Query.class), eq(Post.class))).thenReturn(1L);
         when(postMapper.toPostResponse(post)).thenReturn(response);
         when(postLikeRepository.findByUserIdAndPostIdIn(currentUserId, List.of(post.getId()))).thenReturn(List.of());
         when(postSaveRepository.findByUserIdAndPostIdIn(currentUserId, List.of(post.getId()))).thenReturn(List.of());
@@ -206,11 +211,7 @@ class PostServiceTest {
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getId()).isEqualTo(post.getId());
-        verify(postRepository).findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
-                groupId,
-                PostType.GROUP,
-                PostStatus.ACTIVE,
-                pageable);
+        verify(mongoTemplate).find(any(Query.class), eq(Post.class));
     }
 
     @Test
@@ -230,11 +231,91 @@ class PostServiceTest {
         assertThatThrownBy(() -> postService.getGroupPosts(groupId, pageable, currentUserId))
                 .isInstanceOf(AppException.class);
 
-        verify(postRepository, never()).findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
-                any(),
-                any(),
-                any(),
-                any());
+        verify(mongoTemplate, never()).find(any(Query.class), eq(Post.class));
+    }
+
+    @Test
+    void globalFeedExcludesInvisibleAuthorsBeforePaginationAndCount() {
+        var pageable = PageRequest.of(0, 5);
+        when(blockedContentPolicy.invisibleUserIds("viewer"))
+                .thenReturn(List.of("blocked-author", "blocking-author"));
+        when(mongoTemplate.find(any(Query.class), eq(Post.class))).thenReturn(List.of());
+        when(mongoTemplate.count(any(Query.class), eq(Post.class))).thenReturn(0L);
+
+        postService.getAllPosts(0, pageable, "viewer");
+
+        ArgumentCaptor<Query> queries = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate, org.mockito.Mockito.times(1)).find(queries.capture(), eq(Post.class));
+        var userIdCriteria = queries.getValue().getQueryObject()
+                .get("userId", org.bson.Document.class);
+        assertThat(userIdCriteria.getList("$nin", String.class))
+                .containsExactlyInAnyOrder("blocked-author", "blocking-author");
+        ArgumentCaptor<Query> countQuery = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate).count(countQuery.capture(), eq(Post.class));
+        assertThat(countQuery.getValue().getQueryObject().get("userId", org.bson.Document.class))
+                .isEqualTo(userIdCriteria);
+    }
+
+    @Test
+    void directPostReadDoesNotMapBlockedAuthorsContent() {
+        Post post = Post.builder().id("post-1").userId("blocked-author").build();
+        when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
+        doThrow(new AppException(com.chefkix.shared.exception.ErrorCode.POST_NOT_FOUND))
+                .when(blockedContentPolicy).requireVisible("viewer", "blocked-author");
+
+        assertThatThrownBy(() -> postService.getPostById("post-1", "viewer"))
+                .isInstanceOf(AppException.class);
+
+        verify(postMapper, never()).toPostResponse(post);
+    }
+
+    @Test
+    void postShareDetailRejectsInvisibleAuthor() {
+        Post post = Post.builder().id("post-1").userId("blocked-author").build();
+        when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
+        doThrow(new AppException(com.chefkix.shared.exception.ErrorCode.POST_NOT_FOUND))
+                .when(blockedContentPolicy).requireVisible("viewer", "blocked-author");
+
+        assertThatThrownBy(() -> postService.getPostDetail("post-1", "viewer"))
+                .isInstanceOf(AppException.class);
+    }
+
+    @Test
+    void blockedPostInteractionsRejectBeforeAnyMutationOrEvent() {
+        Post post = Post.builder().id("post-1").userId("blocked-author").build();
+        when(postRepository.findById("post-1")).thenReturn(Optional.of(post));
+        when(postLikeRepository.existsByPostIdAndUserId("post-1", "user-1"))
+                .thenReturn(false, true);
+        doThrow(new AppException(ErrorCode.POST_NOT_FOUND))
+                .when(blockedContentPolicy).requireVisible("user-1", "blocked-author");
+
+        assertThatThrownBy(() -> postService.toggleLike("post-1"))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> postService.toggleLike("post-1"))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> postService.toggleSave("post-1"))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> postService.votePoll("post-1", "A", "user-1"))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> postService.ratePlate("post-1", "FIRE", "user-1"))
+                .isInstanceOf(AppException.class);
+        assertThatThrownBy(() -> postService.voteBattle("post-1", "A"))
+                .isInstanceOf(AppException.class);
+
+        verify(postLikeRepository, never()).save(any());
+        verify(postLikeRepository, never()).delete(any());
+        verify(postSaveRepository, never()).save(any());
+        verify(postSaveRepository, never()).deleteByPostIdAndUserId(any(), any());
+        verify(pollVoteRepository, never()).save(any());
+        verify(pollVoteRepository, never()).delete(any());
+        verify(plateRatingRepository, never()).save(any());
+        verify(plateRatingRepository, never()).delete(any());
+        verify(battleVoteRepository, never()).save(any());
+        verify(battleVoteRepository, never()).delete(any());
+        verify(mongoTemplate, never()).updateFirst(any(), any(), eq(Post.class));
+        verify(kafkaTemplate, never()).send(any(), any());
+        verify(eventPublisher, never()).publishEvent(any());
+        verify(tasteProfileRedisRepository, never()).evict(any());
     }
 
     @Test

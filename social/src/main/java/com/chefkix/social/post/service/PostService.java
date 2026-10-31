@@ -47,6 +47,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.social.post.mapper.PostMapper;
 import com.chefkix.social.post.policy.TrendingPolicy;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.post.repository.PostLikeRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.PostSaveRepository;
@@ -69,6 +70,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -76,6 +78,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -124,6 +128,7 @@ public class PostService {
     CollectionRepository collectionRepository;
     ReportRepository reportRepository;
     TasteProfileRedisRepository tasteProfileRedisRepository;
+    BlockedContentPolicy blockedContentPolicy;
     MongoTemplate mongoTemplate;
     GroupRepository groupRepository;
     GroupMemberRepository groupMemberRepository;
@@ -507,6 +512,7 @@ if (taggedUserId.equals(userId)) continue;
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
 
         if (postLikeRepository.existsByPostIdAndUserId(postId, userId)) {
             return PostLikeResponse.builder().isLiked(true).likeCount(post.getLikes()).build();
@@ -544,6 +550,7 @@ if (taggedUserId.equals(userId)) continue;
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
 
         var postLike = postLikeRepository.findByPostIdAndUserId(postId, userId);
 
@@ -622,6 +629,7 @@ if (taggedUserId.equals(userId)) continue;
         );
 
         Criteria criteria = Criteria.where("hidden").is(false).and("postType").ne(PostType.GROUP.name());
+        excludeBlockedAuthors(criteria, currentUserId);
         if (mode == 1) {
             criteria.and("createdAt").gte(TrendingPolicy.cutoff(Instant.now()));
         }
@@ -662,13 +670,21 @@ if (taggedUserId.equals(userId)) continue;
             throw new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION, "You must be an active member to view posts in this group.");
         }
 
-        Page<PostResponse> responses = postRepository
-                .findByGroupIdAndPostTypeAndStatusAndHiddenFalseOrderByCreatedAtDesc(
-                        groupId,
-                        PostType.GROUP,
-                        PostStatus.ACTIVE,
-                        pageable)
-                .map(postMapper::toPostResponse);
+        Criteria criteria = Criteria.where("groupId").is(groupId)
+                .and("postType").is(PostType.GROUP.name())
+                .and("status").is(PostStatus.ACTIVE.name())
+                .and("hidden").is(false);
+        excludeBlockedAuthors(criteria, currentUserId);
+        Sort sort = pageable.getSort().isSorted()
+                ? pageable.getSort()
+                : Sort.by(Sort.Direction.DESC, "createdAt");
+        Query query = new Query(criteria).with(sort)
+                .skip((long) pageable.getPageNumber() * pageable.getPageSize())
+                .limit(pageable.getPageSize());
+        List<Post> posts = mongoTemplate.find(query, Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+        Page<PostResponse> responses = new PageImpl<>(
+                posts.stream().map(postMapper::toPostResponse).toList(), pageable, total);
         enrichPageWithUserStatus(responses, currentUserId);
         return responses;
     }
@@ -704,8 +720,10 @@ if (taggedUserId.equals(userId)) continue;
         int candidatePoolSize = pageable.getPageSize() * 3;
         int skipCount = pageable.getPageNumber() * pageable.getPageSize();
 
+        List<String> excludedAuthors = new ArrayList<>(blockedContentPolicy.invisibleUserIds(currentUserId));
+        excludedAuthors.add(currentUserId);
         Criteria baseCriteria = Criteria.where("hidden").is(false)
-                .and("userId").ne(currentUserId)
+                .and("userId").nin(excludedAuthors)
 .and("postType").ne(PostType.GROUP.name())
                 .and("status").is(PostStatus.ACTIVE.name());
 
@@ -1079,6 +1097,17 @@ if (normalized.length() >= 3) {
         return PageRequest.of(pageable.getPageNumber(), clampedSize, pageable.getSort());
     }
 
+    private void excludeBlockedAuthors(Criteria criteria, String viewerId) {
+        List<String> invisibleIds = blockedContentPolicy.invisibleUserIds(viewerId);
+        if (!invisibleIds.isEmpty()) {
+            criteria.and("userId").nin(invisibleIds);
+        }
+    }
+
+    private void requirePostVisible(String viewerId, Post post) {
+        blockedContentPolicy.requireVisible(viewerId, post.getUserId());
+    }
+
     public Page<PostResponse> getAllPostsByUserId(String userId, Pageable pageable, String currentUserId) {
         Pageable safePageable = clampPageable(pageable, MAX_PROFILE_POSTS_PAGE_SIZE);
         Pageable sortedPageable = PageRequest.of(
@@ -1090,6 +1119,9 @@ if (normalized.length() >= 3) {
         Criteria criteria = Criteria.where("userId").is(userId)
                 .and("hidden").is(false)
                 .and("postType").ne(PostType.GROUP.name());
+        if (blockedContentPolicy.invisibleUserIds(currentUserId).contains(userId)) {
+            return Page.empty(sortedPageable);
+        }
 
         Query query = new Query(criteria).with(Sort.by("createdAt").descending());
         query.fields().exclude("commentIds");
@@ -1129,6 +1161,12 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
                         Criteria.where("recipeTitle").regex(regex, "i")
                 )
         );
+        List<String> invisibleIds = blockedContentPolicy.invisibleUserIds(currentUserId);
+        if (!invisibleIds.isEmpty()) {
+            searchCriteria = new Criteria().andOperator(
+                    searchCriteria,
+                    Criteria.where("userId").nin(invisibleIds));
+        }
 
         Query countQuery = new Query(searchCriteria);
         long total = mongoTemplate.count(countQuery, Post.class);
@@ -1154,6 +1192,7 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
     public Page<PostResponse> getFollowingFeed(int mode, Pageable pageable, String currentUserId) {
         List<String> followingIds = new ArrayList<>(profileProvider.getFollowingIds(currentUserId));
         followingIds.add(currentUserId);
+        followingIds.removeAll(blockedContentPolicy.invisibleUserIds(currentUserId));
 
         if (followingIds.isEmpty()) {
             return Page.empty(pageable);
@@ -1279,6 +1318,7 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
 
         if (post.getPostType() != PostType.POLL || post.getPollData() == null) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION, "This post is not a poll");
@@ -1346,6 +1386,7 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
 
         var existing = plateRatingRepository.findByPostIdAndUserId(postId, userId);
         Query query = Query.query(Criteria.where("id").is(postId));
@@ -1421,9 +1462,10 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
 
     /**
      */
-    public PostDetail getPostDetail(String postId) {
+    public PostDetail getPostDetail(String postId, String viewerId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(viewerId, post);
         return PostDetail.builder()
                 .id(post.getId())
                 .displayName(post.getDisplayName())
@@ -1453,10 +1495,9 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
     @Transactional
     public PostSaveResponse toggleSave(String postId) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        
-        if (!postRepository.existsById(postId)) {
-            throw new AppException(ErrorCode.POST_NOT_FOUND);
-        }
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
         
         boolean alreadySaved = postSaveRepository.existsByPostIdAndUserId(postId, userId);
         
@@ -1508,22 +1549,39 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
     public Page<PostResponse> getSavedPosts(Pageable pageable) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Pageable safePageable = clampPageable(pageable, MAX_SAVED_POSTS_PAGE_SIZE);
-        
-        Page<PostSave> savedPosts = postSaveRepository.findByUserIdOrderByCreatedDateDesc(userId, safePageable);
-        
-        List<String> postIds = savedPosts.getContent().stream()
-                .map(PostSave::getPostId)
-                .collect(Collectors.toList());
-        
-        if (postIds.isEmpty()) {
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(userId);
+
+        List<AggregationOperation> visibleStages = visibleSavedPostStages(userId, invisibleUserIds);
+        Aggregation countAggregation = Aggregation.newAggregation(
+                PostSave.class,
+                appendStage(visibleStages, Aggregation.count().as("total")));
+        Map<String, Object> countResult = mongoTemplate.aggregate(
+                countAggregation, PostSave.class, Map.class).getUniqueMappedResult();
+        long visibleTotal = countResult == null ? 0L : ((Number) countResult.get("total")).longValue();
+        if (visibleTotal == 0) {
             return Page.empty(safePageable);
         }
-        
+
+        List<AggregationOperation> pageStages = visibleSavedPostStages(userId, invisibleUserIds);
+        pageStages.add(Aggregation.sort(Sort.by(Sort.Direction.DESC, "createdDate")));
+        pageStages.add(Aggregation.skip(safePageable.getOffset()));
+        pageStages.add(Aggregation.limit(safePageable.getPageSize()));
+        pageStages.add(Aggregation.project("postId", "createdDate"));
+        Aggregation pageAggregation = Aggregation.newAggregation(PostSave.class, pageStages);
+        List<String> postIds = mongoTemplate.aggregate(pageAggregation, PostSave.class, PostSave.class)
+                .getMappedResults().stream()
+                .map(PostSave::getPostId)
+                .collect(Collectors.toList());
+
+        if (postIds.isEmpty()) {
+            return new PageImpl<>(List.of(), safePageable, visibleTotal);
+        }
+
         List<Post> posts = postRepository.findLeanByIdIn(postIds);
-        
+
         Map<String, Post> postMap = posts.stream()
                 .collect(Collectors.toMap(Post::getId, p -> p));
-        
+
         List<PostResponse> responses = postIds.stream()
                 .map(postMap::get)
                 .filter(Objects::nonNull)
@@ -1540,13 +1598,40 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
             });
         }
         
-        return new PageImpl<>(responses, safePageable, savedPosts.getTotalElements());
+        return new PageImpl<>(responses, safePageable, visibleTotal);
+    }
+
+    private List<AggregationOperation> visibleSavedPostStages(String userId, List<String> invisibleUserIds) {
+        List<AggregationOperation> stages = new ArrayList<>();
+        stages.add(Aggregation.match(Criteria.where("userId").is(userId)));
+        Document lookup = new Document("from", "post")
+                .append("let", new Document("postIdString", "$postId")
+                        .append("postIdObjectId", new Document("$convert", new Document("input", "$postId")
+                                .append("to", "objectId")
+                                .append("onError", null)
+                                .append("onNull", null))))
+                .append("pipeline", List.of(new Document("$match", new Document("$expr", new Document("$or", List.of(
+                        new Document("$eq", List.of("$_id", "$$postIdString")),
+                        new Document("$eq", List.of("$_id", "$$postIdObjectId"))))))))
+                .append("as", "post");
+        stages.add(context -> new Document("$lookup", lookup));
+        stages.add(Aggregation.unwind("post"));
+        stages.add(Aggregation.match(Criteria.where("post.userId").nin(invisibleUserIds)));
+        return stages;
+    }
+
+    private List<AggregationOperation> appendStage(
+            List<AggregationOperation> stages, AggregationOperation additionalStage) {
+        List<AggregationOperation> result = new ArrayList<>(stages);
+        result.add(additionalStage);
+        return result;
     }
 
     @Transactional(readOnly = true)
     public PostResponse getPostById(String postId, String currentUserId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(currentUserId, post);
 
         if (post.isPrivateRecipe() && !post.getUserId().equals(currentUserId)) {
             throw new AppException(ErrorCode.POST_ACCESS_DENIED);
@@ -1599,9 +1684,20 @@ Criteria.where("postType").ne(PostType.GROUP.name()),
     /**
      */
     public Page<PostResponse> getReviewsForRecipe(String recipeId, Pageable pageable, String currentUserId) {
-        Page<Post> posts = postRepository.findByRecipeIdAndPostTypeAndHiddenFalseOrderByCreatedAtDesc(
-                recipeId, PostType.RECIPE_REVIEW, pageable);
-        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        Criteria criteria = Criteria.where("recipeId").is(recipeId)
+                .and("postType").is(PostType.RECIPE_REVIEW.name())
+                .and("hidden").is(false);
+        excludeBlockedAuthors(criteria, currentUserId);
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().isSorted()
+                        ? pageable.getSort()
+                        : Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = mongoTemplate.find(new Query(criteria).with(sortedPageable), Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+        Page<PostResponse> responses = new PageImpl<>(
+                posts.stream().map(postMapper::toPostResponse).toList(), sortedPageable, total);
         enrichPageWithUserStatus(responses, currentUserId);
         return responses;
     }
@@ -1660,6 +1756,7 @@ avgRating = Math.round(avgRating * 10.0) / 10.0;
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        requirePostVisible(userId, post);
 
         if (post.getPostType() != PostType.RECIPE_BATTLE) {
             throw new AppException(ErrorCode.INVALID_INPUT, "This post is not a recipe battle");
@@ -1722,9 +1819,18 @@ avgRating = Math.round(avgRating * 10.0) / 10.0;
     /**
      */
     public Page<PostResponse> getActiveBattles(Pageable pageable, String currentUserId) {
-        Page<Post> posts = postRepository.findByPostTypeAndBattleEndsAtAfterAndHiddenFalseOrderByBattleEndsAtAsc(
-                PostType.RECIPE_BATTLE, Instant.now(), pageable);
-        Page<PostResponse> responses = posts.map(postMapper::toPostResponse);
+        Criteria criteria = Criteria.where("postType").is(PostType.RECIPE_BATTLE.name())
+                .and("battleEndsAt").gt(Instant.now())
+                .and("hidden").is(false);
+        excludeBlockedAuthors(criteria, currentUserId);
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "battleEndsAt"));
+        List<Post> posts = mongoTemplate.find(new Query(criteria).with(sortedPageable), Post.class);
+        long total = mongoTemplate.count(new Query(criteria), Post.class);
+        Page<PostResponse> responses = new PageImpl<>(
+                posts.stream().map(postMapper::toPostResponse).toList(), sortedPageable, total);
         enrichPageWithUserStatus(responses, currentUserId);
         return responses;
     }
