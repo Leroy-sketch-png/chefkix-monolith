@@ -52,4 +52,18 @@ class GlobalExceptionHandlerTest {
         assertThat(invalidStories.getBody().getMessage())
                 .isEqualTo("One or more selected stories cannot be added to this highlight");
     }
+
+    @Test
+    void premiumFeatureRequiredReturnsForbiddenStatusAndCleanMessage() {
+        var handler = new GlobalExceptionHandler();
+
+        var response = handler.handleAppException(new AppException(ErrorCode.PREMIUM_FEATURE_REQUIRED));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().isSuccess()).isFalse();
+        assertThat(response.getBody().getStatusCode()).isEqualTo(403);
+        assertThat(response.getBody().getMessage())
+                .isEqualTo("This feature requires a premium subscription");
+    }
 }

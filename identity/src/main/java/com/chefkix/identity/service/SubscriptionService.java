@@ -63,6 +63,22 @@ public class SubscriptionService {
         return isPremium(userId);
     }
 
+    public boolean hasFeature(String featureCode) {
+        return hasFeature(getCurrentUserId(), featureCode);
+    }
+
+    public boolean hasFeature(String userId, String featureCode) {
+        if (featureCode == null || featureCode.isBlank()) {
+            return false;
+        }
+        try {
+            PremiumFeature.valueOf(featureCode.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return isPremium(userId);
+    }
+
     /**
      */
     public SubscriptionResponse activateSubscription(String paymentProvider, String paymentToken) {

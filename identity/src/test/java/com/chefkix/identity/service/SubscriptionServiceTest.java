@@ -124,6 +124,35 @@ class SubscriptionServiceTest {
         verify(subscriptionRepository).save(same(subscription));
     }
 
+    @Test
+    void requirePremiumThrowsWhenUserIsFree() {
+        when(subscriptionRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> subscriptionService.requirePremium(USER_ID))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.PREMIUM_FEATURE_REQUIRED));
+    }
+
+    @Test
+    void requirePremiumSucceedsWhenUserIsPremium() {
+        UserSubscription subscription = premiumSubscription(Instant.now().plus(1, ChronoUnit.DAYS));
+        when(subscriptionRepository.findByUserId(USER_ID)).thenReturn(Optional.of(subscription));
+
+        subscriptionService.requirePremium(USER_ID);
+    }
+
+    @Test
+    void hasFeatureWithFeatureCodeEvaluatesCorrectly() {
+        UserSubscription subscription = premiumSubscription(Instant.now().plus(1, ChronoUnit.DAYS));
+        when(subscriptionRepository.findByUserId(USER_ID)).thenReturn(Optional.of(subscription));
+
+        assertThat(subscriptionService.hasFeature(USER_ID, "ADVANCED_ANALYTICS")).isTrue();
+        assertThat(subscriptionService.hasFeature(USER_ID, "custom_profile_themes")).isTrue();
+        assertThat(subscriptionService.hasFeature(USER_ID, "NON_EXISTENT_FEATURE")).isFalse();
+        assertThat(subscriptionService.hasFeature(USER_ID, (String) null)).isFalse();
+        assertThat(subscriptionService.hasFeature(USER_ID, "   ")).isFalse();
+    }
+
     private UserSubscription premiumSubscription(Instant endDate) {
         return UserSubscription.builder()
                 .userId(USER_ID)
