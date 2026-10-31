@@ -20,6 +20,7 @@ import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import lombok.AccessLevel;
@@ -62,6 +63,7 @@ public class CommentService {
     private final ProfileProvider profileProvider;
     private final ContentModerationProvider contentModerationProvider;
     private final MongoTemplate mongoTemplate;
+    private final BlockedContentPolicy blockedContentPolicy;
 
     public CommentResponse createComment(
       Authentication authentication, String postId, CommentRequest req) {
@@ -74,6 +76,7 @@ public class CommentService {
         postRepository
             .findById(postId)
             .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+        blockedContentPolicy.requireVisible(userId, post.getUserId());
 
         BasicProfileInfo userInfo = profileProvider.getBasicProfile(userId);
         if (userInfo == null) {
@@ -218,8 +221,15 @@ public class CommentService {
   }
 
     public List<CommentResponse> getAllCommentsByPostId(String postId, String currentUserId) {
-        List<Comment> comments = commentRepository.findByPostId(postId,
-                PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt")));
+        if (currentUserId != null) {
+            postRepository.findById(postId).ifPresent(post ->
+                    blockedContentPolicy.requireVisible(currentUserId, post.getUserId()));
+        }
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(currentUserId);
+        var pageable = PageRequest.of(0, 200, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Comment> comments = invisibleUserIds.isEmpty()
+                ? commentRepository.findByPostId(postId, pageable)
+                : commentRepository.findByPostIdAndUserIdNotIn(postId, invisibleUserIds, pageable);
         Map<String, BasicProfileInfo> taggedProfileCache = new HashMap<>();
 
         return comments.stream()
@@ -317,8 +327,9 @@ public class CommentService {
     public CommentLikeResponse toggleLike(Authentication authentication, String commentId) {
         String userId = authentication.getName();
 
-        commentRepository.findById(commentId)
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+        requireCommentContextVisible(userId, comment);
 
         boolean alreadyLiked = commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
 
@@ -346,5 +357,11 @@ public class CommentService {
         Query query = Query.query(Criteria.where("id").is(commentId));
         Update update = new Update().inc("likes", amount);
         mongoTemplate.updateFirst(query, update, Comment.class);
+    }
+
+    private void requireCommentContextVisible(String viewerId, Comment comment) {
+        blockedContentPolicy.requireVisible(viewerId, comment.getUserId());
+        postRepository.findById(comment.getPostId()).ifPresent(post ->
+                blockedContentPolicy.requireVisible(viewerId, post.getUserId()));
     }
 }

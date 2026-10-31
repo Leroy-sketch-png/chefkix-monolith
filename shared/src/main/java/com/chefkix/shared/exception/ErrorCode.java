@@ -179,6 +179,8 @@ public enum ErrorCode {
     VERIFICATION_ALREADY_VERIFIED(409, "Account is already verified", HttpStatus.CONFLICT),
     VERIFICATION_REQUIREMENTS_NOT_MET(400, "Verification requirements not met", HttpStatus.BAD_REQUEST),
     STORY_NOT_FOUND(404, "Story not found", HttpStatus.NOT_FOUND ),
+    STORY_HIGHLIGHT_NOT_FOUND(404, "Story highlight not found", HttpStatus.NOT_FOUND),
+    STORY_HIGHLIGHT_STORIES_INVALID(400, "One or more selected stories cannot be added to this highlight", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

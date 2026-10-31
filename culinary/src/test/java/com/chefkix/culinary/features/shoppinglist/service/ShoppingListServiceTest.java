@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.dao.DuplicateKeyException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -122,6 +123,52 @@ class ShoppingListServiceTest {
         assertThat(response.getId()).isEqualTo("list-1");
         verify(shoppingListRepo, never()).save(existing);
         verify(cookPlanRepo, never()).findByIdAndUserId("plan-1", "user-1");
+    }
+
+    @Test
+    void concurrentCookPlanSaveReturnsTheListCreatedByTheWinningRequest() {
+        CookPlan plan = CookPlan.builder()
+                .id("plan-1")
+                .userId("user-1")
+                .planDate(LocalDate.of(2026, 9, 21))
+                .shoppingList(List.of())
+                .build();
+        ShoppingList winner = ownedList("winner-token");
+        winner.setSource(ShoppingListSource.COOK_PLAN);
+        winner.setSourceCookPlanId("plan-1");
+        when(shoppingListRepo.findByUserIdAndSourceCookPlanId("user-1", "plan-1"))
+                .thenReturn(Optional.empty(), Optional.of(winner));
+        when(cookPlanRepo.findByIdAndUserId("plan-1", "user-1"))
+                .thenReturn(Optional.of(plan));
+        when(shoppingListRepo.save(org.mockito.ArgumentMatchers.any(ShoppingList.class)))
+                .thenThrow(new DuplicateKeyException("unique CookPlan list"));
+
+        var response = service.createFromCookPlan("user-1", cookPlanRequest("plan-1"));
+
+        assertThat(response.getId()).isEqualTo("list-1");
+        assertThat(response.getShareToken()).isEqualTo("winner-token");
+        verify(shoppingListRepo, org.mockito.Mockito.times(2))
+                .findByUserIdAndSourceCookPlanId("user-1", "plan-1");
+    }
+
+    @Test
+    void unrelatedDuplicateKeyFailureIsNotSwallowed() {
+        CookPlan plan = CookPlan.builder()
+                .id("plan-1")
+                .userId("user-1")
+                .planDate(LocalDate.of(2026, 9, 21))
+                .shoppingList(List.of())
+                .build();
+        DuplicateKeyException duplicateKey = new DuplicateKeyException("share token collision");
+        when(shoppingListRepo.findByUserIdAndSourceCookPlanId("user-1", "plan-1"))
+                .thenReturn(Optional.empty(), Optional.empty());
+        when(cookPlanRepo.findByIdAndUserId("plan-1", "user-1"))
+                .thenReturn(Optional.of(plan));
+        when(shoppingListRepo.save(org.mockito.ArgumentMatchers.any(ShoppingList.class)))
+                .thenThrow(duplicateKey);
+
+        assertThatThrownBy(() -> service.createFromCookPlan("user-1", cookPlanRequest("plan-1")))
+                .isSameAs(duplicateKey);
     }
 
     @Test

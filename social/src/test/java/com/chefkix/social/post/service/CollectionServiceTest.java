@@ -3,7 +3,9 @@ package com.chefkix.social.post.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,9 +18,11 @@ import com.chefkix.social.post.entity.Collection;
 import com.chefkix.social.post.entity.DifficultyStep;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.mapper.PostMapper;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.post.repository.CollectionProgressRepository;
 import com.chefkix.social.post.repository.CollectionRepository;
 import com.chefkix.social.post.repository.PostRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +52,8 @@ class CollectionServiceTest {
     private PostMapper postMapper;
     @Mock
     private RecipeProvider recipeProvider;
+    @Mock
+    private BlockedContentPolicy blockedContentPolicy;
 
     @InjectMocks
     private CollectionService collectionService;
@@ -55,7 +61,8 @@ class CollectionServiceTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("user-1", "password"));
+                new UsernamePasswordAuthenticationToken(
+                        "user-1", "password", AuthorityUtils.createAuthorityList("ROLE_USER")));
     }
 
     @AfterEach
@@ -117,6 +124,14 @@ class CollectionServiceTest {
     }
 
     @Test
+    void collectionRequestBindsFrontendIsPublicProperty() throws Exception {
+        CollectionRequest request = new ObjectMapper().readValue(
+                "{\"name\":\"Shared collection\",\"isPublic\":true}", CollectionRequest.class);
+
+        assertThat(request.isPublic()).isTrue();
+    }
+
+    @Test
     void createCollectionRejectsLearningPathWithUnknownRecipe() {
         when(collectionRepository.countByUserId("user-1")).thenReturn(0L);
         when(recipeProvider.getRecipeSummary("missing-recipe")).thenReturn(null);
@@ -170,6 +185,8 @@ class CollectionServiceTest {
                 .userId("owner-1")
                 .name("Public Path")
                 .isPublic(true)
+                .postIds(List.of("blocked-post", "visible-post"))
+                .itemCount(2)
                 .build();
 
         when(collectionRepository.findById("collection-1")).thenReturn(Optional.of(collection));
@@ -183,6 +200,99 @@ class CollectionServiceTest {
 
         assertThat(response.getId()).isEqualTo("collection-1");
         assertThat(response.isPublic()).isTrue();
+        assertThat(response.getPostIds()).containsExactly("blocked-post", "visible-post");
+        assertThat(response.getItemCount()).isEqualTo(2);
+        verify(postRepository, never()).findAllById(any());
+    }
+
+    @Test
+    void getCollectionHidesBlockedPostReferencesAndAdjustsOnlyTheVisibleCount() {
+        Collection collection = Collection.builder()
+                .id("collection-1")
+                .userId("owner-1")
+                .isPublic(true)
+                .postIds(new ArrayList<>(List.of("blocked-post", "visible-post")))
+                .recipeIds(List.of("recipe-1", "recipe-2"))
+                .itemCount(4)
+                .coverImageUrl("https://cdn.example/blocked.jpg")
+                .averageRating(4.5)
+                .build();
+        Post blockedPost = Post.builder()
+                .id("blocked-post")
+                .userId("blocked-user")
+                .photoUrls(List.of("https://cdn.example/blocked.jpg"))
+                .build();
+        Post visiblePost = Post.builder()
+                .id("visible-post")
+                .userId("other-user")
+                .photoUrls(List.of("https://cdn.example/visible.jpg"))
+                .build();
+        when(collectionRepository.findById("collection-1")).thenReturn(Optional.of(collection));
+        when(blockedContentPolicy.invisibleUserIds("user-1")).thenReturn(List.of("blocked-user"));
+        when(postRepository.findAllById(collection.getPostIds())).thenReturn(List.of(blockedPost, visiblePost));
+
+        var response = collectionService.getCollection("collection-1");
+
+        assertThat(response.getPostIds()).containsExactly("visible-post");
+        assertThat(response.getItemCount()).isEqualTo(3);
+        assertThat(response.getRecipeIds()).containsExactly("recipe-1", "recipe-2");
+        assertThat(response.getCoverImageUrl()).isEqualTo("https://cdn.example/visible.jpg");
+        assertThat(response.getAverageRating()).isEqualTo(4.5);
+        assertThat(collection.getPostIds()).containsExactly("blocked-post", "visible-post");
+        assertThat(collection.getItemCount()).isEqualTo(4);
+        verify(collectionRepository, never()).save(any(Collection.class));
+    }
+
+    @Test
+    void publicUserCollectionMetadataUsesTheAuthenticatedViewersBlockPolicy() {
+        Collection collection = Collection.builder()
+                .id("collection-1")
+                .userId("owner-1")
+                .isPublic(true)
+                .postIds(List.of("blocked-post", "visible-post"))
+                .itemCount(2)
+                .build();
+        Post blockedPost = Post.builder().id("blocked-post").userId("blocked-user").build();
+        Post visiblePost = Post.builder().id("visible-post").userId("other-user").build();
+        when(collectionRepository.findAllByUserIdAndIsPublicTrue(eq("owner-1"), any()))
+                .thenReturn(List.of(collection));
+        when(blockedContentPolicy.invisibleUserIds("user-1")).thenReturn(List.of("blocked-user"));
+        when(postRepository.findAllById(collection.getPostIds())).thenReturn(List.of(blockedPost, visiblePost));
+
+        var response = collectionService.getUserPublicCollections("owner-1");
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).getPostIds()).containsExactly("visible-post");
+        assertThat(response.get(0).getItemCount()).isEqualTo(1);
+    }
+
+    @Test
+    void ownerAndFeaturedCollectionListsUseTheSameViewerProjection() {
+        Collection collection = Collection.builder()
+                .id("collection-1")
+                .userId("user-1")
+                .isPublic(true)
+                .postIds(List.of("blocked-post", "visible-post"))
+                .itemCount(2)
+                .build();
+        Post blockedPost = Post.builder().id("blocked-post").userId("blocked-user").build();
+        Post visiblePost = Post.builder().id("visible-post").userId("other-user").build();
+        when(collectionRepository.findAllByUserId(eq("user-1"), any())).thenReturn(List.of(collection));
+        when(collectionRepository.findAllByIsFeaturedTrueAndIsPublicTrue(any())).thenReturn(List.of(collection));
+        when(collectionRepository.findAllByIsFeaturedTrueAndSeasonTag(eq("summer"), any()))
+                .thenReturn(List.of(collection));
+        when(blockedContentPolicy.invisibleUserIds("user-1")).thenReturn(List.of("blocked-user"));
+        when(postRepository.findAllById(collection.getPostIds())).thenReturn(List.of(blockedPost, visiblePost));
+
+        var owned = collectionService.getMyCollections();
+        var featured = collectionService.getFeaturedCollections();
+        var seasonal = collectionService.getFeaturedCollectionsBySeason("summer");
+
+        for (var response : List.of(owned.get(0), featured.get(0), seasonal.get(0))) {
+            assertThat(response.getPostIds()).containsExactly("visible-post");
+            assertThat(response.getItemCount()).isEqualTo(1);
+        }
+        verify(blockedContentPolicy, times(3)).invisibleUserIds("user-1");
     }
 
     @Test
@@ -209,5 +319,27 @@ class CollectionServiceTest {
 
         assertThat(response).hasSize(1);
         assertThat(response.get(0).getId()).isEqualTo("post-1");
+    }
+
+    @Test
+    void getCollectionPostsFiltersBlockedAuthorsBeforeMapping() {
+        Collection collection = Collection.builder()
+                .id("collection-1")
+                .userId("owner-1")
+                .isPublic(true)
+                .postIds(List.of("blocked-post", "visible-post"))
+                .build();
+        Post blockedPost = Post.builder().id("blocked-post").userId("blocked-user").build();
+        Post visiblePost = Post.builder().id("visible-post").userId("visible-user").build();
+        when(collectionRepository.findById("collection-1")).thenReturn(Optional.of(collection));
+        when(postRepository.findAllById(collection.getPostIds())).thenReturn(List.of(blockedPost, visiblePost));
+        when(blockedContentPolicy.invisibleUserIds("user-1")).thenReturn(List.of("blocked-user"));
+        when(postMapper.toPostResponse(visiblePost)).thenReturn(
+                com.chefkix.social.post.dto.response.PostResponse.builder().id("visible-post").build());
+
+        var response = collectionService.getCollectionPosts("collection-1");
+
+        assertThat(response).extracting("id").containsExactly("visible-post");
+        verify(postMapper, never()).toPostResponse(blockedPost);
     }
 }

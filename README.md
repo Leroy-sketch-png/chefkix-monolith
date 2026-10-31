@@ -60,7 +60,7 @@ Cross-module calls use **Provider interfaces** (defined in `-api` modules, imple
 | Context Path | `/api/v1` | `server.servlet.context-path` |
 | MongoDB | `localhost:27017/chefkix` | Single DB |
 | Kafka | `localhost:9094` | Async events |
-| Redis | `localhost:6379` | OTP rate limiting |
+| Redis | `localhost:6380` | OTP rate limiting |
 | Keycloak | `localhost:8180/realms/nottisn` | JWT issuer |
 | AI Service | `localhost:8000` | External Python FastAPI |
 

@@ -17,6 +17,8 @@ import com.chefkix.social.post.mapper.ReplyMapper;
 import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.ReplyLikeRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
+import com.chefkix.social.post.repository.PostRepository;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
 public class ReplyService {
 
     CommentRepository commentRepository;
+    PostRepository postRepository;
     ReplyRepository replyRepository;
     ReplyLikeRepository replyLikeRepository;
     ReplyMapper replyMapper;
@@ -52,19 +55,21 @@ public class ReplyService {
     ContentModerationProvider contentModerationProvider;
     MongoTemplate mongoTemplate;
     KafkaTemplate<String, Object> kafkaTemplate;
+    BlockedContentPolicy blockedContentPolicy;
 
     @Transactional
     public ReplyResponse createReply(ReplyRequest replyRequest) {
 
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        Comment comment = commentRepository.findById(replyRequest.getParentCommentId())
+                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+        requireReplyContextVisible(userId, comment);
+
         BasicProfileInfo userInfo = profileProvider.getBasicProfile(userId);
         if (userInfo == null) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
-
-        Comment comment = commentRepository.findById(replyRequest.getParentCommentId())
-                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
         var moderationResult = contentModerationProvider.moderate(replyRequest.getContent(), "comment");
         if (moderationResult == null || !moderationResult.isApproved()) {
@@ -108,8 +113,16 @@ public class ReplyService {
     }
 
     public List<ReplyResponse> getAllRepliesByCommentId(String commentId, String currentUserId) {
-        List<Reply> replies = replyRepository.findByParentCommentId(commentId,
-                PageRequest.of(0, 200, Sort.by(Sort.Direction.ASC, "createdAt")));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+        if (currentUserId != null) {
+            requireReplyContextVisible(currentUserId, comment);
+        }
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(currentUserId);
+        var pageable = PageRequest.of(0, 200, Sort.by(Sort.Direction.ASC, "createdAt"));
+        List<Reply> replies = invisibleUserIds.isEmpty()
+                ? replyRepository.findByParentCommentId(commentId, pageable)
+                : replyRepository.findByParentCommentIdAndUserIdNotIn(commentId, invisibleUserIds, pageable);
 
         return replies.stream()
                 .map(reply -> mapToReplyResponse(reply, currentUserId))
@@ -223,8 +236,12 @@ public class ReplyService {
     public ReplyLikeResponse toggleLike(Authentication authentication, String replyId) {
         String userId = authentication.getName();
 
-        replyRepository.findById(replyId)
+        Reply reply = replyRepository.findById(replyId)
                 .orElseThrow(() -> new AppException(ErrorCode.REPLY_NOT_FOUND));
+        Comment parentComment = commentRepository.findById(reply.getParentCommentId())
+                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+        blockedContentPolicy.requireVisible(userId, reply.getUserId());
+        requireReplyContextVisible(userId, parentComment);
 
         boolean alreadyLiked = replyLikeRepository.existsByReplyIdAndUserId(replyId, userId);
 
@@ -251,5 +268,11 @@ public class ReplyService {
         Query query = Query.query(Criteria.where("id").is(replyId));
         Update update = new Update().inc("likes", amount);
         mongoTemplate.updateFirst(query, update, Reply.class);
+    }
+
+    private void requireReplyContextVisible(String viewerId, Comment comment) {
+        blockedContentPolicy.requireVisible(viewerId, comment.getUserId());
+        postRepository.findById(comment.getPostId()).ifPresent(post ->
+                blockedContentPolicy.requireVisible(viewerId, post.getUserId()));
     }
 }

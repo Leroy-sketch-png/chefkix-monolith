@@ -3,6 +3,8 @@ package com.chefkix.identity.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +24,7 @@ import com.chefkix.identity.entity.SignupRequest;
 import com.chefkix.identity.entity.Statistics;
 import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserProfile;
+import com.chefkix.identity.dto.response.ProfileResponse;
 import com.chefkix.identity.exception.ErrorNormalizer;
 import com.chefkix.identity.mapper.ProfileMapper;
 import com.chefkix.identity.repository.BlockRepository;
@@ -50,6 +53,7 @@ import java.util.concurrent.Executor;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.domain.Pageable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -96,6 +100,36 @@ class ProfileServiceTest {
   @Mock private Executor taskExecutor;
 
   @InjectMocks private ProfileService profileService;
+
+  @Test
+  void profilePostsPassAuthenticatedViewerToSocialProvider() {
+    Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+    UserProfile targetProfile = UserProfile.builder().userId("target-user").build();
+    ProfileResponse mappedProfile = org.mockito.Mockito.mock(ProfileResponse.class);
+    Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 5);
+    var posts = org.springframework.data.domain.Page.<com.chefkix.social.api.dto.PostSummary>empty(pageable);
+
+    when(securityUtils.getCurrentUserId(authentication)).thenReturn("viewer-user");
+    when(profileRepository.findProfileOnlyByUserId("target-user"))
+        .thenReturn(Optional.of(targetProfile));
+    when(profileMapper.toProfileResponse(targetProfile)).thenReturn(mappedProfile);
+    when(socialUtils.determineRelationshipStatus("viewer-user", targetProfile))
+        .thenReturn(com.chefkix.identity.enums.RelationshipStatus.NOT_FRIENDS);
+    when(followRepository.existsByFollowerIdAndFollowingId("viewer-user", "target-user"))
+        .thenReturn(false);
+    when(postProvider.getPostsByUserId("target-user", "viewer-user", pageable)).thenReturn(posts);
+    doAnswer(invocation -> {
+      ((Runnable) invocation.getArgument(0)).run();
+      return null;
+    }).when(taskExecutor).execute(any(Runnable.class));
+
+    profileService.getProfileWithPostsByUserId("target-user", authentication, pageable);
+
+    verify(postProvider).getPostsByUserId("target-user", "viewer-user", pageable);
+    var ordered = inOrder(profileRepository, taskExecutor);
+    ordered.verify(profileRepository).findProfileOnlyByUserId("target-user");
+    ordered.verify(taskExecutor).execute(any(Runnable.class));
+  }
 
   @Test
   void deleteAccountCleansIdentityResidueAndRepairsSurvivingCounters() {

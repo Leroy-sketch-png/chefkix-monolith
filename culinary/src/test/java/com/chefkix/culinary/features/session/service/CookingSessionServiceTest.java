@@ -477,6 +477,9 @@ class CookingSessionServiceTest {
         assertThat(completionRequest.isChallengeCompleted()).isTrue();
         assertThat(completionRequest.getXpAmount()).isEqualTo(40);
         assertThat(response.getStatus()).isEqualTo("COMPLETED");
+        assertThat(response.getCompletedAt()).isEqualTo(session.getCompletedAt());
+        assertThat(java.time.Duration.between(response.getCompletedAt(), response.getPostDeadline()).toDays())
+            .isEqualTo(14);
         assertThat(response.getBaseXpAwarded()).isEqualTo(40);
         assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
         assertThat(response.getCoOpBonusXp()).isZero();

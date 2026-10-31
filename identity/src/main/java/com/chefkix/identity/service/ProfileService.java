@@ -679,14 +679,14 @@ response.setIsBlocked(false);
   private ProfileWithPostsResponse buildProfileWithPosts(
       String targetUserId, String currentUserId, Pageable pageable) {
 
+    UserProfile userProfile =
+        profileRepository
+            .findProfileOnlyByUserId(targetUserId)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
     CompletableFuture<ProfileResponse> profileFuture =
         CompletableFuture.supplyAsync(
             () -> {
-              UserProfile userProfile =
-                  profileRepository
-                    .findProfileOnlyByUserId(targetUserId)
-                      .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
               ProfileResponse localResponse = profileMapper.toProfileResponse(userProfile);
 
               RelationshipStatus status =
@@ -713,7 +713,7 @@ response.setIsBlocked(false);
             taskExecutor);
 
     try {
-      Page<PostSummary> posts = postProvider.getPostsByUserId(targetUserId, pageable);
+      Page<PostSummary> posts = postProvider.getPostsByUserId(targetUserId, currentUserId, pageable);
 
       ProfileResponse profile = profileFuture.join();
 

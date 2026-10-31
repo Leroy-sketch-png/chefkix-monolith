@@ -26,6 +26,8 @@ import com.chefkix.social.chat.mapper.ChatMessageMapper;
 import com.chefkix.social.chat.repository.ChatMessageRepository;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.shared.event.StoryReplyEvent;
 import com.chefkix.shared.exception.AppException;
 import java.time.Instant;
@@ -145,6 +147,25 @@ class ChatMessageServiceTest {
     }
 
     @Test
+    void blockedPostShareUsesSenderIdentityAndStopsBeforeChatPersistence() {
+        ChatMessageRequest request = ChatMessageRequest.builder()
+                .conversationId("conversation-1")
+                .message("Sharing this recipe")
+                .type(MessageType.POST_SHARE)
+                .relatedId("blocked-post")
+                .build();
+        when(postService.getPostDetail("blocked-post", "user-1"))
+                .thenThrow(new AppException(ErrorCode.POST_NOT_FOUND));
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(AppException.class);
+
+        verify(postService).getPostDetail("blocked-post", "user-1");
+        verify(chatMessageRepository, never()).save(any(ChatMessage.class));
+        verify(conversationRepository, never()).save(any(Conversation.class));
+        verify(contentModerationProvider, never()).moderate(any(), any());
+    }
+    @Test
     void createDoesNotLogSharedPostContentOrSignedMediaUrl() {
         String conversationId = new org.bson.types.ObjectId().toHexString();
         String recipeTitle = "private-recipe-title-72aef";
@@ -160,7 +181,7 @@ class ChatMessageServiceTest {
                 .build();
         ChatMessage mappedMessage = ChatMessage.builder().conversationId(conversationId).build();
 
-        when(postService.getPostDetail("post-1")).thenReturn(com.chefkix.social.api.dto.PostDetail.builder()
+        when(postService.getPostDetail("post-1", "user-1")).thenReturn(com.chefkix.social.api.dto.PostDetail.builder()
                 .photoUrls(List.of(signedImageUrl))
                 .recipeTitle(recipeTitle)
                 .build());
@@ -212,7 +233,7 @@ class ChatMessageServiceTest {
                 .type(MessageType.POST_SHARE)
                 .relatedId(postId)
                 .build();
-        when(postService.getPostDetail(postId)).thenThrow(new IllegalStateException(providerMessage));
+        when(postService.getPostDetail(postId, "user-1")).thenThrow(new IllegalStateException(providerMessage));
 
         Logger logger = (Logger) LoggerFactory.getLogger(ChatMessageService.class);
         Level originalLevel = logger.getLevel();

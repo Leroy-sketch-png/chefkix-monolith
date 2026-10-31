@@ -135,12 +135,47 @@ public class CookPlanService {
     public CookPlan current(String userId, LocalDate planDate) {
         LocalDate effectiveDate = planDate != null ? planDate : LocalDate.now(ZoneOffset.UTC);
         return cookPlanRepository.findTopByUserIdAndPlanDateOrderByCreatedAtDesc(userId, effectiveDate)
+                .map(this::hydrateCurrentRecipeCovers)
                 .orElse(null);
     }
 
     public CookPlan get(String userId, String planId) {
         return cookPlanRepository.findByIdAndUserId(planId, userId)
+                .map(this::hydrateCurrentRecipeCovers)
                 .orElseThrow(() -> new AppException(ErrorCode.COOK_PLAN_NOT_FOUND));
+    }
+
+    private CookPlan hydrateCurrentRecipeCovers(CookPlan plan) {
+        List<CookPlanDish> dishes = safe(plan.getCookBatches()).stream()
+                .flatMap(batch -> safe(batch.getDishes()).stream())
+                .toList();
+        List<String> recipeIds = dishes.stream()
+                .map(CookPlanDish::getRecipeId)
+                .filter(Objects::nonNull)
+                .filter(id -> !id.isBlank())
+                .distinct()
+                .toList();
+        if (recipeIds.isEmpty()) {
+            return plan;
+        }
+
+        Map<String, Recipe> recipesById = new HashMap<>();
+        safe(recipeRepository.findAllByIdIn(recipeIds)).stream()
+                .filter(Objects::nonNull)
+                .filter(recipe -> recipe.getId() != null)
+                .forEach(recipe -> recipesById.put(recipe.getId(), recipe));
+
+        for (CookPlanDish dish : dishes) {
+            Recipe recipe = recipesById.get(dish.getRecipeId());
+            if (recipe == null) {
+                continue;
+            }
+            safe(recipe.getCoverImageUrl()).stream()
+                    .filter(url -> url != null && !url.isBlank())
+                    .findFirst()
+                    .ifPresent(dish::setCoverImageUrl);
+        }
+        return plan;
     }
 
     @Transactional
@@ -203,7 +238,7 @@ public class CookPlanService {
         if (!isCompatibleBatch(proposedDishes)) {
             throw new AppException(
                     ErrorCode.NO_VALID_COOK_PLAN,
-                    "That swap would make the cooking batch incoherent. Keep one main dish and compatible courses from the same cuisine.");
+                    "That swap would make the cooking batch incoherent. Keep one main dish, at least one side, soup, or bread, and compatible courses from the same cuisine.");
         }
 
         batch.getDishes().set(index, replacementDish);
@@ -235,7 +270,7 @@ public class CookPlanService {
         List<String> constraints = new ArrayList<>();
         constraints.add(safeCandidateCount == 0
                 ? "No published recipes satisfy every active safety and effort constraint."
-                : "Fewer than two compatible recipes fit the active-time budget.");
+                : "No coherent main batch with a side, soup, or bread fits the active-time budget.");
         if (!safe(preferences.getAllergies()).isEmpty()) {
             constraints.add("Allergies were enforced: " + String.join(", ", preferences.getAllergies()));
         }
@@ -243,7 +278,7 @@ public class CookPlanService {
             constraints.add("Dietary restrictions were enforced: "
                     + String.join(", ", preferences.getDietaryRestrictions()));
         }
-        constraints.add("Increase the active-time budget or publish more compatible recipes; ChefKix will not insert an unsafe fallback.");
+        constraints.add("Adjust the active-time budget or try different recipes. A batch needs a main plus a side, soup, or bread.");
 
         return CookPlan.builder()
                 .userId(userId)
@@ -280,10 +315,13 @@ public class CookPlanService {
                     .filter(candidate -> candidate != anchor)
                     .filter(candidate -> isCompanionRole(candidate.mealRole()))
                     .filter(candidate -> isCompatibleCompanion(anchor, candidate))
-                    .sorted(Comparator.comparingDouble((RecipeCandidate candidate) ->
-                                    candidate.score()
-                                            + compatibilityScore(candidate, cluster, selectedIngredients))
-                            .reversed())
+                    .sorted(Comparator
+                            .comparingInt((RecipeCandidate candidate) ->
+                                    isMealAccompaniment(candidate.mealRole()) ? 0 : 1)
+                            .thenComparing(Comparator.comparingDouble((RecipeCandidate candidate) ->
+                                            candidate.score()
+                                                    + compatibilityScore(candidate, cluster, selectedIngredients))
+                                    .reversed()))
                     .toList();
 
             for (RecipeCandidate companion : companions) {
@@ -297,7 +335,8 @@ public class CookPlanService {
                 selectedIngredients.addAll(companion.ingredientNames());
             }
 
-            if (cluster.size() < MIN_DISHES) {
+            if (cluster.size() < MIN_DISHES
+                    || cluster.stream().noneMatch(candidate -> isMealAccompaniment(candidate.mealRole()))) {
                 continue;
             }
 
@@ -339,6 +378,10 @@ public class CookPlanService {
                 || role == MealRole.SOUP
                 || role == MealRole.DESSERT
                 || role == MealRole.BREAD;
+    }
+
+    private boolean isMealAccompaniment(MealRole role) {
+        return role == MealRole.SIDE || role == MealRole.SOUP || role == MealRole.BREAD;
     }
 
     private boolean sameCuisine(Recipe first, Recipe second) {
@@ -615,7 +658,10 @@ public class CookPlanService {
         boolean unsupportedRole = dishes.stream()
                 .map(this::resolveMealRole)
                 .anyMatch(role -> role == MealRole.BREAKFAST);
-        return cuisines.size() == 1 && mainCount == 1 && !unsupportedRole;
+        boolean hasMealAccompaniment = dishes.stream()
+                .map(this::resolveMealRole)
+                .anyMatch(this::isMealAccompaniment);
+        return cuisines.size() == 1 && mainCount == 1 && !unsupportedRole && hasMealAccompaniment;
     }
 
     private <T> List<T> safe(List<T> values) {

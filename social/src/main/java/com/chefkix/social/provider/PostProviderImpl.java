@@ -89,8 +89,8 @@ public class PostProviderImpl implements PostProvider {
     ApplicationEventPublisher eventPublisher;
 
     @Override
-    public Page<PostSummary> getPostsByUserId(String userId, Pageable pageable) {
-        Page<PostResponse> posts = postService.getAllPostsByUserId(userId, pageable, null);
+    public Page<PostSummary> getPostsByUserId(String userId, String viewerId, Pageable pageable) {
+        Page<PostResponse> posts = postService.getAllPostsByUserId(userId, pageable, viewerId);
         return posts.map(this::toPostSummary);
     }
 
@@ -110,8 +110,8 @@ public class PostProviderImpl implements PostProvider {
     }
 
     @Override
-    public PostDetail getPostDetail(String postId) {
-        return postService.getPostDetail(postId);
+    public PostDetail getPostDetail(String postId, String viewerId) {
+        return postService.getPostDetail(postId, viewerId);
     }
 
     @Override

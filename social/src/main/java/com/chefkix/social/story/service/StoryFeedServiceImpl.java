@@ -4,6 +4,7 @@ import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.story.dto.response.StoryResponse;
 import com.chefkix.social.story.dto.response.UserStoryFeedResponse;
 import com.chefkix.social.story.entity.Story;
@@ -26,6 +27,7 @@ public class StoryFeedServiceImpl implements StoryFeedService {
     private final StoryInteractionRepository  storyInteractionRepository;
     private final StoryMapper storyMapper;
     private final ProfileProvider profileProvider;
+    private final BlockedContentPolicy blockedContentPolicy;
 
     @Override
     public List<UserStoryFeedResponse> getStoryFeed(String currentUserId) {
@@ -35,6 +37,7 @@ public class StoryFeedServiceImpl implements StoryFeedService {
         if (followingIds != null && !followingIds.isEmpty()) {
             targetUserIds.addAll(followingIds);
         }
+        targetUserIds.removeAll(blockedContentPolicy.invisibleUserIds(currentUserId));
         targetUserIds.add(currentUserId);
 
         List<Story> activeStories = storyRepository
@@ -91,6 +94,7 @@ if (activeStories.isEmpty()) return new ArrayList<>();
 
     @Override
     public List<StoryResponse> getUserActiveStories(String currentUserId, String targetUserId) {
+        blockedContentPolicy.requireVisible(currentUserId, targetUserId);
         List<Story> stories = storyRepository
                 .findByUserIdAndIsDeletedFalseAndExpiresAtAfterOrderByCreatedAtAsc(targetUserId, Instant.now());
 
@@ -106,9 +110,10 @@ if (activeStories.isEmpty()) return new ArrayList<>();
                 .toList();
     }
 
-    public StoryResponse getStoryById(String id) {
+    public StoryResponse getStoryById(String id, String currentUserId) {
         Story story = storyRepository.findByIdAndIsDeletedFalseAndExpiresAtAfter(id, Instant.now())
                 .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        blockedContentPolicy.requireVisible(currentUserId, story.getUserId());
 
         return storyMapper.toStoryResponse(story);
     }

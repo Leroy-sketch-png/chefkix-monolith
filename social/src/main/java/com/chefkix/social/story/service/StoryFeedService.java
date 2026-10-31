@@ -10,5 +10,5 @@ public interface StoryFeedService {
 
     List<StoryResponse> getUserActiveStories(String currentUserId, String targetUserId);
 
-    StoryResponse getStoryById(String storyId);
+    StoryResponse getStoryById(String storyId, String currentUserId);
 }
