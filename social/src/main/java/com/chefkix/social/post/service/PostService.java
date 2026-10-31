@@ -469,14 +469,20 @@ if (taggedUserId.equals(userId)) continue;
             }
             replyRepository.deleteAllByParentCommentIdIn(commentIds);
             commentLikeRepository.deleteAllByCommentIdIn(commentIds);
+            reportRepository.deleteAllByTargetTypeAndTargetIdIn("comment", commentIds);
         }
         commentRepository.deleteAllByPostId(postId);
 
         List<Collection> collectionsContainingPost = collectionRepository.findAllByPostIdsContaining(postId);
         if (!collectionsContainingPost.isEmpty()) {
             collectionsContainingPost.forEach(collection -> {
-                collection.getPostIds().removeIf(postId::equals);
-                collection.setItemCount(collection.getPostIds().size());
+                if (collection.getPostIds() != null) {
+                    collection.getPostIds().removeIf(postId::equals);
+                }
+                int postCount = collection.getPostIds() != null ? collection.getPostIds().size() : 0;
+                int recipeCount = collection.getRecipeIds() != null ? collection.getRecipeIds().size() : 0;
+                collection.setItemCount(postCount + recipeCount);
+                collection.setUpdatedAt(Instant.now());
             });
             collectionRepository.saveAll(collectionsContainingPost);
         }

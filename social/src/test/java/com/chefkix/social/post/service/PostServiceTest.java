@@ -25,6 +25,8 @@ import com.chefkix.social.group.repository.GroupRepository;
 import com.chefkix.social.post.dto.response.PostResponse;
 import com.chefkix.social.post.dto.request.PostCreationRequest;
 import com.chefkix.social.post.dto.request.PostUpdateRequest;
+import com.chefkix.social.post.entity.Comment;
+import com.chefkix.social.post.entity.Reply;
 import com.chefkix.social.post.entity.Collection;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.enums.PostStatus;
@@ -152,7 +154,8 @@ class PostServiceTest {
                 .id("collection-1")
                 .userId("user-2")
                 .postIds(new ArrayList<>(List.of(postId, "post-2")))
-                .itemCount(2)
+                .recipeIds(new ArrayList<>(List.of("recipe-1", "recipe-2")))
+                .itemCount(4)
                 .build();
 
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
@@ -179,7 +182,90 @@ class PostServiceTest {
         assertThat(emittedEvent.getPostId()).isEqualTo(postId);
         assertThat(emittedEvent.getUserId()).isEqualTo("user-1");
         assertThat(collection.getPostIds()).containsExactly("post-2");
-        assertThat(collection.getItemCount()).isEqualTo(1);
+        assertThat(collection.getItemCount()).isEqualTo(3);
+        assertThat(collection.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    void deletePostCascadesCommentsRepliesAndModerationReports() {
+        String postId = "post-1";
+        Post post = Post.builder()
+                .id(postId)
+                .userId("user-1")
+                .build();
+        Comment comment1 = Comment.builder().id("comment-1").postId(postId).build();
+        Comment comment2 = Comment.builder().id("comment-2").postId(postId).build();
+        Reply reply1 = Reply.builder().id("reply-1").parentCommentId("comment-1").build();
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(commentRepository.findByPostId(postId)).thenReturn(List.of(comment1, comment2));
+        when(replyRepository.findByParentCommentIdIn(List.of("comment-1", "comment-2"))).thenReturn(List.of(reply1));
+        when(collectionRepository.findAllByPostIdsContaining(postId)).thenReturn(List.of());
+
+        postService.deletePost(SecurityContextHolder.getContext().getAuthentication(), postId);
+
+        verify(replyLikeRepository).deleteAllByReplyIdIn(List.of("reply-1"));
+        verify(replyRepository).deleteAllByParentCommentIdIn(List.of("comment-1", "comment-2"));
+        verify(commentLikeRepository).deleteAllByCommentIdIn(List.of("comment-1", "comment-2"));
+        verify(reportRepository).deleteAllByTargetTypeAndTargetIdIn("comment", List.of("comment-1", "comment-2"));
+        verify(commentRepository).deleteAllByPostId(postId);
+        verify(reportRepository).deleteAllByTargetTypeAndTargetId("post", postId);
+        verify(postRepository).delete(post);
+        verify(kafkaTemplate).send(eq("post-deleted-delivery"), any(PostDeletedEvent.class));
+    }
+
+    @Test
+    void deletePostRejectsUnauthorizedUser() {
+        String postId = "post-1";
+        Post post = Post.builder()
+                .id(postId)
+                .userId("user-other")
+                .build();
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.deletePost(SecurityContextHolder.getContext().getAuthentication(), postId))
+                .isInstanceOf(AppException.class)
+                .hasMessageContaining(ErrorCode.DO_NOT_HAVE_PERMISSION.getMessage());
+
+        verify(postRepository, never()).delete(any(Post.class));
+        verify(kafkaTemplate, never()).send(any(), any());
+        verify(reportRepository, never()).deleteAllByTargetTypeAndTargetId(any(), any());
+    }
+
+    @Test
+    void deletePostThrowsWhenPostNotFound() {
+        String postId = "non-existent-post";
+
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> postService.deletePost(SecurityContextHolder.getContext().getAuthentication(), postId))
+                .isInstanceOf(AppException.class)
+                .hasMessageContaining(ErrorCode.POST_NOT_FOUND.getMessage());
+
+        verify(postRepository, never()).delete(any(Post.class));
+        verify(kafkaTemplate, never()).send(any(), any());
+    }
+
+    @Test
+    void deletePostHandlesEmptyCollectionsAndCommentsCleanly() {
+        String postId = "post-1";
+        Post post = Post.builder()
+                .id(postId)
+                .userId("user-1")
+                .build();
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(commentRepository.findByPostId(postId)).thenReturn(List.of());
+        when(collectionRepository.findAllByPostIdsContaining(postId)).thenReturn(List.of());
+
+        postService.deletePost(SecurityContextHolder.getContext().getAuthentication(), postId);
+
+        verify(commentRepository).deleteAllByPostId(postId);
+        verify(replyRepository, never()).deleteAllByParentCommentIdIn(any());
+        verify(collectionRepository, never()).saveAll(any());
+        verify(postRepository).delete(post);
+        verify(kafkaTemplate).send(eq("post-deleted-delivery"), any(PostDeletedEvent.class));
     }
 
     @Test
