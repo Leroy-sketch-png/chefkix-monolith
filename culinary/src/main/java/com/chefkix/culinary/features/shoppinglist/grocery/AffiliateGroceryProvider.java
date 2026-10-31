@@ -12,7 +12,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
+ * External search redirect bridge for grocery items (e.g., Instacart web search).
  *
+ * <p><strong>LIFECYCLE & MONETIZATION HONESTY NOTE (Window of Concern Item 14):</strong>
+ * This provider generates outbound search URLs with UTM referral parameters for ingredients.
+ * It is NOT an integrated affiliate monetization platform: there is no partner API integration,
+ * no order confirmation webhook, no cart synchronization, and no revenue attribution tracking.
+ * For production launch truth, this is classified as an External Search Redirect Bridge,
+ * and is disabled by default via {@code chefkix.grocery.affiliate.enabled=false}.
  */
 @Slf4j
 @Service
@@ -26,6 +33,14 @@ public class AffiliateGroceryProvider implements GroceryProvider {
 
   @Value("${chefkix.grocery.affiliate.base-url:https://www.instacart.com}")
   private String baseUrl;
+
+  public AffiliateGroceryProvider() {}
+
+  public AffiliateGroceryProvider(boolean enabled, String partnerTag, String baseUrl) {
+    this.enabled = enabled;
+    this.partnerTag = partnerTag;
+    this.baseUrl = baseUrl;
+  }
 
   @Override
   public String getProviderId() {
