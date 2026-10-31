@@ -980,4 +980,110 @@ class CookingSessionServiceTest {
         verify(postProvider, never()).updatePostXp(anyString(), anyDouble());
         verify(sessionRepository, never()).save(any());
     }
+
+    @Test
+    void completeSessionAppliesGroupMultiplierForThreeOrMoreCooks() {
+        String userId = "user-1";
+        String sessionId = "session-group";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-group");
+        session.setRoomCode("ROOM_GROUP_3");
+        Recipe recipe = buildRecipe("recipe-group", "Group Stew", 100);
+
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("ROOM_GROUP_3")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("user-2").role("COOK").build(),
+                RoomParticipant.builder().userId("user-3").role("COOK").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-group")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-group")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("ROOM_GROUP_3")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(33).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(967).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isEqualTo(1.1);
+        assertThat(response.getXpMultiplierReason()).isEqualTo("CO_OP_GROUP");
+        assertThat(response.getBaseXpAwarded()).isEqualTo(33); // 30 * 1.1 = 33
+        assertThat(response.getCoOpBonusXp()).isEqualTo(3);
+    }
+
+    @Test
+    void completeSessionIgnoresSpectatorParticipantsForCoOpMultiplier() {
+        String userId = "user-1";
+        String sessionId = "session-specs";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-specs");
+        session.setRoomCode("ROOM_SPECS");
+        Recipe recipe = buildRecipe("recipe-specs", "Solo Cook With Fans", 100);
+
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("ROOM_SPECS")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("fan-1").role("SPECTATOR").build(),
+                RoomParticipant.builder().userId("fan-2").role("SPECTATOR").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-specs")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-specs")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("ROOM_SPECS")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(30).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(970).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isNull();
+        assertThat(response.getXpMultiplierReason()).isNull();
+        assertThat(response.getBaseXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(0);
+    }
+
+    @Test
+    void completeSessionGracefullyHandlesMissingRoom() {
+        String userId = "user-1";
+        String sessionId = "session-room-gone";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-vanished");
+        session.setRoomCode("EXPIRED_ROOM");
+        Recipe recipe = buildRecipe("recipe-vanished", "Recipe No Room", 100);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-vanished")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-vanished")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("EXPIRED_ROOM")).thenReturn(Optional.empty());
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(30).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(970).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isNull();
+        assertThat(response.getXpMultiplierReason()).isNull();
+        assertThat(response.getBaseXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(0);
+    }
 }
