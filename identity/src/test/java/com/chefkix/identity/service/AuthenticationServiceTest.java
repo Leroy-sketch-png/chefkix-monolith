@@ -13,6 +13,12 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.chefkix.identity.client.KeycloakAdminClient;
+import com.chefkix.identity.dto.identity.ResetPasswordParam;
+import com.chefkix.identity.dto.response.UserResponse;
+import com.chefkix.identity.entity.User;
+import com.chefkix.identity.entity.UserActivity;
+import com.chefkix.identity.entity.UserProfile;
+import java.util.Optional;
 import com.chefkix.identity.dto.identity.TokenExchangeResponse;
 import com.chefkix.identity.dto.request.AuthenticationRequest;
 import com.chefkix.identity.exception.ErrorNormalizer;
@@ -246,5 +252,227 @@ class AuthenticationServiceTest {
         verify(keycloakService, never()).getUserInfo(any());
         verify(userRepository, never()).findByGoogleId(any());
         verify(profileRepository, never()).findByUserId(any());
+    }
+    @Test
+    void authenticateMapsAccountDisabledToAccountDisabledErrorCode() {
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername("disabled@example.com")
+                .password("any-pass")
+                .build();
+
+        when(keycloakService.login(request.getEmailOrUsername(), request.getPassword()))
+                .thenThrow(new RuntimeException("account_disabled: User account is disabled"));
+
+        assertThatThrownBy(() -> authenticationService.authenticate(request))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.ACCOUNT_DISABLED));
+    }
+
+    @Test
+    void authenticateMapsEmailNotVerifiedToAccountNotVerifiedErrorCode() {
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername("unverified@example.com")
+                .password("any-pass")
+                .build();
+
+        when(keycloakService.login(request.getEmailOrUsername(), request.getPassword()))
+                .thenThrow(new RuntimeException("email_not_verified: Please verify email first"));
+
+        assertThatThrownBy(() -> authenticationService.authenticate(request))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.ACCOUNT_NOT_VERIFIED));
+    }
+
+    @Test
+    void authenticateHappyPathSyncsUserAndActivity() {
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername("chef@example.com")
+                .password("valid-pass")
+                .build();
+
+        TokenExchangeResponse tokenResponse = TokenExchangeResponse.builder()
+                .accessToken("access-abc")
+                .refreshToken("refresh-abc")
+                .idToken("id-abc")
+                .scope("openid profile")
+                .build();
+
+        User existingUser = User.builder()
+                .id("user-123")
+                .email("chef@example.com")
+                .username("chef")
+                .build();
+
+        UserActivity existingActivity = UserActivity.builder()
+                .id("activity-123")
+                .keycloakId("user-123")
+                .build();
+
+        UserResponse mappedResponse = new UserResponse();
+        mappedResponse.setId("user-123");
+        mappedResponse.setEmail("chef@example.com");
+
+        when(keycloakService.login(request.getEmailOrUsername(), request.getPassword()))
+                .thenReturn(tokenResponse);
+        when(userRepository.findByEmailOrUsername("chef@example.com", "chef@example.com"))
+                .thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userActivityRepository.findByKeycloakId("user-123"))
+                .thenReturn(Optional.of(existingActivity));
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.toUserResponse(existingUser)).thenReturn(mappedResponse);
+
+        var result = authenticationService.authenticate(request);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        assertThat(result.getAccessToken()).isEqualTo("access-abc");
+        assertThat(result.getRefreshToken()).isEqualTo("refresh-abc");
+        assertThat(result.getUser().getId()).isEqualTo("user-123");
+        verify(userRepository).save(existingUser);
+        verify(userActivityRepository).save(existingActivity);
+    }
+
+    @Test
+    void authenticateHappyPathCreatesNewUserWhenNotPresent() {
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername("newchef@example.com")
+                .password("valid-pass")
+                .build();
+
+        TokenExchangeResponse tokenResponse = TokenExchangeResponse.builder()
+                .accessToken("access-new")
+                .refreshToken("refresh-new")
+                .idToken("id-new")
+                .scope("openid profile")
+                .build();
+
+        User newUser = User.builder()
+                .id("new-user-456")
+                .email("newchef@example.com")
+                .username("newchef@example.com")
+                .build();
+
+        UserResponse mappedResponse = new UserResponse();
+        mappedResponse.setId("new-user-456");
+
+        when(keycloakService.login(request.getEmailOrUsername(), request.getPassword()))
+                .thenReturn(tokenResponse);
+        when(userRepository.findByEmailOrUsername("newchef@example.com", "newchef@example.com"))
+                .thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(newUser);
+        when(userActivityRepository.findByKeycloakId("new-user-456"))
+                .thenReturn(Optional.empty());
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.toUserResponse(any(User.class))).thenReturn(mappedResponse);
+
+        var result = authenticationService.authenticate(request);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        assertThat(result.getAccessToken()).isEqualTo("access-new");
+        verify(userRepository, org.mockito.Mockito.times(2)).save(any(User.class));
+        verify(userActivityRepository).save(any(UserActivity.class));
+    }
+
+    @Test
+    void changePasswordSuccessfullyResetsPasswordAndLogsOutUser() {
+        String email = "chef@example.com";
+        String oldPassword = "oldPassword123";
+        String newPassword = "newPassword456";
+
+        TokenExchangeResponse loginResponse = TokenExchangeResponse.builder()
+                .accessToken("user-access-token")
+                .refreshToken("user-refresh-token")
+                .build();
+
+        TokenExchangeResponse adminToken = TokenExchangeResponse.builder()
+                .accessToken("admin-access-token")
+                .build();
+
+        UserProfile profile = UserProfile.builder()
+                .userId("keycloak-user-789")
+                .email(email)
+                .build();
+
+        when(keycloakService.login(email, oldPassword)).thenReturn(loginResponse);
+        when(keycloakAdminClient.exchangeToken(any())).thenReturn(adminToken);
+        when(profileRepository.findByEmail(email)).thenReturn(Optional.of(profile));
+
+        authenticationService.changePassword(email, oldPassword, newPassword);
+
+        verify(keycloakAdminClient).resetPassword(
+                org.mockito.ArgumentMatchers.eq("Bearer admin-access-token"),
+                org.mockito.ArgumentMatchers.eq("keycloak-user-789"),
+                any(ResetPasswordParam.class));
+        verify(keycloakAdminClient).logoutUser("Bearer admin-access-token", "keycloak-user-789");
+    }
+
+    @Test
+    void changePasswordRejectsWhenOldPasswordInvalid() {
+        String email = "chef@example.com";
+        when(keycloakService.login(email, "wrongPassword"))
+                .thenThrow(new RuntimeException("invalid credentials"));
+
+        assertThatThrownBy(() -> authenticationService.changePassword(email, "wrongPassword", "newPassword456"))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.UNAUTHENTICATED));
+
+        verify(keycloakAdminClient, never()).exchangeToken(any());
+        verify(keycloakAdminClient, never()).resetPassword(any(), any(), any());
+    }
+
+    @Test
+    void changePasswordRejectsWhenUserProfileNotFound() {
+        String email = "missing@example.com";
+        TokenExchangeResponse loginResponse = TokenExchangeResponse.builder()
+                .accessToken("user-access-token")
+                .build();
+        TokenExchangeResponse adminToken = TokenExchangeResponse.builder()
+                .accessToken("admin-access-token")
+                .build();
+
+        when(keycloakService.login(email, "validPassword")).thenReturn(loginResponse);
+        when(keycloakAdminClient.exchangeToken(any())).thenReturn(adminToken);
+        when(profileRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authenticationService.changePassword(email, "validPassword", "newPassword456"))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.USER_NOT_FOUND));
+
+        verify(keycloakAdminClient, never()).resetPassword(any(), any(), any());
+    }
+
+    @Test
+    void changePasswordPropagatesNormalizedKeycloakExceptionOnResetFailure() {
+        String email = "chef@example.com";
+        TokenExchangeResponse loginResponse = TokenExchangeResponse.builder()
+                .accessToken("user-access-token")
+                .build();
+        TokenExchangeResponse adminToken = TokenExchangeResponse.builder()
+                .accessToken("admin-access-token")
+                .build();
+        UserProfile profile = UserProfile.builder()
+                .userId("keycloak-user-789")
+                .email(email)
+                .build();
+
+        when(keycloakService.login(email, "validPassword")).thenReturn(loginResponse);
+        when(keycloakAdminClient.exchangeToken(any())).thenReturn(adminToken);
+        when(profileRepository.findByEmail(email)).thenReturn(Optional.of(profile));
+
+        RuntimeException keycloakError = new RuntimeException("reset failed in keycloak");
+        doThrow(keycloakError).when(keycloakAdminClient).resetPassword(any(), any(), any());
+        when(errorNormalizer.handleKeyCloakException(keycloakError))
+                .thenReturn(new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
+
+        assertThatThrownBy(() -> authenticationService.changePassword(email, "validPassword", "newPassword456"))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.UNCATEGORIZED_EXCEPTION));
+
+        verify(keycloakAdminClient, never()).logoutUser(any(), any());
     }
 }
