@@ -901,4 +901,83 @@ class CookingSessionServiceTest {
         request.setNotes("Completed cleanly");
         return request;
     }
+@Test
+    void completeSessionRejectsWhenUserDoesNotMatchSessionOwner() {
+        String ownerId = "user-1";
+        String attackerId = "attacker-1";
+        String sessionId = "session-1";
+        CookingSession session = buildActiveSession(ownerId, sessionId, "recipe-1");
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeSession(attackerId, sessionId, buildCompletionRequest()));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.UNAUTHORIZED);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(profileProvider, never()).updateAfterCompletion(any());
+        verify(sessionRepository, never()).save(org.mockito.ArgumentMatchers.same(session));
+    }
+
+    @Test
+    void completeSessionRejectsWhenSessionAlreadyCompleted() {
+        String userId = "user-1";
+        String sessionId = "session-1";
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId("recipe-1")
+            .status(SessionStatus.COMPLETED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeSession(userId, sessionId, buildCompletionRequest()));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(profileProvider, never()).updateAfterCompletion(any());
+        verify(sessionRepository, never()).save(org.mockito.ArgumentMatchers.same(session));
+    }
+
+    @Test
+    void linkSessionRejectsWhenUserDoesNotMatchSessionOwner() {
+        String sessionId = "session-1";
+        String attackerId = "attacker-1";
+        SessionLinkingRequest request = new SessionLinkingRequest();
+        request.setPostId("post-1");
+
+        when(helper.validateSessionForLinking(sessionId, attackerId))
+            .thenThrow(new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.linkSession(attackerId, sessionId, request));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        verify(postProvider, never()).updatePostXp(anyString(), anyDouble());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void linkSessionRejectsWhenSessionIsNotCompleted() {
+        String sessionId = "session-1";
+        String userId = "user-1";
+        SessionLinkingRequest request = new SessionLinkingRequest();
+        request.setPostId("post-1");
+
+        when(helper.validateSessionForLinking(sessionId, userId))
+            .thenThrow(new AppException(ErrorCode.INVALID_ACTION, "Session must be COMPLETED"));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.linkSession(userId, sessionId, request));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(postProvider, never()).updatePostXp(anyString(), anyDouble());
+        verify(sessionRepository, never()).save(any());
+    }
 }
