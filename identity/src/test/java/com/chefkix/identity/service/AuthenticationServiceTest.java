@@ -14,6 +14,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.chefkix.identity.client.KeycloakAdminClient;
 import com.chefkix.identity.dto.identity.ResetPasswordParam;
+import com.chefkix.identity.dto.identity.OidcUserInfoResponse;
+import com.chefkix.identity.events.UserIndexEvent;
 import com.chefkix.identity.dto.response.UserResponse;
 import com.chefkix.identity.entity.User;
 import com.chefkix.identity.entity.UserActivity;
@@ -252,6 +254,256 @@ class AuthenticationServiceTest {
         verify(keycloakService, never()).getUserInfo(any());
         verify(userRepository, never()).findByGoogleId(any());
         verify(profileRepository, never()).findByUserId(any());
+    }
+
+    @Test
+    void authenticateWithGoogleCreatesNewUserAndProfileWhenUserDoesNotExist() {
+        String code = "valid-google-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "valid-verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("google-access-tok")
+                .refreshToken("google-refresh-tok")
+                .idToken("google-id-tok")
+                .scope("openid email profile")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse userInfo = OidcUserInfoResponse.builder()
+                .sub("google-sub-101")
+                .email("gordon@example.com")
+                .emailVerified(true)
+                .preferredUsername("gordon_ramsay")
+                .name("Gordon Ramsay")
+                .givenName("Gordon")
+                .familyName("Ramsay")
+                .picture("https://photos.example.com/gordon.jpg")
+                .build();
+        when(keycloakService.getUserInfo("google-access-tok")).thenReturn(userInfo);
+
+        when(profileRepository.findByUserId("google-sub-101")).thenReturn(Optional.empty());
+        when(profileRepository.findByEmail("gordon@example.com")).thenReturn(Optional.empty());
+        when(profileRepository.findByUsername("gordon_ramsay")).thenReturn(Optional.empty());
+        when(profileRepository.save(any(UserProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(userRepository.findByGoogleId("google-sub-101")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("gordon@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(userActivityRepository.findByKeycloakId(any())).thenReturn(Optional.empty());
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserResponse userResponse = new UserResponse("google-sub-101", "gordon_ramsay", "gordon@example.com", true, null);
+        when(userMapper.toUserResponse(any(User.class))).thenReturn(userResponse);
+
+        var result = authenticationService.authenticateWithGoogle(code, redirectUri, verifier);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        assertThat(result.getAccessToken()).isEqualTo("google-access-tok");
+        assertThat(result.getRefreshToken()).isEqualTo("google-refresh-tok");
+        assertThat(result.getUser()).isSameAs(userResponse);
+
+        verify(profileRepository).save(any(UserProfile.class));
+        verify(userRepository).save(any(User.class));
+        verify(eventPublisher).publishEvent(any(UserIndexEvent.class));
+        verify(userActivityRepository).save(any(UserActivity.class));
+    }
+
+    @Test
+    void authenticateWithGoogleUpdatesExistingUserWhenUserFoundByGoogleId() {
+        String code = "valid-google-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "valid-verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("google-access-tok")
+                .refreshToken("google-refresh-tok")
+                .idToken("google-id-tok")
+                .scope("openid email profile")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse userInfo = OidcUserInfoResponse.builder()
+                .sub("google-sub-existing")
+                .email("existing@example.com")
+                .givenName("Marco")
+                .familyName("White")
+                .name("Marco Pierre White")
+                .picture("https://photos.example.com/marco.jpg")
+                .build();
+        when(keycloakService.getUserInfo("google-access-tok")).thenReturn(userInfo);
+
+        UserProfile existingProfile = UserProfile.builder()
+                .userId("google-sub-existing")
+                .email("existing@example.com")
+                .username("marco_chef")
+                .build();
+        when(profileRepository.findByUserId("google-sub-existing")).thenReturn(Optional.of(existingProfile));
+        when(profileRepository.save(existingProfile)).thenReturn(existingProfile);
+
+        User existingUser = new User();
+        existingUser.setId("usr-marco-1");
+        existingUser.setGoogleId("google-sub-existing");
+        existingUser.setEmail("existing@example.com");
+        existingUser.setEnabled(true);
+        when(userRepository.findByGoogleId("google-sub-existing")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        when(userActivityRepository.findByKeycloakId(any())).thenReturn(Optional.empty());
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var result = authenticationService.authenticateWithGoogle(code, redirectUri, verifier);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        assertThat(existingProfile.getAvatarUrl()).isEqualTo("https://photos.example.com/marco.jpg");
+        assertThat(existingProfile.getFirstName()).isEqualTo("Marco");
+        assertThat(existingProfile.getLastName()).isEqualTo("White");
+        verify(profileRepository).save(existingProfile);
+        verify(eventPublisher).publishEvent(any(UserIndexEvent.class));
+        verify(userRepository).save(existingUser);
+        verify(userActivityRepository).save(any(UserActivity.class));
+    }
+
+    @Test
+    void authenticateWithGoogleLinksGoogleIdWhenUserFoundByEmail() {
+        String code = "valid-google-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "valid-verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("google-access-tok")
+                .refreshToken("google-refresh-tok")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse userInfo = OidcUserInfoResponse.builder()
+                .sub("google-sub-link")
+                .email("linkme@example.com")
+                .preferredUsername("link_chef")
+                .build();
+        when(keycloakService.getUserInfo("google-access-tok")).thenReturn(userInfo);
+
+        UserProfile existingProfile = UserProfile.builder()
+                .userId("google-sub-link")
+                .email("linkme@example.com")
+                .username("link_chef")
+                .build();
+        when(profileRepository.findByUserId("google-sub-link")).thenReturn(Optional.of(existingProfile));
+        when(profileRepository.save(any(UserProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        User existingUser = new User();
+        existingUser.setId("usr-link-1");
+        existingUser.setEmail("linkme@example.com");
+        existingUser.setEnabled(true);
+        when(userRepository.findByGoogleId("google-sub-link")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("linkme@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        when(userActivityRepository.findByKeycloakId(any())).thenReturn(Optional.empty());
+
+        var result = authenticationService.authenticateWithGoogle(code, redirectUri, verifier);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        assertThat(existingUser.getGoogleId()).isEqualTo("google-sub-link");
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void authenticateWithGoogleRejectsWhenAccountAlreadyExistsWithDifferentUserId() {
+        String code = "valid-google-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "valid-verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("google-access-tok")
+                .refreshToken("google-refresh-tok")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse userInfo = OidcUserInfoResponse.builder()
+                .sub("google-sub-new")
+                .email("conflict@example.com")
+                .build();
+        when(keycloakService.getUserInfo("google-access-tok")).thenReturn(userInfo);
+
+        UserProfile existingProfile = UserProfile.builder()
+                .userId("different-keycloak-sub")
+                .email("conflict@example.com")
+                .build();
+        when(profileRepository.findByUserId("google-sub-new")).thenReturn(Optional.empty());
+        when(profileRepository.findByEmail("conflict@example.com")).thenReturn(Optional.of(existingProfile));
+
+        assertThatThrownBy(() -> authenticationService.authenticateWithGoogle(code, redirectUri, verifier))
+                .isInstanceOfSatisfying(AppException.class, ex -> {
+                    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_REQUEST);
+                    assertThat(ex.getMessage()).contains("An account already exists for this email");
+                });
+
+        verify(userRepository, never()).save(any());
+        verify(userActivityRepository, never()).save(any());
+    }
+
+    @Test
+    void authenticateWithGoogleRejectsWhenUserInfoMissingSubOrEmail() {
+        String code = "valid-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("token")
+                .refreshToken("refresh")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse badUserInfo = OidcUserInfoResponse.builder()
+                .sub(null)
+                .email("no-sub@example.com")
+                .build();
+        when(keycloakService.getUserInfo("token")).thenReturn(badUserInfo);
+
+        assertThatThrownBy(() -> authenticationService.authenticateWithGoogle(code, redirectUri, verifier))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_REQUEST));
+    }
+
+    @Test
+    void authenticateWithGoogleResolvesUsernameCollisionWithNumericSuffix() {
+        String code = "valid-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "verifier";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("token")
+                .refreshToken("refresh")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+
+        OidcUserInfoResponse userInfo = OidcUserInfoResponse.builder()
+                .sub("google-sub-collision")
+                .email("collision@example.com")
+                .preferredUsername("collision_chef")
+                .build();
+        when(keycloakService.getUserInfo("token")).thenReturn(userInfo);
+
+        when(profileRepository.findByUserId("google-sub-collision")).thenReturn(Optional.empty());
+        when(profileRepository.findByEmail("collision@example.com")).thenReturn(Optional.empty());
+
+        UserProfile collision1 = UserProfile.builder().username("collision_chef").build();
+        when(profileRepository.findByUsername("collision_chef")).thenReturn(Optional.of(collision1));
+        when(profileRepository.findByUsername("collision_chef1")).thenReturn(Optional.empty());
+        when(profileRepository.save(any(UserProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(userRepository.findByGoogleId("google-sub-collision")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("collision@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userActivityRepository.findByKeycloakId(any())).thenReturn(Optional.empty());
+
+        var result = authenticationService.authenticateWithGoogle(code, redirectUri, verifier);
+
+        assertThat(result.isAuthenticated()).isTrue();
+        verify(profileRepository).findByUsername("collision_chef");
+        verify(profileRepository).findByUsername("collision_chef1");
     }
     @Test
     void authenticateMapsAccountDisabledToAccountDisabledErrorCode() {
