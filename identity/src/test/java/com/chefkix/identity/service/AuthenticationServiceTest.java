@@ -3,6 +3,8 @@ package com.chefkix.identity.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -726,5 +728,106 @@ class AuthenticationServiceTest {
                         .isEqualTo(ErrorCode.UNCATEGORIZED_EXCEPTION));
 
         verify(keycloakAdminClient, never()).logoutUser(any(), any());
+    }
+
+    @Test
+    void changePasswordKeycloakAdminLogoutFailsPropagatesNormalizedException() {
+        String email = "chef@example.com";
+        TokenExchangeResponse loginResponse = TokenExchangeResponse.builder()
+                .accessToken("user-access-token")
+                .build();
+        TokenExchangeResponse adminToken = TokenExchangeResponse.builder()
+                .accessToken("admin-access-token")
+                .build();
+        UserProfile profile = UserProfile.builder()
+                .userId("keycloak-user-789")
+                .email(email)
+                .build();
+
+        when(keycloakService.login(email, "validPassword")).thenReturn(loginResponse);
+        when(keycloakAdminClient.exchangeToken(any())).thenReturn(adminToken);
+        when(profileRepository.findByEmail(email)).thenReturn(Optional.of(profile));
+
+        RuntimeException logoutError = new RuntimeException("Keycloak session revocation timeout");
+        doThrow(logoutError).when(keycloakAdminClient).logoutUser(any(), any());
+        when(errorNormalizer.handleKeyCloakException(logoutError))
+                .thenReturn(new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
+
+        assertThatThrownBy(() -> authenticationService.changePassword(email, "validPassword", "newPassword456"))
+                .isInstanceOf(AppException.class)
+                .satisfies(throwable -> assertThat(((AppException) throwable).getErrorCode())
+                        .isEqualTo(ErrorCode.UNCATEGORIZED_EXCEPTION));
+
+        verify(keycloakAdminClient).resetPassword(any(), eq("keycloak-user-789"), any());
+        verify(keycloakAdminClient).logoutUser("Bearer admin-access-token", "keycloak-user-789");
+    }
+
+    @Test
+    void changePasswordRejectsWhenKeycloakAdminExchangeFails() {
+        String email = "chef@example.com";
+        TokenExchangeResponse loginResponse = TokenExchangeResponse.builder()
+                .accessToken("user-access-token")
+                .build();
+
+        when(keycloakService.login(email, "validPassword")).thenReturn(loginResponse);
+        when(keycloakAdminClient.exchangeToken(any()))
+                .thenThrow(new RuntimeException("Admin token exchange 401 Unauthorized"));
+
+        assertThatThrownBy(() -> authenticationService.changePassword(email, "validPassword", "newPassword456"))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(keycloakAdminClient, never()).resetPassword(any(), any(), any());
+        verify(keycloakAdminClient, never()).logoutUser(any(), any());
+    }
+
+    @Test
+    void authenticateRejectsWhenKeycloakReturnsEmptyOrBlankTokens() {
+        AuthenticationRequest request = AuthenticationRequest.builder()
+                .emailOrUsername("chef@example.com")
+                .password("validPassword")
+                .build();
+        TokenExchangeResponse emptyTokens = TokenExchangeResponse.builder()
+                .accessToken("   ")
+                .refreshToken("")
+                .build();
+
+        when(keycloakService.login(request.getEmailOrUsername(), request.getPassword())).thenReturn(emptyTokens);
+
+        assertThatThrownBy(() -> authenticationService.authenticate(request))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.UNAUTHENTICATED));
+
+        verifyNoInteractions(userRepository, userActivityRepository);
+    }
+
+    @Test
+    void logoutCatchesUnexpectedKeycloakExceptionAndReturnsFailedMessage() {
+        doThrow(new RuntimeException("Connection reset by peer")).when(keycloakService).logout("faulty-token");
+
+        String result = authenticationService.logout("faulty-token");
+
+        assertThat(result).isEqualTo("Failed to log out");
+        verify(keycloakService).logout("faulty-token");
+    }
+
+    @Test
+    void authenticateWithGoogleRejectsWhenUserInfoFails() {
+        String code = "valid-google-code";
+        String redirectUri = "http://localhost:3000/oauth2/callback/google";
+        String verifier = "verifier-123";
+
+        TokenExchangeResponse tokens = TokenExchangeResponse.builder()
+                .accessToken("google-token-456")
+                .refreshToken("google-refresh-456")
+                .build();
+        when(keycloakService.exchangeAuthorizationCode(code, redirectUri, verifier)).thenReturn(tokens);
+        when(keycloakService.getUserInfo("google-token-456"))
+                .thenThrow(new AppException(ErrorCode.UNAUTHENTICATED, "UserInfo endpoint unavailable"));
+
+        assertThatThrownBy(() -> authenticationService.authenticateWithGoogle(code, redirectUri, verifier))
+                .isInstanceOfSatisfying(AppException.class, ex ->
+                        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.UNAUTHENTICATED));
+
+        verifyNoInteractions(userRepository, userActivityRepository);
     }
 }
