@@ -136,3 +136,8 @@ chefkix:
       enabled: ${GROCERY_AFFILIATE_ENABLED:false}
       partner-tag: ${GROCERY_AFFILIATE_PARTNER_TAG:chefkix-app}
       base-url: ${GROCERY_AFFILIATE_BASE_URL:https://www.instacart.com}
+  knowledge:
+    graph-evidence:
+      enabled: ${GRAPH_EVIDENCE_ENABLED:true}
+      bundle-path: ${GRAPH_EVIDENCE_BUNDLE_PATH:D:/code/chefkix/ai/out/graph_eval_v4_clean}
+      expected-manifest-sha256: ${GRAPH_EVIDENCE_EXPECTED_MANIFEST_SHA256:ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1}
