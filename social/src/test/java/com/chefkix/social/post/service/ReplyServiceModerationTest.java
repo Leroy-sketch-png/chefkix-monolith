@@ -14,6 +14,8 @@ import com.chefkix.social.post.dto.request.ReplyRequest;
 import com.chefkix.social.post.entity.Comment;
 import com.chefkix.social.post.repository.CommentRepository;
 import com.chefkix.social.post.repository.ReplyRepository;
+import com.chefkix.social.post.repository.PostRepository;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,8 @@ class ReplyServiceModerationTest {
     @Mock private ReplyRepository replyRepository;
     @Mock private ProfileProvider profileProvider;
     @Mock private ContentModerationProvider contentModerationProvider;
+    @Mock private PostRepository postRepository;
+    @Mock private BlockedContentPolicy blockedContentPolicy;
 
     @InjectMocks private ReplyService replyService;
 
