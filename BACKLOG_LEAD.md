@@ -53,6 +53,10 @@ The monolith origin/default is the collaboration surface for these backlogs. The
   - Contributions C2, C3, and C5 remain 100% EARNED (5/5 each).
   - Remaining: 6 OPEN (C1-G3, C1-G4, C1-G5, C4-G3, C4-G4, C4-G5), 0 UNKNOWN.
   - Fail-closed ethics boundary strictly preserved: LLM judge is judge-acceptable only, NOT human-valid and NOT safe. Real human participant recruitment, rater annotation, and agreement evaluation remain strictly gated on institutional ethics clearance and participant consent (PR13).
+  - Claims Register Adjudication (L48 advances to v15, 2026-11-02): Formalized reproduction receipts and byte-pinned evidence for three claims via apply_claim_evidence.py, advancing verified claims to 8 VERIFIED / 2 PARTIAL / 35 UNVERIFIED under claims-register-r01-r45-v15.csv (SHA-256 9fec822338b0dc0e2cca91ca55cda75f2f4f63a2b849f56e21313b18de6b8c4a):
+    - R19 (VERIFIED): Frozen 208-case/13-group allergen protocol specification pinned (allergen_benchmark_protocol_v2.json, SHA-256 0e97c829...).
+    - R14 (VERIFIED): Both-endpoint FooDB profile coverage (1,162 / 10,747 cases = 10.812%) verified on canonical Freeze-A frame (c1_freeze_a_real_frame.jsonl, SHA-256 e5d06522...).
+    - R38 (VERIFIED): Real graph/Explorer proof verified on clean knowledge graph artifact (graph_eval_v4_clean, manifest ade85c33..., 6,633 nodes, 23,185 edges, 0 identity errors) with live browser execution proof and Chapter 11 v0.3 integration.
 
 ## Contribution Acceptance
 
