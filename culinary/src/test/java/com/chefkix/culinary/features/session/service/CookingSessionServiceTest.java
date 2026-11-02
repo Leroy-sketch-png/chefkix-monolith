@@ -38,6 +38,15 @@ import com.chefkix.culinary.features.session.mapper.CookingSessionMapper;
 import com.chefkix.culinary.features.session.repository.ActiveCookingRedisRepository;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.shared.exception.AppException;
+import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.TimerEventType;
+import com.chefkix.culinary.common.enums.Difficulty;
+import com.chefkix.culinary.features.session.dto.request.StartSessionRequest;
+import com.chefkix.culinary.features.session.dto.request.TimerEventRequest;
+import com.chefkix.culinary.features.session.dto.response.StartSessionResponse;
+import com.chefkix.culinary.features.session.dto.response.FriendCookingActivityResponse;
+import com.chefkix.culinary.features.session.dto.response.CookCardDataResponse;
+import com.chefkix.culinary.features.session.model.ActiveCookingPresence;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
@@ -1434,5 +1443,379 @@ class CookingSessionServiceTest {
 
         verify(sessionRepository, never()).save(any());
         verify(activeCookingRepository, never()).removeActive(anyString());
+    }
+
+    // =========================================================================
+    // START SESSION TESTS
+    // =========================================================================
+
+    @Test
+    void startSessionRejectsWhenActiveSessionAlreadyExists() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-1").build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.of(CookingSession.builder().id("session-existing").build()));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_ALREADY_ACTIVE);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionRejectsWhenRecipeNotFound() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-missing").build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById("recipe-missing")).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.RECIPE_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionRejectsWhenRecipeNotPublishedAndUserNotOwner() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-draft").build();
+
+        Recipe draftRecipe = Recipe.builder()
+            .id("recipe-draft")
+            .userId("other-user")
+            .status(RecipeStatus.DRAFT)
+            .title("Draft Recipe")
+            .build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById("recipe-draft")).thenReturn(Optional.of(draftRecipe));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.RECIPE_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionHappyPathBuildsSessionSavesAndSetsPresence() {
+        String userId = "user-1";
+        String recipeId = "recipe-published";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId(recipeId).build();
+
+        Recipe recipe = Recipe.builder()
+            .id(recipeId)
+            .userId("creator-1")
+            .status(RecipeStatus.PUBLISHED)
+            .title("Pho Bo")
+            .coverImageUrl(List.of("https://example.com/pho.jpg"))
+            .build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+        when(profileProvider.getBasicProfile(userId)).thenReturn(
+            BasicProfileInfo.builder()
+                .username("cook1")
+                .displayName("Cook One")
+                .avatarUrl("avatar.jpg")
+                .build()
+        );
+
+        StartSessionResponse expectedResponse = StartSessionResponse.builder()
+            .sessionId("session-pho")
+            .recipeId(recipeId)
+            .status("IN_PROGRESS")
+            .currentStep(1)
+            .build();
+
+        when(sessionMapper.toStartSessionResponse(any(CookingSession.class), eq(recipe)))
+            .thenReturn(expectedResponse);
+
+        StartSessionResponse response = cookingSessionService.startSession(userId, request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSessionId()).isEqualTo("session-pho");
+        assertThat(response.getStatus()).isEqualTo("IN_PROGRESS");
+
+        ArgumentCaptor<CookingSession> sessionCaptor = ArgumentCaptor.forClass(CookingSession.class);
+        verify(sessionRepository).save(sessionCaptor.capture());
+        CookingSession savedSession = sessionCaptor.getValue();
+        assertThat(savedSession.getUserId()).isEqualTo(userId);
+        assertThat(savedSession.getRecipeId()).isEqualTo(recipeId);
+        assertThat(savedSession.getRecipeTitle()).isEqualTo("Pho Bo");
+        assertThat(savedSession.getStatus()).isEqualTo(SessionStatus.IN_PROGRESS);
+        assertThat(savedSession.getCurrentStep()).isEqualTo(1);
+
+        verify(activeCookingRepository).setActive(any(ActiveCookingPresence.class));
+    }
+
+    // =========================================================================
+    // LOG TIMER EVENT TESTS
+    // =========================================================================
+
+    @Test
+    void logTimerEventRejectsWhenSessionNotFound() {
+        String userId = "user-1";
+        String sessionId = "session-missing";
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(1);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(LocalDateTime.now(ZoneOffset.UTC));
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.logTimerEvent(userId, sessionId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void logTimerEventRejectsWhenSessionNotInProgress() {
+        String userId = "user-1";
+        String sessionId = "session-paused";
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(1);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(LocalDateTime.now(ZoneOffset.UTC));
+
+        CookingSession pausedSession = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .status(SessionStatus.PAUSED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(pausedSession));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.logTimerEvent(userId, sessionId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void logTimerEventHappyPathAppendsEventAndHandlesTimerStart() {
+        String userId = "user-1";
+        String sessionId = "session-timer-1";
+        String recipeId = "recipe-timer";
+        LocalDateTime clientTime = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(5);
+
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(2);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(clientTime);
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId(recipeId)
+            .status(SessionStatus.IN_PROGRESS)
+            .timerEvents(new ArrayList<>())
+            .build();
+
+        Recipe recipe = Recipe.builder().id(recipeId).build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(helper.validateAndParseTimerEvent(userId, session, request)).thenReturn(TimerEventType.START);
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+
+        cookingSessionService.logTimerEvent(userId, sessionId, request);
+
+        assertThat(session.getTimerEvents()).hasSize(1);
+        CookingSession.TimerEvent logged = session.getTimerEvents().get(0);
+        assertThat(logged.getStepNumber()).isEqualTo(2);
+        assertThat(logged.getEvent()).isEqualTo(TimerEventType.START);
+        assertThat(logged.getClientTimestamp()).isEqualTo(clientTime);
+        assertThat(logged.getServerTimestamp()).isNotNull();
+
+        verify(helper).handleTimerStart(eq(session), eq(recipe), eq(2), any(LocalDateTime.class));
+        verify(sessionRepository).save(session);
+    }
+
+    // =========================================================================
+    // GET FRIENDS ACTIVE COOKING TESTS
+    // =========================================================================
+
+    @Test
+    void getFriendsActiveCookingReturnsEmptyWhenNoFollowing() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+
+        when(profileProvider.getFollowingIds(userId)).thenReturn(List.of());
+
+        FriendCookingActivityResponse response = cookingSessionService.getFriendsActiveCooking();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getFriends()).isEmpty();
+        assertThat(response.getTotalActive()).isEqualTo(0);
+        verify(activeCookingRepository, never()).getActiveForUsers(any());
+    }
+
+    @Test
+    void getFriendsActiveCookingReturnsMappedPresences() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+
+        List<String> following = List.of("friend-a", "friend-b");
+        when(profileProvider.getFollowingIds(userId)).thenReturn(following);
+
+        ActiveCookingPresence presence = ActiveCookingPresence.builder()
+            .userId("friend-a")
+            .username("chefa")
+            .displayName("Chef A")
+            .avatarUrl("avatar-a.jpg")
+            .recipeId("recipe-a")
+            .recipeTitle("Ramen")
+            .currentStep(3)
+            .totalSteps(5)
+            .startedAt(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10))
+            .build();
+
+        when(activeCookingRepository.getActiveForUsers(following)).thenReturn(List.of(presence));
+
+        FriendCookingActivityResponse response = cookingSessionService.getFriendsActiveCooking();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getTotalActive()).isEqualTo(1);
+        assertThat(response.getFriends()).hasSize(1);
+        FriendCookingActivityResponse.ActiveFriend friend = response.getFriends().get(0);
+        assertThat(friend.getUserId()).isEqualTo("friend-a");
+        assertThat(friend.getUsername()).isEqualTo("chefa");
+        assertThat(friend.getDisplayName()).isEqualTo("Chef A");
+        assertThat(friend.getRecipeTitle()).isEqualTo("Ramen");
+        assertThat(friend.getCurrentStep()).isEqualTo(3);
+        assertThat(friend.getTotalSteps()).isEqualTo(5);
+    }
+
+    // =========================================================================
+    // GET COOK CARD DATA TESTS
+    // =========================================================================
+
+    @Test
+    void getCookCardDataRejectsWhenSessionNotFound() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-missing";
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_FOUND);
+    }
+
+    @Test
+    void getCookCardDataRejectsWhenCallerNotOwner() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-other";
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId("other-user")
+            .status(SessionStatus.COMPLETED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+    }
+
+    @Test
+    void getCookCardDataRejectsWhenSessionNotCompletedCook() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-in-progress";
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .status(SessionStatus.IN_PROGRESS)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+    }
+
+    @Test
+    void getCookCardDataHappyPathReturnsEnrichedCookCard() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-completed-card";
+        String recipeId = "recipe-pho";
+
+        LocalDateTime started = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(45);
+        LocalDateTime completed = LocalDateTime.now(ZoneOffset.UTC);
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId(recipeId)
+            .recipeTitle("Traditional Beef Pho")
+            .coverImageUrl(List.of("https://example.com/pho.jpg"))
+            .status(SessionStatus.COMPLETED)
+            .startedAt(started)
+            .completedAt(completed)
+            .baseXpAwarded(30.0)
+            .remainingXpAwarded(20.0)
+            .rating(5)
+            .completedSteps(List.of(1, 2, 3, 4))
+            .build();
+
+        Recipe recipe = Recipe.builder()
+            .id(recipeId)
+            .difficulty(Difficulty.ADVANCED)
+            .steps(List.of(new Step(), new Step(), new Step(), new Step()))
+            .build();
+
+        BasicProfileInfo profile = BasicProfileInfo.builder()
+            .displayName("Master Chef")
+            .avatarUrl("avatar.png")
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+        when(profileProvider.getBasicProfile(userId)).thenReturn(profile);
+
+        CookCardDataResponse card = cookingSessionService.getCookCardData(sessionId);
+
+        assertThat(card).isNotNull();
+        assertThat(card.getSessionId()).isEqualTo(sessionId);
+        assertThat(card.getRecipeId()).isEqualTo(recipeId);
+        assertThat(card.getRecipeTitle()).isEqualTo("Traditional Beef Pho");
+        assertThat(card.getXpEarned()).isEqualTo(50);
+        assertThat(card.getStepsCompleted()).isEqualTo(4);
+        assertThat(card.getTotalSteps()).isEqualTo(4);
+        assertThat(card.getDifficulty()).isEqualTo("Advanced");
+        assertThat(card.getDisplayName()).isEqualTo("Master Chef");
+        assertThat(card.getAvatarUrl()).isEqualTo("avatar.png");
+        assertThat(card.getCookingTimeMinutes()).isEqualTo(45L);
+        assertThat(card.getShareUrl()).isEqualTo("https://chefkix.app/recipes/" + recipeId);
     }
 }
