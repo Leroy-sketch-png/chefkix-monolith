@@ -53,10 +53,12 @@ The monolith origin/default is the collaboration surface for these backlogs. The
   - Contributions C2, C3, and C5 remain 100% EARNED (5/5 each).
   - Remaining: 6 OPEN (C1-G3, C1-G4, C1-G5, C4-G3, C4-G4, C4-G5), 0 UNKNOWN.
   - Fail-closed ethics boundary strictly preserved: LLM judge is judge-acceptable only, NOT human-valid and NOT safe. Real human participant recruitment, rater annotation, and agreement evaluation remain strictly gated on institutional ethics clearance and participant consent (PR13).
-  - Claims Register Adjudication (L48 advances to v15, 2026-11-02): Formalized reproduction receipts and byte-pinned evidence for three claims via apply_claim_evidence.py, advancing verified claims to 8 VERIFIED / 2 PARTIAL / 35 UNVERIFIED under claims-register-r01-r45-v15.csv (SHA-256 9fec822338b0dc0e2cca91ca55cda75f2f4f63a2b849f56e21313b18de6b8c4a):
+  - Claims Register Adjudication (L48 advances to v16, 2026-11-02): Formalized reproduction receipts and byte-pinned evidence via apply_claim_evidence.py, advancing verified claims to 9 VERIFIED / 2 PARTIAL / 34 UNVERIFIED under claims-register-r01-r45-v16.csv (SHA-256 b55d0a5a5598b715345892a72f9697363ce0eda484ed9968ca3d371738cd2ab4):
     - R19 (VERIFIED): Frozen 208-case/13-group allergen protocol specification pinned (allergen_benchmark_protocol_v2.json, SHA-256 0e97c829...).
     - R14 (VERIFIED): Both-endpoint FooDB profile coverage (1,162 / 10,747 cases = 10.812%) verified on canonical Freeze-A frame (c1_freeze_a_real_frame.jsonl, SHA-256 e5d06522...).
     - R38 (VERIFIED): Real graph/Explorer proof verified on clean knowledge graph artifact (graph_eval_v4_clean, manifest ade85c33..., 6,633 nodes, 23,185 edges, 0 identity errors) with live browser execution proof and Chapter 11 v0.3 integration.
+    - R09 (VERIFIED NEGATIVE): Global RecipeNLG/FooDB flavor test not above null verified on canonical report (chefkix-fe/public/data/flavor_pairing_report.json, SHA-256 d8184a5e...; 2,231,142 corpus rows, 1,905,776 eligible recipes, 372 FooDB profiles; observed Jaccard 0.545990 vs matched null 0.527733; p=0.238095 > alpha 0.05; primary hypothesis unsupported).
+  - Adversarial Defense Rehearsal Pack Formalized (L46, 2026-11-02): Canonical defense pack promoted into ChefKix OS (ai/demos/iron-chef-final-defense-rehearsal-pack.md, SHA-256 4b326a20190e872e604a62034f03fc340eb43d1e9a738852612e46d4f0657db2). Binds all 28 hostile reviewer challenges (Q01-Q28 from SSoT Section 20), the 42/48 Scoring Rubric, the 12 non-negotiable forbidden claims, and the 5-minute live evidence demo script for clean graph_eval_v4_clean. Automated validation script (ai/tools/validate_defense_pack.py) and test suite (ai/tools/test_validate_defense_pack.py) pass 100% green.
 
 ## Contribution Acceptance
 
