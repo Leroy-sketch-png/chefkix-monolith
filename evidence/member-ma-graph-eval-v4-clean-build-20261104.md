@@ -36,6 +36,8 @@ The train projection is 49,044 rows, SHA-256 `a0b050b28ae2ede67d40badc97d69b26fc
 
 The pinned vocabulary has 6,634 distinct first-canonical labels; 2 are absent from the pinned node catalog. The manifest records the count and a hash of the sorted absent-label list (`20be016b8b882132004ca93ff7dfb2adb4042280555e91388a5c0ae5e8c9ad32`). No alias or fabricated node ID was added.
 
+Additional historical context: the clean upstream Recipe1MSubs code checkout at `14014ad501afd0c7da95ed90de19096c7f12ff75` contains mapping code whose commented run output reports 6,632 unique GISMo-to-FlavorGraph ingredient mappings. That script points to `recipe1m/preprocessed_flavorgraph_substitutions_fixed_3/final_recipe1m_vocab_ingrs.pkl`, which is absent from the checkout. This supports the candidate count as a plausible historical mapping size, but does not reproduce the missing cache, establish positional recipe-index identity, or reconcile R38's 6,633-node artifact.
+
 ## Checks performed
 
 - `python -m pytest -q -o addopts= tests/test_build_graph_eval_v4.py`: 3 passed.
