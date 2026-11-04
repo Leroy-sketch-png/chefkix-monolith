@@ -31,11 +31,14 @@ public class SettingsService {
 
   UserSettingsRepository settingsRepository;
   MongoTemplate mongoTemplate;
+  SubscriptionService subscriptionService;
 
   private static final Set<String> VALID_PROFILE_VISIBILITY = Set.of("public", "friends_only", "private");
   private static final Set<String> VALID_MESSAGES_FROM = Set.of("everyone", "friends", "nobody");
   private static final Set<String> VALID_SKILL_LEVELS = Set.of("beginner", "intermediate", "advanced", "expert");
-  private static final Set<String> VALID_THEMES = Set.of("light", "dark", "system");
+  private static final Set<String> FREE_THEMES = Set.of("light", "dark", "system");
+  private static final Set<String> PREMIUM_THEMES = Set.of("gradient_sunset", "midnight_gold", "neon_cyber", "chef_emerald");
+  private static final Set<String> VALID_THEMES = Set.of("light", "dark", "system", "gradient_sunset", "midnight_gold", "neon_cyber", "chef_emerald");
   private static final Set<String> VALID_MEASUREMENT_UNITS = Set.of("metric", "imperial");
 
   private void validateEnum(String value, Set<String> allowed, String fieldName) {
@@ -218,6 +221,9 @@ public class SettingsService {
     validateEnum(app.getTheme(), VALID_THEMES, "theme");
 
     if (app.getTheme() != null) {
+      if (PREMIUM_THEMES.contains(app.getTheme())) {
+        subscriptionService.requirePremium(userId);
+      }
       settings.getApp().setTheme(app.getTheme());
     }
     if (app.getLanguage() != null) {

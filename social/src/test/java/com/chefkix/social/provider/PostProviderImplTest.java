@@ -43,6 +43,7 @@ import com.chefkix.social.story.entity.StoryInteraction;
 import com.chefkix.social.story.repository.StoryHighlightRepository;
 import com.chefkix.social.story.repository.StoryInteractionRepository;
 import com.chefkix.social.story.repository.StoryRepository;
+import com.chefkix.social.post.service.PostService;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class PostProviderImplTest {
@@ -93,13 +96,15 @@ class PostProviderImplTest {
         private GroupService groupService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private PostService postService;
 
     private PostProviderImpl provider;
 
     @BeforeEach
     void setUp() {
         provider = new PostProviderImpl(
-                                null,
+                                postService,
                 postRepository,
                 commentRepository,
                 replyRepository,
@@ -119,6 +124,18 @@ class PostProviderImplTest {
                 chatMessageRepository,
                 groupService,
                 eventPublisher);
+    }
+
+    @Test
+    void getPostsByUserIdPassesViewerIdentityToPostService() {
+        var pageable = PageRequest.of(0, 5);
+        when(postService.getAllPostsByUserId("target-user", pageable, "viewer-user"))
+                .thenReturn(Page.empty(pageable));
+
+        var result = provider.getPostsByUserId("target-user", "viewer-user", pageable);
+
+        assertThat(result).isEmpty();
+        verify(postService).getAllPostsByUserId("target-user", pageable, "viewer-user");
     }
 
     @Test

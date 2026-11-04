@@ -2,6 +2,7 @@ package com.chefkix.social.story.service;
 
 import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.story.dto.request.StoryReplyRequest;
 import com.chefkix.social.story.entity.Story;
 import com.chefkix.social.story.entity.StoryInteraction;
@@ -20,6 +21,7 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
     private final StoryInteractionRepository interactionRepo;
     private final StoryRepository storyRepo;
     private final StoryEventPublisher publisher;
+    private final BlockedContentPolicy blockedContentPolicy;
 
     private StoryInteraction getOrInitializeInteraction(String storyId, String userId) {
         return interactionRepo.findByStoryIdAndUserId(storyId, userId)
@@ -30,9 +32,11 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
                                 .build());
     }
 
-    private Story getActiveStory(String storyId) {
-        return storyRepo.findByIdAndIsDeletedFalseAndExpiresAtAfter(storyId, Instant.now())
+    private Story getActiveStory(String storyId, String viewerId) {
+        Story story = storyRepo.findByIdAndIsDeletedFalseAndExpiresAtAfter(storyId, Instant.now())
                 .orElseThrow(() -> new AppException(ErrorCode.STORY_NOT_FOUND));
+        blockedContentPolicy.requireVisible(viewerId, story.getUserId());
+        return story;
     }
 
     private Story getUndeletedStory(String storyId) {
@@ -42,7 +46,7 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
 
     @Override
     public void recordView(String storyId, String userId) {
-        getActiveStory(storyId);
+        getActiveStory(storyId, userId);
         StoryInteraction interaction = getOrInitializeInteraction(storyId, userId);
         interaction.setViewed(true);
         interaction.setLastViewedAt(Instant.now());
@@ -51,7 +55,7 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
 
     @Override
     public void recordReaction(String storyId, String userId, String reactionType) {
-        Story story = getActiveStory(storyId);
+        Story story = getActiveStory(storyId, userId);
         StoryInteraction interaction = getOrInitializeInteraction(storyId, userId);
         interaction.setReaction(reactionType);
         interaction.setViewed(true);
@@ -69,9 +73,11 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(ownerId);
         return interactionRepo.findByStoryIdAndIsViewedTrueOrderByLastViewedAtDesc(storyId)
                 .stream()
                 .map(StoryInteraction::getUserId)
+                .filter(viewerId -> !invisibleUserIds.contains(viewerId))
                 .toList();
     }
 
@@ -81,7 +87,7 @@ public class StoryInteractionServiceImpl implements StoryInteractionService {
             return;
         }
 
-        Story story = getActiveStory(storyId);
+        Story story = getActiveStory(storyId, replierId);
         if (story.getUserId().equals(replierId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }

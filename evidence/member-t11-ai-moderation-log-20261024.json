@@ -1,0 +1,31 @@
+{
+  "record_id": "member-t11-ai-moderation-log-20261024",
+  "date": "2026-10-24",
+  "scope": "AI-service moderation provider failure response and logging only.",
+  "ai_service": {
+    "repository": "chefkix-ai-service",
+    "branch": "codex/member-backlog-t11-ai-log-20261024",
+    "base_commit": "afce9010dc634c418feab3db031f187d3b72f0f6",
+    "commit": "57089201aa1ce479ec825f0e142fb8d4597cb371",
+    "test": {
+      "path": "tests/test_moderation_log_privacy.py",
+      "sha256": "76EE92F4747543D82D8D7324DE4252015DE82E6495C3357CA8B5385B4160B1D4"
+    }
+  },
+  "verification": {
+    "command": ".venv/Scripts/python.exe -m pytest tests/test_moderation_log_privacy.py -q",
+    "result": "PASS",
+    "passed": 1,
+    "failed": 0,
+    "assertions": [
+      "A synthetic request-text sentinel is included in the moderation prompt but absent from the fallback response and captured log arguments.",
+      "A synthetic provider exception-message sentinel is absent from the fallback response and captured log arguments.",
+      "The AI provider failure returns the expected fail-closed flag result and logs only the exception class."
+    ]
+  },
+  "limitations": [
+    "The upstream provider was mocked; no external moderation request was made.",
+    "This verifies one AI-service fallback path only and is not the complete T-11 log/response/artifact inventory scan.",
+    "T-11 remains partial."
+  ]
+}

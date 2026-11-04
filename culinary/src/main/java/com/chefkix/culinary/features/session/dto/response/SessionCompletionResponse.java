@@ -12,6 +12,7 @@ import java.util.List;
 public class SessionCompletionResponse {
     private String sessionId;
     private String status;
+    private LocalDateTime completedAt;
 private Integer baseXpAwarded;
 private Integer recipeXpAwarded;
 private Integer coOpBonusXp;

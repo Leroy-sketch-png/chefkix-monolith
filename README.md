@@ -60,7 +60,7 @@ Cross-module calls use **Provider interfaces** (defined in `-api` modules, imple
 | Context Path | `/api/v1` | `server.servlet.context-path` |
 | MongoDB | `localhost:27017/chefkix` | Single DB |
 | Kafka | `localhost:9094` | Async events |
-| Redis | `localhost:6379` | OTP rate limiting |
+| Redis | `localhost:6380` | OTP rate limiting |
 | Keycloak | `localhost:8180/realms/nottisn` | JWT issuer |
 | AI Service | `localhost:8000` | External Python FastAPI |
 
@@ -129,7 +129,7 @@ Story publishing now moderates all text overlays before FE sticker uploads and r
 
 ## First-party recipe inventory status
 
-The M-F first-party inventory subdeliverable is recorded under this operational scope: recipe records held in the ChefKix-owned application DB and internally authorized per user attestation. The authenticated read-only inventory found 44 records, 2 PRIVATE (Filipino/Japanese), and 0 private-Western under the recorded cuisine-label rule. The per-recipe table records all 44 licenses as `UNKNOWN` because source/license fields are absent. This does not establish recipe authorship or external redistribution rights, and broader M-F source/terms work remains open. See the [M-F inventory receipt](evidence/member-mf-recipe-license-inventory-20261024.json) and [license table](evidence/member-mf-recipe-license-inventory-20261024.csv).
+M-F is complete under the recorded operational definition: first-party means recipe records held in the ChefKix-owned application DB and internally authorized per user attestation; it does not claim authorship or redistribution rights. The authenticated read-only inventory found 44 recipes, 2 PRIVATE (Filipino/Japanese), and 0 private-Western under the recorded cuisine-label rule. The per-recipe table records all 44 licenses as `UNKNOWN` because source/license fields are absent. See [the M-F inventory receipt](evidence/member-mf-recipe-license-inventory-20261024.json), [the license table](evidence/member-mf-recipe-license-inventory-20261024.csv), and [the Member backlog](BACKLOG_MEMBER.md).
 
 Recipe publishing now requires an explicit backend moderation approval. A failure-first regression caught flagged, unknown, and missing moderation outcomes proceeding or raising the wrong error; the focused fix passes 4/4 and the full Monolith suite passes 361/361. The headed browser regression now verifies the FE's flagged precheck, backend rejection, and approved retry on desktop and mobile, with API fixtures. The service boundary test uses mocks, so a live browser-to-Monolith transaction and persisted database state remain unverified. See the [moderation fix receipt](evidence/member-recipe-moderation-fail-closed-20261023.json) and [browser follow-through receipt](evidence/member-recipe-publish-browser-20261023.json).
 

@@ -96,6 +96,70 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
         return new ProviderResult(loaded.integrity(), evidence);
     }
 
+    @Override
+    public SnapshotResult getSnapshot(SnapshotRequest request) {
+        LoadState loaded = loadOnce();
+        if (loaded.integrity().status() != ArtifactIntegrityStatus.VERIFIED) {
+            return new SnapshotResult(loaded.integrity(), null, null);
+        }
+        if (request == null || blank(request.centerIngredientId())
+                || !NODE_ID.matcher(request.centerIngredientId()).matches()
+                || request.depth() < 0 || request.depth() > 2 || request.limit() < 1 || request.limit() > 500) {
+            throw new IllegalArgumentException("snapshot request is outside the frozen query bounds");
+        }
+        SnapshotNode centerNode = loaded.snapshotNodes().get(request.centerIngredientId());
+        SnapshotCenter center = new SnapshotCenter(
+                centerNode == null ? IdentityStatus.UNKNOWN : IdentityStatus.RESOLVED,
+                request.centerIngredientId(), centerNode == null ? null : centerNode.canonicalId());
+        if (centerNode == null) {
+            return new SnapshotResult(loaded.integrity(), center, null);
+        }
+
+        Set<String> selected = new HashSet<>();
+        selected.add(centerNode.canonicalId());
+        Set<String> frontier = Set.of(centerNode.canonicalId());
+        boolean hasMore = false;
+        for (int level = 0; level < request.depth(); level++) {
+            if (frontier.isEmpty()) break;
+            TreeSet<String> next = new TreeSet<>(ManifestBackedGraphEvidenceProvider::compareIds);
+            for (Map.Entry<Pair, EdgeSummary> entry : loaded.sortedSnapshotEdges()) {
+                if (frontier.contains(entry.getKey().sourceId())
+                        && !selected.contains(entry.getKey().targetId())) {
+                    next.add(entry.getKey().targetId());
+                }
+            }
+            Set<String> nextFrontier = new HashSet<>();
+            for (String id : next) {
+                if (selected.size() == request.limit()) {
+                    hasMore = true;
+                    break;
+                }
+                if (selected.add(id)) nextFrontier.add(id);
+            }
+            frontier = nextFrontier;
+            if (frontier.isEmpty()) break;
+        }
+
+        List<String> orderedIds = selected.stream().sorted(ManifestBackedGraphEvidenceProvider::compareIds).toList();
+        List<SnapshotNode> nodes = orderedIds.stream().map(loaded.snapshotNodes()::get).toList();
+        List<SnapshotEdge> allEdges = loaded.sortedSnapshotEdges().stream()
+                .filter(entry -> selected.contains(entry.getKey().sourceId())
+                        && selected.contains(entry.getKey().targetId()))
+                .map(entry -> new SnapshotEdge(entry.getKey().sourceId(), entry.getKey().targetId(),
+                        "substitution", true, entry.getValue().count(), entry.getValue().contextCount()))
+                .toList();
+        List<SnapshotEdge> edges = allEdges.stream().limit(request.limit()).toList();
+        hasMore |= allEdges.size() > edges.size();
+        SnapshotStats stats = new SnapshotStats(loaded.totalNodes(), loaded.totalEdges(),
+                nodes.size(), edges.size(), request.depth(), request.limit(), hasMore);
+        SnapshotProvenance provenance = new SnapshotProvenance("recipe1msubs-train", "UNKNOWN_NOT_REVIEWED",
+                "TRAIN", loaded.state(), loaded.integrity().observedSha256(), loaded.sourceManifestSha256());
+        GraphSnapshot snapshot = new GraphSnapshot(loaded.state(), nodes, edges, stats, provenance,
+                C3CellStatus.NOT_SEPARATELY_PINNED,
+                "No separately pinned C3 calibration artifact is attached; graph evidence is not a recommendation or safety claim.");
+        return new SnapshotResult(loaded.integrity(), center, snapshot);
+    }
+
     private LoadState loadOnce() {
         LoadState current = cached;
         if (current != null) {
@@ -134,7 +198,8 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
                 ArtifactIntegrityStatus.VERIFIED, expected, snapshot.manifestSha256());
         try {
             ParsedGraph graph = parse(snapshot);
-            return new LoadState(verified, graph.nodes(), graph.pairCounts(), graph.state(),
+            return new LoadState(verified, graph.nodes(), graph.pairCounts(), graph.snapshotNodes(),
+                    graph.snapshotEdges(), graph.totalNodes(), graph.totalEdges(), graph.state(),
                     graph.trainArtifactSha256(), graph.sourceManifestSha256());
         } catch (IOException | RuntimeException exception) {
             return failed(ArtifactIntegrityStatus.INVALID, expected, snapshot.manifestSha256());
@@ -163,6 +228,7 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
         }
 
         Set<String> nodes = readNodes(snapshot.fileBytes("nodes.jsonl"));
+        Map<String, SnapshotNode> snapshotNodes = readSnapshotNodes(snapshot.fileBytes("nodes.jsonl"));
         Map<Pair, EdgeSummary> edges = readEdges(snapshot.fileBytes("edges.jsonl"), nodes);
         validateEvidence(snapshot.fileBytes("edge_evidence.jsonl"), edges, trainHash, manifest);
         if (snapshot.fileBytes("row_errors.jsonl").length != 0
@@ -172,7 +238,22 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
         }
         Map<Pair, Long> pairCounts = new HashMap<>();
         edges.forEach((pair, summary) -> pairCounts.put(pair, summary.count()));
-        return new ParsedGraph(Set.copyOf(nodes), Map.copyOf(pairCounts), state, trainHash, sourceManifestHash);
+        return new ParsedGraph(Set.copyOf(nodes), Map.copyOf(pairCounts), Map.copyOf(snapshotNodes),
+                Map.copyOf(edges), requiredLong(counts, "nodes"), requiredLong(counts, "edges"),
+                state, trainHash, sourceManifestHash);
+    }
+
+    private static Map<String, SnapshotNode> readSnapshotNodes(byte[] bytes) throws IOException {
+        Map<String, SnapshotNode> nodes = new TreeMap<>(ManifestBackedGraphEvidenceProvider::compareIds);
+        for (JsonNode row : jsonLines(bytes, false)) {
+            String id = text(row, "canonical_id");
+            if (id == null || nodes.containsKey(id)) {
+                throw new IllegalArgumentException("invalid or duplicate graph node");
+            }
+            nodes.put(id, new SnapshotNode(id, text(row, "display_name"), text(row, "identity_status"),
+                    text(row, "node_type"), stringArray(row.get("source_refs"))));
+        }
+        return nodes;
     }
 
     private static Set<String> readNodes(byte[] bytes) throws IOException {
@@ -359,13 +440,28 @@ public final class ManifestBackedGraphEvidenceProvider implements GraphEvidenceP
     }
 
     private static LoadState failed(ArtifactIntegrityStatus status, String expected, String observed) {
-        return new LoadState(new ArtifactIntegrity(status, expected, observed), Set.of(), Map.of(), null, null, null);
+        return new LoadState(new ArtifactIntegrity(status, expected, observed), Set.of(), Map.of(), Map.of(),
+                Map.of(), 0, 0, null, null, null);
     }
 
     private record Pair(String sourceId, String targetId) {}
     private record EdgeSummary(long count, long contextCount, List<String> evidenceRefs) {}
-    private record ParsedGraph(Set<String> nodes, Map<Pair, Long> pairCounts, String state,
+    private record ParsedGraph(Set<String> nodes, Map<Pair, Long> pairCounts,
+                               Map<String, SnapshotNode> snapshotNodes, Map<Pair, EdgeSummary> snapshotEdges,
+                               long totalNodes, long totalEdges, String state,
                                String trainArtifactSha256, String sourceManifestSha256) {}
     private record LoadState(ArtifactIntegrity integrity, Set<String> nodes, Map<Pair, Long> pairCounts,
-                             String state, String trainArtifactSha256, String sourceManifestSha256) {}
+                             Map<String, SnapshotNode> snapshotNodes, Map<Pair, EdgeSummary> snapshotEdges,
+                             long totalNodes, long totalEdges, String state,
+                             String trainArtifactSha256, String sourceManifestSha256) {
+        List<Map.Entry<Pair, EdgeSummary>> sortedSnapshotEdges() {
+            return snapshotEdges.entrySet().stream()
+                    .sorted((left, right) -> {
+                        int source = compareIds(left.getKey().sourceId(), right.getKey().sourceId());
+                        return source != 0 ? source
+                                : compareIds(left.getKey().targetId(), right.getKey().targetId());
+                    })
+                    .toList();
+        }
+    }
 }

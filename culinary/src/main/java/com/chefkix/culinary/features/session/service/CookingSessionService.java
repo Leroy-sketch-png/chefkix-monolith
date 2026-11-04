@@ -295,6 +295,7 @@ public class CookingSessionService {
         SessionCompletionResponse.SessionCompletionResponseBuilder responseBuilder = SessionCompletionResponse.builder()
                 .sessionId(session.getId())
                 .status("COMPLETED")
+                .completedAt(session.getCompletedAt())
                 .baseXpAwarded(baseXpInt)
                 .recipeXpAwarded((int) Math.round(recipeImmediateXp))
                 .coOpBonusXp(coOpBonusXp)

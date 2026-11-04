@@ -10,6 +10,9 @@ import com.chefkix.social.story.mapper.StoryHighlightMapper;
 import com.chefkix.social.story.mapper.StoryMapper;
 import com.chefkix.social.story.repository.StoryHighlightRepository;
 import com.chefkix.social.story.repository.StoryRepository;
+import com.chefkix.shared.exception.AppException;
+import com.chefkix.shared.exception.ErrorCode;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +33,16 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     StoryRepository storyRepo;
     StoryMapper storyMapper;
     StoryHighlightMapper storyHighlightMapper;
+    BlockedContentPolicy blockedContentPolicy;
 
     @Override
     public HighlightResponse createHighlight(String userId, HighlightCreateRequest request) {
         validateStoryOwnership(request.storyIds(), userId);
+        String title = StringUtils.hasText(request.title()) ? request.title().trim() : "highlights";
 
         StoryHighlight highlight = StoryHighlight.builder()
                 .userId(userId)
-                .title(request.title().isEmpty()?request.title():"highlights")
+                .title(title)
                 .coverUrl(request.coverUrl())
                 .storyIds(request.storyIds())
                 .createdAt(Instant.now())
@@ -47,7 +53,8 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     }
 
     @Override
-    public List<HighlightResponse> getUserHighlights(String targetUserId) {
+    public List<HighlightResponse> getUserHighlights(String currentUserId, String targetUserId) {
+        blockedContentPolicy.requireVisible(currentUserId, targetUserId);
         List<StoryHighlight> highlights = highlightRepo.findByUserIdOrderByCreatedAtDesc(targetUserId);
 
         return highlights.stream()
@@ -56,18 +63,21 @@ public class StoryHighlightServiceImpl implements StoryHighlightService {
     }
 
     @Override
-    public List<StoryResponse> getStoriesInHighlight(String highlightId) {
+    public List<StoryResponse> getStoriesInHighlight(String currentUserId, String highlightId) {
         StoryHighlight highlight = highlightRepo.findById(highlightId)
-                .orElseThrow(() -> new RuntimeException("Highlight không tồn tại"));
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_HIGHLIGHT_NOT_FOUND));
+        blockedContentPolicy.requireVisible(currentUserId, highlight.getUserId());
 
         List<Story> stories = storyRepo.findByIdInAndIsDeletedFalse(highlight.getStoryIds());
 
         Map<String, Story> storyMap = stories.stream()
                 .collect(Collectors.toMap(Story::getId, s -> s));
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(currentUserId);
 
         return highlight.getStoryIds().stream()
                 .filter(storyMap::containsKey)
                 .map(storyMap::get)
+                .filter(story -> !invisibleUserIds.contains(story.getUserId()))
                 .map(storyMapper::toStoryResponse)
                 .toList();
     }
@@ -102,15 +112,15 @@ highlightRepo.delete(highlight);
         if (storyIds == null || storyIds.isEmpty()) return;
         long validCount = storyRepo.countByIdInAndUserId(storyIds, userId);
         if (validCount != storyIds.size()) {
-            throw new IllegalArgumentException("Một số Story không hợp lệ hoặc không thuộc về bạn");
+            throw new AppException(ErrorCode.STORY_HIGHLIGHT_STORIES_INVALID);
         }
     }
 
     private StoryHighlight getHighlightAndVerifyOwner(String highlightId, String userId) {
         StoryHighlight highlight = highlightRepo.findById(highlightId)
-                .orElseThrow(() -> new RuntimeException("Highlight không tồn tại"));
+                .orElseThrow(() -> new AppException(ErrorCode.STORY_HIGHLIGHT_NOT_FOUND));
         if (!highlight.getUserId().equals(userId)) {
-            throw new RuntimeException("Bạn không có quyền thực hiện hành động này");
+            throw new AppException(ErrorCode.STORY_HIGHLIGHT_NOT_FOUND);
         }
         return highlight;
     }

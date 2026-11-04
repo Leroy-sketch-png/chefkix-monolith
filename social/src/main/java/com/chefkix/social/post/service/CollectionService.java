@@ -12,14 +12,17 @@ import com.chefkix.social.post.entity.CollectionProgress;
 import com.chefkix.social.post.entity.DifficultyStep;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.mapper.PostMapper;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.post.repository.CollectionProgressRepository;
 import com.chefkix.social.post.repository.CollectionRepository;
 import com.chefkix.social.post.repository.PostRepository;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -47,6 +50,7 @@ public class CollectionService {
     PostRepository postRepository;
     PostMapper postMapper;
     RecipeProvider recipeProvider;
+    BlockedContentPolicy blockedContentPolicy;
 
     private static final int MAX_COLLECTIONS_PER_USER = 50;
 
@@ -98,18 +102,20 @@ public class CollectionService {
         }
 
         collection = collectionRepository.save(collection);
-        return toResponse(collection);
+        return toResponse(collection, blockedContentPolicy.invisibleUserIds(userId));
     }
 
     public List<CollectionResponse> getMyCollections() {
         String userId = getCurrentUserId();
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(userId);
         return collectionRepository.findAllByUserId(userId, Sort.by(Sort.Direction.DESC, "updatedAt"))
-                .stream().map(this::toResponse).toList();
+                .stream().map(collection -> toResponse(collection, invisibleUserIds)).toList();
     }
 
     public List<CollectionResponse> getUserPublicCollections(String userId) {
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(getCurrentUserIdOrNull());
         return collectionRepository.findAllByUserIdAndIsPublicTrue(userId, Sort.by(Sort.Direction.DESC, "updatedAt"))
-                .stream().map(this::toResponse).toList();
+                .stream().map(collection -> toResponse(collection, invisibleUserIds)).toList();
     }
 
     public CollectionResponse getCollection(String collectionId) {
@@ -121,7 +127,7 @@ public class CollectionService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        return toResponse(collection);
+        return toResponse(collection, blockedContentPolicy.invisibleUserIds(userId));
     }
 
     public List<PostResponse> getCollectionPosts(String collectionId) {
@@ -138,7 +144,11 @@ public class CollectionService {
         }
 
         List<Post> posts = postRepository.findAllById(collection.getPostIds());
-        return posts.stream().map(postMapper::toPostResponse).toList();
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(userId);
+        return posts.stream()
+                .filter(post -> !invisibleUserIds.contains(post.getUserId()))
+                .map(postMapper::toPostResponse)
+                .toList();
     }
 
     @Transactional
@@ -169,7 +179,7 @@ public class CollectionService {
         collection.setUpdatedAt(Instant.now());
 
         collection = collectionRepository.save(collection);
-        return toResponse(collection);
+        return toResponse(collection, blockedContentPolicy.invisibleUserIds(userId));
     }
 
     @Transactional
@@ -214,7 +224,7 @@ public class CollectionService {
 
         collection.setUpdatedAt(Instant.now());
         collection = collectionRepository.save(collection);
-        return toResponse(collection);
+        return toResponse(collection, blockedContentPolicy.invisibleUserIds(userId));
     }
 
     @Transactional
@@ -235,7 +245,7 @@ public class CollectionService {
 
         collection.setUpdatedAt(Instant.now());
         collection = collectionRepository.save(collection);
-        return toResponse(collection);
+        return toResponse(collection, blockedContentPolicy.invisibleUserIds(userId));
     }
 
 
@@ -315,17 +325,19 @@ public class CollectionService {
     /**
      */
     public List<CollectionResponse> getFeaturedCollections() {
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(getCurrentUserIdOrNull());
         return collectionRepository.findAllByIsFeaturedTrueAndIsPublicTrue(
                 Sort.by(Sort.Direction.DESC, "updatedAt")
-        ).stream().map(this::toResponse).toList();
+        ).stream().map(collection -> toResponse(collection, invisibleUserIds)).toList();
     }
 
     /**
      */
     public List<CollectionResponse> getFeaturedCollectionsBySeason(String seasonTag) {
+        List<String> invisibleUserIds = blockedContentPolicy.invisibleUserIds(getCurrentUserIdOrNull());
         return collectionRepository.findAllByIsFeaturedTrueAndSeasonTag(
                 seasonTag, Sort.by(Sort.Direction.DESC, "updatedAt")
-        ).stream().map(this::toResponse).toList();
+        ).stream().map(collection -> toResponse(collection, invisibleUserIds)).toList();
     }
 
 
@@ -532,16 +544,45 @@ public class CollectionService {
         return StringUtils.hasText(value) ? value.trim() : null;
     }
 
-    private CollectionResponse toResponse(Collection collection) {
+    private CollectionResponse toResponse(Collection collection, List<String> invisibleUserIds) {
+        List<String> storedPostIds = collection.getPostIds();
+        List<String> visiblePostIds = storedPostIds;
+        int visibleItemCount = collection.getItemCount();
+        String coverImageUrl = collection.getCoverImageUrl();
+
+        if (storedPostIds != null && !storedPostIds.isEmpty() && !invisibleUserIds.isEmpty()) {
+            List<Post> referencedPosts = postRepository.findAllById(storedPostIds);
+            Set<String> hiddenPostIds = new HashSet<>();
+            Set<String> hiddenPhotoUrls = new HashSet<>();
+            referencedPosts.stream()
+                    .filter(post -> invisibleUserIds.contains(post.getUserId()))
+                    .forEach(post -> {
+                        hiddenPostIds.add(post.getId());
+                        if (post.getPhotoUrls() != null) {
+                            hiddenPhotoUrls.addAll(post.getPhotoUrls());
+                        }
+                    });
+
+            if (!hiddenPostIds.isEmpty()) {
+                visiblePostIds = storedPostIds.stream()
+                        .filter(postId -> !hiddenPostIds.contains(postId))
+                        .toList();
+                visibleItemCount = Math.max(0, visibleItemCount - (storedPostIds.size() - visiblePostIds.size()));
+                if (hiddenPhotoUrls.contains(coverImageUrl)) {
+                    coverImageUrl = firstVisiblePostCover(visiblePostIds, referencedPosts);
+                }
+            }
+        }
+
         return CollectionResponse.builder()
                 .id(collection.getId())
                 .userId(collection.getUserId())
                 .name(collection.getName())
                 .description(collection.getDescription())
-                .coverImageUrl(collection.getCoverImageUrl())
+                .coverImageUrl(coverImageUrl)
                 .isPublic(collection.isPublic())
-                .itemCount(collection.getItemCount())
-                .postIds(collection.getPostIds())
+                .itemCount(visibleItemCount)
+                .postIds(visiblePostIds)
                 .collectionType(collection.getCollectionType())
                 .recipeIds(collection.getRecipeIds())
                 .difficulty(collection.getDifficulty())
@@ -558,6 +599,19 @@ public class CollectionService {
                 .createdAt(collection.getCreatedAt())
                 .updatedAt(collection.getUpdatedAt())
                 .build();
+    }
+
+    private String firstVisiblePostCover(List<String> visiblePostIds, List<Post> referencedPosts) {
+        for (String visiblePostId : visiblePostIds) {
+            for (Post post : referencedPosts) {
+                if (visiblePostId.equals(post.getId())
+                        && post.getPhotoUrls() != null
+                        && !post.getPhotoUrls().isEmpty()) {
+                    return post.getPhotoUrls().get(0);
+                }
+            }
+        }
+        return null;
     }
 
     private CollectionProgressResponse toProgressResponse(CollectionProgress progress, Collection collection) {

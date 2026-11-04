@@ -7,11 +7,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.chefkix.identity.dto.request.ChangePasswordRequest;
+import com.chefkix.identity.dto.request.ResetPasswordRequest;
+import org.springframework.security.core.Authentication;
+import static org.mockito.Mockito.mock;
 import com.chefkix.identity.dto.request.AuthenticationRequest;
 import com.chefkix.identity.dto.request.GoogleAuthenticationRequest;
 import com.chefkix.identity.dto.response.AuthenticationResponse;
 import com.chefkix.identity.dto.response.OtpDeliveryResponse;
 import com.chefkix.identity.entity.SignupRequest;
+import com.chefkix.identity.entity.UserProfile;
+import java.util.Optional;
 import com.chefkix.identity.repository.UserProfileRepository;
 import com.chefkix.identity.service.AuthRateLimitService;
 import com.chefkix.identity.service.AuthenticationService;
@@ -216,5 +222,63 @@ class AuthenticationControllerTest {
           assertThat(header).contains("refresh_token=");
           assertThat(header).contains("Max-Age=0");
         });
+  }
+
+  @Test
+  void checkUsernameReturnsTrueWhenAvailableAndFalseWhenTaken() {
+    when(userProfileRepository.findByUsername("unique_chef")).thenReturn(Optional.empty());
+    when(userProfileRepository.findByUsername("taken_chef")).thenReturn(Optional.of(UserProfile.builder().username("taken_chef").build()));
+
+    var resAvailable = controller.checkUsernameAvailability("unique_chef");
+    var resTaken = controller.checkUsernameAvailability("taken_chef");
+
+    assertThat(resAvailable.getData().get("available")).isTrue();
+    assertThat(resTaken.getData().get("available")).isFalse();
+  }
+
+  @Test
+  void forgotPasswordValidatesRateLimitAndSendsOtp() {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setRemoteAddr("198.51.100.5");
+
+    var result = controller.resetPassword("cook@example.com", request);
+
+    verify(authRateLimitService).assertForgotPasswordAllowed("198.51.100.5", "cook@example.com");
+    verify(resetPasswordService).sendForgotPasswordOtp("cook@example.com");
+    assertThat(result.getData()).isEqualTo("Email has been sent!");
+  }
+
+  @Test
+  void verifyOtpPasswordDelegatesToProfileService() {
+    ResetPasswordRequest req = ResetPasswordRequest.builder()
+        .email("cook@example.com")
+        .otp("123456")
+        .newPassword("NewP@ssw0rd")
+        .build();
+
+    var result = controller.resetPassword(req);
+
+    verify(profileService).resetPassword("cook@example.com", "123456", "NewP@ssw0rd");
+    assertThat(result.getData()).isEqualTo("Successfully reset password!");
+  }
+
+  @Test
+  void changePasswordExtractsEmailFromAuthenticationAndInvokesService() {
+    Authentication auth = mock(Authentication.class);
+    when(auth.getName()).thenReturn("authenticated-chef@example.com");
+
+    ChangePasswordRequest req = ChangePasswordRequest.builder()
+        .oldPassword("CurrentPassword123")
+        .newPassword("NewPassword456")
+        .build();
+
+    var result = controller.changePassword(auth, req);
+
+    verify(authenticationService).changePassword(
+        "authenticated-chef@example.com",
+        "CurrentPassword123",
+        "NewPassword456"
+    );
+    assertThat(result.getData()).isEqualTo("Successfully changed password!");
   }
 }

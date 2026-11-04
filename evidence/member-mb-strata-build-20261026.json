@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "record_id": "member-mb-strata-build-20261026",
+  "observed_date": "2026-10-26",
+  "state": "GISMO_SENATH_STRATA_BUILT_FOODB_PENDING",
+  "scope": "Deterministic Recipe1MSubs validation/test GISMo-primary and normalized-string sensitivity strata. No candidate pool, inference, ranking metric, or human-labeling package was generated.",
+  "authorization": {
+    "status": "USER_REPORTED_AUTHORIZED_FOR_REQUIRED_DATASETS",
+    "observed_date": "2026-10-26",
+    "written_permission_receipt_in_repository": false
+  },
+  "source": {
+    "repository": "C:/Users/LENOVO/IdeaProjects/chefkix-ai-service",
+    "repository_head": "57089201aa1ce479ec825f0e142fb8d4597cb371",
+    "script": "tools/build_member_strata.py",
+    "script_sha256": "d36ee0ac5b18f86d9a4df312558b497dc3562be6d964236ec475d4f193a82348",
+    "script_committed": true,
+    "focused_tests": "2 passed",
+    "black_check": "PASS",
+    "published_commit": "aaba0fc05578363c1efc5178e86f089eb8802e1f"
+  },
+  "inputs": {
+    "recipe1msubs": {
+      "train_rows": 49044,
+      "train_sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81",
+      "validation_rows": 10729,
+      "validation_sha256": "4d7e96837c051fbec7464346638942cb66b7841cb998dd6abe1382e2f2ddb3dd",
+      "test_rows": 10747,
+      "test_sha256": "0758382cae59697958dd2a5e509c15f8d0417ea1a9e079fd75792779f1ce6174"
+    },
+    "gismo_source_commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+    "flavorgraph_commit": "8d3472d0823f4542b2ce47f83e28046c41d2f06",
+    "foodb_profile_keys": "NOT_AVAILABLE_IN_CURRENT_WORKSPACE"
+  },
+  "results": {
+    "validation": {
+      "rows": 10729,
+      "gismo_seen": 6827,
+      "gismo_unseen": 3902,
+      "gismo_unmapped": 0,
+      "normalized_string_seen": 6771,
+      "normalized_string_unseen": 3958,
+      "foodb_coverage": "NOT_ASSESSED"
+    },
+    "test": {
+      "rows": 10747,
+      "gismo_seen": 6932,
+      "gismo_unseen": 3815,
+      "gismo_unmapped": 0,
+      "normalized_string_seen": 6866,
+      "normalized_string_unseen": 3881,
+      "foodb_coverage": "NOT_ASSESSED"
+    },
+    "historical_count_reconciliation": "Matches evidence/lead-l48-r04-r05-reproduction-20261021.md exactly",
+    "separate_process_replay": "5/5 output files byte-identical"
+  },
+  "outputs": {
+    "primary_directory": "C:/Users/LENOVO/ResearchData/member-strata-20261026-v2",
+    "replay_directory": "C:/Users/LENOVO/ResearchData/member-strata-20261026-v2-replay",
+    "files": {
+      "cases_val.jsonl": "e2a7cc4708f3c9eeee14686aeb3fb2dbb56f4dc82e3467e0611ac79504a5963a",
+      "cases_test.jsonl": "2a7efb5ff03d40fca074ad53dcb249cccdb4be94e95a1a7af13330f0b76f2a9e",
+      "identity_map.csv": "00dab5a80476d0506da70fcc59a8db54e20b755889851b8fe7a050e4c21c8205",
+      "strata_counts.csv": "50ae685d7603aefa3b3e372f9fc31e2f2a6cdd1612263b8c27c1699e0c4de579",
+      "manifest.json": "2c9eae8450bbcdff4b02ad7fc13b00b6eab5d15d6d190881e2cb19a651f7343a"
+    }
+  },
+  "limitations": [
+    "The user reports that required dataset permissions have been granted; no written permission receipt was added to the repository.",
+    "The FooDB profile-key artifact was not found locally, so both-endpoint evidence coverage and profiled/not-profiled cells remain unassigned.",
+    "The held-out target pairs were read only to assign seen/unseen strata; no ranking scores, metrics, or method comparisons were computed.",
+    "The builder is committed in chefkix-ai-service at aaba0fc05578363c1efc5178e86f089eb8802e1f; the output manifest retains the working-tree script hash and original repository HEAD observed during generation.",
+    "M-B pool generation, frozen protocol, rights/provenance review, and final package acceptance remain open."
+  ]
+}

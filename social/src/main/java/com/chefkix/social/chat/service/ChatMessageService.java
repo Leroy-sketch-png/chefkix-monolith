@@ -120,7 +120,7 @@ public class ChatMessageService {
             }
 
             try {
-                PostDetail postInfo = postService.getPostDetail(request.getRelatedId());
+                PostDetail postInfo = postService.getPostDetail(request.getRelatedId(), userId);
 
                 if (postInfo.getPhotoUrls() != null && !postInfo.getPhotoUrls().isEmpty()) {
                     cachedPostImage = postInfo.getPhotoUrls().get(0);

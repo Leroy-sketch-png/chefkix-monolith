@@ -10,6 +10,7 @@ import com.chefkix.culinary.api.ContentModerationProvider;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.shared.exception.AppException;
+import com.chefkix.social.policy.BlockedContentPolicy;
 import com.chefkix.social.post.dto.request.CommentRequest;
 import com.chefkix.social.post.entity.Post;
 import com.chefkix.social.post.repository.CommentRepository;
@@ -32,6 +33,7 @@ class CommentServiceModerationTest {
     @Mock private ContentModerationProvider contentModerationProvider;
     @Mock private MongoTemplate mongoTemplate;
     @Mock private KafkaTemplate<String, Object> kafkaTemplate;
+    @Mock private BlockedContentPolicy blockedContentPolicy;
 
     @InjectMocks private CommentService commentService;
 

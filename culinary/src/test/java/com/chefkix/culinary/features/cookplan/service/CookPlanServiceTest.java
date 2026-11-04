@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.chefkix.culinary.common.enums.MealRole;
@@ -143,6 +145,57 @@ class CookPlanServiceTest {
     }
 
     @Test
+    void currentHydratesRecipeCoverWithoutSavingOrChangingPlanDetails() {
+        CookPlan plan = savedPlan("snapshot-cover.webp");
+        Recipe recipe = recipe("recipe-1", "Katsu Curry", 20, 40, 4, List.of());
+        recipe.setCoverImageUrl(List.of("/images/recipes/katsu-curry.webp"));
+        when(cookPlanRepository.findTopByUserIdAndPlanDateOrderByCreatedAtDesc(
+                        "user-1", LocalDate.of(2026, 6, 10)))
+                .thenReturn(Optional.of(plan));
+        when(recipeRepository.findAllByIdIn(List.of("recipe-1"))).thenReturn(List.of(recipe));
+
+        CookPlan result = service.current("user-1", LocalDate.of(2026, 6, 10));
+
+        assertThat(result.getId()).isEqualTo("plan-1");
+        assertThat(result.getShoppingList()).hasSize(1);
+        assertThat(result.getEatingOccasions()).hasSize(1);
+        assertThat(result.getCookBatches().get(0).getDishes().get(0).getCoverImageUrl())
+                .isEqualTo("/images/recipes/katsu-curry.webp");
+        verify(cookPlanRepository, never()).save(any(CookPlan.class));
+    }
+
+    @Test
+    void getPreservesSavedCoverWhenRecipeHasNoCurrentCover() {
+        CookPlan plan = savedPlan("snapshot-cover.webp");
+        Recipe recipe = recipe("recipe-1", "Katsu Curry", 20, 40, 4, List.of());
+        recipe.setCoverImageUrl(List.of(" "));
+        when(cookPlanRepository.findByIdAndUserId("plan-1", "user-1"))
+                .thenReturn(Optional.of(plan));
+        when(recipeRepository.findAllByIdIn(List.of("recipe-1"))).thenReturn(List.of(recipe));
+
+        CookPlan result = service.get("user-1", "plan-1");
+
+        assertThat(result.getCookBatches().get(0).getDishes().get(0).getCoverImageUrl())
+                .isEqualTo("snapshot-cover.webp");
+        verify(cookPlanRepository, never()).save(any(CookPlan.class));
+    }
+
+    @Test
+    void currentPreservesSavedCoverWhenLinkedRecipeIsMissing() {
+        CookPlan plan = savedPlan("snapshot-cover.webp");
+        when(cookPlanRepository.findTopByUserIdAndPlanDateOrderByCreatedAtDesc(
+                        "user-1", LocalDate.of(2026, 6, 10)))
+                .thenReturn(Optional.of(plan));
+        when(recipeRepository.findAllByIdIn(List.of("recipe-1"))).thenReturn(List.of());
+
+        CookPlan result = service.current("user-1", LocalDate.of(2026, 6, 10));
+
+        assertThat(result.getCookBatches().get(0).getDishes().get(0).getCoverImageUrl())
+                .isEqualTo("snapshot-cover.webp");
+        verify(cookPlanRepository, never()).save(any(CookPlan.class));
+    }
+
+    @Test
     void excludesBreakfastAndMixedCuisineRecipesFromTheCookingBatch() {
         Recipe ramen = recipe(
                 "ramen",
@@ -228,7 +281,90 @@ class CookPlanServiceTest {
 
         assertThat(plan.getCookBatches()).isEmpty();
         assertThat(plan.getUnmetConstraints())
-                .anyMatch(message -> message.contains("Fewer than two compatible recipes"));
+                .anyMatch(message -> message.contains("No coherent main batch"));
+    }
+
+    @Test
+    void doesNotUseDessertAsTheOnlyAccompaniment() {
+        Recipe main = recipe(
+                "main",
+                "Vegetable Curry",
+                "Japanese",
+                MealRole.MAIN,
+                10,
+                20,
+                2,
+                List.of(ingredient("Tofu", "1", "block")));
+        Recipe dessert = recipe(
+                "dessert",
+                "Rice Pudding",
+                "Japanese",
+                MealRole.DESSERT,
+                10,
+                20,
+                4,
+                List.of(ingredient("Rice", "1", "cup")));
+
+        when(recipeRepository.findPublishedForIngredientMatching()).thenReturn(List.of(main, dessert));
+
+        CookPlan plan = service.create("user-1", request(2, 60));
+
+        assertThat(plan.getCookBatches()).isEmpty();
+        assertThat(plan.getUnmetConstraints())
+                .anyMatch(message -> message.contains("side, soup, or bread"));
+    }
+
+    @Test
+    void ranksSavoryAccompanimentsAheadOfOptionalDesserts() {
+        Recipe main = recipe(
+                "main",
+                "Vegetable Curry",
+                "Japanese",
+                MealRole.MAIN,
+                10,
+                20,
+                2,
+                List.of(ingredient("Tofu", "1", "block")));
+        Recipe dessertOne = recipe(
+                "dessert-one",
+                "Rice Pudding",
+                "Japanese",
+                MealRole.DESSERT,
+                5,
+                10,
+                4,
+                List.of(ingredient("Rice", "1", "cup"), ingredient("Sugar", "1", "tbsp")));
+        Recipe dessertTwo = recipe(
+                "dessert-two",
+                "Sweet Rice Cakes",
+                "Japanese",
+                MealRole.DESSERT,
+                5,
+                10,
+                4,
+                List.of(ingredient("Rice", "2", "cups"), ingredient("Sugar", "2", "tbsp")));
+        Recipe side = recipe(
+                "side",
+                "Ginger Greens",
+                "Japanese",
+                MealRole.SIDE,
+                8,
+                12,
+                2,
+                List.of(ingredient("Morning glory", "1", "bunch")));
+
+        when(recipeRepository.findPublishedForIngredientMatching())
+                .thenReturn(List.of(main, dessertOne, dessertTwo, side));
+
+        CookPlan plan = service.create("user-1", request(2, 60));
+
+        assertThat(plan.getCookBatches()).hasSize(1);
+        assertThat(plan.getCookBatches().get(0).getDishes())
+                .extracting(CookPlan.CookPlanDish::getRecipeId)
+                .contains("main", "side");
+        assertThat(plan.getCookBatches().get(0).getDishes())
+                .extracting(CookPlan.CookPlanDish::getMealRole)
+                .contains(MealRole.SIDE);
     }
 
     @Test
@@ -300,8 +436,8 @@ class CookPlanServiceTest {
         assertThat(plan.getId()).isEqualTo("plan-1");
         assertThat(plan.getCookBatches()).isEmpty();
         assertThat(plan.getUnmetConstraints())
-                .anyMatch(message -> message.contains("Fewer than two"))
-                .anyMatch(message -> message.contains("unsafe fallback"));
+                .anyMatch(message -> message.contains("No coherent main batch"))
+                .anyMatch(message -> message.contains("A batch needs a main"));
 
         InOrder replacementOrder = inOrder(cookPlanRepository);
         replacementOrder.verify(cookPlanRepository)
@@ -402,6 +538,58 @@ class CookPlanServiceTest {
                 .isEqualTo(ErrorCode.NO_VALID_COOK_PLAN);
     }
 
+    @Test
+    void swapCannotReplaceTheOnlyMealAccompanimentWithDessert() {
+        CookPlan existing = CookPlan.builder()
+                .id("plan-1")
+                .userId("user-1")
+                .planDate(LocalDate.of(2026, 6, 10))
+                .mode(CookPlanMode.COOK_ONCE_TODAY)
+                .maxActiveMinutes(60)
+                .cookBatches(List.of(CookPlan.CookBatch.builder()
+                        .id("batch-1")
+                        .activeMinutes(30)
+                        .dishes(new java.util.ArrayList<>(List.of(
+                                CookPlan.CookPlanDish.builder()
+                                        .recipeId("main")
+                                        .title("Vegetable Curry")
+                                        .cuisineType("Japanese")
+                                        .mealRole(MealRole.MAIN)
+                                        .activeMinutes(20)
+                                        .plannedServings(4)
+                                        .build(),
+                                CookPlan.CookPlanDish.builder()
+                                        .recipeId("side")
+                                        .title("Ginger Greens")
+                                        .cuisineType("Japanese")
+                                        .mealRole(MealRole.SIDE)
+                                        .activeMinutes(10)
+                                        .plannedServings(4)
+                                        .build())))
+                        .build()))
+                .build();
+        Recipe dessert = recipe(
+                "dessert",
+                "Rice Pudding",
+                "Japanese",
+                MealRole.DESSERT,
+                10,
+                15,
+                4,
+                List.of(ingredient("Rice", "1", "cup")));
+
+        when(cookPlanRepository.findByIdAndUserId("plan-1", "user-1"))
+                .thenReturn(Optional.of(existing));
+        when(recipeRepository.findById("dessert")).thenReturn(Optional.of(dessert));
+
+        assertThatThrownBy(() ->
+                service.swap("user-1", "plan-1", "batch-1", "side", "dessert"))
+                .isInstanceOf(AppException.class)
+                .hasMessageContaining("incoherent")
+                .extracting(error -> ((AppException) error).getErrorCode())
+                .isEqualTo(ErrorCode.NO_VALID_COOK_PLAN);
+    }
+
     private CreateCookPlanRequest request(int householdSize, int maxActiveMinutes) {
         return CreateCookPlanRequest.builder()
                 .planDate(LocalDate.of(2026, 6, 10))
@@ -409,6 +597,38 @@ class CookPlanServiceTest {
                 .householdSize(householdSize)
                 .maxActiveMinutes(maxActiveMinutes)
                 .pantryFirst(true)
+                .build();
+    }
+
+    private CookPlan savedPlan(String coverImageUrl) {
+        return CookPlan.builder()
+                .id("plan-1")
+                .userId("user-1")
+                .planDate(LocalDate.of(2026, 6, 10))
+                .mode(CookPlanMode.COOK_ONCE_TODAY)
+                .householdSize(2)
+                .maxActiveMinutes(60)
+                .cookBatches(List.of(CookPlan.CookBatch.builder()
+                        .id("batch-1")
+                        .dishes(List.of(CookPlan.CookPlanDish.builder()
+                                .recipeId("recipe-1")
+                                .title("Katsu Curry")
+                                .coverImageUrl(coverImageUrl)
+                                .mealRole(MealRole.MAIN)
+                                .plannedServings(4)
+                                .build()))
+                        .build()))
+                .eatingOccasions(List.of(CookPlan.EatingOccasion.builder()
+                        .name("Dinner tonight")
+                        .batchId("batch-1")
+                        .servings(4)
+                        .build()))
+                .shoppingList(List.of(CookPlan.ShoppingItem.builder()
+                        .ingredient("Curry roux")
+                        .quantity("1")
+                        .unit("pack")
+                        .sourceRecipes(List.of("recipe-1"))
+                        .build()))
                 .build();
     }
 

@@ -25,6 +25,7 @@ import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,7 +113,13 @@ public class ShoppingListService {
                 .shareToken(generateShareToken())
                 .build();
 
-        return toResponse(shoppingListRepo.save(list));
+        try {
+            return toResponse(shoppingListRepo.save(list));
+        } catch (DuplicateKeyException exception) {
+            return shoppingListRepo.findByUserIdAndSourceCookPlanId(userId, plan.getId())
+                    .map(this::toResponse)
+                    .orElseThrow(() -> exception);
+        }
     }
 
 

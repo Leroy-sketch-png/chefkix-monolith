@@ -14,7 +14,7 @@ public interface PostProvider {
     /**
      *
      */
-    Page<PostSummary> getPostsByUserId(String userId, Pageable pageable);
+    Page<PostSummary> getPostsByUserId(String userId, String viewerId, Pageable pageable);
 
     /**
      *
@@ -34,7 +34,7 @@ public interface PostProvider {
     /**
      *
      */
-    PostDetail getPostDetail(String postId);
+    PostDetail getPostDetail(String postId, String viewerId);
 
     /**
      *

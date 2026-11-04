@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -115,7 +116,12 @@ public class DraftService {
 
         recipe.setUpdatedAt(Instant.now());
 
-        recipe = recipeRepository.save(recipe);
+        try {
+            recipe = recipeRepository.save(recipe);
+        } catch (OptimisticLockingFailureException e) {
+            log.warn("[DRAFT_AUTOSAVE] Concurrent update conflict for draft {}: {}", id, e.getMessage());
+            throw new AppException(ErrorCode.RECIPE_CONCURRENT_UPDATE);
+        }
 
         return mapper.toRecipeDetailResponse(recipe);
     }

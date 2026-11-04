@@ -26,6 +26,7 @@ import com.chefkix.culinary.features.session.entity.CookingSession;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.identity.api.ProfileProvider;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
+import java.util.concurrent.CompletableFuture;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +70,35 @@ class RecipeServiceTest {
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void updateRecipeThrowsRecipeConcurrentUpdateOnOptimisticLockingFailure() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("author-1", null, List.of()));
+
+        Recipe existingRecipe = Recipe.builder()
+                .id("recipe-1")
+                .userId("author-1")
+                .status(RecipeStatus.DRAFT)
+                .title("Initial Draft")
+                .version(1L)
+                .build();
+
+        com.chefkix.culinary.features.recipe.dto.request.RecipeRequest request =
+                new com.chefkix.culinary.features.recipe.dto.request.RecipeRequest();
+        request.setTitle("Updated Title");
+
+        when(asyncHelper.getProfileAsync("author-1"))
+                .thenReturn(CompletableFuture.completedFuture(
+                        com.chefkix.culinary.common.dto.response.AuthorResponse.builder().userId("author-1").build()));
+        when(recipeRepository.findById("recipe-1")).thenReturn(Optional.of(existingRecipe));
+        when(recipeRepository.save(existingRecipe)).thenThrow(
+                new org.springframework.dao.OptimisticLockingFailureException("Row updated by concurrent transaction"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> recipeService.updateRecipe("recipe-1", request))
+                .isInstanceOf(com.chefkix.shared.exception.AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", com.chefkix.shared.exception.ErrorCode.RECIPE_CONCURRENT_UPDATE);
     }
 
     @Test

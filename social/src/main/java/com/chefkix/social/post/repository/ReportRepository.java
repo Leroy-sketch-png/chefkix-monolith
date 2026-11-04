@@ -30,6 +30,8 @@ public interface ReportRepository extends MongoRepository<Report, String> {
 
     long deleteAllByTargetTypeAndTargetId(String targetType, String targetId);
 
+    long deleteAllByTargetTypeAndTargetIdIn(String targetType, List<String> targetIds);
+
     /**
      */
     List<Report> findByStatus(String status);

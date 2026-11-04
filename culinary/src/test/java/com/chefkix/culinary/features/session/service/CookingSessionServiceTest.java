@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,12 +20,16 @@ import com.chefkix.culinary.features.challenge.dto.response.ChallengeRewardResul
 import com.chefkix.culinary.features.challenge.service.ChallengeService;
 import com.chefkix.culinary.features.duel.service.DuelService;
 import com.chefkix.culinary.features.recipe.entity.Recipe;
+import com.chefkix.culinary.features.recipe.entity.Step;
 import com.chefkix.culinary.features.recipe.repository.RecipeRepository;
 import com.chefkix.culinary.features.room.repository.CookingRoomRedisRepository;
 import com.chefkix.culinary.features.room.model.CookingRoom;
 import com.chefkix.culinary.features.room.model.RoomParticipant;
 import com.chefkix.culinary.features.session.dto.request.CompleteSessionRequest;
+import com.chefkix.culinary.features.session.dto.request.CompleteStepRequest;
 import com.chefkix.culinary.features.session.dto.request.SessionLinkingRequest;
+import com.chefkix.culinary.features.session.dto.response.CompleteStepResponse;
+import com.chefkix.culinary.features.session.dto.response.SessionAbandonResponse;
 import com.chefkix.culinary.features.session.dto.response.SessionCompletionResponse;
 import com.chefkix.culinary.features.session.dto.response.SessionLinkingResponse;
 import com.chefkix.culinary.features.session.dto.response.CurrentSessionResponse;
@@ -33,6 +38,15 @@ import com.chefkix.culinary.features.session.mapper.CookingSessionMapper;
 import com.chefkix.culinary.features.session.repository.ActiveCookingRedisRepository;
 import com.chefkix.culinary.features.session.repository.CookingSessionRepository;
 import com.chefkix.shared.exception.AppException;
+import com.chefkix.culinary.common.enums.RecipeStatus;
+import com.chefkix.culinary.common.enums.TimerEventType;
+import com.chefkix.culinary.common.enums.Difficulty;
+import com.chefkix.culinary.features.session.dto.request.StartSessionRequest;
+import com.chefkix.culinary.features.session.dto.request.TimerEventRequest;
+import com.chefkix.culinary.features.session.dto.response.StartSessionResponse;
+import com.chefkix.culinary.features.session.dto.response.FriendCookingActivityResponse;
+import com.chefkix.culinary.features.session.dto.response.CookCardDataResponse;
+import com.chefkix.culinary.features.session.model.ActiveCookingPresence;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.identity.api.dto.BasicProfileInfo;
 import com.chefkix.identity.api.dto.CompletionRequest;
@@ -477,6 +491,9 @@ class CookingSessionServiceTest {
         assertThat(completionRequest.isChallengeCompleted()).isTrue();
         assertThat(completionRequest.getXpAmount()).isEqualTo(40);
         assertThat(response.getStatus()).isEqualTo("COMPLETED");
+        assertThat(response.getCompletedAt()).isEqualTo(session.getCompletedAt());
+        assertThat(java.time.Duration.between(response.getCompletedAt(), response.getPostDeadline()).toDays())
+            .isEqualTo(14);
         assertThat(response.getBaseXpAwarded()).isEqualTo(40);
         assertThat(response.getRecipeXpAwarded()).isEqualTo(30);
         assertThat(response.getCoOpBonusXp()).isZero();
@@ -897,5 +914,908 @@ class CookingSessionServiceTest {
         request.setRating(5);
         request.setNotes("Completed cleanly");
         return request;
+    }
+
+    private Recipe buildRecipeWithSteps(String recipeId, String title, int stepCount) {
+        List<Step> steps = new ArrayList<>();
+        for (int i = 1; i <= stepCount; i++) {
+            Step s = new Step();
+            s.setStepNumber(i);
+            s.setTitle("Step " + i);
+            steps.add(s);
+        }
+        return Recipe.builder()
+            .id(recipeId)
+            .title(title)
+            .xpReward(100)
+            .coverImageUrl(List.of("/cover.jpg"))
+            .rewardBadges(List.of())
+            .steps(steps)
+            .build();
+    }
+@Test
+    void completeSessionRejectsWhenUserDoesNotMatchSessionOwner() {
+        String ownerId = "user-1";
+        String attackerId = "attacker-1";
+        String sessionId = "session-1";
+        CookingSession session = buildActiveSession(ownerId, sessionId, "recipe-1");
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeSession(attackerId, sessionId, buildCompletionRequest()));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.UNAUTHORIZED);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(profileProvider, never()).updateAfterCompletion(any());
+        verify(sessionRepository, never()).save(org.mockito.ArgumentMatchers.same(session));
+    }
+
+    @Test
+    void completeSessionRejectsWhenSessionAlreadyCompleted() {
+        String userId = "user-1";
+        String sessionId = "session-1";
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId("recipe-1")
+            .status(SessionStatus.COMPLETED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeSession(userId, sessionId, buildCompletionRequest()));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(profileProvider, never()).updateAfterCompletion(any());
+        verify(sessionRepository, never()).save(org.mockito.ArgumentMatchers.same(session));
+    }
+
+    @Test
+    void linkSessionRejectsWhenUserDoesNotMatchSessionOwner() {
+        String sessionId = "session-1";
+        String attackerId = "attacker-1";
+        SessionLinkingRequest request = new SessionLinkingRequest();
+        request.setPostId("post-1");
+
+        when(helper.validateSessionForLinking(sessionId, attackerId))
+            .thenThrow(new AppException(ErrorCode.DO_NOT_HAVE_PERMISSION));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.linkSession(attackerId, sessionId, request));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+        verify(postProvider, never()).updatePostXp(anyString(), anyDouble());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void linkSessionRejectsWhenSessionIsNotCompleted() {
+        String sessionId = "session-1";
+        String userId = "user-1";
+        SessionLinkingRequest request = new SessionLinkingRequest();
+        request.setPostId("post-1");
+
+        when(helper.validateSessionForLinking(sessionId, userId))
+            .thenThrow(new AppException(ErrorCode.INVALID_ACTION, "Session must be COMPLETED"));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.linkSession(userId, sessionId, request));
+
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(postProvider, never()).updatePostXp(anyString(), anyDouble());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void completeSessionAppliesGroupMultiplierForThreeOrMoreCooks() {
+        String userId = "user-1";
+        String sessionId = "session-group";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-group");
+        session.setRoomCode("ROOM_GROUP_3");
+        Recipe recipe = buildRecipe("recipe-group", "Group Stew", 100);
+
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("ROOM_GROUP_3")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("user-2").role("COOK").build(),
+                RoomParticipant.builder().userId("user-3").role("COOK").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-group")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-group")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("ROOM_GROUP_3")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(33).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(967).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isEqualTo(1.1);
+        assertThat(response.getXpMultiplierReason()).isEqualTo("CO_OP_GROUP");
+        assertThat(response.getBaseXpAwarded()).isEqualTo(33); // 30 * 1.1 = 33
+        assertThat(response.getCoOpBonusXp()).isEqualTo(3);
+    }
+
+    @Test
+    void completeSessionIgnoresSpectatorParticipantsForCoOpMultiplier() {
+        String userId = "user-1";
+        String sessionId = "session-specs";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-specs");
+        session.setRoomCode("ROOM_SPECS");
+        Recipe recipe = buildRecipe("recipe-specs", "Solo Cook With Fans", 100);
+
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("ROOM_SPECS")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("fan-1").role("SPECTATOR").build(),
+                RoomParticipant.builder().userId("fan-2").role("SPECTATOR").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-specs")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-specs")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("ROOM_SPECS")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(30).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(970).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isNull();
+        assertThat(response.getXpMultiplierReason()).isNull();
+        assertThat(response.getBaseXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(0);
+    }
+
+    @Test
+    void completeSessionGracefullyHandlesMissingRoom() {
+        String userId = "user-1";
+        String sessionId = "session-room-gone";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-vanished");
+        session.setRoomCode("EXPIRED_ROOM");
+        Recipe recipe = buildRecipe("recipe-vanished", "Recipe No Room", 100);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-vanished")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-vanished")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("EXPIRED_ROOM")).thenReturn(Optional.empty());
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(30).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(970).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isNull();
+        assertThat(response.getXpMultiplierReason()).isNull();
+        assertThat(response.getBaseXpAwarded()).isEqualTo(30);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(0);
+    }
+
+    @Test
+    void completeSessionAppliesDuoMultiplierForTwoCooks() {
+        String userId = "user-1";
+        String sessionId = "session-duo";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-duo");
+        session.setRoomCode("DUO_ROOM");
+        Recipe recipe = buildRecipe("recipe-duo", "Duo Pasta", 100);
+
+        CookingRoom room = CookingRoom.builder()
+            .roomCode("DUO_ROOM")
+            .participants(List.of(
+                RoomParticipant.builder().userId(userId).role("COOK").build(),
+                RoomParticipant.builder().userId("user-2").role("COOK").build()))
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-duo")).thenReturn(Optional.of(recipe));
+        when(helper.calculateMasteryMultiplier(userId, "recipe-duo")).thenReturn(1.0);
+        when(challengeService.checkAndCompleteChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndCompleteWeeklyChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(challengeService.checkAndAdvanceSeasonalChallenge(userId, recipe)).thenReturn(Optional.empty());
+        when(roomRepository.findByRoomCode("DUO_ROOM")).thenReturn(Optional.of(room));
+        when(profileProvider.isShowCookingActivity(userId)).thenReturn(false);
+        when(profileProvider.updateAfterCompletion(any(CompletionRequest.class))).thenReturn(CompletionResult.builder()
+            .userId(userId).currentLevel(1).currentXP(36).currentXPGoal(1000)
+            .completionCount(1).xpToNextLevel(964).build());
+        when(achievementService.evaluateAfterCookingCompletion(userId, session, recipe)).thenReturn(List.of());
+
+        SessionCompletionResponse response = cookingSessionService.completeSession(
+            userId, sessionId, buildCompletionRequest());
+
+        assertThat(response.getXpMultiplier()).isEqualTo(1.2);
+        assertThat(response.getXpMultiplierReason()).isEqualTo("CO_OP_DUO");
+        assertThat(response.getBaseXpAwarded()).isEqualTo(36);
+        assertThat(response.getPendingXp()).isEqualTo(84);
+        assertThat(response.getCoOpBonusXp()).isEqualTo(6);
+
+        ArgumentCaptor<CompletionRequest> captor = ArgumentCaptor.forClass(CompletionRequest.class);
+        verify(profileProvider).updateAfterCompletion(captor.capture());
+        CompletionRequest completionReq = captor.getValue();
+        assertThat(completionReq.getXpAmount()).isEqualTo(36);
+        assertThat(completionReq.getSessionId()).isEqualTo(sessionId);
+        assertThat(completionReq.isChallengeCompleted()).isFalse();
+        assertThat(completionReq.getRecipeId()).isEqualTo("recipe-duo");
+    }
+
+    @Test
+    void completeStepHappyPathAddsStepAndDetectsAllStepsComplete() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-step-1";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-multi-step");
+        session.setCompletedSteps(new ArrayList<>());
+        Recipe recipe = buildRecipeWithSteps("recipe-multi-step", "Two Step Stew", 2);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-multi-step")).thenReturn(Optional.of(recipe));
+
+        // Step 1
+        CompleteStepRequest step1Req = CompleteStepRequest.builder().stepNumber(1).build();
+        CompleteStepResponse resp1 = cookingSessionService.completeStep(sessionId, step1Req);
+
+        assertThat(resp1.getSessionId()).isEqualTo(sessionId);
+        assertThat(resp1.getCompletedStep()).isEqualTo(1);
+        assertThat(resp1.getCompletedSteps()).containsExactly(1);
+        assertThat(resp1.getTotalSteps()).isEqualTo(2);
+        assertThat(resp1.isAllStepsComplete()).isFalse();
+        assertThat(resp1.isAlreadyCompleted()).isFalse();
+        verify(sessionRepository, times(1)).save(session);
+
+        // Step 2
+        CompleteStepRequest step2Req = CompleteStepRequest.builder().stepNumber(2).build();
+        CompleteStepResponse resp2 = cookingSessionService.completeStep(sessionId, step2Req);
+
+        assertThat(resp2.getCompletedStep()).isEqualTo(2);
+        assertThat(resp2.getCompletedSteps()).containsExactly(1, 2);
+        assertThat(resp2.getTotalSteps()).isEqualTo(2);
+        assertThat(resp2.isAllStepsComplete()).isTrue();
+        assertThat(resp2.isAlreadyCompleted()).isFalse();
+        verify(sessionRepository, times(2)).save(session);
+
+        // Idempotent re-completion of Step 1
+        CompleteStepResponse resp1Again = cookingSessionService.completeStep(sessionId, step1Req);
+        assertThat(resp1Again.getCompletedStep()).isEqualTo(1);
+        assertThat(resp1Again.getCompletedSteps()).containsExactly(1, 2);
+        assertThat(resp1Again.getTotalSteps()).isEqualTo(2);
+        assertThat(resp1Again.isAllStepsComplete()).isTrue();
+        assertThat(resp1Again.isAlreadyCompleted()).isTrue();
+        // save count should NOT increase
+        verify(sessionRepository, times(2)).save(session);
+    }
+
+    @Test
+    void completeStepRejectsOutOfBoundsStepNumber() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-bounds";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-bounds");
+        Recipe recipe = buildRecipeWithSteps("recipe-bounds", "Two Step Dish", 2);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-bounds")).thenReturn(Optional.of(recipe));
+
+        // Step number 0
+        CompleteStepRequest zeroStep = CompleteStepRequest.builder().stepNumber(0).build();
+        AppException thrownZero = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, zeroStep));
+        assertThat(thrownZero.getErrorCode()).isEqualTo(ErrorCode.INVALID_TARGET_STEP);
+
+        // Step number 3 (exceeds total steps 2)
+        CompleteStepRequest exceedStep = CompleteStepRequest.builder().stepNumber(3).build();
+        AppException thrownExceed = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, exceedStep));
+        assertThat(thrownExceed.getErrorCode()).isEqualTo(ErrorCode.INVALID_TARGET_STEP);
+
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void completeStepRejectsWhenSessionNotActive() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-inactive";
+        CookingSession pausedSession = buildActiveSession(userId, sessionId, "recipe-inactive");
+        pausedSession.setStatus(SessionStatus.PAUSED);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(pausedSession));
+
+        CompleteStepRequest request = CompleteStepRequest.builder().stepNumber(1).build();
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, request));
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+
+        verify(recipeRepository, never()).findById(anyString());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void completeStepRejectsUnauthorizedCaller() {
+        String ownerId = "user-owner";
+        String intruderId = "user-intruder";
+        setAuthenticatedUser(intruderId);
+        String sessionId = "session-intruder";
+        CookingSession session = buildActiveSession(ownerId, sessionId, "recipe-intruder");
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        CompleteStepRequest request = CompleteStepRequest.builder().stepNumber(1).build();
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, request));
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+
+        verify(recipeRepository, never()).findById(anyString());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void completeStepRejectsWhenSessionOrRecipeNotFound() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-missing";
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        CompleteStepRequest request = CompleteStepRequest.builder().stepNumber(1).build();
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, request));
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_FOUND);
+
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-missing");
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById("recipe-missing")).thenReturn(Optional.empty());
+
+        AppException thrownRecipe = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.completeStep(sessionId, request));
+        assertThat(thrownRecipe.getErrorCode()).isEqualTo(ErrorCode.RECIPE_NOT_FOUND);
+    }
+
+    @Test
+    void abandonSessionTransitionsActiveSessionToAbandonedAndCleansUpPresence() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-abandon";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-abandon");
+        session.setStatus(SessionStatus.IN_PROGRESS);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        SessionAbandonResponse response = cookingSessionService.abandonSession(sessionId);
+
+        assertThat(response.getSessionId()).isEqualTo(sessionId);
+        assertThat(response.getStatus()).isEqualTo("abandoned");
+        assertThat(response.isAbandoned()).isTrue();
+        assertThat(response.getAbandonedAt()).isNotNull();
+
+        assertThat(session.getStatus()).isEqualTo(SessionStatus.ABANDONED);
+        assertThat(session.getAbandonedAt()).isNotNull();
+
+        verify(sessionRepository).save(session);
+        verify(activeCookingRepository).removeActive(userId);
+    }
+
+    @Test
+    void abandonSessionIsIdempotentWhenAlreadyAbandoned() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-already-abandoned";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-abandon");
+        session.setStatus(SessionStatus.ABANDONED);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        SessionAbandonResponse response = cookingSessionService.abandonSession(sessionId);
+
+        assertThat(response.getSessionId()).isEqualTo(sessionId);
+        assertThat(response.getStatus()).isEqualTo("abandoned");
+        assertThat(response.isAbandoned()).isTrue();
+
+        verify(sessionRepository, never()).save(any());
+        verify(activeCookingRepository, never()).removeActive(anyString());
+    }
+
+    @Test
+    void abandonSessionRejectsCompletedSession() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-completed";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-completed");
+        session.setStatus(SessionStatus.COMPLETED);
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.abandonSession(sessionId));
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.SESSION_COMPLETED);
+
+        // Also verify for POSTED session
+        session.setStatus(SessionStatus.POSTED);
+        AppException thrownPosted = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.abandonSession(sessionId));
+        assertThat(thrownPosted.getErrorCode()).isEqualTo(ErrorCode.SESSION_COMPLETED);
+
+        // Also verify for POST_DELETED session
+        session.setStatus(SessionStatus.POST_DELETED);
+        AppException thrownPostDeleted = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.abandonSession(sessionId));
+        assertThat(thrownPostDeleted.getErrorCode()).isEqualTo(ErrorCode.SESSION_COMPLETED);
+
+        verify(sessionRepository, never()).save(any());
+        verify(activeCookingRepository, never()).removeActive(anyString());
+    }
+
+    @Test
+    void abandonSessionRejectsUnauthorizedCaller() {
+        String ownerId = "user-owner";
+        String intruderId = "user-intruder";
+        setAuthenticatedUser(intruderId);
+        String sessionId = "session-owner";
+        CookingSession session = buildActiveSession(ownerId, sessionId, "recipe-1");
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException thrown = assertThrows(
+            AppException.class,
+            () -> cookingSessionService.abandonSession(sessionId));
+        assertThat(thrown.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+
+        verify(sessionRepository, never()).save(any());
+        verify(activeCookingRepository, never()).removeActive(anyString());
+    }
+
+    @Test
+    void abandonActiveSessionFindsActiveSessionAndAbandonsIt() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-active-abandon";
+        CookingSession session = buildActiveSession(userId, sessionId, "recipe-1");
+        session.setStatus(SessionStatus.IN_PROGRESS);
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.of(session));
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        SessionAbandonResponse response = cookingSessionService.abandonActiveSession();
+
+        assertThat(response.getSessionId()).isEqualTo(sessionId);
+        assertThat(response.getStatus()).isEqualTo("abandoned");
+        assertThat(response.isAbandoned()).isTrue();
+        assertThat(session.getStatus()).isEqualTo(SessionStatus.ABANDONED);
+
+        verify(sessionRepository).save(session);
+        verify(activeCookingRepository).removeActive(userId);
+    }
+
+    @Test
+    void abandonActiveSessionReturnsNoneWhenNoActiveSession() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+
+        SessionAbandonResponse response = cookingSessionService.abandonActiveSession();
+
+        assertThat(response.getSessionId()).isNull();
+        assertThat(response.getStatus()).isEqualTo("none");
+        assertThat(response.getAbandonedAt()).isNull();
+        assertThat(response.isAbandoned()).isFalse();
+
+        verify(sessionRepository, never()).save(any());
+        verify(activeCookingRepository, never()).removeActive(anyString());
+    }
+
+    // =========================================================================
+    // START SESSION TESTS
+    // =========================================================================
+
+    @Test
+    void startSessionRejectsWhenActiveSessionAlreadyExists() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-1").build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.of(CookingSession.builder().id("session-existing").build()));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_ALREADY_ACTIVE);
+        verify(recipeRepository, never()).findById(anyString());
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionRejectsWhenRecipeNotFound() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-missing").build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById("recipe-missing")).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.RECIPE_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionRejectsWhenRecipeNotPublishedAndUserNotOwner() {
+        String userId = "user-1";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId("recipe-draft").build();
+
+        Recipe draftRecipe = Recipe.builder()
+            .id("recipe-draft")
+            .userId("other-user")
+            .status(RecipeStatus.DRAFT)
+            .title("Draft Recipe")
+            .build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById("recipe-draft")).thenReturn(Optional.of(draftRecipe));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.startSession(userId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.RECIPE_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void startSessionHappyPathBuildsSessionSavesAndSetsPresence() {
+        String userId = "user-1";
+        String recipeId = "recipe-published";
+        StartSessionRequest request = StartSessionRequest.builder().recipeId(recipeId).build();
+
+        Recipe recipe = Recipe.builder()
+            .id(recipeId)
+            .userId("creator-1")
+            .status(RecipeStatus.PUBLISHED)
+            .title("Pho Bo")
+            .coverImageUrl(List.of("https://example.com/pho.jpg"))
+            .build();
+
+        when(sessionRepository.findFirstByUserIdAndStatusIn(
+            eq(userId),
+            eq(List.of(SessionStatus.IN_PROGRESS, SessionStatus.PAUSED))))
+            .thenReturn(Optional.empty());
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+        when(profileProvider.getBasicProfile(userId)).thenReturn(
+            BasicProfileInfo.builder()
+                .username("cook1")
+                .displayName("Cook One")
+                .avatarUrl("avatar.jpg")
+                .build()
+        );
+
+        StartSessionResponse expectedResponse = StartSessionResponse.builder()
+            .sessionId("session-pho")
+            .recipeId(recipeId)
+            .status("IN_PROGRESS")
+            .currentStep(1)
+            .build();
+
+        when(sessionMapper.toStartSessionResponse(any(CookingSession.class), eq(recipe)))
+            .thenReturn(expectedResponse);
+
+        StartSessionResponse response = cookingSessionService.startSession(userId, request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getSessionId()).isEqualTo("session-pho");
+        assertThat(response.getStatus()).isEqualTo("IN_PROGRESS");
+
+        ArgumentCaptor<CookingSession> sessionCaptor = ArgumentCaptor.forClass(CookingSession.class);
+        verify(sessionRepository).save(sessionCaptor.capture());
+        CookingSession savedSession = sessionCaptor.getValue();
+        assertThat(savedSession.getUserId()).isEqualTo(userId);
+        assertThat(savedSession.getRecipeId()).isEqualTo(recipeId);
+        assertThat(savedSession.getRecipeTitle()).isEqualTo("Pho Bo");
+        assertThat(savedSession.getStatus()).isEqualTo(SessionStatus.IN_PROGRESS);
+        assertThat(savedSession.getCurrentStep()).isEqualTo(1);
+
+        verify(activeCookingRepository).setActive(any(ActiveCookingPresence.class));
+    }
+
+    // =========================================================================
+    // LOG TIMER EVENT TESTS
+    // =========================================================================
+
+    @Test
+    void logTimerEventRejectsWhenSessionNotFound() {
+        String userId = "user-1";
+        String sessionId = "session-missing";
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(1);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(LocalDateTime.now(ZoneOffset.UTC));
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.logTimerEvent(userId, sessionId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_FOUND);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void logTimerEventRejectsWhenSessionNotInProgress() {
+        String userId = "user-1";
+        String sessionId = "session-paused";
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(1);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(LocalDateTime.now(ZoneOffset.UTC));
+
+        CookingSession pausedSession = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .status(SessionStatus.PAUSED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(pausedSession));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.logTimerEvent(userId, sessionId, request));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void logTimerEventHappyPathAppendsEventAndHandlesTimerStart() {
+        String userId = "user-1";
+        String sessionId = "session-timer-1";
+        String recipeId = "recipe-timer";
+        LocalDateTime clientTime = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(5);
+
+        TimerEventRequest request = new TimerEventRequest();
+        request.setStepNumber(2);
+        request.setEvent(TimerEventType.START);
+        request.setClientTimestamp(clientTime);
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId(recipeId)
+            .status(SessionStatus.IN_PROGRESS)
+            .timerEvents(new ArrayList<>())
+            .build();
+
+        Recipe recipe = Recipe.builder().id(recipeId).build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(helper.validateAndParseTimerEvent(userId, session, request)).thenReturn(TimerEventType.START);
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+
+        cookingSessionService.logTimerEvent(userId, sessionId, request);
+
+        assertThat(session.getTimerEvents()).hasSize(1);
+        CookingSession.TimerEvent logged = session.getTimerEvents().get(0);
+        assertThat(logged.getStepNumber()).isEqualTo(2);
+        assertThat(logged.getEvent()).isEqualTo(TimerEventType.START);
+        assertThat(logged.getClientTimestamp()).isEqualTo(clientTime);
+        assertThat(logged.getServerTimestamp()).isNotNull();
+
+        verify(helper).handleTimerStart(eq(session), eq(recipe), eq(2), any(LocalDateTime.class));
+        verify(sessionRepository).save(session);
+    }
+
+    // =========================================================================
+    // GET FRIENDS ACTIVE COOKING TESTS
+    // =========================================================================
+
+    @Test
+    void getFriendsActiveCookingReturnsEmptyWhenNoFollowing() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+
+        when(profileProvider.getFollowingIds(userId)).thenReturn(List.of());
+
+        FriendCookingActivityResponse response = cookingSessionService.getFriendsActiveCooking();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getFriends()).isEmpty();
+        assertThat(response.getTotalActive()).isEqualTo(0);
+        verify(activeCookingRepository, never()).getActiveForUsers(any());
+    }
+
+    @Test
+    void getFriendsActiveCookingReturnsMappedPresences() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+
+        List<String> following = List.of("friend-a", "friend-b");
+        when(profileProvider.getFollowingIds(userId)).thenReturn(following);
+
+        ActiveCookingPresence presence = ActiveCookingPresence.builder()
+            .userId("friend-a")
+            .username("chefa")
+            .displayName("Chef A")
+            .avatarUrl("avatar-a.jpg")
+            .recipeId("recipe-a")
+            .recipeTitle("Ramen")
+            .currentStep(3)
+            .totalSteps(5)
+            .startedAt(LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10))
+            .build();
+
+        when(activeCookingRepository.getActiveForUsers(following)).thenReturn(List.of(presence));
+
+        FriendCookingActivityResponse response = cookingSessionService.getFriendsActiveCooking();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getTotalActive()).isEqualTo(1);
+        assertThat(response.getFriends()).hasSize(1);
+        FriendCookingActivityResponse.ActiveFriend friend = response.getFriends().get(0);
+        assertThat(friend.getUserId()).isEqualTo("friend-a");
+        assertThat(friend.getUsername()).isEqualTo("chefa");
+        assertThat(friend.getDisplayName()).isEqualTo("Chef A");
+        assertThat(friend.getRecipeTitle()).isEqualTo("Ramen");
+        assertThat(friend.getCurrentStep()).isEqualTo(3);
+        assertThat(friend.getTotalSteps()).isEqualTo(5);
+    }
+
+    // =========================================================================
+    // GET COOK CARD DATA TESTS
+    // =========================================================================
+
+    @Test
+    void getCookCardDataRejectsWhenSessionNotFound() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-missing";
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.empty());
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.SESSION_NOT_FOUND);
+    }
+
+    @Test
+    void getCookCardDataRejectsWhenCallerNotOwner() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-other";
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId("other-user")
+            .status(SessionStatus.COMPLETED)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.DO_NOT_HAVE_PERMISSION);
+    }
+
+    @Test
+    void getCookCardDataRejectsWhenSessionNotCompletedCook() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-in-progress";
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .status(SessionStatus.IN_PROGRESS)
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+
+        AppException ex = assertThrows(AppException.class,
+            () -> cookingSessionService.getCookCardData(sessionId));
+
+        assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.INVALID_ACTION);
+    }
+
+    @Test
+    void getCookCardDataHappyPathReturnsEnrichedCookCard() {
+        String userId = "user-1";
+        setAuthenticatedUser(userId);
+        String sessionId = "session-completed-card";
+        String recipeId = "recipe-pho";
+
+        LocalDateTime started = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(45);
+        LocalDateTime completed = LocalDateTime.now(ZoneOffset.UTC);
+
+        CookingSession session = CookingSession.builder()
+            .id(sessionId)
+            .userId(userId)
+            .recipeId(recipeId)
+            .recipeTitle("Traditional Beef Pho")
+            .coverImageUrl(List.of("https://example.com/pho.jpg"))
+            .status(SessionStatus.COMPLETED)
+            .startedAt(started)
+            .completedAt(completed)
+            .baseXpAwarded(30.0)
+            .remainingXpAwarded(20.0)
+            .rating(5)
+            .completedSteps(List.of(1, 2, 3, 4))
+            .build();
+
+        Recipe recipe = Recipe.builder()
+            .id(recipeId)
+            .difficulty(Difficulty.ADVANCED)
+            .steps(List.of(new Step(), new Step(), new Step(), new Step()))
+            .build();
+
+        BasicProfileInfo profile = BasicProfileInfo.builder()
+            .displayName("Master Chef")
+            .avatarUrl("avatar.png")
+            .build();
+
+        when(sessionRepository.findById(sessionId)).thenReturn(Optional.of(session));
+        when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+        when(profileProvider.getBasicProfile(userId)).thenReturn(profile);
+
+        CookCardDataResponse card = cookingSessionService.getCookCardData(sessionId);
+
+        assertThat(card).isNotNull();
+        assertThat(card.getSessionId()).isEqualTo(sessionId);
+        assertThat(card.getRecipeId()).isEqualTo(recipeId);
+        assertThat(card.getRecipeTitle()).isEqualTo("Traditional Beef Pho");
+        assertThat(card.getXpEarned()).isEqualTo(50);
+        assertThat(card.getStepsCompleted()).isEqualTo(4);
+        assertThat(card.getTotalSteps()).isEqualTo(4);
+        assertThat(card.getDifficulty()).isEqualTo("Advanced");
+        assertThat(card.getDisplayName()).isEqualTo("Master Chef");
+        assertThat(card.getAvatarUrl()).isEqualTo("avatar.png");
+        assertThat(card.getCookingTimeMinutes()).isEqualTo(45L);
+        assertThat(card.getShareUrl()).isEqualTo("https://chefkix.app/recipes/" + recipeId);
     }
 }

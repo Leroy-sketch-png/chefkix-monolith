@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface StoryHighlightService {
     HighlightResponse createHighlight(String userId, HighlightCreateRequest request);
-    List<HighlightResponse> getUserHighlights(String targetUserId);
-    List<StoryResponse> getStoriesInHighlight(String highlightId);
+    List<HighlightResponse> getUserHighlights(String currentUserId, String targetUserId);
+    List<StoryResponse> getStoriesInHighlight(String currentUserId, String highlightId);
     void updateHighlight(String highlightId, String currentUserId, HighlightUpdateRequest request);
     void deleteHighlight(String highlightId, String currentUserId);
 }

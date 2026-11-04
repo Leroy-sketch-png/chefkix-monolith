@@ -28,6 +28,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,6 +47,12 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String T154_MANIFEST_SHA256 =
             "60e5c26144d162ea79e79cb54e7a3e6052c9fe35f4c454d8ff8f5d882ce47140";
+    private static final String CANDIDATE_20261030_MANIFEST_SHA256 =
+            "509ea8401ec14fe40561556778a09146051c9ae89732b2fa0895e70e53fd9276";
+    private static final Set<String> SUPPORTED_PROVISIONAL_MANIFESTS = Set.of(
+            T154_MANIFEST_SHA256,
+            CANDIDATE_20261030_MANIFEST_SHA256
+    );
     private static final String BUNDLE_PROPERTY = "chefkix.test.real-provisional-bundle";
     private static final String CAPTURE_PROPERTY = "chefkix.test.capture-refusal-json";
 
@@ -61,7 +68,8 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
         assertFalse(Files.isSymbolicLink(manifestPath), "the source manifest must not be a symlink");
         byte[] manifestBytes = Files.readAllBytes(manifestPath);
         String actualManifestDigest = sha256(manifestBytes);
-        assertEquals(T154_MANIFEST_SHA256, actualManifestDigest);
+        assertTrue(SUPPORTED_PROVISIONAL_MANIFESTS.contains(actualManifestDigest),
+                "Manifest digest must match a known provisional candidate: " + actualManifestDigest);
         JsonNode manifest = JSON.readTree(manifestBytes);
         assertEquals(10, manifest.path("counts").path("identity_error_rows").intValue());
 
@@ -120,8 +128,12 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
 
         Path bundle = Path.of(configuredBundle).toAbsolutePath().normalize();
         assertFalse(Files.isSymbolicLink(bundle), "the source bundle must not be a symlink");
+        byte[] manifestBytes = Files.readAllBytes(bundle.resolve("manifest.json"));
+        String manifestDigest = sha256(manifestBytes);
+        assertTrue(SUPPORTED_PROVISIONAL_MANIFESTS.contains(manifestDigest),
+                "Manifest digest must match a known provisional candidate: " + manifestDigest);
         VerifiedGraphArtifactLoader loader = new VerifiedGraphArtifactLoader();
-        VerifiedGraphArtifactLoader.Result sourceResult = loader.load(bundle, T154_MANIFEST_SHA256);
+        VerifiedGraphArtifactLoader.Result sourceResult = loader.load(bundle, manifestDigest);
         assertInstanceOf(VerifiedGraphArtifactLoader.Loaded.class, sourceResult);
 
         Path copy = Files.createDirectory(tempDir.resolve("tampered-bundle"));
@@ -140,14 +152,14 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
         tamperedBytes[0] ^= 1;
         Files.write(copy.resolve("edges.jsonl"), tamperedBytes);
 
-        VerifiedGraphArtifactLoader.Result tamperedResult = loader.load(copy, T154_MANIFEST_SHA256);
+        VerifiedGraphArtifactLoader.Result tamperedResult = loader.load(copy, manifestDigest);
         VerifiedGraphArtifactLoader.Refused refusal = assertInstanceOf(
                 VerifiedGraphArtifactLoader.Refused.class, tamperedResult);
         assertEquals(VerifiedGraphArtifactLoader.Refusal.OUTPUT_HASH_MISMATCH, refusal.reason());
         assertEquals(sha256(sourceBytes), sha256(Files.readAllBytes(sourceEdges)),
                 "the source artifact digest must remain unchanged");
 
-        try (AnnotationConfigWebApplicationContext context = context(copy, T154_MANIFEST_SHA256)) {
+        try (AnnotationConfigWebApplicationContext context = context(copy, manifestDigest)) {
             MockMvc mvc = mvc(context);
             mvc.perform(get("/api/v1/graph/evidence")
                             .contextPath("/api/v1")
@@ -157,7 +169,7 @@ class GraphEvidenceEndpointRealProvisionalArtifactTest {
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.status").value("REFUSED"))
                     .andExpect(jsonPath("$.artifactIntegrity.status").value("INVALID"))
-                    .andExpect(jsonPath("$.artifactIntegrity.expectedSha256").value(T154_MANIFEST_SHA256))
+                    .andExpect(jsonPath("$.artifactIntegrity.expectedSha256").value(manifestDigest))
                     .andExpect(jsonPath("$.evidence").doesNotExist())
                     .andExpect(jsonPath("$.identityResolution").doesNotExist());
         }

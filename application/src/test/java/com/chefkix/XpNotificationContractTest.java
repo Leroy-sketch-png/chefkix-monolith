@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -107,7 +109,7 @@ class XpNotificationContractTest {
                 notificationMongoTemplate);
         bellNotificationListener = new BellNotificationListener(notificationService, listenerIdempotencyService);
 
-        when(notificationMapper.toNotificationResponse(any(Notification.class))).thenAnswer(invocation -> {
+        lenient().when(notificationMapper.toNotificationResponse(any(Notification.class))).thenAnswer(invocation -> {
             Notification notification = invocation.getArgument(0);
             return NotificationResponse.builder()
                     .id(notification.getId())
@@ -407,4 +409,62 @@ class XpNotificationContractTest {
                 verify(listenerIdempotencyService).removeProcessed(event.getEventId(), "gamification-delivery");
                 verify(listenerIdempotencyService, times(2)).tryProcess(event.getEventId(), "gamification-delivery");
             }
+@Test
+    void nullEventOnGamificationTopicIsDroppedGracefully() {
+        bellNotificationListener.listenGamificationDelivery(null);
+
+        verify(listenerIdempotencyService, never()).tryProcess(anyString(), anyString());
+        verify(notificationRepository, never()).save(any(Notification.class));
+    }
+
+    @Test
+    void blankEventIdOnGamificationTopicIsDroppedGracefully() {
+        GamificationNotificationEvent event = GamificationNotificationEvent.builder()
+                .userId("user-1")
+                .xpEarned(50.0)
+                .build();
+        event.setEventId("   ");
+
+        bellNotificationListener.listenGamificationDelivery(event);
+
+        verify(listenerIdempotencyService, never()).tryProcess(anyString(), anyString());
+        verify(notificationRepository, never()).save(any(Notification.class));
+    }
+
+    @Test
+    void blankUserIdOnGamificationEventIsDroppedBeforeCallingNotificationService() {
+        GamificationNotificationEvent event = GamificationNotificationEvent.builder()
+                .userId("   ")
+                .xpEarned(50.0)
+                .build();
+        event.setEventId("event-blank-user-1");
+
+        when(listenerIdempotencyService.tryProcess("event-blank-user-1", "gamification-delivery")).thenReturn(true);
+
+        bellNotificationListener.listenGamificationDelivery(event);
+
+        verify(listenerIdempotencyService).tryProcess("event-blank-user-1", "gamification-delivery");
+        verify(notificationRepository, never()).save(any(Notification.class));
+        verify(listenerIdempotencyService, never()).removeProcessed(anyString(), anyString());
+    }
+
+    @Test
+    void disabledXpPreferencesSkipsNotificationSaveWhileRetainingIdempotency() {
+        GamificationNotificationEvent event = GamificationNotificationEvent.builder()
+                .userId("user-1")
+                .xpEarned(50.0)
+                .source("COOKING_SESSION")
+                .sessionId("session-1")
+                .build();
+        event.setEventId("event-xp-disabled-1");
+
+        when(listenerIdempotencyService.tryProcess("event-xp-disabled-1", "gamification-delivery")).thenReturn(true);
+        when(notificationPreferencesProvider.isNotificationEnabled("user-1", "xpAndLevelUps")).thenReturn(false);
+
+        bellNotificationListener.listenGamificationDelivery(event);
+
+        verify(listenerIdempotencyService).tryProcess("event-xp-disabled-1", "gamification-delivery");
+        verify(notificationRepository, never()).save(any(Notification.class));
+        verify(listenerIdempotencyService, never()).removeProcessed(anyString(), anyString());
+    }
 }
