@@ -38,12 +38,34 @@ The pinned vocabulary has 6,634 distinct first-canonical labels; 2 are absent fr
 
 Additional historical context: the clean upstream Recipe1MSubs code checkout at `14014ad501afd0c7da95ed90de19096c7f12ff75` contains mapping code whose commented run output reports 6,632 unique GISMo-to-FlavorGraph ingredient mappings. That script points to `recipe1m/preprocessed_flavorgraph_substitutions_fixed_3/final_recipe1m_vocab_ingrs.pkl`, which is absent from the checkout. This supports the candidate count as a plausible historical mapping size, but does not reproduce the missing cache, establish positional recipe-index identity, or reconcile R38's 6,633-node artifact.
 
+## T01 train-row provenance verification
+
+The independent T01 verifier is AI service commit `650713d4ca947678f55e977cfd85c362b729045f`; script SHA-256 `a86b3892e75d4677226ed074f31354017df3daaca8042471475f34c66ce9f2c8`; test SHA-256 `5f2316e0219276aafa8a167db9bacf8bf905d2252746cefbe47e06314bb2dbd1`.
+
+Command:
+
+```powershell
+python tools/verify_graph_eval_v4_t01.py --bundle-dir C:\Users\LENOVO\ResearchData\member-ma-graph-eval-v4-clean-build-20261104-run3 --expected-manifest-sha256 460de87d4eb6834142f99c31866ef16b15b4e3ebe5ce2afe1bea228f601ee060 --subs-dir C:\Users\LENOVO\ResearchData\Recipe1MSubs --gismo-runtime-dir C:\Users\LENOVO\ResearchData\gismo-runtime-20261024 --gismo-source-dir C:\Users\LENOVO\ResearchData\gismo-source-20261024
+```
+
+Result: `PASS` for the provisional candidate. The verifier matched all 49,044 `edge_evidence.jsonl` row keys and source/target/context hashes to the pinned train pickle, checked all 23,185 edge evidence-reference sets and pair counts, found 0 identity-error rows, and confirmed 6,632 nodes / 2,214 isolates. Every evidence row says `train`; no validation or test split was opened by this check. Focused builder and verifier tests: 6 passed; both scripts compiled; `git diff --check` passed.
+
+This proves candidate-level T01 source tracing only. The manifest remains `PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED`; the Lead's T52 decision, original R38 reconciliation, T02 served-byte proof, and product/browser acceptance are still required.
+
 ## Checks performed
 
 - `python -m pytest -q -o addopts= tests/test_build_graph_eval_v4.py`: 3 passed.
 - `python -m compileall -q tools/build_graph_eval_v4.py tests/test_build_graph_eval_v4.py`: passed.
 - `git diff --check`: passed.
-- Existing `ArtifactBackedGraphCandidatePoolProvider` loaded run 3 when pinned to its manifest hash and returned `ready`, source split `train`, and one candidate for node `1`. This was an in-process provider smoke, not an HTTP endpoint or browser test. Normal package import in the checkout is currently missing the `limits` Python dependency; the smoke loaded the provider module directly.
+- The earlier in-process smoke loaded run 3 and returned `ready` before the acceptance-state guard was added. That result is superseded: the same provisional manifest is now intentionally rejected by the provider.
+
+## Provider acceptance and tamper gate
+
+AI service commit `bac6673af95228f5c396c53ab3d0925001a1fe6c` makes the provider reject any manifest whose state is not exactly `ACCEPTED`, in addition to its existing caller-pinned manifest hash and output-hash checks. This prevents a matching hash alone from making the current `PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED` bundle serveable. Test coverage was completed in `f699c77d5c258e790a3ecadd7b35c8b56d89f247`; provider source SHA-256 `91718259867886704b320edcf6ef27bfe04519ca07ef36303dc0e6e066bed381`, test SHA-256 `145e63bfd625e4e2c3c8e06eb6ec4cb56c39745654b6902efc53bbe94b659f1e`.
+
+`python -m pytest -q -o addopts= tests/test_artifact_backed_graph_provider.py tests/test_graph_preflight_app_composition.py` completed with 11 passed and 1 skipped. Unit fixtures prove provisional-state refusal, accepted/hash-pinned fixture loading, and output-byte tamper refusal. The skipped test targets the unavailable historical `D:/code/chefkix/ai/out/graph_eval_v4_clean` bundle. `py_compile` and `git diff --check` passed. The runtime dependencies needed for collection were installed into a temporary directory outside the repository.
+
+This is provider-level guard evidence only. The app gateway remains default-off, and the actual 6,632-node candidate remains provisional. T02 served-byte proof, the original T52 acceptance map, R38 reconciliation, an accepted real artifact load, and HTTP endpoint/browser rendering have not been demonstrated.
 
 ## Unresolved acceptance boundary
 
