@@ -4,6 +4,8 @@
 
 This checklist is the shared checkpoint record for [`BACKLOG_MEMBER.md`](../BACKLOG_MEMBER.md). No contribution percentage is calculated. Inputs and outputs under `C:\Users\LENOVO\ResearchData` are local-only and are not made available to other machines by this file.
 
+For the complete itemized handoff request to Lead/Human, see [`member-lead-handoff-request-20261104.md`](member-lead-handoff-request-20261104.md).
+
 ## Checkpoint 0 — baseline before more experiments
 
 The member/source baseline was inspected before the new M-A build. The original dirty monolith worktree was preserved; no changes were made there.
