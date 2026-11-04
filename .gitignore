@@ -48,4 +48,3 @@ cp.txt
 /tmp/**/__pycache__/
 .git-worktrees/
 *.bak*
-

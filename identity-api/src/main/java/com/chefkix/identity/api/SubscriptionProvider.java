@@ -30,4 +30,3 @@ public interface SubscriptionProvider {
      */
     boolean hasFeature(String userId, String featureCode);
 }
-

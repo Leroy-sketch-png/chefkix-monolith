@@ -139,4 +139,3 @@ class SettingsServiceTest {
         verify(settingsRepository, never()).save(any());
     }
 }
-

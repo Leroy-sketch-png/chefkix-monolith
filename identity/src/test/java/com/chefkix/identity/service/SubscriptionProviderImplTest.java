@@ -58,4 +58,3 @@ class SubscriptionProviderImplTest {
         assertThat(subscriptionProvider.hasFeature(USER_ID, "INVALID")).isFalse();
     }
 }
-

@@ -28,4 +28,3 @@ public class SubscriptionProviderImpl implements SubscriptionProvider {
         return subscriptionService.hasFeature(userId, featureCode);
     }
 }
-

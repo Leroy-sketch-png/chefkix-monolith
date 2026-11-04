@@ -121,4 +121,3 @@ class AffiliateGroceryProviderTest {
     assertThat(match.confidence()).isEqualTo(0.8);
   }
 }
-

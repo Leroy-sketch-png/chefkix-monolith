@@ -21,4 +21,3 @@ public class AdvancedCreatorStatsResponse {
     private Double audienceRetentionRate;
     private Long totalSavesAcrossRecipes;
 }
-

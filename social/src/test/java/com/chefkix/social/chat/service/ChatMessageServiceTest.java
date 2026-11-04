@@ -26,7 +26,6 @@ import com.chefkix.social.chat.mapper.ChatMessageMapper;
 import com.chefkix.social.chat.repository.ChatMessageRepository;
 import com.chefkix.social.chat.repository.ConversationRepository;
 import com.chefkix.social.post.service.PostService;
-import com.chefkix.shared.exception.AppException;
 import com.chefkix.shared.exception.ErrorCode;
 import com.chefkix.shared.event.StoryReplyEvent;
 import com.chefkix.shared.exception.AppException;
