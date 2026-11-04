@@ -6,7 +6,7 @@
 
 Kaggle reports both `tnvtrung/recipe1msubs-train-only-ranker-t4` and `tnvtrung/recipe1msubs-ranker-t4-smoke-test` as `KernelWorkerStatus.COMPLETE`. Account search finds only those two Recipe1MSubs kernels; no owned GISMo preprocessing kernel or Recipe1M dataset was found.
 
-The current private dataset `tnvtrung/chkix` reports license `unknown` and exactly these current-version files:
+The current private dataset `tnvtrung/chkix` is Kaggle dataset ID `12858487`, reports `isPrivate: true` and license `unknown`, and contains exactly these current-version files:
 
 | Remote file | Bytes | Created on Kaggle |
 | --- | ---: | --- |
@@ -28,4 +28,6 @@ The remote synthetic smoke kernel's model SHA-256 `c90b9f7269f86ac1d9f8f9a5690d7
 
 This verifies that historical Kaggle training completed and that the remote train-only output matches its local copy. It is development/training evidence only. It is not the C2 paid Batch output, a C3 export, M-D matched-arm output, a test claim, or Lead acceptance. The remote dataset contains only the three Recipe1MSubs pickle files; it does not contain the missing GISMo preprocessed split caches or the 971-profile FooDB reference.
 
-The user's Kaggle authorization covers the agent's account operations. The source audit still records the private Kaggle dataset license as `unknown`; the existing rights-holder terms review does not establish transfer rights for these three files. Lead/Human must resolve whether the 2026-10-26 upload and retention were authorized under the applicable source terms before Member makes any further source upload. Kaggle use alone does not grant those source rights.
+The private Kaggle dataset license field remains `unknown`. The user later provided a separate authorization for Recipe1M-related processing/transfer on private Kaggle only; that authorization is recorded in [`member-user-recipe1m-private-kaggle-authorization-20261104.md`](member-user-recipe1m-private-kaggle-authorization-20261104.md). It covers this operation scope as user/Human authorization, without changing third-party license metadata or authorizing an external API, public release, redistribution, or product use. No new upload was made as part of the audit.
+
+After that authorization, read-only metadata inspection independently confirmed `isPrivate: true` for `tnvtrung/chkix` (dataset ID `12858487`). Public Kaggle searches for `preprocessed_flavorgraph_substitutions_fixed_3` and “GISMo Recipe1M cache” found no dataset; the exact-title kernel search returned no result. This confirms that the missing historical GISMo cache was not available through those public Kaggle searches. The local replay already reproduces the documented 1,044/230/220 positional length gaps, so uploading the same metadata to repeat that replay would not resolve M-B; no redundant upload or job was started.
