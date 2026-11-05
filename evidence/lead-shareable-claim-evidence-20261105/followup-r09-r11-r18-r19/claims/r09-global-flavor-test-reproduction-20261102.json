@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "record_id": "r09-global-flavor-test-reproduction-20261102",
+  "claim_id": "R09",
+  "claim_text": "Global flavor test not above null",
+  "report_file": "chefkix-fe/public/data/flavor_pairing_report.json",
+  "report_sha256": "d8184a5e9b2b82131b698f2308f5ac256837ba54e64a2423410c129263095b04",
+  "corpus_rows": 2231142,
+  "eligible_recipes": 1905776,
+  "distinct_profiles": 372,
+  "observed_mean_jaccard": 0.5459900765725983,
+  "matched_null_mean_jaccard": 0.5277329267016719,
+  "one_sided_permutation_p": 0.23809523809523808,
+  "alpha": 0.05,
+  "primary_hypothesis_supported": false,
+  "status": "PASS",
+  "reproduced_value": "2,231,142 corpus rows; 1,905,776 eligible recipes (85.417%); 372 FooDB profiles; observed Jaccard 0.545990 vs null 0.527733; p=0.238095 > alpha 0.05; primary_hypothesis_supported: false."
+}

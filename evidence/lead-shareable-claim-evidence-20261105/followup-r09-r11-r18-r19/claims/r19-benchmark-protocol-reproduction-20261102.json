@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "record_id": "r19-benchmark-protocol-reproduction-20261102",
+  "claim_id": "R19",
+  "claim_text": "Frozen 208-case/13-group protocol",
+  "protocol_file": "chefkix-ai-service/models/allergen_benchmark_protocol_v2.json",
+  "protocol_sha256": "0e97c829cccfd6b43bf1dd974db9ae54dd9b561d037ebbca18eb4fbd2bc14fc9",
+  "n_queries": 208,
+  "n_groups": 13,
+  "groups": [
+    "tree_nuts",
+    "peanuts",
+    "milk",
+    "eggs",
+    "wheat",
+    "fish",
+    "shellfish",
+    "soybeans",
+    "sesame",
+    "mustard",
+    "celery",
+    "sulphites",
+    "lupin"
+  ],
+  "group_occurrences": {
+    "celery": 14,
+    "eggs": 19,
+    "fish": 18,
+    "lupin": 13,
+    "milk": 19,
+    "mustard": 18,
+    "peanuts": 20,
+    "sesame": 20,
+    "shellfish": 19,
+    "soybeans": 18,
+    "sulphites": 15,
+    "tree_nuts": 19,
+    "wheat": 19
+  },
+  "missing_fields_count": 0,
+  "status": "PASS",
+  "reproduced_value": "208 queries; 13 groups: celery (14), eggs (19), fish (18), lupin (13), milk (19), mustard (18), peanuts (20), sesame (20), shellfish (19), soybeans (18), sulphites (15), tree_nuts (19), wheat (19); 0 missing fields; SHA-256 0e97c829cccfd6b43bf1dd974db9ae54dd9b561d037ebbca18eb4fbd2bc14fc9."
+}
