@@ -14,6 +14,7 @@ import importlib.util
 import json
 import os
 import re
+import argparse
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -156,8 +157,48 @@ def _case_counts(cases: list[dict[str, Any]]) -> dict[str, int]:
             "retained_preparation_errors": errors}
 
 
+def _validate_distinct_artifact_paths(*, root: Path, package_dir: Path, cases_path: Path,
+                                      events_path: Path, receipt_path: Path,
+                                      output_path: Path, error_path: Path,
+                                      ingestion_receipt_path: Path | None = None) -> None:
+    """Keep every input, WAL/lock, and receipt destination physically distinct."""
+    paths = {
+        "package manifest": package_dir / "manifest.json",
+        "package requests": package_dir / "batch_requests.jsonl",
+        "package mapping": package_dir / "local_only_mapping.jsonl",
+        "cases": cases_path, "journal": events_path, "provider receipt": receipt_path,
+        "output": output_path, "error": error_path,
+        "journal lock": events_path.with_name(events_path.name + ".lock"),
+        "T219 source": root / "tools/research/c2/ai/tools/c2_attempt_resume.py",
+        "T253 source": root / "tools/research/c2/ai/tools/build_senath_c2_batch_transport_candidate.py",
+    }
+    if ingestion_receipt_path is not None:
+        paths["ingestion receipt"] = ingestion_receipt_path
+        paths["ingestion receipt lock"] = ingestion_receipt_path.with_name(
+            ingestion_receipt_path.name + ".lock")
+    entries = list(paths.items())
+    try:
+        resolved = {name: path.resolve(strict=False) for name, path in entries}
+        for index, (left_name, left_path) in enumerate(entries):
+            for right_name, right_path in entries[index + 1:]:
+                if resolved[left_name] == resolved[right_name]:
+                    raise ReconcileError("local artifact and receipt paths must be distinct")
+                if left_path.exists() and right_path.exists() and os.path.samefile(left_path, right_path):
+                    raise ReconcileError("local artifact and receipt paths must be distinct")
+    except ReconcileError:
+        raise
+    except OSError:
+        raise ReconcileError("local artifact path identity is ambiguous; stop") from None
+
+
 def _receipt_bytes(record: dict[str, Any]) -> bytes:
     return canonical(record) + b"\n"
+
+
+def _ingestion_receipt_path(events_path: Path, bundle_sha256: str) -> Path:
+    if not SHA256_RE.fullmatch(bundle_sha256 or ""):
+        raise ReconcileError("saved bundle digest invalid")
+    return events_path.with_name(f"{events_path.name}.saved-{bundle_sha256[:24]}.ingestion.json")
 
 
 def _read_ingestion_receipt(path: Path) -> tuple[dict[str, Any], bytes] | None:
@@ -318,6 +359,9 @@ def reconcile_saved_bundle(*, root: Path, package_dir: Path, cases_path: Path,
                            expected_case_inventory_sha256: str,
                            expected_journal_sha256: str) -> dict[str, Any]:
     """Validate a saved bundle against prior intents; no mutation or network."""
+    _validate_distinct_artifact_paths(
+        root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+        receipt_path=receipt_path, output_path=output_path, error_path=error_path)
     _verify_dependencies(root)
     t219 = _load_verified_module(root, "tools/research/c2/ai/tools/c2_attempt_resume.py", T219_SHA256,
                                  "c2_replacement_t219")
@@ -461,59 +505,55 @@ def reconcile_saved_bundle(*, root: Path, package_dir: Path, cases_path: Path,
             "provider_called": False, "retry_authorized": False}
 
 
-def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
-                         package_manifest_sha256: str, case_inventory_sha256: str,
-                         expected_journal_sha256: str, validation: dict[str, Any],
-                         bundle_sha256: str, ingestion_receipt_path: Path,
-                         source_artifact_paths: list[Path]) -> dict[str, Any]:
-    """Append already-validated local result dispositions; uncertainty stops, never retries."""
-    if (validation.get("contract") != CONTRACT or validation.get("dispatch_authorized") is not False
-            or validation.get("retry_authorized") is not False or validation.get("bundle_sha256") != bundle_sha256
-            or validation.get("package_manifest_sha256") != package_manifest_sha256
-            or validation.get("case_inventory_sha256") != case_inventory_sha256
-            or validation.get("journal_sha256") != expected_journal_sha256):
-        raise ReconcileError("validation receipt is not from this offline contract")
-    if not SHA256_RE.fullmatch(bundle_sha256 or ""):
-        raise ReconcileError("saved bundle digest invalid")
+def append_result_events(*, root: Path, package_dir: Path, cases_path: Path, events_path: Path,
+                         receipt_path: Path, output_path: Path, error_path: Path,
+                         expected_batch_id: str, case_inventory_sha256: str,
+                         expected_journal_sha256: str) -> dict[str, Any]:
+    """Revalidate saved files, then append their exact result delta; no caller-supplied parse is trusted."""
+    validation = reconcile_saved_bundle(
+        root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+        receipt_path=receipt_path, output_path=output_path, error_path=error_path,
+        expected_batch_id=expected_batch_id,
+        expected_case_inventory_sha256=case_inventory_sha256,
+        expected_journal_sha256=expected_journal_sha256)
+    if (validation["denominator"] != FROZEN_COUNTS["denominator_cases"]
+            or validation["ready"] != FROZEN_COUNTS["ready_requests"]
+            or validation["preparation_errors"] != FROZEN_COUNTS["retained_preparation_errors"]
+            or validation["result_count"] != FROZEN_COUNTS["ready_requests"]):
+        raise ReconcileError("validated bundle does not preserve the frozen denominator")
+
     t219 = _load_verified_module(root, "tools/research/c2/ai/tools/c2_attempt_resume.py", T219_SHA256,
                                  "c2_replacement_t219_append")
-    events, raw = t219.read_jsonl(events_path) if events_path.exists() else ([], b"")
-    if sha256(raw) != expected_journal_sha256:
-        raise ReconcileError("journal changed; reconcile before continuing")
     cases, case_raw = t219.read_jsonl(cases_path)
-    if sha256(case_raw) != case_inventory_sha256:
-        raise ReconcileError("case inventory changed; preserve and stop")
-    cases_by_id = {row.get("case_id"): row for row in cases}
-    if len(cases_by_id) != len(cases):
-        raise ReconcileError("case inventory contains duplicate identities")
-    if (validation.get("denominator") != FROZEN_COUNTS["denominator_cases"]
-            or validation.get("ready") != FROZEN_COUNTS["ready_requests"]
-            or validation.get("preparation_errors") != FROZEN_COUNTS["retained_preparation_errors"]
-            or validation.get("result_count") != FROZEN_COUNTS["ready_requests"]
-            or len(validation.get("results", [])) != FROZEN_COUNTS["ready_requests"]):
-        raise ReconcileError("validation receipt does not preserve the frozen denominator")
+    ready_ids = {row["case_id"] for row in cases if row.get("disposition") == "READY"}
+    results = validation["results"]
+    result_ids = [row.get("case_id") for row in results]
+    if (len(result_ids) != FROZEN_COUNTS["ready_requests"]
+            or any(not isinstance(case_id, str) for case_id in result_ids)
+            or len(set(result_ids)) != len(result_ids) or set(result_ids) != ready_ids
+            or sha256(case_raw) != case_inventory_sha256):
+        raise ReconcileError("validated results are not a one-to-one READY case mapping")
+    for row in results:
+        if (row.get("event_type") == "RESPONSE_RECEIVED"
+                and set(row) == {"case_id", "event_type", "response_sha256"}
+                and SHA256_RE.fullmatch(row["response_sha256"])):
+            continue
+        if (row.get("event_type") == "TERMINAL_FAILURE"
+                and set(row) == {"case_id", "event_type", "failure_code"}
+                and row["failure_code"] in {"provider_error", "response_truncated", "response_invalid"}):
+            continue
+        raise ReconcileError("validated result disposition has an invalid schema")
+
+    bundle_sha256 = validation["bundle_sha256"]
+    package_manifest_sha256 = validation["package_manifest_sha256"]
+    ingestion_receipt_path = _ingestion_receipt_path(events_path, bundle_sha256)
     journal_lock = events_path.with_name(events_path.name + ".lock")
     receipt_lock = ingestion_receipt_path.with_name(ingestion_receipt_path.name + ".lock")
-    protected_paths = [cases_path, events_path, journal_lock, *source_artifact_paths]
-    if not source_artifact_paths:
-        raise ReconcileError("source artifact paths are required for non-destructive ingestion")
-    try:
-        if any(not path.is_file() for path in source_artifact_paths):
-            raise ReconcileError("a saved source artifact path is missing or not a file")
-        resolved = [path.resolve(strict=False) for path in protected_paths]
-        if (len({str(path).casefold() for path in resolved}) != len(resolved)
-                or ingestion_receipt_path.resolve(strict=False) in resolved
-                or receipt_lock.resolve(strict=False) in resolved):
-            raise ReconcileError("ingestion receipt or lock aliases a protected artifact")
-    except OSError:
-        raise ReconcileError("local artifact path identity is ambiguous; stop") from None
-    try:
-        if ingestion_receipt_path.exists() and any(os.path.samefile(ingestion_receipt_path, path)
-                for path in protected_paths if path.exists()):
-            raise ReconcileError("ingestion receipt path aliases a protected artifact")
-    except OSError:
-        raise ReconcileError("local artifact path identity is ambiguous; stop") from None
     with t219._cooperative_file_lock(receipt_lock):
+        _validate_distinct_artifact_paths(
+            root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+            receipt_path=receipt_path, output_path=output_path, error_path=error_path,
+            ingestion_receipt_path=ingestion_receipt_path)
         locked_events, locked_raw = t219.read_jsonl(events_path) if events_path.exists() else ([], b"")
         if sha256(locked_raw) != expected_journal_sha256:
             raise ReconcileError("journal changed while waiting for lock; refresh and stop")
@@ -522,11 +562,11 @@ def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
             "schema": CONTRACT, "bundle_sha256": bundle_sha256,
             "package_manifest_sha256": package_manifest_sha256,
             "case_inventory_sha256": case_inventory_sha256,
-            "result_count": len(validation["results"]),
+            "result_count": len(results),
         }
         if loaded is None:
-            prior_rows, _ = t219.read_jsonl(events_path) if events_path.exists() else ([], b"")
-            if any(isinstance(row.get("event_id"), str) and row["event_id"].startswith("saved:") for row in prior_rows):
+            if any(isinstance(row.get("event_id"), str) and row["event_id"].startswith("saved:")
+                   for row in locked_events):
                 raise ReconcileError("legacy partial saved-result events lack a bundle receipt; preserve and stop")
             started = {**expected_binding, "state": "STARTED",
                        "base_journal_sha256": expected_journal_sha256,
@@ -541,10 +581,11 @@ def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
         if receipt["state"] == "COMPLETE" and receipt["final_journal_sha256"] != expected_journal_sha256:
             raise ReconcileError("completed journal digest changed; preserve and stop")
 
+        cases_by_id = {row["case_id"]: row for row in cases}
         existing_by_id = {event.get("event_id"): event for event in locked_events}
         pending: list[dict[str, Any]] = []
         expected_ids: set[str] = set()
-        for result in validation["results"]:
+        for result in results:
             case_id = result["case_id"]
             event_id = "saved:" + bundle_sha256[:24] + ":" + sha256(case_id.encode("utf-8"))[:16]
             expected_ids.add(event_id)
@@ -552,7 +593,7 @@ def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
             if found is not None:
                 expected = {"event_id": event_id, "case_id": case_id,
                             "package_manifest_sha256": package_manifest_sha256,
-                            "request_body_sha256": cases_by_id.get(case_id, {}).get("request_body_sha256"),
+                            "request_body_sha256": cases_by_id[case_id].get("request_body_sha256"),
                             "event_type": result["event_type"]}
                 if result["event_type"] == "RESPONSE_RECEIVED":
                     expected["response_sha256"] = result["response_sha256"]
@@ -572,13 +613,11 @@ def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
             case_inventory_sha256=case_inventory_sha256,
             expected_journal_sha256=expected_journal_sha256,
             dispositions=pending)
-
         final_events, final_raw = t219.read_jsonl(events_path) if events_path.exists() else ([], b"")
         final_state = t219.reconcile_attempts(
             cases, final_events, package_manifest_sha256,
             expected_case_inventory_sha256=case_inventory_sha256,
-            event_ledger_sha256=sha256(final_raw),
-        )
+            event_ledger_sha256=sha256(final_raw))
         saved_prefix = "saved:" + bundle_sha256[:24] + ":"
         actual_ids = {event.get("event_id") for event in final_events
                       if isinstance(event.get("event_id"), str) and event["event_id"].startswith(saved_prefix)}
@@ -593,3 +632,71 @@ def append_result_events(*, root: Path, cases_path: Path, events_path: Path,
             _replace_receipt_cas(ingestion_receipt_path, old_receipt_raw, _receipt_bytes(complete))
     return {"contract": CONTRACT, "appended": appended, "journal_sha256": current,
             "dispatch_authorized": False, "provider_called": False, "retry_authorized": False}
+
+
+def run_saved_bundle(*, root: Path, package_dir: Path, cases_path: Path, events_path: Path,
+                     receipt_path: Path, output_path: Path, error_path: Path,
+                     expected_batch_id: str, case_inventory_sha256: str,
+                     expected_journal_sha256: str, apply: bool = False) -> dict[str, Any]:
+    """Runnable offline path: validate by default; append only with explicit apply=True."""
+    if apply:
+        result = append_result_events(
+            root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+            receipt_path=receipt_path, output_path=output_path, error_path=error_path,
+            expected_batch_id=expected_batch_id, case_inventory_sha256=case_inventory_sha256,
+            expected_journal_sha256=expected_journal_sha256)
+        return {"status": "INGESTED_OFFLINE", "contract": CONTRACT, **result}
+    validation = reconcile_saved_bundle(
+        root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+        receipt_path=receipt_path, output_path=output_path, error_path=error_path,
+        expected_batch_id=expected_batch_id,
+        expected_case_inventory_sha256=case_inventory_sha256,
+        expected_journal_sha256=expected_journal_sha256)
+    ingestion_receipt = _ingestion_receipt_path(events_path, validation["bundle_sha256"])
+    _validate_distinct_artifact_paths(
+        root=root, package_dir=package_dir, cases_path=cases_path, events_path=events_path,
+        receipt_path=receipt_path, output_path=output_path, error_path=error_path,
+        ingestion_receipt_path=ingestion_receipt)
+    return {"status": "VALIDATED_NO_WRITE", "contract": CONTRACT,
+            "bundle_sha256": validation["bundle_sha256"],
+            "denominator": validation["denominator"], "ready": validation["ready"],
+            "preparation_errors": validation["preparation_errors"],
+            "result_count": validation["result_count"],
+            "provider_called": False, "dispatch_authorized": False,
+            "retry_authorized": False}
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--package-dir", type=Path, required=True)
+    parser.add_argument("--cases", type=Path, required=True)
+    parser.add_argument("--events", type=Path, required=True)
+    parser.add_argument("--provider-receipt", type=Path, required=True)
+    parser.add_argument("--output-jsonl", type=Path, required=True)
+    parser.add_argument("--error-jsonl", type=Path, required=True)
+    parser.add_argument("--expected-batch-id", required=True)
+    parser.add_argument("--case-inventory-sha256", required=True)
+    parser.add_argument("--journal-sha256", required=True)
+    parser.add_argument("--apply-saved-results", action="store_true",
+                        help="explicitly append validated results to the local attempt journal")
+    args = parser.parse_args(argv)
+    try:
+        result = run_saved_bundle(
+            root=args.root, package_dir=args.package_dir, cases_path=args.cases,
+            events_path=args.events, receipt_path=args.provider_receipt,
+            output_path=args.output_jsonl, error_path=args.error_jsonl,
+            expected_batch_id=args.expected_batch_id,
+            case_inventory_sha256=args.case_inventory_sha256,
+            expected_journal_sha256=args.journal_sha256,
+            apply=args.apply_saved_results)
+    except (ReconcileError, OSError, ValueError, KeyError, TypeError):
+        print(json.dumps({"status": "BLOCKED", "reason": "offline preflight or reconciliation failed; do not retry"},
+                         sort_keys=True))
+        return 2
+    print(json.dumps(result, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

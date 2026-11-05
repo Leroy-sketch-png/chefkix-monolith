@@ -43,7 +43,19 @@ journal write stops without retry. The caller must pass every saved input path
 so the ingestion receipt cannot alias and overwrite evidence.
 
 The replacement depends only on the existing pinned T219 journal helper and
-T253 package validator. Its focused synthetic suite is:
+T253 package validator and is callable as an explicit offline phase of the
+existing `senath_c2_batch_transport.py` workflow. Select
+`--phase offline-saved-results-v2`; without `--apply-saved-results` it only
+validates, and with that explicit flag it appends to the existing local
+journal. This phase bypasses only the missing T222/T249/T246 historical
+contracts; every original phase still follows the original pin-loading path
+and fails closed when those exact sources are unavailable. It never sets the
+remote release pin or constructs an SDK client.
+
+The bundle receipt is automatically created beside the journal using the
+validated bundle digest in its filename. It is exclusive-create and can be
+resumed only for the same saved files. The focused synthetic suite exercises
+the existing driver's opt-in phase end-to-end:
 
 ```powershell
 $env:PYTHONDONTWRITEBYTECODE = '1'
@@ -51,11 +63,11 @@ python -m pytest -q -p no:cacheprovider `
   tools/research/c2/ai/tools/test_c2_saved_batch_reconcile_v2.py
 ```
 
-These tests establish local contract behavior only. The new module is not
-wired into T316's driver, does not replace the absent historical modules, and
-does not establish account, rights, cost, exposure, release, provider-output,
-or empirical acceptance gates. The three historical missing hashes remain
-listed unchanged in `SOURCE.json`.
+These tests establish local contract behavior only. The new module is wired
+only to the explicit offline phase, not remote phases; it does not replace the
+absent historical modules or establish account, rights, cost, exposure,
+release, real provider output, or empirical acceptance gates. The three historical missing
+hashes remain listed unchanged in `SOURCE.json`.
 
 ## Run the included offline tests
 
@@ -76,7 +88,7 @@ python -m pytest -q -p no:cacheprovider `
 ```
 
 The expected run in the authoring checkout including the versioned replacement
-is 153 passed and 21 subtests
+is 155 passed and 21 subtests
 passed. Tests use synthetic fixtures and local files; they do not load private
 case data or make network/provider calls.
 
@@ -91,12 +103,14 @@ Do not substitute newly authored lookalikes or change these digests:
 - T249 v2 journal `ai/tools/c2_attempt_journal_v2.py`, SHA-256 `5f894e1b2d50120781ef7aaad9bcfeb0fa70e976787586bca00367f83686b2ae`.
 - T246 response validator `ai/tools/validate_c2_openai_response.py`, SHA-256 `342dfc1f547bebb539267648c6b7dca6fd2f749d1f4e18e0b57e089d73f34656`.
 
-Observed integration boundary: the T316 suite has **43 setup failures** because
-its source-pinned T222 module is absent; test bodies do not run. T314 test
-collection stops before any tests because the T249 journal file is absent; the
-adapter also requires the pinned T246 parser. Restore those exact historical
-files (or a verified Git bundle containing them) before running the integration
-suites. M-I-2 remains partial; M-I/C2 remains
+Observed historical integration boundary: the original pin-dependent T316
+suite has **43 setup failures** because its source-pinned T222 module is
+absent; test bodies do not run. The new explicit offline-v2 phase has its own
+synthetic end-to-end coverage, but does not repair that historical suite.
+T314 test collection stops before any tests because the T249 journal file is
+absent; the adapter also requires the pinned T246 parser. Restore those exact
+historical files (or a verified Git bundle containing them) before running the
+original integration suites. M-I-2 remains partial; M-I/C2 remains
 blocked on the source pins and the independent Protocol v1 permission,
 account/capacity, cost/reserve, exposure, release, and attempt gates. The
 frozen denominator remains 10,747 = 10,499 READY + 248 preparation errors.

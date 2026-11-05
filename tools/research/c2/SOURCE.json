@@ -69,8 +69,13 @@
   ],
   "versioned_offline_replacement": {
     "contract": "C2_SAVED_BATCH_RECONCILE_V2",
-    "status": "local synthetic behavior only; not integrated with T316 and not empirical C2 acceptance",
+    "status": "explicit offline opt-in in T316; synthetic behavior only; not empirical C2 acceptance",
     "replaces_historical_bytes": false,
+    "historical_t316_before_extension": {
+      "repo_commit": "3e87102",
+      "path": "ai/tools/senath_c2_batch_transport.py",
+      "sha256_git_blob_contents": "afe358381fa95539c607996c37f1534d7a9e10b93fbd229f3d6179f732505c7c"
+    },
     "protocol_sha256": "b2952599099d4bd94e3a117b4711af829b84949a60004ce21c963721b6d5c12",
     "dependencies": {
       "T219": "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b",
@@ -79,12 +84,18 @@
     "artifacts": [
       {
         "path": "ai/tools/c2_saved_batch_reconcile_v2.py",
-        "sha256_git_blob_contents": "719aa9ef8df555ccbbc345c935105bc6b9a8d82f16a9ba79696dc7c5c24fc873"
+        "sha256_git_blob_contents": "1e8e7a7bcd6a77a53e6d94b9c2becd3d8d14028ced6657b6ab046929d847db0e",
+        "acceptance": "source-verifying public append entry point, strict fixed cohort, distinct verified evidence paths; synthetic only"
       },
       {
         "path": "ai/tools/test_c2_saved_batch_reconcile_v2.py",
-        "sha256_git_blob_contents": "de0cb5606cb08dac967d6df1931428ca153fabea73a433f8ff3020d04806f8d4",
-        "acceptance": "10 synthetic tests; no private data, network, provider, or spending"
+        "sha256_git_blob_contents": "1cf9bdd3f2b1661ed7a4b6630d75e39f998514840016ff29a54d5a102a8e201e",
+        "acceptance": "12 synthetic tests; package-to-journal path, fixed denominator, duplicate/uncertain refusal, pinned driver loader; no private data, network, provider, or spending"
+      },
+      {
+        "path": "ai/tools/senath_c2_batch_transport.py",
+        "sha256_git_blob_contents": "a7734c6f18697f0607c8522f3d5334323e7a056f68010307499c822aa4722afb",
+        "delta": "adds only the explicit offline-saved-results-v2 phase; historical/default phases and original T314/T316 dependency pins remain fail-closed"
       }
     ],
     "invariants": {
@@ -93,6 +104,7 @@
       "network_calls": 0,
       "dispatch_authorized": false,
       "retry_authorized": false,
+      "offline_driver_phase": true,
       "live_driver_integration": false
     }
   },
@@ -139,7 +151,7 @@
     "ai/tools/validate_c2_input_token_receipts.py": "b4eb636b70bad1e48a82f63488731e40f41ace89bd707fb3e60c22a0c911604c",
     "ai/tools/bridge_senath_saved_batch_results_to_journal.py": "392f9d082c65346dbf11b25772a129760329da0c9eb7f4f4562cab980d361c3a",
     "ai/tools/test_bridge_senath_saved_batch_results_to_journal.py": "25bb212196e553ccbcf488f026ffcaba2c56c60508d08a9c6e43b1e021a41fca",
-    "ai/tools/senath_c2_batch_transport.py": "afe358381fa95539c607996c37f1534d7a9e10b93fbd229f3d6179f732505c7c",
+    "ai/tools/senath_c2_batch_transport.py": "a7734c6f18697f0607c8522f3d5334323e7a056f68010307499c822aa4722afb",
     "ai/tools/test_senath_c2_batch_transport.py": "a807ef94e1c081e75c5b0b442a5d48d7d4868859178968919c413ca9d349312d"
   },
   "limits": {

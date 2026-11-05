@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 PROTOCOL_SHA256 = "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
+SAVED_RESULT_RECONCILER_V2_SHA256 = "1e8e7a7bcd6a77a53e6d94b9c2becd3d8d14028ced6657b6ab046929d847db0e"
 T253_SOURCE_SHA256 = "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac"
 T222_BRIDGE_SHA256 = "993f4718b138ebcfcf8a66d0a66b4a509d6b0bbd8a3af6d4b3ea3e20e7d58ac4"
 T219_SOURCE_SHA256 = "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b"
@@ -1621,8 +1622,44 @@ def _load_release(path: Path, facts: dict[str, Any], *, pin: str | None = None) 
     return validate_release(raw, facts, trusted_release_sha256=PINNED_LEAD_RELEASE_SHA256 if pin is None else pin)
 
 
+def _load_saved_result_reconciler_v2(root: Path):
+    path = root / "tools/research/c2/ai/tools/c2_saved_batch_reconcile_v2.py"
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        raise DriverError("versioned offline result reconciler unavailable") from None
+    if b"\r" in raw.replace(b"\r\n", b"") or hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest() != SAVED_RESULT_RECONCILER_V2_SHA256:
+        raise DriverError("versioned offline result reconciler digest mismatch")
+    spec = importlib.util.spec_from_file_location("senath_saved_result_reconciler_v2", path)
+    if spec is None or spec.loader is None:
+        raise DriverError("versioned offline result reconciler cannot load")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _run_cli(args: argparse.Namespace) -> int:
     root = args.root.resolve()
+    if args.phase == "offline-saved-results-v2":
+        if args.execute or args.release:
+            raise DriverError("offline saved-result phase rejects remote execution flags")
+        required = ("provider_receipt", "output_jsonl", "error_jsonl",
+                    "expected_batch_id", "case_inventory_sha256", "journal_sha256")
+        if any(getattr(args, name, None) is None for name in required):
+            raise DriverError("offline saved-result phase requires all local bundle paths and pins")
+        reconciler = _load_saved_result_reconciler_v2(root)
+        result = reconciler.run_saved_bundle(
+            root=root, package_dir=args.package_dir, cases_path=args.cases,
+            events_path=args.events, receipt_path=args.provider_receipt,
+            output_path=args.output_jsonl, error_path=args.error_jsonl,
+            expected_batch_id=args.expected_batch_id,
+            case_inventory_sha256=args.case_inventory_sha256,
+            expected_journal_sha256=args.journal_sha256,
+            apply=bool(getattr(args, "apply_saved_results", False)))
+        print(json.dumps(result, sort_keys=True))
+        return 0
+    if args.state is None:
+        raise DriverError("state path is required for historical transport phases")
     contracts = load_contracts(root)
     facts = validate_local_inputs(root, args.package_dir, args.cases, args.events, contracts)
     if args.phase == "validate":
@@ -1656,13 +1693,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--package-dir", type=Path, required=True)
     parser.add_argument("--cases", type=Path, required=True)
     parser.add_argument("--events", type=Path, required=True)
-    parser.add_argument("--state", type=Path, required=True)
+    parser.add_argument("--state", type=Path)
     parser.add_argument("--phase", choices=["validate", "upload", "submit", "status", "recover",
                                              "reconcile-upload", "reconcile-submit", "reconcile-recovery",
-                                             "reconcile-accounting"], required=True)
+                                             "reconcile-accounting", "offline-saved-results-v2"], required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--release", type=Path)
     parser.add_argument("--recovery-dir", type=Path)
+    parser.add_argument("--provider-receipt", type=Path)
+    parser.add_argument("--output-jsonl", type=Path)
+    parser.add_argument("--error-jsonl", type=Path)
+    parser.add_argument("--expected-batch-id")
+    parser.add_argument("--case-inventory-sha256")
+    parser.add_argument("--journal-sha256")
+    parser.add_argument("--apply-saved-results", action="store_true",
+                        help="explicitly mutate the local journal in offline-saved-results-v2 mode")
     args = parser.parse_args(argv)
     try:
         return _run_cli(args)
