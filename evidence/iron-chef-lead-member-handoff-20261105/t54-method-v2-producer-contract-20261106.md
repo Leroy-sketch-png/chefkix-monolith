@@ -38,17 +38,18 @@ This is a 30/70 allocation over unique recipe groups, not an exact 30/70 case-ro
 
 ### 3. Rank and score semantics
 
-For each case, execute the frozen order **candidate pool → hard allergen filter → rank → truncate to M**. Primary `M=20`; `M=50` is the named GISMo sensitivity only. Rank scores are ordered by the frozen scorer; exact ties use ascending UTF-8 bytes of canonical candidate ID, and duplicate IDs refuse. Define the nonconformity score as the one-based rank of the first candidate satisfying the bound label contract within the filtered top-M list; if none satisfies it, the score is `+infinity`. Do not rank first and filter later, or change M after seeing results.
+For each case, execute the frozen order **candidate pool → hard allergen filter → rank → truncate to M**. Primary `M=20`; `M=50` is the named GISMo sensitivity only. Rank scores are ordered by the frozen scorer; exact ties use ascending UTF-8 bytes of canonical candidate ID, and duplicate IDs refuse. Define the nonconformity score as the one-based rank of the first candidate satisfying the bound label contract within the filtered top-M list; if none satisfies it, the calibration score is `+infinity`. Independently preserve the serving status required by Protocol v1: an empty filtered pool is `abstain`, not an operational failure. A nonempty filtered top-M list with no reference match is an ordinary valid no-match (`+infinity`) but is not the empty-pool abstention. Do not rank first and filter later, or change M after seeing results.
 
-The current typed rows need to distinguish three outcomes without semantic conflation:
+The current typed rows need to distinguish four outcomes without semantic conflation. For calibration, both valid no-match cases contribute `+infinity` and remain in the fixed denominator; for serving, the empty-pool row retains `abstain` while the nonempty no-match row is not relabeled as that abstention.
 
 | Typed row | Meaning | Conformal score | Denominator treatment |
 |---|---|---:|---|
 | `score = 1..M`, `failure=false`, no code | A candidate satisfies the exact bound label contract | That rank | Retained |
-| `score = "infinity"`, `failure=false`, no code | Valid computation; no candidate in filtered top-M satisfies the label contract | `+infinity` | Retained; not called an execution failure |
+| `score = "infinity"`, `failure=false`, `outcome_code=no_reference_match` | Valid computation and nonempty filtered top-M; no candidate satisfies the label contract | `+infinity` | Retained; not called an execution failure |
+| `score = "infinity"`, `failure=false`, `outcome_code=empty_filtered_pool` | Hard filter leaves no candidates; serving result is Protocol v1 `abstain` | `+infinity` | Retained; not called an execution failure |
 | `score = null`, `failure=true`, code `scoring_failure` or `method_failure` | Explicit operational/method failure under the adopted v2 taxonomy | `+infinity` | Retained and separately counted |
 
-Any other encoding, unknown failure code, missing record, duplicate, or malformed rank invalidates the receipt. The current `CalibrationScore` and bundle validator do not yet support the normal no-match `"infinity"` row distinctly from failure; M-I must extend the existing typed contract/serializer in place (a versioned schema evolution is acceptable), not create a parallel serializer. A missing or unresolved label is not silently mapped to `N`, failure, or a negative.
+Any other encoding, unknown outcome/failure code, missing record, duplicate, or malformed rank invalidates the receipt. The current `CalibrationScore` and bundle validator do not yet support the no-match `"infinity"` rows or preserve the empty-pool abstention outcome distinctly from failure; M-I must extend the existing typed contract/serializer in place (a versioned schema evolution is acceptable), not create a parallel serializer. A missing or unresolved label is not silently mapped to `N`, failure, or a negative.
 
 ### 4. Label/reference contract
 
@@ -74,8 +75,8 @@ The wire response must retain `graph_manifest_sha256` as graph identity and add 
 ### 6. M-I implementation acceptance (no empirical credit)
 
 1. Implement the split and cell projection from verified source bytes; reject duplicate/missing identities and prove output is invariant to source-row ordering while recipe groups never cross partitions.
-2. Extend the existing bundle path and typed producer to bind global and per-cell assignment provenance and the three distinct score encodings above. Preserve exact raw-file hashes and canonical-row digests as separate fields.
-3. Recompute status, `n`, `k=ceil((n+1)(1-alpha))`, `tHat`, and finite-only coverage from loader-verified rows; failures stay in the denominator, infinity is never covered even when `tHat` is infinite, and invalid binding returns `no_guarantee` with null `tHat`.
+2. Extend the existing bundle path and typed producer to bind global and per-cell assignment provenance and all four typed outcome rows above. Preserve exact raw-file hashes and canonical-row digests as separate fields.
+3. Recompute status, `n`, `k=ceil((n+1)(1-alpha))`, `tHat`, and finite-only coverage from loader-verified rows; failures and both valid infinity outcomes stay in the denominator, infinity is never covered even when `tHat` is infinite, an empty filtered pool remains a per-request `abstain`, and invalid binding returns `no_guarantee` with null `tHat`.
 4. Independently verify role-byte bindings and response provenance. Keep route default-off and fail closed until real accepted graph/filter/ranker/scorer/label inputs and runtime gates pass.
 5. Use synthetic independent fixtures for code acceptance; no fixture, test count, historical T51 number, or source-free receipt is a real calibration result or C3 acceptance.
 
