@@ -1,0 +1,164 @@
+{
+  "artifact_type": "positive_food_allergen_source_evidence_seed",
+  "artifact_version": 1,
+  "created_utc": "2026-11-05T02:51:44Z",
+  "status": "EXPLORATORY_SOURCE_EVIDENCE_ONLY_NOT_A_SAFETY_CLASSIFIER",
+  "sources": {
+    "who_iuis_allergen_nomenclature": {
+      "download_page": "https://www.allergen.org/downloads.php",
+      "table_page": "https://www.allergen.org/downloadtable.php?table=allergen",
+      "authority_page": "https://www.allergen.org/",
+      "retrieved_utc": "2026-11-05",
+      "source_bytes_acquired": false,
+      "source_sha256": null,
+      "terms_observed": "The official download page says the database is free to download and requests citation of the database URL and a recent official WHO/IUIS publication. No blanket redistribution license was established from the inspected page.",
+      "access_note": "The official HTML table was inspected through the web research connector. Direct HTTP requests to the CSV/HTML download endpoints from the local execution environment returned 403; no source file was downloaded or bypassed."
+    },
+    "fda_major_food_allergen_categories": {
+      "url": "https://www.fda.gov/food/nutrition-food-labeling-and-critical-foods/food-allergies",
+      "retrieved_utc": "2026-11-05",
+      "scope": "US major-allergen labeling categories only; not a complete ingredient-to-allergen database or a clinical safety rule."
+    }
+  },
+  "interpretation": {
+    "row_meaning": "One WHO/IUIS-named allergen protein and its recorded source taxon, with route recorded as Food. This is positive source/protein evidence for the named record only.",
+    "not_established": [
+      "that every ingredient, cultivar, plant part, derivative, oil, extract, or processed form from that taxon contains the protein",
+      "absence of an allergen in an ingredient or finished recipe",
+      "cross-contact status, dose, individual clinical significance, or safety for any person",
+      "coverage of every species within a broad FDA category (for example, fish or tree nuts)",
+      "a validated synonym or recipe-ingredient identity join"
+    ],
+    "safe_negative_policy": "No row, missing record, or missing relationship must never be interpreted as allergen-free or safe.",
+    "clinical_significance_policy": "WHO/IUIS says its nomenclature committee requires minimum evidence of IgE binding to the proposed allergen using sera from people allergic to the source, but inclusion is not a judgement of clinical significance."
+  },
+  "records": [
+    {
+      "fda_category_example_only": "peanuts",
+      "source_taxon": "Arachis hypogaea",
+      "ncbi_taxonomy_id": 3818,
+      "source_common_name": "peanut, groundnut",
+      "who_iuis_record_id": 78,
+      "allergen_name": "Ara h 2",
+      "biochemical_name": "Conglutin (2S albumin)",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2020-05-14",
+      "record_evidence_summary": "The page reports IgE binding to Ara h 2 among tested peanut-allergic patients (34/40 by immunoblot; 6/6 in an ELISA statement). These are the cited study samples, not prevalence estimates.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=78",
+      "references_as_listed": ["10474031", "918645", "12759484"]
+    },
+    {
+      "fda_category_example_only": "milk",
+      "source_taxon": "Bos domesticus (Bos taurus)",
+      "ncbi_taxonomy_id": 9913,
+      "source_common_name": "domestic cattle",
+      "who_iuis_record_id": 166,
+      "allergen_name": "Bos d 8",
+      "biochemical_name": "Caseins",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-07-19",
+      "record_evidence_summary": "The page reports IgE binding to Bos d 8 in 58/92 milk-allergic children in an enzyme immunoassay. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=166",
+      "references_as_listed": ["9531166"]
+    },
+    {
+      "fda_category_example_only": "eggs",
+      "source_taxon": "Gallus domesticus (G. gallus)",
+      "ncbi_taxonomy_id": 9031,
+      "source_common_name": "chicken",
+      "who_iuis_record_id": 335,
+      "allergen_name": "Gal d 1",
+      "biochemical_name": "Ovomucoid",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-08-27",
+      "record_evidence_summary": "The page reports IgE binding to purified ovomucoid in 32/33 patients allergic to egg white by RAST. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=335",
+      "references_as_listed": ["6601671"]
+    },
+    {
+      "fda_category_example_only": "fish (cod exemplar only)",
+      "source_taxon": "Gadus morhua",
+      "ncbi_taxonomy_id": 8049,
+      "source_common_name": "Atlantic cod",
+      "who_iuis_record_id": 708,
+      "allergen_name": "Gad m 1",
+      "biochemical_name": "Beta-parvalbumin",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-08-27",
+      "record_evidence_summary": "The page reports IgE binding to Gad m 1 for sera from 12/12 tested cod-allergic patients in ELISA and 5/5 in immunoblot. These are cited study samples, not prevalence estimates.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=708",
+      "references_as_listed": ["12431393"]
+    },
+    {
+      "fda_category_example_only": "crustacean shellfish (shrimp exemplar only)",
+      "source_taxon": "Penaeus monodon",
+      "ncbi_taxonomy_id": 6687,
+      "source_common_name": "black tiger shrimp",
+      "who_iuis_record_id": 490,
+      "allergen_name": "Pen m 1",
+      "biochemical_name": "Tropomyosin",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-09-05",
+      "record_evidence_summary": "The page reports IgE reaction to natural Pen m 1 in 11/16 shrimp-allergic patients by immunoblot. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=490",
+      "references_as_listed": ["24420734"]
+    },
+    {
+      "fda_category_example_only": "tree nuts (English walnut exemplar only)",
+      "source_taxon": "Juglans regia",
+      "ncbi_taxonomy_id": 51240,
+      "source_common_name": "English walnut",
+      "who_iuis_record_id": 388,
+      "allergen_name": "Jug r 1",
+      "biochemical_name": "2S albumin seed storage protein",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-08-28",
+      "record_evidence_summary": "The page reports IgE binding to recombinant Jug r 1 in 12/16 patients with systemic walnut-allergic reactions. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=388",
+      "references_as_listed": ["9648708"]
+    },
+    {
+      "fda_category_example_only": "wheat",
+      "source_taxon": "Triticum aestivum",
+      "ncbi_taxonomy_id": 4565,
+      "source_common_name": "wheat",
+      "who_iuis_record_id": 620,
+      "allergen_name": "Tri a 19",
+      "biochemical_name": "Omega-5 gliadin",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2023-09-19",
+      "record_evidence_summary": "The page reports IgE antibodies to purified Tri a 19 in 27/27 patients with wheat-dependent exercise-induced anaphylaxis. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=620",
+      "references_as_listed": ["12534555"]
+    },
+    {
+      "fda_category_example_only": "soybeans",
+      "source_taxon": "Glycine max",
+      "ncbi_taxonomy_id": 3847,
+      "source_common_name": "soybean",
+      "who_iuis_record_id": 347,
+      "allergen_name": "Gly m 6",
+      "biochemical_name": "Glycinin (legumin, 11S globulin)",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2019-08-27",
+      "record_evidence_summary": null,
+      "evidence_note": "No allergenicity summary was displayed on the inspected individual record page; do not infer a study result from this null field.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=347",
+      "references_as_listed": []
+    },
+    {
+      "fda_category_example_only": "sesame",
+      "source_taxon": "Sesamum indicum",
+      "ncbi_taxonomy_id": 4182,
+      "source_common_name": "sesame",
+      "who_iuis_record_id": 585,
+      "allergen_name": "Ses i 1",
+      "biochemical_name": "2S albumin",
+      "route_of_exposure": "Food",
+      "who_iuis_record_last_updated": "2018-08-01",
+      "record_evidence_summary": "The page reports IgE binding to sesame antigens in all 10 tested sesame-allergic patients and identifies Ses i 1 as the major 9 kDa protein. This is the cited study sample, not a population estimate.",
+      "record_url": "https://www.allergen.org/viewallergen.php?aid=585",
+      "references_as_listed": ["11419730"]
+    }
+  ]
+}
