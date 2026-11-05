@@ -32,7 +32,11 @@ def test_response_validation_returns_only_digest_and_fixed_top20_disposition():
 def test_t316_offline_phase_loads_only_the_hash_pinned_v2_reconciler():
     loaded = driver._load_saved_result_reconciler_v2(ROOT)
     assert loaded.CONTRACT == v2.CONTRACT
-    assert loaded.PROTOCOL_SHA256 == v2.PROTOCOL_SHA256
+    t253 = driver._load_pinned(
+        "t253", ROOT / "tools/research/c2/ai/tools/build_senath_c2_batch_transport_candidate.py",
+        driver.T253_SOURCE_SHA256,
+    )
+    assert loaded.PROTOCOL_SHA256 == driver.PROTOCOL_SHA256 == t253.PROTOCOL_SHA256
 
 
 @pytest.mark.parametrize("body,code", [

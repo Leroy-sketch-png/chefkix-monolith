@@ -69,6 +69,46 @@ absent historical modules or establish account, rights, cost, exposure,
 release, real provider output, or empirical acceptance gates. The three historical missing
 hashes remain listed unchanged in `SOURCE.json`.
 
+During the next offline-ledger integration, a stale Protocol v1 digest in the
+v2 source constant was found: its prior synthetic fixtures agreed with the
+stale value but not the frozen file/T253 contract. The constant and source
+manifest are corrected to the frozen SHA-256 above, and a regression now
+compares the reconciler, driver and T253 protocol pins. Protocol bytes and
+scientific decisions are unchanged.
+
+## Versioned offline attempt-ledger preparation (local only)
+
+`ai/tools/c2_offline_attempt_ledger_v1.py` adds an explicit
+`offline-attempt-ledger-v1` preparation/validation phase to the existing T316
+driver. It binds T253's verified local Batch candidate package to T208's
+complete disposition order and T219's pinned case schema, producing a
+10,747-row case inventory and an **empty** attempt journal. The initial states
+are 10,499 `NOT_STARTED` and 248 retained `PREPARATION_ERROR` cases. It does
+not create intent/submission events, select a cohort, contact a provider,
+dispatch, or change any historical T222/T249/T246 source pin. This is a new
+versioned preparation contract, not recovered historical code and not
+Protocol v1 execution readiness or empirical C2 acceptance.
+
+Prepare and then validate into a new local directory separate from all input
+directories (replace the example paths with the operator's actual paths):
+
+```powershell
+python tools/research/c2/ai/tools/senath_c2_batch_transport.py `
+  --root . --package-dir <validated-T253-package> `
+  --phase offline-attempt-ledger-v1 --ledger-action prepare `
+  --ledger-dir <new-local-ledger-directory>
+python tools/research/c2/ai/tools/senath_c2_batch_transport.py `
+  --root . --package-dir <same-validated-T253-package> `
+  --phase offline-attempt-ledger-v1 --ledger-action validate `
+  --ledger-dir <same-local-ledger-directory>
+```
+
+The validator re-derives expected outputs from pinned inputs, verifies the
+ledger's exact file inventory and hashes, and refuses symlink/overlapping
+input-output paths or changed bytes. Windows CRLF checkouts are hashed and
+loaded as normalized LF source, matching the pinned Git blob without modifying
+the checkout. These tests establish local synthetic behavior only.
+
 ## Run the included offline tests
 
 From the repository root, with Python 3.10+ and pytest installed:
@@ -84,11 +124,12 @@ python -m pytest -q -p no:cacheprovider `
   tools/research/c2/ai/tools/test_build_c2_input_token_count_package.py `
   tools/research/c2/ai/tools/test_validate_c2_input_token_receipts.py `
   tools/research/c2/ai/tools/test_preflight_c2_with_token_receipts.py `
-  tools/research/c2/ai/tools/test_c2_saved_batch_reconcile_v2.py
+  tools/research/c2/ai/tools/test_c2_saved_batch_reconcile_v2.py `
+  tools/research/c2/ai/tools/test_c2_offline_attempt_ledger_v1.py
 ```
 
 The expected run in the authoring checkout including the versioned replacement
-is 155 passed and 21 subtests
+is 161 passed and 21 subtests
 passed. Tests use synthetic fixtures and local files; they do not load private
 case data or make network/provider calls.
 

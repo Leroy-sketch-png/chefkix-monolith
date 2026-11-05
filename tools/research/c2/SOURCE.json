@@ -76,7 +76,7 @@
       "path": "ai/tools/senath_c2_batch_transport.py",
       "sha256_git_blob_contents": "afe358381fa95539c607996c37f1534d7a9e10b93fbd229f3d6179f732505c7c"
     },
-    "protocol_sha256": "b2952599099d4bd94e3a117b4711af829b84949a60004ce21c963721b6d5c12",
+    "protocol_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
     "dependencies": {
       "T219": "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b",
       "T253": "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac"
@@ -84,18 +84,18 @@
     "artifacts": [
       {
         "path": "ai/tools/c2_saved_batch_reconcile_v2.py",
-        "sha256_git_blob_contents": "1e8e7a7bcd6a77a53e6d94b9c2becd3d8d14028ced6657b6ab046929d847db0e",
+        "sha256_git_blob_contents": "97c07940c8d9b41a34bcfbcfa6b78760ac50ee41da7ba540f1fe7143691d5169",
         "acceptance": "source-verifying public append entry point, strict fixed cohort, distinct verified evidence paths; synthetic only"
       },
       {
         "path": "ai/tools/test_c2_saved_batch_reconcile_v2.py",
-        "sha256_git_blob_contents": "1cf9bdd3f2b1661ed7a4b6630d75e39f998514840016ff29a54d5a102a8e201e",
-        "acceptance": "12 synthetic tests; package-to-journal path, fixed denominator, duplicate/uncertain refusal, pinned driver loader; no private data, network, provider, or spending"
+        "sha256_git_blob_contents": "32841803ca0ac66d2672f4a63ca0bfa9d5fcb853c8c214743fae6fc486a29a6d",
+        "acceptance": "12 synthetic tests; package-to-journal path, fixed denominator, duplicate/uncertain refusal, cross-contract protocol pin, pinned driver loader; no private data, network, provider, or spending"
       },
       {
         "path": "ai/tools/senath_c2_batch_transport.py",
-        "sha256_git_blob_contents": "a7734c6f18697f0607c8522f3d5334323e7a056f68010307499c822aa4722afb",
-        "delta": "adds only the explicit offline-saved-results-v2 phase; historical/default phases and original T314/T316 dependency pins remain fail-closed"
+        "sha256_git_blob_contents": "bc969464ea9b74e0acaa38965dab6cc73c76d582051db8d1284c8b4d858dd11b",
+        "delta": "adds explicit offline-saved-results-v2 and offline-attempt-ledger-v1 phases; normalizes pinned source line endings before digest/load; both remain offline-only and historical/default phases remain fail-closed"
       }
     ],
     "invariants": {
@@ -105,6 +105,36 @@
       "dispatch_authorized": false,
       "retry_authorized": false,
       "offline_driver_phase": true,
+      "live_driver_integration": false
+    }
+  },
+  "versioned_offline_attempt_ledger_v1": {
+    "contract": "C2_OFFLINE_ATTEMPT_LEDGER_V1",
+    "status": "explicit offline opt-in in T316; synthetic behavior only; not empirical C2 acceptance",
+    "protocol_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+    "dependencies": {
+      "T219": "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b",
+      "T253": "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac"
+    },
+    "artifacts": [
+      {
+        "path": "ai/tools/c2_offline_attempt_ledger_v1.py",
+        "sha256_git_blob_contents": "20a51bbfdc82f43cb1655657f8b02e7660cb1648f77de34610c40cb0f095e431",
+        "acceptance": "re-derives T208/T253 case inventory under pinned T219 schema; empty initial journal, fixed denominator, separate local output; synthetic only"
+      },
+      {
+        "path": "ai/tools/test_c2_offline_attempt_ledger_v1.py",
+        "sha256_git_blob_contents": "a6b1e03d3814cf00b8244c11942eeda4add44246de59c9ed589cad40b68298af",
+        "acceptance": "6 synthetic tests including end-to-end prepare/validate, fixed states, tamper/no-overwrite/path refusal and driver option guard; no provider/network/private data"
+      }
+    ],
+    "invariants": {
+      "denominator": "10,747 = 10,499 READY + 248 PREPARATION_ERROR",
+      "initial_attempt_events": 0,
+      "provider_calls": 0,
+      "network_calls": 0,
+      "dispatch_authorized": false,
+      "historical_T222_T249_T246_pins_changed": false,
       "live_driver_integration": false
     }
   },
@@ -151,7 +181,7 @@
     "ai/tools/validate_c2_input_token_receipts.py": "b4eb636b70bad1e48a82f63488731e40f41ace89bd707fb3e60c22a0c911604c",
     "ai/tools/bridge_senath_saved_batch_results_to_journal.py": "392f9d082c65346dbf11b25772a129760329da0c9eb7f4f4562cab980d361c3a",
     "ai/tools/test_bridge_senath_saved_batch_results_to_journal.py": "25bb212196e553ccbcf488f026ffcaba2c56c60508d08a9c6e43b1e021a41fca",
-    "ai/tools/senath_c2_batch_transport.py": "a7734c6f18697f0607c8522f3d5334323e7a056f68010307499c822aa4722afb",
+    "ai/tools/senath_c2_batch_transport.py": "bc969464ea9b74e0acaa38965dab6cc73c76d582051db8d1284c8b4d858dd11b",
     "ai/tools/test_senath_c2_batch_transport.py": "a807ef94e1c081e75c5b0b442a5d48d7d4868859178968919c413ca9d349312d"
   },
   "limits": {

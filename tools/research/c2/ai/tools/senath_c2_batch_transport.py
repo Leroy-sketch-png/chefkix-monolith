@@ -27,7 +27,8 @@ from pathlib import Path
 from typing import Any, Iterator
 
 PROTOCOL_SHA256 = "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
-SAVED_RESULT_RECONCILER_V2_SHA256 = "1e8e7a7bcd6a77a53e6d94b9c2becd3d8d14028ced6657b6ab046929d847db0e"
+SAVED_RESULT_RECONCILER_V2_SHA256 = "97c07940c8d9b41a34bcfbcfa6b78760ac50ee41da7ba540f1fe7143691d5169"
+OFFLINE_ATTEMPT_LEDGER_V1_SHA256 = "20a51bbfdc82f43cb1655657f8b02e7660cb1648f77de34610c40cb0f095e431"
 T253_SOURCE_SHA256 = "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac"
 T222_BRIDGE_SHA256 = "993f4718b138ebcfcf8a66d0a66b4a509d6b0bbd8a3af6d4b3ea3e20e7d58ac4"
 T219_SOURCE_SHA256 = "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b"
@@ -1638,13 +1639,47 @@ def _load_saved_result_reconciler_v2(root: Path):
     return module
 
 
+def _load_offline_attempt_ledger_v1(root: Path):
+    path = root / "tools/research/c2/ai/tools/c2_offline_attempt_ledger_v1.py"
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        raise DriverError("versioned offline attempt-ledger builder unavailable") from None
+    if b"\r" in raw.replace(b"\r\n", b""):
+        raise DriverError("versioned offline attempt-ledger source has noncanonical line endings")
+    source = raw.replace(b"\r\n", b"\n")
+    if hashlib.sha256(source).hexdigest() != OFFLINE_ATTEMPT_LEDGER_V1_SHA256:
+        raise DriverError("versioned offline attempt-ledger builder digest mismatch")
+    spec = importlib.util.spec_from_file_location("senath_offline_attempt_ledger_v1", path)
+    if spec is None or spec.loader is None:
+        raise DriverError("versioned offline attempt-ledger builder cannot load")
+    module = importlib.util.module_from_spec(spec)
+    exec(compile(source, str(path), "exec"), module.__dict__)
+    return module
+
+
 def _run_cli(args: argparse.Namespace) -> int:
     root = args.root.resolve()
+    if args.phase == "offline-attempt-ledger-v1":
+        if args.execute or args.release or args.apply_saved_results:
+            raise DriverError("offline attempt-ledger phase rejects execution and result-write flags")
+        unrelated_paths = ("cases", "events", "state", "recovery_dir", "provider_receipt",
+                           "output_jsonl", "error_jsonl", "expected_batch_id",
+                           "case_inventory_sha256", "journal_sha256")
+        if any(getattr(args, name, None) is not None for name in unrelated_paths):
+            raise DriverError("offline attempt-ledger phase accepts only its package and output paths")
+        if args.ledger_dir is None or args.ledger_action not in {"prepare", "validate"}:
+            raise DriverError("offline attempt-ledger phase requires an action and ledger directory")
+        builder = _load_offline_attempt_ledger_v1(root)
+        result = builder.run_action(root=root, package_dir=args.package_dir,
+                                    ledger_dir=args.ledger_dir, action=args.ledger_action)
+        print(json.dumps(result, sort_keys=True))
+        return 0
     if args.phase == "offline-saved-results-v2":
         if args.execute or args.release:
             raise DriverError("offline saved-result phase rejects remote execution flags")
         required = ("provider_receipt", "output_jsonl", "error_jsonl",
-                    "expected_batch_id", "case_inventory_sha256", "journal_sha256")
+                    "expected_batch_id", "case_inventory_sha256", "journal_sha256", "cases", "events")
         if any(getattr(args, name, None) is None for name in required):
             raise DriverError("offline saved-result phase requires all local bundle paths and pins")
         reconciler = _load_saved_result_reconciler_v2(root)
@@ -1658,6 +1693,8 @@ def _run_cli(args: argparse.Namespace) -> int:
             apply=bool(getattr(args, "apply_saved_results", False)))
         print(json.dumps(result, sort_keys=True))
         return 0
+    if args.cases is None or args.events is None:
+        raise DriverError("historical transport phases require case inventory and attempt journal paths")
     if args.state is None:
         raise DriverError("state path is required for historical transport phases")
     contracts = load_contracts(root)
@@ -1691,12 +1728,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--package-dir", type=Path, required=True)
-    parser.add_argument("--cases", type=Path, required=True)
-    parser.add_argument("--events", type=Path, required=True)
+    parser.add_argument("--cases", type=Path)
+    parser.add_argument("--events", type=Path)
     parser.add_argument("--state", type=Path)
     parser.add_argument("--phase", choices=["validate", "upload", "submit", "status", "recover",
                                              "reconcile-upload", "reconcile-submit", "reconcile-recovery",
-                                             "reconcile-accounting", "offline-saved-results-v2"], required=True)
+                                             "reconcile-accounting", "offline-saved-results-v2",
+                                             "offline-attempt-ledger-v1"], required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--release", type=Path)
     parser.add_argument("--recovery-dir", type=Path)
@@ -1708,6 +1746,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--journal-sha256")
     parser.add_argument("--apply-saved-results", action="store_true",
                         help="explicitly mutate the local journal in offline-saved-results-v2 mode")
+    parser.add_argument("--ledger-action", choices=["prepare", "validate"],
+                        help="offline attempt-ledger operation; required for offline-attempt-ledger-v1")
+    parser.add_argument("--ledger-dir", type=Path,
+                        help="exclusive local output directory for offline-attempt-ledger-v1")
     args = parser.parse_args(argv)
     try:
         return _run_cli(args)
