@@ -76,6 +76,36 @@ public class AIRestClient {
         }
     }
 
+    public Map<String, Object> getGraphCandidatePreview(String query, String root, int limit) {
+        log.debug("Calling AI service: GET /api/v1/graph/candidate-preview");
+        try {
+            AIServiceResponse<Map<String, Object>> wrapper = webClient.get()
+                    .uri(uriBuilder -> {
+                        var builder = uriBuilder.path("/api/v1/graph/candidate-preview").queryParam("limit", limit);
+                        if (StringUtils.hasText(query)) builder.queryParam("q", query.trim());
+                        if (StringUtils.hasText(root)) builder.queryParam("root", root.trim());
+                        return builder.build();
+                    })
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<AIServiceResponse<Map<String, Object>>>() {})
+                    .block();
+
+            if (wrapper == null || !wrapper.isSuccess() || wrapper.getData() == null) {
+                log.error("AI graph candidate preview returned null or unsuccessful response");
+                throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+            return wrapper.getData();
+        } catch (WebClientResponseException e) {
+            log.error("AI graph candidate preview HTTP error: {}", e.getStatusCode());
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("AI graph candidate preview failed ({})", e.getClass().getSimpleName());
+            throw new AppException(ErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
+    }
+
     public AIMetaResponse calculateMetas(AIMetaRequest request) {
         log.debug("Calling AI service: POST /api/v1/calculate_metas");
         try {
