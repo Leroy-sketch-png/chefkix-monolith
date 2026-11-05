@@ -18,6 +18,8 @@ These backlogs are shared through monolith origin/master. The data-free T535 too
 
 ## Member Work Packages
 
+The source-free lead/member protocol handoff is available at `evidence/iron-chef-lead-member-handoff-20261105/`; see its `README.md` and `SOURCE.json` for fetchable source pins and the nine-category inclusion/omission map. It does not transfer member-owned private artifacts or alter work ownership, status, acceptance or score. Existing member evidence remains preserved in place.
+
 | Owner | Remaining execution and LEAD parent | Existing evidence / remaining acceptance | Status and shared checklist |
 | --- | --- | --- | --- |
 | M-A | Graph artifact construction/validation; provenance, counts and coverage; serving-input packaging | Two byte-identical private candidate builds exist; independent T01 verifier traces all 49,044 edge-evidence rows to the pinned train split with 0 identity errors. Candidate remains unaccepted pending R38/T52 reconciliation; served-byte proof and accepted runtime artifact remain open | [`READY_FOR_LEAD`](evidence/member-backlog-checklist-20261104.md#m-a) |

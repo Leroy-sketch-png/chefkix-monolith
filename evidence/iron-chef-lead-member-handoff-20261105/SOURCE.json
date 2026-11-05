@@ -1,0 +1,55 @@
+{
+  "schema": "chefkix.iron-chef-lead-member-handoff.v1",
+  "created_date": "2026-11-05",
+  "destination_repository": "https://github.com/Leroy-sketch-png/chefkix-monolith",
+  "destination_default_branch": "master",
+  "source_workspace": {
+    "path": "D:/code/chefkix",
+    "commit": "eb5984d239bb1e28207277826f2ad68e0fada973",
+    "remote": null,
+    "warning": "Source paths are local provenance only and are not fetchable from this destination repository."
+  },
+  "included_files": [
+    {
+      "source_path": "research/protocols/IRON-CHEF-PROTOCOL-v1.md",
+      "source_file_commit": "d61933dbd95a112e0b791d3845bb0345f000fa16",
+      "destination_path": "protocol-v1.md",
+      "sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
+    },
+    {
+      "source_path": "ai/campaigns/iron-chef-outcome-push-20261021/tasks/T52-c5-acceptance-map.md",
+      "source_file_commit": "d04d9229f31933ccf2515a6793f64997c9b114c8",
+      "destination_path": "t52-c5-acceptance-map.md",
+      "sha256": "cfffe7bf94aa6b376b88f98cfb11d756fb750f9c811d280a751e66624864b208"
+    },
+    {
+      "source_path": "ai/tools/c4_llm_judge_contract.py",
+      "source_file_commit": "fbb20139ba84c1772abb9b99899821a4d7ec8bd1",
+      "destination_path": "c4_llm_judge_contract.py",
+      "sha256": "a823003838685d47ae851364faee25d8fe0c23cb6c31d4a96cdad3363dcd11de"
+    },
+    {
+      "source_path": "ai/tools/c4_llm_judge_runner.py",
+      "source_file_commit": "fbb20139ba84c1772abb9b99899821a4d7ec8bd1",
+      "destination_path": "c4_llm_judge_runner.py",
+      "sha256": "c28d4d8e17923024fcf6e7f9ddf7a471f69543dbd78170314a8b8255f5f9c6bf"
+    }
+  ],
+  "already_fetchable_files": [
+    {
+      "repository": "https://github.com/Leroy-sketch-png/chefkix-ai-service",
+      "default_branch": "main",
+      "commit": "2363b2ba2531d2db73dc68f349c731911916d2f9",
+      "source_path": "src/services/substitution_calibration_receipt_v2.py",
+      "sha256": "2496d130286f9547003adfe7f5a94267ba35f3f9101697f235848d19c567dd93"
+    },
+    {
+      "repository": "https://github.com/Leroy-sketch-png/chefkix-ai-service",
+      "default_branch": "main",
+      "commit": "2363b2ba2531d2db73dc68f349c731911916d2f9",
+      "source_path": "tests/test_substitution_calibration_receipt_v2.py",
+      "sha256": "1724714645406a844776c5a10aef8c2df9cf0a15a28342ff5ea1bde2fe5fcf9b"
+    }
+  ],
+  "scope": "Source-free transfer references only; no research rows, IDs, labels, generated results, credentials, runtime binaries, or personal notes."
+}
