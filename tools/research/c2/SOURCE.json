@@ -37,6 +37,60 @@
       "change": "synthetic missing-Git snapshot-fallback regression coverage"
     }
   ],
+  "recovered_accepted_sources": [
+    {
+      "path": "ai/tools/bridge_senath_saved_batch_results_to_journal.py",
+      "source_commit": "628eef34e2d1a71a2ac2bba7960178eed0be5b34",
+      "source_path": "ai/tools/bridge_senath_saved_batch_results_to_journal.py",
+      "sha256": "392f9d082c65346dbf11b25772a129760329da0c9eb7f4f4562cab980d361c3a",
+      "acceptance": "T475; local synthetic only"
+    },
+    {
+      "path": "ai/tools/test_bridge_senath_saved_batch_results_to_journal.py",
+      "source_commit": "628eef34e2d1a71a2ac2bba7960178eed0be5b34",
+      "source_path": "ai/tools/test_bridge_senath_saved_batch_results_to_journal.py",
+      "sha256": "25bb212196e553ccbcf488f026ffcaba2c56c60508d08a9c6e43b1e021a41fca",
+      "acceptance": "T475; synthetic tests; dependency sources absent here"
+    },
+    {
+      "path": "ai/tools/senath_c2_batch_transport.py",
+      "source_commit": "628eef34e2d1a71a2ac2bba7960178eed0be5b34",
+      "source_path": "ai/tools/senath_c2_batch_transport.py",
+      "sha256": "afe358381fa95539c607996c37f1534d7a9e10b93fbd229f3d6179f732505c7c",
+      "acceptance": "T316 plus subsequent offline accounting delta; release pin remains null"
+    },
+    {
+      "path": "ai/tools/test_senath_c2_batch_transport.py",
+      "source_commit": "d36a7ed8bb6a9e3fcea198af0be6642bfa68ef99",
+      "source_path": "ai/tools/test_senath_c2_batch_transport.py",
+      "sha256": "a807ef94e1c081e75c5b0b442a5d48d7d4868859178968919c413ca9d349312d",
+      "acceptance": "synthetic-only tests; blocked before test body by missing T222 pin"
+    }
+  ],
+  "unavailable_pinned_sources": [
+    {
+      "component": "T222 package-to-journal bridge",
+      "path": "ai/tools/bridge_c2_offline_package_to_attempt_journal.py",
+      "sha256": "993f4718b138ebcfcf8a66d0a66b4a509d6b0bbd8a3af6d4b3ea3e20e7d58ac4"
+    },
+    {
+      "component": "T249 v2 journal",
+      "path": "ai/tools/c2_attempt_journal_v2.py",
+      "sha256": "5f894e1b2d50120781ef7aaad9bcfeb0fa70e976787586bca00367f83686b2ae"
+    },
+    {
+      "component": "T246 Responses parser",
+      "path": "ai/tools/validate_c2_openai_response.py",
+      "sha256": "342dfc1f547bebb539267648c6b7dca6fd2f749d1f4e18e0b57e089d73f34656"
+    }
+  ],
+  "history_search": {
+    "root_reachable_python_blobs_checked": 653,
+    "shared_repo_reachable_python_blobs_checked": 30,
+    "root_git_tree_metadata_objects_checked": 3702,
+    "exact_missing_source_paths_found": false,
+    "matching_missing_pinned_sources_found": false
+  },
   "artifact_sha256_git_blob_contents": {
     "ai/tools/build_c2_input_token_count_package.py": "a14a0467aa07d4c38072e381fd9e7dcf0505d46b49db5fc8ebccef75a20c1c82",
     "ai/tools/build_senath_c2_batch_transport_candidate.py": "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac",
@@ -53,7 +107,11 @@
     "ai/tools/test_preflight_c2_openai_cost.py": "c26ed12e8a57f39a562fcbe5ebabb628b71bc10fb72067adbfc1104682b4f62e",
     "ai/tools/test_preflight_c2_with_token_receipts.py": "ff07d001f0a6650417cb8feeb987128e36bcb89bb45c300fa25334ac53ab2fda",
     "ai/tools/test_validate_c2_input_token_receipts.py": "dd3a9f7052811db25969e7da0f30b3f75f140b5ee392aaf31dc64948c1025b9a",
-    "ai/tools/validate_c2_input_token_receipts.py": "b4eb636b70bad1e48a82f63488731e40f41ace89bd707fb3e60c22a0c911604c"
+    "ai/tools/validate_c2_input_token_receipts.py": "b4eb636b70bad1e48a82f63488731e40f41ace89bd707fb3e60c22a0c911604c",
+    "ai/tools/bridge_senath_saved_batch_results_to_journal.py": "392f9d082c65346dbf11b25772a129760329da0c9eb7f4f4562cab980d361c3a",
+    "ai/tools/test_bridge_senath_saved_batch_results_to_journal.py": "25bb212196e553ccbcf488f026ffcaba2c56c60508d08a9c6e43b1e021a41fca",
+    "ai/tools/senath_c2_batch_transport.py": "afe358381fa95539c607996c37f1534d7a9e10b93fbd229f3d6179f732505c7c",
+    "ai/tools/test_senath_c2_batch_transport.py": "a807ef94e1c081e75c5b0b442a5d48d7d4868859178968919c413ca9d349312d"
   },
   "limits": {
     "network_calls": 0,

@@ -11,6 +11,9 @@ and it is not a release or dispatch authorization.
 - Local cost forecast and input-token receipt preparation/validation.
 - A JSONL Batch transport *candidate builder*. It writes files only; it does
   not upload, contact an API, or authorize execution.
+- The existing T316 default-off, phase-oriented transport driver and its
+  synthetic tests, plus the existing T314 saved-result-to-journal adapter and
+  tests. The driver release pin remains unset.
 - Attempt-resume utilities and synthetic regression tests for the included
   preparation components.
 - The frozen Protocol v1 bytes used by the included pin test.
@@ -46,24 +49,29 @@ The expected run in the authoring checkout is 143 passed and 21 subtests
 passed. Tests use synthetic fixtures and local files; they do not load private
 case data or make network/provider calls.
 
-## Explicitly not included / still missing for M-I-2
+## Exact pinned integration gap for M-I-2
 
-The shared checkout did not contain the following modules, and this subset does
-not fabricate replacements or claim the gated path is operational:
+The existing T314/T316 source is now shared with its original pins. Its pinned
+dependency chain still cannot run in this checkout because three exact source
+files are unavailable; the tracked-history scan found no matching source blob.
+Do not substitute newly authored lookalikes or change these digests:
 
-- `c2_attempt_journal_v2.py`;
-- `bridge_c2_offline_package_to_attempt_journal.py`;
-- `validate_c2_openai_response.py`;
-- the saved Batch-result-to-journal bridge and remote-state reconciliation
-  integration needed to preserve the frozen one-attempt/recovery contract.
+- T222 package/journal bridge `ai/tools/bridge_c2_offline_package_to_attempt_journal.py`, SHA-256 `993f4718b138ebcfcf8a66d0a66b4a509d6b0bbd8a3af6d4b3ea3e20e7d58ac4`.
+- T249 v2 journal `ai/tools/c2_attempt_journal_v2.py`, SHA-256 `5f894e1b2d50120781ef7aaad9bcfeb0fa70e976787586bca00367f83686b2ae`.
+- T246 response validator `ai/tools/validate_c2_openai_response.py`, SHA-256 `342dfc1f547bebb539267648c6b7dca6fd2f749d1f4e18e0b57e089d73f34656`.
 
-The transport/ingestion integration tests therefore cannot be collected from
-this subset. M-I-2 remains partial; M-I/C2 remains blocked on the existing
-protocol, permission, account/capacity, cost/reserve, exposure, release, and
-attempt gates. The frozen denominator remains 10,747 = 10,499 READY + 248
-preparation errors. Provider payload remains exactly the approved three
-fields. No provider call, upload, paid work, private data, credentials, or
-empirical C2 output is included or implied.
+Observed integration boundary: the T316 suite has **43 setup failures** because
+its source-pinned T222 module is absent; test bodies do not run. T314 test
+collection stops before any tests because the T249 journal file is absent; the
+adapter also requires the pinned T246 parser. Restore those exact historical
+files (or a verified Git bundle containing them) before running the integration
+suites. M-I-2 remains partial; M-I/C2 remains
+blocked on the source pins and the independent Protocol v1 permission,
+account/capacity, cost/reserve, exposure, release, and attempt gates. The
+frozen denominator remains 10,747 = 10,499 READY + 248 preparation errors.
+Provider payload remains exactly the approved three fields. No provider call,
+upload, paid work, private data, credentials, or empirical C2 output is
+included or implied.
 
 `SOURCE.json` records the copied source and bundled artifact hashes. Historical
 source paths identify provenance; the portable fallback changes are called out
