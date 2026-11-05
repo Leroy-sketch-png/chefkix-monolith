@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ public class GraphCandidatePreviewController {
     AIRestClient aiRestClient;
 
     @GetMapping("/candidate-preview")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Map<String, Object>> getGraphCandidatePreview(
             @RequestParam(required = false) @Size(max = 120) String q,
             @RequestParam(required = false) @Size(max = 120) String root,
