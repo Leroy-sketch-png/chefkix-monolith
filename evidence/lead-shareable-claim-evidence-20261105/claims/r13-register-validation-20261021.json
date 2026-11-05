@@ -1,0 +1,45 @@
+{
+  "schema": "chefkix.claim_evidence_application.v1",
+  "claim_id": "R13",
+  "state": "REVIEWED_NARROW_APPLICATION_AND_STRUCTURE_PASS",
+  "input_register": {
+    "path": "ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v6.csv",
+    "sha256": "5d0f80c4fd23b2d7debafc9e7977afc8c1de345d03eccd8cd39070b7567e6d51"
+  },
+  "application_record": {
+    "path": "ai/evidence/claims-register/r13-evidence-application-20261021.json",
+    "sha256": "195c98ec8fa519cb21340c6966ad2e0721a5f82b30a2cb8a7a0dea22d9362212"
+  },
+  "output_register": {
+    "path": "ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v7.csv",
+    "sha256": "ba62bebdcc084fd35876f70704e14edbe97844b02bcab24a9dbeccd1f8d2b712",
+    "row_count": 45,
+    "verified_narrow": 4,
+    "unverified": 41
+  },
+  "changed_rows": ["R13"],
+  "changed_columns": [
+    "Artifact_path", "SHA256", "Evidence_status", "Outcome", "Source_provenance",
+    "Notes", "L_item_mapping", "Citation", "Reproduction_path", "Reproduction_sha256",
+    "Reproduced_value"
+  ],
+  "unchanged_rows": 44,
+  "independent_review": {
+    "path": "ai/campaigns/iron-chef-outcome-push-20261021/tasks/T11-r13-reproduction-independent-review.md",
+    "sha256": "e06bd860191fb0989da22d96f1c54f580d6194de1fed6a9368553f27c78cee87",
+    "verdict": "PASS_NARROWLY",
+    "evidence_ceiling": "E2 local arithmetic reproduction only"
+  },
+  "structural_validation": {
+    "tool": "ai/tools/validate_claims_register.py",
+    "tool_sha256": "def34ceadd83721b10f16b61df7c2288fe856786cfa6f5f3de560314689e2f20",
+    "state": "STRUCTURE_AND_LOCAL_BYTES_PASS_NOT_CLAIM_VERIFICATION",
+    "focused_tests": "35 passed across pair-reproduction, evidence-application, and register-validator suites"
+  },
+  "limits": [
+    "R13 means unordered combinations with replacement, including 971 diagonal self-pairs; 470935 are distinct cross-profile pairs.",
+    "Arithmetic agreement does not establish paper-method equivalence, ingredient or food-form similarity, substitution usefulness, flavor, nutrition, safety, human outcomes, quality, or any C1-C5 acceptance.",
+    "The register validator confirms structure and local byte pins only; separate review T11 supplies the narrow claim adjudication.",
+    "The R13 current Lead/Member owner remains unresolved; L48 remains the reconciliation owner, and the pre-R13 mismatch-ledger v3 remains historical rather than current for R13."
+  ]
+}

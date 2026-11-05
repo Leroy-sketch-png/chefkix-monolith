@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "ID": "R13",
+  "Evidence_status": "VERIFIED",
+  "Outcome": "REPRODUCTION",
+  "Artifact_path": "ai/evidence/claims-register/r13-profile-pair-arithmetic-reproduction-20261021-v2.json",
+  "SHA256": "c63db935d919d5c87c3bbffe4aafb2a1ff476ef66a3a1d7a5db34d9c8d6482fa",
+  "Source_provenance": "HASH_PINNED_LOCAL_FOODB_1_0_PROFILE_ARTIFACT_AND_RUNTIME; independent review T11 rehashed all pins and independently recomputed pair/oracle arithmetic.",
+  "Last_checked": "2026-10-21",
+  "Notes": "Verified narrowly for shared-compound-name set and Jaccard arithmetic consistency over the exact 971-profile artifact. The 471,906 unordered combinations-with-replacement include 971 diagonal self-pairs; there are 470,935 distinct cross-profile pairs. All pairs matched the direct set-intersection oracle. Evidence ceiling E2 local reproduction. Does not establish paper-method equivalence, ingredient similarity, food-form/functional equivalence, substitution usefulness, flavor, nutrition, safety, human outcomes, model quality, or any C1-C5 acceptance. Local attributed noncommercial use only under the sidecar's CC BY-NC 4.0 statement; this is not rights clearance or redistribution authorization.",
+  "L_item_mapping": "M-A bounded source/artifact/runtime-truth scope; L37 only for fixed-file arithmetic metrics; L48 row-provenance reconciliation (LEAD v481).",
+  "Citation": "academic_vision_and_strategy.md §15.1 (R13); ai/evidence/claims-register/r13-profile-pair-arithmetic-reproduction-20261021-v2.md; ai/campaigns/iron-chef-outcome-push-20261021/tasks/T11-r13-reproduction-independent-review.md (SHA-256 e06bd860191fb0989da22d96f1c54f580d6194de1fed6a9368553f27c78cee87).",
+  "Reproduction_path": "ai/tools/reproduce_foodb_profile_pair_arithmetic.py",
+  "Reproduction_sha256": "bbf10b9f0f5aa3dfdf559fa61555973c90550c633673df56c337c5269bfa9006",
+  "Reproduced_value": "971 profiles; 471,906 unordered pairs with replacement including 971 diagonals; 470,935 distinct cross-profile pairs; 469,087 nonzero-shared-name and 2,819 zero-shared-name pairs; zero runtime/direct-oracle mismatches. Verified for arithmetic consistency only."
+}
