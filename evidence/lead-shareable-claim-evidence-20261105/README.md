@@ -25,3 +25,17 @@ The member crosswalk remains an accurate snapshot of the roots it checked. A lat
 | `tools/test_reproduce_foodb_service_inventory.py` | `b866fdc1a863049057a5f1d5507ec696fa95dc07613aa3ce6a25dd17e61b8d3e` |
 | `tools/reproduce_foodb_profile_pair_arithmetic.py` | `bbf10b9f0f5aa3dfdf559fa61555973c90550c633673df56c337c5269bfa9006` |
 | `tools/test_reproduce_foodb_profile_pair_arithmetic.py` | `f46ca34dd9e3f03d8b1d3de823d553f7e589e0e0524ed93a414e19dd1e7ae962` |
+| `claims/r41-reference-statistics-selftest-audit-20261104.json` | `a6f6a14a5f7427b9c25c72e1406563e9d01f0e68de833459a028fb438cbb367d` |
+| `tools/audit_ssot_appendix_a1.py` | `7695473f00ce77696b0ed9e1034d14cddb598426b4fadfaf214c105f3a563b9a` |
+| `tools/test_audit_ssot_appendix_a1.py` | `2f496965ddf0b425113b1fdbfee50d4152f88ef279b86b70869867e3ee3ee619` |
+| `reviews/T132-independent-r42-partial-status-review-report.md` | `96c9b0889fe66852f2d7a381c0cfede574efa684dd669202fce2018c4ea65425` |
+
+## Citation/source-path follow-up — 2026-11-05
+
+The Member citation/source-path CSV is preserved as its observation-time snapshot; it is not edited here. Its cited §15.1 claim-wording source is already available as [`claims/ssot-15-1-claim-wording-source.md`](claims/ssot-15-1-claim-wording-source.md), byte hash `2adebe9b039e26eaa9609b60fde5c40b5c9f2bfb1f3ec1e7ffff0d077925be6a`, pinned to source SSoT hash `a52601b7d6d8ebbbf86a6dd1dfbe85cfa51413ab4cea4be06d8b17f8144cc6b9`. That closes the exact wording-source path recorded by the CSV; it is not the entire active strategy. The current Lead file is a modified local working copy (SHA-256 `b5ad66201eeed44e201b471eb895aaaff0f6f3c2c774a1d1cdf978d6deacddce`) and is deliberately not copied wholesale or represented by the older excerpt.
+
+Two eligible authored/source-free gaps are now available at handoff-relative paths. The R41 Appendix A.1 audit tool, its synthetic test source, and its existing JSON receipt are under `tools/` and `claims/`; source code/tests are pinned to Lead commit `0c42206e6bdd08d42700e3846bffe73212d97cd7`. The receipt remains historical: it audited SSoT SHA-256 `51ce14610a0c2ed1259846d077c2d3d2eb83b4a92ea3e2304ef71ba2e129e1ef`, is a line-anchored text audit plus bounded diagnostic self-test, and does not validate protocol behavior or the current modified SSoT. No audit or tests were rerun for this handoff.
+
+The authored T132 R42 review is available at [`reviews/T132-independent-r42-partial-status-review-report.md`](reviews/T132-independent-r42-partial-status-review-report.md), source SHA-256 `96c9b0889fe66852f2d7a381c0cfede574efa684dd669202fce2018c4ea65425`, from Lead commit `d831804f36edc97a043d8ceb52c05e15ffdb735c`. Its cited publisher PDF hash is preserved in the report, but the PDF was absent at its cited Lead-local path during this follow-up and is not included; this is a historical review record, not a fresh source verification or status application. The report's embedded absolute paths remain provenance strings only; use the relative handoff path above to open the shared copy.
+
+Remaining path dispositions: the existing R04 T07 review/materials stay excluded under the recorded non-publication boundary; the R40 cross-source matrix and R11 dataset are not transferred; the R10/R39 generated outputs were not verified as safe authored-source dependencies; and `C5-G4-runtime-walkthrough.md` remains missing from the checked roots. No claim status, score, register, protocol, contribution acceptance, or milestone changed. See the L48 addendum in monolith `BACKLOG_LEAD.md` for the same dependency map.
