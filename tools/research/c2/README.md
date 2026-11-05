@@ -28,6 +28,35 @@ Protocol v1 is preserved byte-for-byte at
 `research/protocols/IRON-CHEF-PROTOCOL-v1.md` (SHA-256
 `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`).
 
+## Versioned saved-result replacement (offline only)
+
+`ai/tools/c2_saved_batch_reconcile_v2.py` is a newly authored, explicitly
+versioned offline replacement for the missing historical T222/T249/T246
+integration path. It does **not** claim those original source pins, alter the
+protocol, send requests, authorize dispatch, or grant empirical C2 credit.
+It validates already-saved package/result artifacts against the frozen
+10,747-case denominator, keeps all 248 preparation errors visible, converts
+each of the 10,499 saved outcomes into a sanitized terminal journal
+disposition, and binds resume to one exact saved bundle. A durable `STARTED`
+receipt permits only that same bundle to resume; a changed bundle or uncertain
+journal write stops without retry. The caller must pass every saved input path
+so the ingestion receipt cannot alias and overwrite evidence.
+
+The replacement depends only on the existing pinned T219 journal helper and
+T253 package validator. Its focused synthetic suite is:
+
+```powershell
+$env:PYTHONDONTWRITEBYTECODE = '1'
+python -m pytest -q -p no:cacheprovider `
+  tools/research/c2/ai/tools/test_c2_saved_batch_reconcile_v2.py
+```
+
+These tests establish local contract behavior only. The new module is not
+wired into T316's driver, does not replace the absent historical modules, and
+does not establish account, rights, cost, exposure, release, provider-output,
+or empirical acceptance gates. The three historical missing hashes remain
+listed unchanged in `SOURCE.json`.
+
 ## Run the included offline tests
 
 From the repository root, with Python 3.10+ and pytest installed:
@@ -42,10 +71,12 @@ python -m pytest -q -p no:cacheprovider `
   tools/research/c2/ai/tools/test_c2_attempt_resume.py `
   tools/research/c2/ai/tools/test_build_c2_input_token_count_package.py `
   tools/research/c2/ai/tools/test_validate_c2_input_token_receipts.py `
-  tools/research/c2/ai/tools/test_preflight_c2_with_token_receipts.py
+  tools/research/c2/ai/tools/test_preflight_c2_with_token_receipts.py `
+  tools/research/c2/ai/tools/test_c2_saved_batch_reconcile_v2.py
 ```
 
-The expected run in the authoring checkout is 143 passed and 21 subtests
+The expected run in the authoring checkout including the versioned replacement
+is 153 passed and 21 subtests
 passed. Tests use synthetic fixtures and local files; they do not load private
 case data or make network/provider calls.
 

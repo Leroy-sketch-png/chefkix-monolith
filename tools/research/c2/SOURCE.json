@@ -67,6 +67,35 @@
       "acceptance": "synthetic-only tests; blocked before test body by missing T222 pin"
     }
   ],
+  "versioned_offline_replacement": {
+    "contract": "C2_SAVED_BATCH_RECONCILE_V2",
+    "status": "local synthetic behavior only; not integrated with T316 and not empirical C2 acceptance",
+    "replaces_historical_bytes": false,
+    "protocol_sha256": "b2952599099d4bd94e3a117b4711af829b84949a60004ce21c963721b6d5c12",
+    "dependencies": {
+      "T219": "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b",
+      "T253": "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac"
+    },
+    "artifacts": [
+      {
+        "path": "ai/tools/c2_saved_batch_reconcile_v2.py",
+        "sha256_git_blob_contents": "719aa9ef8df555ccbbc345c935105bc6b9a8d82f16a9ba79696dc7c5c24fc873"
+      },
+      {
+        "path": "ai/tools/test_c2_saved_batch_reconcile_v2.py",
+        "sha256_git_blob_contents": "de0cb5606cb08dac967d6df1931428ca153fabea73a433f8ff3020d04806f8d4",
+        "acceptance": "10 synthetic tests; no private data, network, provider, or spending"
+      }
+    ],
+    "invariants": {
+      "denominator": "10,747 = 10,499 READY + 248 PREPARATION_ERROR",
+      "provider_calls": 0,
+      "network_calls": 0,
+      "dispatch_authorized": false,
+      "retry_authorized": false,
+      "live_driver_integration": false
+    }
+  },
   "unavailable_pinned_sources": [
     {
       "component": "T222 package-to-journal bridge",
