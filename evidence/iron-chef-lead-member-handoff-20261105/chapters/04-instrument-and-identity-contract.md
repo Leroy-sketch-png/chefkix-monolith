@@ -52,6 +52,8 @@ Under `research/protocols/IRON-CHEF-PROTOCOL-v1.md` §2, prospectively adopted o
 6. **PR09 (Primary Identity):** Pinned GISMo vocabulary exact matching is the primary identity contract; raw candidate strings are preserved in parallel. Senath normalization and alias expansion are retained as named sensitivity analyses only.
 7. **PR10 (Rater Agreement Thresholds):** Proceed at Tier-1 Cohen's kappa >= 0.5. Claim “reliable agreement” only if the strict-kappa case-cluster-bootstrap 95% lower bound >= 0.6; otherwise characterize the audit as exploratory. Use two-sided Wilson intervals for proportions and a one-sided exact bound for zero events; with fewer than 20 valid bootstrap draws, report the interval unavailable.
 
+These seven frozen decisions do not specify whether case-level primary `V` is formed from raw-rater or adjudicated labels, or how a no-`A` case with adjudicated `U` maps to the binary estimand. That operational mapping remains open under L36; do not compute the primary rescue estimate until HUMAN selects a prospective rule and the applicable specification is versioned. Protocol v1 itself remains unchanged.
+
 ## 4.7 Executable verification evidence
 
 The Freeze-A measurement instrument has been implemented and verified in the automated test suite:
