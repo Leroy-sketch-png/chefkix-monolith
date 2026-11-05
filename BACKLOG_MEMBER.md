@@ -18,7 +18,7 @@ These backlogs are shared through monolith origin/master. The data-free T535 too
 
 ## Member Work Packages
 
-The source-free lead/member protocol handoff is available at `evidence/iron-chef-lead-member-handoff-20261105/`; see its `README.md` and `SOURCE.json` for fetchable source pins and the nine-category inclusion/omission map. It does not transfer member-owned private artifacts or alter work ownership, status, acceptance or score. Existing member evidence remains preserved in place.
+The lead/member collaboration handoff is available at `evidence/iron-chef-lead-member-handoff-20261105/`; see its `README.md` and `SOURCE.json` for exact authored source pins, transfer scope, and the nine-category inclusion/omission map. It includes the 14 authored chapter copies, exact defense dossier and R01–R45 v20 register plus an R38 reconciliation note, but does not transfer member-owned private artifacts. Work ownership, status, acceptance and score are unchanged; existing member evidence remains preserved in place.
 
 | Owner | Remaining execution and LEAD parent | Existing evidence / remaining acceptance | Status and shared checklist |
 | --- | --- | --- | --- |

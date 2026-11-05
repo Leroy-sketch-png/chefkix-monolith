@@ -1,7 +1,7 @@
 {
   "schema": "chefkix.iron-chef-lead-member-handoff.v1",
   "created_date": "2026-11-05",
-  "destination_repository": "https://github.com/Leroy-sketch-png/chefkix-monolith",
+  "destination_repository_slug": "Leroy-sketch-png/chefkix-monolith",
   "destination_default_branch": "master",
   "source_workspace": {
     "path": "D:/code/chefkix",
@@ -35,21 +35,78 @@
       "sha256": "c28d4d8e17923024fcf6e7f9ddf7a471f69543dbd78170314a8b8255f5f9c6bf"
     }
   ],
+  "direct_authored_copies": [
+    {"source_path":"research/chapters/01-introduction.md","source_file_commit":"588b0c289cf47823c316e4fb0e153e3739680b96","destination_path":"chapters/01-introduction.md","source_sha256":"90c605453512736e7a3d6a06c5f8dbf0a5433404f90282412991eba423a5b9ba","destination_sha256":"90c605453512736e7a3d6a06c5f8dbf0a5433404f90282412991eba423a5b9ba"},
+    {"source_path":"research/chapters/02-related-work.md","source_file_commit":"c2c8255b03d1a387a4cb825aed03cde722340398","destination_path":"chapters/02-related-work.md","source_sha256":"246c5d4a42ec8ce102d909644587e0abf700a868d6927cec62b876f6a42fb474","destination_sha256":"246c5d4a42ec8ce102d909644587e0abf700a868d6927cec62b876f6a42fb474"},
+    {"source_path":"research/chapters/03-data-and-graph-provenance.md","source_file_commit":"691f2967d9bcdc364d92f8c747300e4a37167ca2","destination_path":"chapters/03-data-and-graph-provenance.md","source_sha256":"1b8b11b0f1bd05e9db421007569a1e9b71983884caab86900ce41a3e5436e48a","destination_sha256":"1b8b11b0f1bd05e9db421007569a1e9b71983884caab86900ce41a3e5436e48a"},
+    {"source_path":"research/chapters/04-instrument-and-identity-contract.md","source_file_commit":"ffa6683a3194c7a48bde800b461c88cc11ec78cb","destination_path":"chapters/04-instrument-and-identity-contract.md","source_sha256":"38b90afc39f386563b9a11c7b1f480f836b0a5faabd6b5b59d384e5a90780629","destination_sha256":"38b90afc39f386563b9a11c7b1f480f836b0a5faabd6b5b59d384e5a90780629"},
+    {"source_path":"research/chapters/05-senath-clean-room-inference.md","source_file_commit":"665fb1f0e733d67d953ea5efd79ebb7bed4b2e70","destination_path":"chapters/05-senath-clean-room-inference.md","source_sha256":"ea556bfc0ff788b92750c47df20c9529500b826a1051296bb05f3d72a59c498c","destination_sha256":"ea556bfc0ff788b92750c47df20c9529500b826a1051296bb05f3d72a59c498c"},
+    {"source_path":"research/chapters/06-human-validity-audit.md","source_file_commit":"c7436107873258541f9f93eef4c388acccb8eeb8","destination_path":"chapters/06-human-validity-audit.md","source_sha256":"5e54a92e1f22ae0e0ad90fa95e5c62e74ce2d6c5e5402a150ea0a621343d8c47","destination_sha256":"5e54a92e1f22ae0e0ad90fa95e5c62e74ce2d6c5e5402a150ea0a621343d8c47"},
+    {"source_path":"research/chapters/07-guardrail-design-and-assumptions.md","source_file_commit":"fcd80a58ef7d66440e0a4210dc93e98f6c715d6c","destination_path":"chapters/07-guardrail-design-and-assumptions.md","source_sha256":"2996ac12deba31bd54ec2979c263ef40a30ece284723327b6b51865bb1594295","destination_sha256":"2996ac12deba31bd54ec2979c263ef40a30ece284723327b6b51865bb1594295"},
+    {"source_path":"research/chapters/08-allergen-methods.md","source_file_commit":"b9c40d81582f2c5bec7c72c5891ebc46e4d65e78","destination_path":"chapters/08-allergen-methods.md","source_sha256":"578dbd064c37996927491bb68e528d05c5af6c955538acc92ad5a2e8267fd844","destination_sha256":"578dbd064c37996927491bb68e528d05c5af6c955538acc92ad5a2e8267fd844"},
+    {"source_path":"research/chapters/09-vietnamese-pilot-design-and-limits.md","source_file_commit":"588b0c289cf47823c316e4fb0e153e3739680b96","destination_path":"chapters/09-vietnamese-pilot-design-and-limits.md","source_sha256":"19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d","destination_sha256":"19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d"},
+    {"source_path":"research/chapters/10-compound-presence-and-explanation.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/10-compound-presence-and-explanation.md","source_sha256":"778e063f6df2cd75be18e500565807e85287fbbe9629c52b4ba0062ad1bb132a","destination_sha256":"778e063f6df2cd75be18e500565807e85287fbbe9629c52b4ba0062ad1bb132a"},
+    {"source_path":"research/chapters/11-system-and-demonstration.md","source_file_commit":"4cc23c7eb32d1bd2e226a4364b63dad9d59c894d","destination_path":"chapters/11-system-and-demonstration.md","source_sha256":"89a5f8e40f4fca1801755e2d4a298019d1ec687f6bca35fb59f068ae9d76233d","destination_sha256":"89a5f8e40f4fca1801755e2d4a298019d1ec687f6bca35fb59f068ae9d76233d"},
+    {"source_path":"research/chapters/12-bounded-negatives.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/12-bounded-negatives.md","source_sha256":"651432fa8198ca1067417a5834877e374917ff38cf8865c9c372382ee0704c0f","destination_sha256":"651432fa8198ca1067417a5834877e374917ff38cf8865c9c372382ee0704c0f"},
+    {"source_path":"research/chapters/13-discussion-and-threats.md","source_file_commit":"7b1fa6d99887844482b331010cbd6568faf101cb","destination_path":"chapters/13-discussion-and-threats.md","source_sha256":"6bbc42df23b9758f4441b64c5af6c7de7599e7e8ef6fd8592bdcc2868456b952","destination_sha256":"6bbc42df23b9758f4441b64c5af6c7de7599e7e8ef6fd8592bdcc2868456b952"},
+    {"source_path":"research/chapters/14-conclusion-and-future-work.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/14-conclusion-and-future-work.md","source_sha256":"df6c4b2f2cb8230f508ceee994fd8fff3b17963f1bab2e1603dc88d39e4685a4","destination_sha256":"df6c4b2f2cb8230f508ceee994fd8fff3b17963f1bab2e1603dc88d39e4685a4"}
+  ],
+  "authored_evidence_copies": [
+    {
+      "source_path":"ai/demos/iron-chef-final-defense-rehearsal-pack.md",
+      "source_file_commit":"901f77b82927fe3596525c23e072a3d6d9a64117",
+      "source_sha256":"7da53af33901328cf9974378eebba85bc2d966338d062b33d80a58ed515aa8e2",
+      "destination_path":"defense/iron-chef-final-defense-rehearsal-pack.md",
+      "destination_sha256":"7da53af33901328cf9974378eebba85bc2d966338d062b33d80a58ed515aa8e2",
+      "redactions":"None. A single localhost URL was reviewed as a loopback example, not a private remote URL or credential.",
+      "known_internal_reference_mismatch":"Original header points to claims-register v15 SHA-256 9fec822338b0dc0e2cca91ca55cda75f2f4f63a2b849f56e21313b18de6b8c4a; current separately copied register is v20. Original dossier is not altered.",
+      "evidence_ceiling":"Authored 28-question answer/rehearsal draft only; no observed rehearsal or accepted defense. Referenced local evidence is not included."
+    },
+    {
+      "source_path":"ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v20.csv",
+      "source_file_commit":"0c42206e6bdd08d42700e3846bffe73212d97cd7",
+      "source_sha256":"72346a605f6e4251bd754397a61a446781283b8eda9e96745ddc8af0c1723023",
+      "destination_path":"claims/claims-register-r01-r45-v20.csv",
+      "destination_sha256":"72346a605f6e4251bd754397a61a446781283b8eda9e96745ddc8af0c1723023",
+      "redactions":"None. Focused review found no credentials, absolute paths, structured recipe/case/row identifiers, or private URLs. Repo-relative artifact paths and digests are retained; missing local outputs are explicitly marked unavailable in README.",
+      "records":45,
+      "evidence_ceiling":"Exact recorded claim/status/outcome and aggregate reproduction register; not revalidated or independently audited by this handoff. The separate R38 note preserves the material discrepancy."
+    }
+  ],
+  "source_excerpts": [
+    {
+      "source_path":"ai/campaigns/iron-chef-outcome-push-20261021/MISSION.md",
+      "source_file_commit":"eb5984d239bb1e28207277826f2ad68e0fada973",
+      "source_sha256":"b9a258f6055963a9ec11418361eeef01fa97c7efcd09aa4cbac43cd99d496740",
+      "source_range_lines":"15-42",
+      "destination_path":"campaign/current-summary-20261104.source-excerpt.md",
+      "destination_sha256":"e144913faced8ab98281d06c5375704ee7931c34dd6ca09286eae54bd7634fde",
+      "redactions":"No source-summary lines changed; the destination adds a provenance/evidence-ceiling wrapper.",
+      "evidence_ceiling":"Exact campaign summary as written, including 19/25 and 3/5 assertions; not independently reconciled or newly credited."
+    }
+  ],
+  "review_notes": [
+    {
+      "path":"claims/claims-register-r38-reconciliation-20261105.md",
+      "sha256":"e442d94d29fa1c660b667c8cfd6166ed7e9c81298df461e3b04499f68aa9b98b",
+      "evidence_ceiling":"Reconciles two existing monolith records without adjudicating equivalence or changing either recorded status."
+    }
+  ],
   "already_fetchable_files": [
     {
-      "repository": "https://github.com/Leroy-sketch-png/chefkix-ai-service",
+      "repository_slug": "Leroy-sketch-png/chefkix-ai-service",
       "default_branch": "main",
       "commit": "2363b2ba2531d2db73dc68f349c731911916d2f9",
       "source_path": "src/services/substitution_calibration_receipt_v2.py",
       "sha256": "2496d130286f9547003adfe7f5a94267ba35f3f9101697f235848d19c567dd93"
     },
     {
-      "repository": "https://github.com/Leroy-sketch-png/chefkix-ai-service",
+      "repository_slug": "Leroy-sketch-png/chefkix-ai-service",
       "default_branch": "main",
       "commit": "2363b2ba2531d2db73dc68f349c731911916d2f9",
       "source_path": "tests/test_substitution_calibration_receipt_v2.py",
       "sha256": "1724714645406a844776c5a10aef8c2df9cf0a15a28342ff5ea1bde2fe5fcf9b"
     }
   ],
-  "scope": "Source-free transfer references only; no research rows, IDs, labels, generated results, credentials, runtime binaries, or personal notes."
+  "scope": "Authored/source-only files and exact aggregate claim records; no raw research rows, per-case or recipe IDs, labels, pools, profiles, model weights, private output bundles, credentials, runtime binaries, or personal notes."
 }
