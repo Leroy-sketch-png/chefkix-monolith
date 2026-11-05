@@ -1,0 +1,5 @@
+/ai/tools/*.py text eol=lf
+/ai/tools/*.json text eol=lf
+/ai/tools/*.md text eol=lf
+/_frozen/preflight_c2_openai_cost.py -text
+/research/protocols/IRON-CHEF-PROTOCOL-v1.md -text

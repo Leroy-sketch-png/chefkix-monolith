@@ -1,0 +1,67 @@
+{
+  "schema": "C2_SHARED_OFFLINE_SUBSET_SOURCE_V1",
+  "source_checkout": {
+    "path_at_authoring": "D:/code/chefkix",
+    "commit": "9d4d8011fbcc6077fc95ac2c3a00afc49af4e271",
+    "listed_source_paths_clean_at_copy": true
+  },
+  "frozen_inputs": [
+    {
+      "path": "_frozen/preflight_c2_openai_cost.py",
+      "source_commit": "217358f495c96f5c3bd655e0150844e4427f2bb1",
+      "source_path": "ai/tools/preflight_c2_openai_cost.py",
+      "sha256": "4c5694f378d5b3ae6b1bda6e0733a25926dffaaa235e6ff2292f1b3d9385d829",
+      "git_attribute": "-text; byte-preserved"
+    },
+    {
+      "path": "research/protocols/IRON-CHEF-PROTOCOL-v1.md",
+      "sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+      "git_attribute": "-text; byte-preserved"
+    }
+  ],
+  "portable_deltas": [
+    {
+      "path": "ai/tools/build_senath_c2_offline_request_package.py",
+      "change": "Git-first frozen serializer load with exact-hash bundled snapshot fallback"
+    },
+    {
+      "path": "ai/tools/estimate_c2_headline_cost.py",
+      "change": "Git-first frozen serializer validation with exact-hash bundled snapshot fallback"
+    },
+    {
+      "path": "ai/tools/test_build_senath_c2_offline_request_package.py",
+      "change": "synthetic missing-Git, snapshot-success, and tampered-snapshot regression coverage"
+    },
+    {
+      "path": "ai/tools/test_estimate_c2_headline_cost.py",
+      "change": "synthetic missing-Git snapshot-fallback regression coverage"
+    }
+  ],
+  "artifact_sha256_git_blob_contents": {
+    "ai/tools/build_c2_input_token_count_package.py": "a14a0467aa07d4c38072e381fd9e7dcf0505d46b49db5fc8ebccef75a20c1c82",
+    "ai/tools/build_senath_c2_batch_transport_candidate.py": "24091fe506bb91c4225de4c3d9052e2e00e8518b5810666d78afeb0f151742ac",
+    "ai/tools/build_senath_c2_offline_request_package.py": "b84db6156f4b47298ad4c990e44d48ff8cdfc6eaffa9c35f48c6d20a5aa839eb",
+    "ai/tools/c2_attempt_resume.py": "d2a0a1c06f3a0f12c74c0bf3a766367ee93a2d0e5b3d26b4f35c2d2b1a71c36b",
+    "ai/tools/estimate_c2_headline_cost.py": "bc41597fd937dd3b91194e9c96dc2ceeba1823869717d92f6bfcf7f735720123",
+    "ai/tools/preflight_c2_openai_cost.py": "4c5694f378d5b3ae6b1bda6e0733a25926dffaaa235e6ff2292f1b3d9385d829",
+    "ai/tools/preflight_c2_with_token_receipts.py": "a7e339f3ba5dd6e8f033519a57bd1a3363bc167d1973ddc71573858c3cc05487",
+    "ai/tools/test_build_c2_input_token_count_package.py": "f251be6fd9b9a5f565dbd809b1dae4f67416fedcb081a83df3e149a02b5d6423",
+    "ai/tools/test_build_senath_c2_batch_transport_candidate.py": "7e4ec0094c54e727341c3c515386c733db5570e2411d023d9adcbb9bb685053c",
+    "ai/tools/test_build_senath_c2_offline_request_package.py": "7df2f420108118379a51ec5adabdcb5307c43a813fb79376ac1df53cb34ad34d",
+    "ai/tools/test_c2_attempt_resume.py": "e09e963d5a4c93fdf2ab18e612688d585e18aca040988729349299eb58a5b933",
+    "ai/tools/test_estimate_c2_headline_cost.py": "b395abd269342ad3aa6ab62a13af5c1b82ed89822ae554327f853d15e38db819",
+    "ai/tools/test_preflight_c2_openai_cost.py": "c26ed12e8a57f39a562fcbe5ebabb628b71bc10fb72067adbfc1104682b4f62e",
+    "ai/tools/test_preflight_c2_with_token_receipts.py": "ff07d001f0a6650417cb8feeb987128e36bcb89bb45c300fa25334ac53ab2fda",
+    "ai/tools/test_validate_c2_input_token_receipts.py": "dd3a9f7052811db25969e7da0f30b3f75f140b5ee392aaf31dc64948c1025b9a",
+    "ai/tools/validate_c2_input_token_receipts.py": "b4eb636b70bad1e48a82f63488731e40f41ace89bd707fb3e60c22a0c911604c"
+  },
+  "limits": {
+    "network_calls": 0,
+    "provider_calls": 0,
+    "private_case_data_included": false,
+    "credentials_included": false,
+    "dispatch_authorized": false,
+    "full_m_i_2_toolchain": false,
+    "protocol_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
+  }
+}
