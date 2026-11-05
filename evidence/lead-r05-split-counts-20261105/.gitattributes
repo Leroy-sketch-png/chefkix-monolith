@@ -1,0 +1,4 @@
+/README.md -text
+/claims/*.json -text
+/reviews/*.md -text
+/tools/*.py -text

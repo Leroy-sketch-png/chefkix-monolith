@@ -1,0 +1,26 @@
+{
+  "interpretation_limit": "Counts describe these hash-pinned local split files only; they do not establish paper protocol equivalence, model performance, or generalization.",
+  "manifest": {
+    "path": "ai/out/iron-chef-lead-v26/selective_manifest.json",
+    "sha256": "134e92d635ab00120b94becf1cac86fc63e067e571d720b07d63d24c9d5b3eea"
+  },
+  "schema_version": 1,
+  "splits": {
+    "test": {
+      "path": "personal/projects/chefkix/lead_recipe1msubs/senath-llm/Datasets/test_comments_subs_with_titles.csv",
+      "rows": 10747,
+      "sha256": "7d239b405ef71a4dea3513afe2a22b11b9e0e15256428b40896a31cae0ddd2a6"
+    },
+    "train": {
+      "path": "personal/projects/chefkix/lead_recipe1msubs/senath-llm/Datasets/train_comments_subs_with_titles.csv",
+      "rows": 49044,
+      "sha256": "65d143c3bacd21555e5f16abdddd961585fce7dcbfdabfcbad0c5ccf8d60557c"
+    },
+    "validation": {
+      "path": "personal/projects/chefkix/lead_recipe1msubs/senath-llm/Datasets/val_comments_subs_with_titles.csv",
+      "rows": 10729,
+      "sha256": "002588cb1d7db2d1644cb16079542df641c0ace4807490be380e150973796a0b"
+    }
+  },
+  "state": "FIXED_FILE_ROW_COUNTS_REPRODUCED"
+}
