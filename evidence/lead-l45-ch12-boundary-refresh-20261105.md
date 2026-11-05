@@ -2,7 +2,7 @@
 
 ## Purpose and source boundary
 
-This note hands off a local thesis-draft correction to collaborators. The research checkout has no configured remote; the source remains at `D:/code/chefkix/research/chapters/12-bounded-negatives.md`, SHA-256 `480ae58863ccaa649944f71b0139e392136469133a0f8a9cc3074460b995a4cf`. This shared note contains only aggregate wording and source-file digests. No recipe/source rows, case IDs, labels, prompts, model weights, raw outputs, or private account data were copied.
+This note records a bounded thesis-draft correction for collaborators. The research checkout has no configured remote; the source remains at `D:/code/chefkix/research/chapters/12-bounded-negatives.md`, SHA-256 `480ae58863ccaa649944f71b0139e392136469133a0f8a9cc3074460b995a4cf`. A byte-identical chapter copy is now included in the curated shared manuscript bundle at `evidence/iron-chef-lead-member-handoff-20261105/chapters/12-bounded-negatives.md`; its `SOURCE.json` row pins the baseline and updated destination hashes. No recipe/source rows, case IDs, labels, prompts, model weights, raw outputs, or private account data were copied.
 
 The frozen research protocol was not edited: SHA-256 `b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`.
 
@@ -21,4 +21,4 @@ The frozen research protocol was not edited: SHA-256 `b2952599099c72a5c3473a117b
 - R09 aggregate receipt: SHA-256 `b2c80426fb51713f4ccdcda9bec9fbac98c4df8649d89f97d938b6019fe45005`.
 - R11 aggregate receipt: SHA-256 `7e8c164e0fda2d4c7c1f24a17ea94a89fc7027dfbfbfee4d152192644fe7dea1`.
 
-This was a wording/provenance reconciliation, not a fresh analysis or source-data reproduction. No claim status, campaign measure, milestone, protocol, or C1–C5 acceptance changed. Root `git diff --check` passed for Chapter 12; no tests or model runs were repeated. The complete thesis edit is local-only; this note is the shared review handoff, not a substitute for the thesis file.
+This was a wording/provenance reconciliation, not a fresh analysis or source-data reproduction. No claim status, campaign measure, milestone, protocol, or C1–C5 acceptance changed. Root `git diff --check` passed for Chapter 12; no tests or model runs were repeated. The full research checkout remains local-only; the curated shared manuscript bundle carries the exact corrected Chapter 12 text for collaboration.
