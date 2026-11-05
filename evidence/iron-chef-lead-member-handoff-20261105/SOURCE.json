@@ -116,7 +116,14 @@
       "commit": "2363b2ba2531d2db73dc68f349c731911916d2f9",
       "source_path": "tests/test_substitution_calibration_receipt_v2.py",
       "sha256": "1724714645406a844776c5a10aef8c2df9cf0a15a28342ff5ea1bde2fe5fcf9b"
+    },
+    {
+      "repository_slug": "Leroy-sketch-png/chefkix-ai-service",
+      "default_branch": "main",
+      "commit": "ca0577115fed853c4c9179390e56000ff2bc3484",
+      "source_path": "tests/test_graph_preflight_app_composition.py",
+      "sha256": "46eb9bbb13df224fecf4f5506c9e9f1b108dde5f18a8609cdd2bf91cee1a3299"
     }
   ],
-  "scope": "Authored/source-only files, exact aggregate claim records, and a nine-record public WHO/IUIS metadata seed; no raw/private research rows, per-case or recipe IDs, labels, pools, profiles, model weights, private output bundles, credentials, runtime binaries, or personal notes. The full WHO/IUIS downloadable table is not included."
+  "scope": "Authored/source-only files, exact aggregate claim records, a sanitized local T54 runtime receipt, and a nine-record public WHO/IUIS metadata seed; no raw/private research rows, per-case or recipe IDs, labels, pools, profiles, model weights, private output bundles, credentials, runtime binaries, or personal notes. The full WHO/IUIS downloadable table is not included."
 }
