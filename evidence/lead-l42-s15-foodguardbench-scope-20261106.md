@@ -20,6 +20,7 @@ This is direct adjacent prior art for food-domain, FDA-grounded adversarial safe
 - Keep S15 in the food-safety motivation and source funnel as adjacent prior art; label v1 and v3 counts by version.
 - Replace the unqualified “3,339 queries demonstrate systematic guardrail failure” statement with the v3 threat-model-bound author result and limitations.
 - Keep allergen substitution risk, allergy-response error evidence, adversarial food-handling guardrail evidence, and our proposed C3 route as separate claims/evidence streams.
+- Frame the combined substitution failures and literature-wide explanation absence as questions to test, not established findings; keep the chapter plan's cited evidence task-distinct.
 - This narrows an overbroad source attribution; it does not resolve L42's complete funnel, establish novelty, clear allergen safety, change the frozen protocol, or earn C1–C5 acceptance, score, or milestone credit.
 
 ## Challenge and review trigger
