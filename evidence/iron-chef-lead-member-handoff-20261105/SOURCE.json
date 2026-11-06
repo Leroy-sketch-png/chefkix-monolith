@@ -39,16 +39,16 @@
     {"source_path":"research/chapters/01-introduction.md","source_file_commit":"588b0c289cf47823c316e4fb0e153e3739680b96","destination_path":"chapters/01-introduction.md","source_sha256":"90c605453512736e7a3d6a06c5f8dbf0a5433404f90282412991eba423a5b9ba","destination_sha256":"90c605453512736e7a3d6a06c5f8dbf0a5433404f90282412991eba423a5b9ba"},
     {"source_path":"research/chapters/02-related-work.md","source_file_commit":"c2c8255b03d1a387a4cb825aed03cde722340398","destination_path":"chapters/02-related-work.md","source_sha256":"246c5d4a42ec8ce102d909644587e0abf700a868d6927cec62b876f6a42fb474","destination_sha256":"246c5d4a42ec8ce102d909644587e0abf700a868d6927cec62b876f6a42fb474"},
     {"source_path":"research/chapters/03-data-and-graph-provenance.md","source_file_commit":"691f2967d9bcdc364d92f8c747300e4a37167ca2","destination_path":"chapters/03-data-and-graph-provenance.md","source_sha256":"1b8b11b0f1bd05e9db421007569a1e9b71983884caab86900ce41a3e5436e48a","destination_sha256":"1b8b11b0f1bd05e9db421007569a1e9b71983884caab86900ce41a3e5436e48a"},
-    {"source_path":"research/chapters/04-instrument-and-identity-contract.md","source_file_commit":"ffa6683a3194c7a48bde800b461c88cc11ec78cb","destination_path":"chapters/04-instrument-and-identity-contract.md","source_sha256":"38b90afc39f386563b9a11c7b1f480f836b0a5faabd6b5b59d384e5a90780629","destination_sha256":"3381b327517a59d5700eeac8454386ac31a4a82f60b1812fec6977ff78036d7a","transformation_note":"Adds the narrow Lead clarification that L36's case-level V source and no-A/adjudicated-U mapping remain open; Protocol v1 is unchanged."},
+    {"source_path":"research/chapters/04-instrument-and-identity-contract.md","source_file_commit":"ffa6683a3194c7a48bde800b461c88cc11ec78cb","destination_path":"chapters/04-instrument-and-identity-contract.md","source_sha256":"38b90afc39f386563b9a11c7b1f480f836b0a5faabd6b5b59d384e5a90780629","destination_sha256":"4785e10339dd9f1c4a2376469e8f85663d713ed8518fc8a4d1b07bb2a4ab6858","transformation_note":"Preserves the prior source-copy clarification, replaces its now-stale unresolved-mapping statement, and adds a dated link to the HUMAN-adopted L36 operational mapping; Protocol v1 is unchanged."},
     {"source_path":"research/chapters/05-senath-clean-room-inference.md","source_file_commit":"665fb1f0e733d67d953ea5efd79ebb7bed4b2e70","destination_path":"chapters/05-senath-clean-room-inference.md","source_sha256":"ea556bfc0ff788b92750c47df20c9529500b826a1051296bb05f3d72a59c498c","destination_sha256":"ea556bfc0ff788b92750c47df20c9529500b826a1051296bb05f3d72a59c498c"},
-    {"source_path":"research/chapters/06-human-validity-audit.md","source_file_commit":"c7436107873258541f9f93eef4c388acccb8eeb8","destination_path":"chapters/06-human-validity-audit.md","source_sha256":"5e54a92e1f22ae0e0ad90fa95e5c62e74ce2d6c5e5402a150ea0a621343d8c47","destination_sha256":"65e8f496fcc2a8802f08ef73ec66038422fc2b170d928be48d959af6dcc38673","transformation_note":"Replaces the false claim that Protocol v1 settled case-level V and U mapping with the bounded unresolved L36 caveat; Protocol v1 remains byte-frozen."},
+    {"source_path":"research/chapters/06-human-validity-audit.md","source_file_commit":"c7436107873258541f9f93eef4c388acccb8eeb8","destination_path":"chapters/06-human-validity-audit.md","source_sha256":"5e54a92e1f22ae0e0ad90fa95e5c62e74ce2d6c5e5402a150ea0a621343d8c47","destination_sha256":"49a913750c1833b29e4a2889329414f16be1956cfd75a6ce19fda6554432bbe2","transformation_note":"Replaces the false claim that Protocol v1 settled case-level V/U mapping with the HUMAN-adopted, bounded L36 operational addendum; Protocol v1 remains byte-frozen."},
     {"source_path":"research/chapters/07-guardrail-design-and-assumptions.md","source_file_commit":"fcd80a58ef7d66440e0a4210dc93e98f6c715d6c","destination_path":"chapters/07-guardrail-design-and-assumptions.md","source_sha256":"2996ac12deba31bd54ec2979c263ef40a30ece284723327b6b51865bb1594295","destination_sha256":"2996ac12deba31bd54ec2979c263ef40a30ece284723327b6b51865bb1594295"},
     {"source_path":"research/chapters/08-allergen-methods.md","source_file_commit":"14228ca38b90347ce145c8f73bb107452b4c80e8","destination_path":"chapters/08-allergen-methods.md","source_sha256":"f5795d60ed91d6bd380edb0a8809aa52d4503a321250f5a38ad9f7c7848096dc","destination_sha256":"a3b99f7cc8f3b12593ed45ffab70bf29b5a61eb817631fd2c45aeea9358a9138","transformation_note":"Updated authored Chapter 8 copy; changed only the seed link from its source-workspace path to the fetchable handoff-relative path ../c3/who-iuis-food-allergen-source-seed-v1.json. All other bytes match the source hash."},
     {"source_path":"research/chapters/09-vietnamese-pilot-design-and-limits.md","source_file_commit":"588b0c289cf47823c316e4fb0e153e3739680b96","destination_path":"chapters/09-vietnamese-pilot-design-and-limits.md","source_sha256":"19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d","destination_sha256":"19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d"},
     {"source_path":"research/chapters/10-compound-presence-and-explanation.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/10-compound-presence-and-explanation.md","source_sha256":"778e063f6df2cd75be18e500565807e85287fbbe9629c52b4ba0062ad1bb132a","destination_sha256":"778e063f6df2cd75be18e500565807e85287fbbe9629c52b4ba0062ad1bb132a"},
     {"source_path":"research/chapters/11-system-and-demonstration.md","source_file_commit":"4cc23c7eb32d1bd2e226a4364b63dad9d59c894d","destination_path":"chapters/11-system-and-demonstration.md","source_sha256":"89a5f8e40f4fca1801755e2d4a298019d1ec687f6bca35fb59f068ae9d76233d","destination_sha256":"89a5f8e40f4fca1801755e2d4a298019d1ec687f6bca35fb59f068ae9d76233d"},
     {"source_path":"research/chapters/12-bounded-negatives.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/12-bounded-negatives.md","source_sha256":"651432fa8198ca1067417a5834877e374917ff38cf8865c9c372382ee0704c0f","destination_sha256":"480ae58863ccaa649944f71b0139e392136469133a0f8a9cc3074460b995a4cf","transformation_note":"Lead L45 boundary refresh copied from the current local Chapter 12 worktree content (current source SHA-256 480ae58863ccaa649944f71b0139e392136469133a0f8a9cc3074460b995a4cf; research root HEAD 74a1e7a98dd556b674e7a207ba64459d50f88cdc, with local uncommitted edits). Limits conformal conclusions to named descriptive cells, separates R19 protocol receipt from calibration, and preserves current v20 claim statuses; no protocol, result, or acceptance changed."},
-    {"source_path":"research/chapters/13-discussion-and-threats.md","source_file_commit":"7b1fa6d99887844482b331010cbd6568faf101cb","destination_path":"chapters/13-discussion-and-threats.md","source_sha256":"6bbc42df23b9758f4441b64c5af6c7de7599e7e8ef6fd8592bdcc2868456b952","destination_sha256":"8f467acc39cf056364a3e378f30a3b9dae56196ef65f33b34ce607a90ce61d14","transformation_note":"Clarifies that PR01-03/05/09/10 are frozen, PR13 remains a separate ethics/consent gate, and L36's V/U operational mapping is the narrow unresolved issue; updates the threat list, change condition, and §13.2 evidence map accordingly. No protocol or result changed."},
+    {"source_path":"research/chapters/13-discussion-and-threats.md","source_file_commit":"7b1fa6d99887844482b331010cbd6568faf101cb","destination_path":"chapters/13-discussion-and-threats.md","source_sha256":"6bbc42df23b9758f4441b64c5af6c7de7599e7e8ef6fd8592bdcc2868456b952","destination_sha256":"0f06509da9831d6c596fced771c3111d9c87ff96b594ffbb07225ed135d7e6ac","transformation_note":"Clarifies that PR01-03/05/09/10 are frozen, PR13 remains a separate ethics/consent gate, and the HUMAN-adopted L36 V/U operational mapping does not replace human evidence; updates the threat list, change condition, and §13.2 evidence map accordingly. No protocol or result changed."},
     {"source_path":"research/chapters/14-conclusion-and-future-work.md","source_file_commit":"e649cc699f539d5d75e35215015faec27d7a1f0f","destination_path":"chapters/14-conclusion-and-future-work.md","source_sha256":"df6c4b2f2cb8230f508ceee994fd8fff3b17963f1bab2e1603dc88d39e4685a4","destination_sha256":"df6c4b2f2cb8230f508ceee994fd8fff3b17963f1bab2e1603dc88d39e4685a4"}
   ],
   "authored_evidence_copies": [
@@ -97,6 +97,11 @@
   ],
   "review_notes": [
     {
+      "path":"../lead-l36-adjudicated-strict-a5-operational-v1-20261106.md",
+      "sha256":"d7a8583da9116f29f747a7df5c06ee3a1e889879ca87e9de6d158b881910b914",
+      "evidence_ceiling":"Records the HUMAN's operational choice and a bounded implementation convention under frozen Protocol v1; no label/adjudication data, score, implementation result, milestone, or empirical acceptance."
+    },
+    {
       "path":"claims/claims-register-r38-reconciliation-20261105.md",
       "sha256":"e442d94d29fa1c660b667c8cfd6166ed7e9c81298df461e3b04499f68aa9b98b",
       "evidence_ceiling":"Reconciles two existing monolith records without adjudicating equivalence or changing either recorded status."
@@ -105,15 +110,25 @@
   "lead_authored_contracts": [
     {
       "path": "l40-vietnamese-pilot-contract-20261106.md",
-      "sha256": "f5b80baf7b5cf2e329f9c7b4b880005820c1bc7b1ff79a8425635f190f882e7f",
+      "sha256": "6bda6eed20da1f24963e5ac734c351e2cba79041612431abb20db2bd582f3159",
       "authority_pins": {
         "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
         "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
-        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
-        "chapter_4_destination_sha256": "3381b327517a59d5700eeac8454386ac31a4a82f60b1812fec6977ff78036d7a",
+        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "chapter_4_destination_sha256": "31e288fbb5b5e393ef0da7fbcf494fc83eab15bf4206b1a71d1a37fae49ffca0",
         "chapter_9_destination_sha256": "19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d"
       },
-      "evidence_ceiling": "Prospective source-free contract; no design freeze, rights/ethics determination, human cases or labels, empirical result, or L40 acceptance."
+      "evidence_ceiling": "Prospective source-free contract and existing-schema crosswalk; no L40 design freeze, rights/ethics determination, human cases or labels, empirical result, or L40 acceptance."
+    },
+    {
+      "path": "../lead-l36-adjudicated-strict-a5-operational-v1-20261106.md",
+      "sha256": "d7a8583da9116f29f747a7df5c06ee3a1e889879ca87e9de6d158b881910b914",
+      "authority_pins": {
+        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "chapter_4_destination_sha256": "31e288fbb5b5e393ef0da7fbcf494fc83eab15bf4206b1a71d1a37fae49ffca0",
+        "chapter_6_destination_sha256": "49a913750c1833b29e4a2889329414f16be1956cfd75a6ce19fda6554432bbe2"
+      },
+      "evidence_ceiling": "HUMAN-adopted operating interpretation with bounded estimator details; no Protocol amendment, data, score, implementation acceptance, or milestone."
     }
   ],
   "already_fetchable_files": [

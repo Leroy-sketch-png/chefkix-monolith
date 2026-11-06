@@ -52,7 +52,7 @@ Under `research/protocols/IRON-CHEF-PROTOCOL-v1.md` §2, prospectively adopted o
 6. **PR09 (Primary Identity):** Pinned GISMo vocabulary exact matching is the primary identity contract; raw candidate strings are preserved in parallel. Senath normalization and alias expansion are retained as named sensitivity analyses only.
 7. **PR10 (Rater Agreement Thresholds):** Proceed at Tier-1 Cohen's kappa >= 0.5. Claim “reliable agreement” only if the strict-kappa case-cluster-bootstrap 95% lower bound >= 0.6; otherwise characterize the audit as exploratory. Use two-sided Wilson intervals for proportions and a one-sided exact bound for zero events; with fewer than 20 valid bootstrap draws, report the interval unavailable.
 
-These seven frozen decisions do not specify whether case-level primary `V` is formed from raw-rater or adjudicated labels, or how a no-`A` case with adjudicated `U` maps to the binary estimand. That operational mapping remains open under L36; do not compute the primary rescue estimate until HUMAN selects a prospective rule and the applicable specification is versioned. Protocol v1 itself remains unchanged.
+These seven frozen decisions do not specify whether case-level primary `V` is formed from raw-rater or adjudicated labels, or how a no-`A` case with adjudicated `U` maps to the binary estimand. The HUMAN adopted the narrow operational mapping under L36 on 2026-11-06; its exact rule and endpoint implementation are recorded in the dated addendum below and linked here. Do not compute the primary rescue estimate until valid labels/adjudications and all applicable ethics, reliability, and methods gates are met. Protocol v1 itself remains unchanged.
 
 ## 4.7 Executable verification evidence
 
@@ -74,3 +74,7 @@ The instrument's contribution is a reproducible way to carry provenance, identit
 - Canonical case schema, identity contracts, candidate/arm fields, and normalization warning: [`academic_vision_and_strategy.md`](../../academic_vision_and_strategy.md), §§5–6, 9, and 16.
 - Candidate-ID namespace correction and full-split structural replay: shared LEAD v379–v380 and v403–v405; source-only artifacts remain local-only.
 - Frozen prospective rules and authority: [Protocol v1](../protocols/IRON-CHEF-PROTOCOL-v1.md). The pre-v1 rationale in strategy §16 is historical context, not an alternate operating procedure; appendix reference implementations or self-tests are not approved procedures.
+
+## Lead operational clarification — 2026-11-06
+
+The HUMAN adopted the L36 case-level observation rule in [`../../lead-l36-adjudicated-strict-a5-operational-v1-20261106.md`](../../lead-l36-adjudicated-strict-a5-operational-v1-20261106.md): `V=1` when at least one of the frozen primary-arm top-five candidates has final adjudicated `A`; `V=0` only when all five are adjudicated `C/N`; no-`A` cases with adjudicated `U` or unresolved judgments remain `unknown`. Full H=0 denominators and the frozen lower/upper-bound decision are retained. The addendum also fixes the operational endpoint bootstrap details; it does not amend Protocol v1, produce a score, or establish a human result. This dated Lead clarification supersedes only the earlier “mapping remains open” sentence above.

@@ -113,7 +113,7 @@ These statuses describe the narrow evidence scope actually inspected. `READY_FOR
 - **Source commit / hash:** Existing source-join report `5d7b8789…`; GISMo runtime `e08b82b7…`.
 - **Member evidence:** Verified ID/split join retained; positional and FooDB inventories recorded.
 - **Remaining condition:** Historical positional index → recipe ID mapping or authoritative preprocessed split caches plus pipeline settings, and the exact 971-profile input/hash. The vocabulary pin itself is now confirmed by [`member-mb-gismo-vocabulary-source-20261104.md`](member-mb-gismo-vocabulary-source-20261104.md).
-- **Lead decision:** No alias policy change; Lead supplies source pins and accepts the reference/inference unit.
+- **Lead decision (2026-11-06):** HUMAN adopted the L36 strict-A@5/full-denominator/explicit-U operational mapping, recorded in `evidence/lead-l36-adjudicated-strict-a5-operational-v1-20261106.md`; this is not a Protocol v1 edit or an empirical result. Section 8 of the shared L40 contract maps existing C1/C3 typed fields and restricted provenance without authorizing a code/schema migration or new test project. Member may implement serialization within existing M-B scope. **M-B remains BLOCKED overall** by historical positional-index identity, required profile/source and applicable rights/ethics/regeneration gates; the new Lead mapping does not resolve those conditions.
 
 ### M-C
 
