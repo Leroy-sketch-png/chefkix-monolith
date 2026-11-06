@@ -67,7 +67,7 @@ def render(pack: dict, destination: Path) -> str:
     template = Path(__file__).with_name("reviewer-template.html").read_text(encoding="utf-8")
     if template.count("__PACK_JSON__") != 1 or template.count("__PACK_BINDING__") != 1:
         raise ValueError("Template substitution markers are invalid")
-    document = template.replace("__PACK_JSON__", safe).replace("__PACK_BINDING__", binding)
+    document = template.replace("__PACK_BINDING__", binding).replace("__PACK_JSON__", safe)
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         raise FileExistsError("Refusing to overwrite an issued reviewer file")

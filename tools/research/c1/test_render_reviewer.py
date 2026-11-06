@@ -1,4 +1,6 @@
 import copy
+import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -78,6 +80,17 @@ class RendererTests(unittest.TestCase):
                 pack["views"][0]["ingredients"] = []
             with self.assertRaises(ValueError):
                 validate_pack(pack)
+
+    def test_source_text_matching_template_marker_is_preserved(self):
+        pack = fixture()
+        pack["views"][0]["recipe_title"] = "__PACK_BINDING__ / __PACK_JSON__"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "review.html"
+            render(pack, path)
+            document = path.read_text(encoding="utf-8")
+            embedded = re.search(r'<script id="pack" type="application/json">(.*?)</script>', document, re.S)
+            self.assertIsNotNone(embedded)
+            self.assertEqual(json.loads(embedded.group(1)), pack)
 
 
 if __name__ == "__main__":
