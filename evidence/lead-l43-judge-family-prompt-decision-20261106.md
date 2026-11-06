@@ -23,6 +23,26 @@ The existing C4 reference does **not** settle this choice. Its prompt contract i
 
 **M-I owns** updating the existing C4 contract/runner/manifest path to implement this single selected pool-level method (no parallel framework), verify actual returned model identity, preserve opaque-ID coverage and both-order outputs, compute the frozen gates from real adjudications, and retain failures/denominators. It may test implementation behavior using already-approved independent fixtures, but no source labels are to be fabricated. Before any test scoring, require the exact prompt/model/serialization freeze and exposure receipt. Human adjudication, agreement estimates, subgroup validity, and C4 acceptance require their actual authorized inputs and independent methods review. No API call or spend is authorized by this decision.
 
+## Development candidate baseline assets
+
+The exact pool-level prompt text is available as shared, machine-usable UTF-8 text assets:
+
+- System: [`lead-l43-c4-prompt-s7.1-v1-system.txt`](lead-l43-c4-prompt-s7.1-v1-system.txt), SHA-256 `96e24ae1f629d9c5f4a58457ae0c148253be2571ca55eb8d4560b1f1281f5db7`.
+- User template: [`lead-l43-c4-prompt-s7.1-v1-user-template.txt`](lead-l43-c4-prompt-s7.1-v1-user-template.txt), SHA-256 `713997acc2715d327fda254d3a34a4904999f5806c43b3e990e8dfb98782539b`.
+
+These are **development candidate baselines**, not final prompt bytes, not human-validated, and not scoring authorization. They are transcribed into usable text from the operative strategy §7.1 template under the L43 family/pool-blinding decision. Do not run them on test. Any prompt development/revision uses only assigned development/calibration portions with exposure recorded; exact final bytes/model/parameters must be frozen before test scoring, after the required human comparison.
+
+### Placeholder and opaque-ID contract
+
+- `{title}` and `{target}` are JSON string literals; `{ingredient_list}` is a JSON array of the recipe's ingredient strings; `{numbered_candidates}` is a JSON array shaped exactly as `{"id":"<opaque_id>","candidate":"<candidate_text>"}`. Candidate strings and user fields are JSON-escaped. The legacy placeholder name `numbered_candidates` does not authorize numeric IDs, ranking, or order information.
+- Each opaque ID is unique within its case pool and reveals or correlates with none of arm, rank, source, gold, model family, or semantic candidate identity. It remains identical for that candidate across forward/reverse presentations, both judges in the paired diagnostic, and raw-output reconciliation. Only the local mapping binds IDs to candidate provenance; no provenance fields enter the prompt.
+- Forward and reverse requests contain the same case and exact candidate records/IDs; only array order changes. Do not expose pass name, position, rank, or ordering rationale. The pool composition for each judge comparison is governed by the preceding common-slate decision; do not rebuild a different pool per judge.
+- `U` is a valid explicit unknown judgment. Missing/extra/duplicate IDs, malformed JSON, invalid labels, or missing/overlong reasons are failures retained in the fixed denominator; never coerce failures to `U` or silently omit a case.
+
+### Existing response binding and owner acceptance
+
+The per-candidate value binds to the existing `C4JudgeOutput` in `evidence/iron-chef-lead-member-handoff-20261105/c4_llm_judge_contract.py`, SHA-256 `a823003838685d47ae851364faee25d8fe0c23cb6c31d4a96cdad3363dcd11de`: exactly `label` (`A|C|N|U`) and `reason` (string). The outer `judgments` map is this Lead-selected pool serialization for the development baseline, keyed by opaque IDs to meet L43's ID-keyed requirement; it is not the strategy's illustrative array response shape. The historical single-candidate `OUTPUT_SCHEMA` does not describe the outer map, and the current runner does not validate it. This baseline adds no parallel schema, serializer, or runner and claims no code integration. M-I's source-free implementation acceptance in the existing path is to consume these exact files, render only these placeholders, enforce exact ID coverage and one typed nested result per ID, enforce the 20-word reason rule, and preserve raw responses/failures for both orders. Synthetic checks prove only implementation behavior. Final prompt freeze, judge-vs-human agreement, and C4 acceptance remain distinct gates; no source labels, human comparison, runtime, provider calls, or spend are supplied here.
+
 ## Initial second-family state (historical)
 
 The operative strategy describes **two** independent judge families as a proposal. The initial 2026-11-06 decision selected only the first and left the second open. The following prospective addendum resolves that design question narrowly; it does not claim full two-family coverage of every arm or close L43/C4.

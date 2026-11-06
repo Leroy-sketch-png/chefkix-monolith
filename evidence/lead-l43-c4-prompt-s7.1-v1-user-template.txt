@@ -1,0 +1,15 @@
+Recipe title (JSON string):
+{title}
+
+Ingredients (JSON array of strings):
+{ingredient_list}
+
+Ingredient to replace (JSON string):
+{target}
+
+Candidate substitutes (JSON array of objects with exactly the fields "id" and "candidate"):
+{numbered_candidates}
+
+Judge each candidate independently; do not rank or select among them. Return exactly one JSON object. Its top-level key is "judgments", whose value is an object keyed by the exact supplied opaque candidate IDs. Each value has exactly two properties: "label" (one of the strings "A", "C", "N", "U") and "reason" (a string of at most 20 words).
+
+The "judgments" object must contain exactly one key for every supplied candidate ID and no other keys. Each per-candidate value must conform to the bound C4JudgeOutput response object. Do not include any explanation outside the JSON object.
