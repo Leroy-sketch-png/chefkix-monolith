@@ -102,6 +102,20 @@
       "evidence_ceiling":"Reconciles two existing monolith records without adjudicating equivalence or changing either recorded status."
     }
   ],
+  "lead_authored_contracts": [
+    {
+      "path": "l40-vietnamese-pilot-contract-20261106.md",
+      "sha256": "f5b80baf7b5cf2e329f9c7b4b880005820c1bc7b1ff79a8425635f190f882e7f",
+      "authority_pins": {
+        "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
+        "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
+        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "chapter_4_destination_sha256": "3381b327517a59d5700eeac8454386ac31a4a82f60b1812fec6977ff78036d7a",
+        "chapter_9_destination_sha256": "19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d"
+      },
+      "evidence_ceiling": "Prospective source-free contract; no design freeze, rights/ethics determination, human cases or labels, empirical result, or L40 acceptance."
+    }
+  ],
   "already_fetchable_files": [
     {
       "repository_slug": "Leroy-sketch-png/chefkix-ai-service",
