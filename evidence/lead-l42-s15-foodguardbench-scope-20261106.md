@@ -32,3 +32,9 @@ Strongest alternative: retain the v1 3,339 count as a valid historical v1 claim.
 - [arXiv record and version history](https://arxiv.org/abs/2604.01444) (v1 2026-04-01; v3 2026-10-13).
 - [Current v3 full text](https://arxiv.org/pdf/2604.01444): §3.1–3.2/Table 1 and Figure 2 (taxonomy and construction); §5 and Table 3–4 (author-reported evaluation); §6/Limitations (scope and evidence ceiling).
 - [Version 1 full text](https://arxiv.org/pdf/2604.01444v1): abstract, which reports the historical 3,339 figure and broader language.
+
+## Second-review delta (2026-11-06)
+
+An independent AI-method source review confirmed a version-specific qualification: v1 §3.1 lists eight taxonomy categories, including “Allergens”; v3 has five categories (contamination, preparation, temperature, hygiene, storage). The v1 taxonomy label does not establish that its paper text contains allergen-substitution question examples or question-level coverage. Keep actual v1 item coverage UNKNOWN unless a versioned item-level source establishes it. This corrects the over-broad reading that “FoodGuardBench has no allergen category” across all versions; it does not change the v3 scope or support an allergen-substitution safety claim. The review also found no disconfirming evidence to the existing S03 same-case-comparison caveat or S04 blinding/independence/missingness caveats; those remain UNKNOWN, not proof of absent practice.
+
+Sources checked: [FoodGuardBench v1 §3.1](https://arxiv.org/pdf/2604.01444v1), [v3 full text](https://arxiv.org/pdf/2604.01444), [S03](https://arxiv.org/pdf/2409.08792), and [S04](https://ceur-ws.org/Vol-4196/paper_20.pdf). This was an AI-method second review, not external/domain-expert validation, a new experiment, or novelty confirmation.
