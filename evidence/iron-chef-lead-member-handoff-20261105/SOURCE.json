@@ -114,7 +114,7 @@
       "authority_pins": {
         "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
         "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
-        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
         "chapter_4_destination_sha256": "31e288fbb5b5e393ef0da7fbcf494fc83eab15bf4206b1a71d1a37fae49ffca0",
         "chapter_9_destination_sha256": "19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d"
       },
@@ -124,7 +124,7 @@
       "path": "../lead-l36-adjudicated-strict-a5-operational-v1-20261106.md",
       "sha256": "d7a8583da9116f29f747a7df5c06ee3a1e889879ca87e9de6d158b881910b914",
       "authority_pins": {
-        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
         "chapter_4_destination_sha256": "31e288fbb5b5e393ef0da7fbcf494fc83eab15bf4206b1a71d1a37fae49ffca0",
         "chapter_6_destination_sha256": "49a913750c1833b29e4a2889329414f16be1956cfd75a6ce19fda6554432bbe2"
       },
@@ -136,11 +136,23 @@
       "authority_pins": {
         "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
         "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
-        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
         "c4_contract_sha256": "a823003838685d47ae851364faee25d8fe0c23cb6c31d4a96cdad3363dcd11de",
         "c4_runner_sha256": "c28d4d8e17923024fcf6e7f9ddf7a471f69543dbd78170314a8b8255f5f9c6bf"
       },
       "evidence_ceiling": "Prospective LEAD selection and source-level compatibility review; no implementation result, model call, human labels, agreement/gate result, second family selection, C4 acceptance, or Protocol v1 amendment."
+    },
+    {
+      "path": "../lead-l13-shift-aware-selector-scope-20261106.md",
+      "sha256": "B094EEEA2EB612B3895EDC2ED1134D376B2C64C5561FE282F56DE1804A973C88",
+      "authority_pins": {
+        "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
+        "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
+        "protocol_v1_sha256": "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "active_closure_snapshot_sha256": "3d97d635b0ee4a77b0594e22bafea628a75608a12e3549b557bab3508d73311f",
+        "md_arm_package_receipt_sha256": "017b34292ac53d8b5d92491655d5edbadd201326ca4dda4a86c3c9b1e113688f"
+      },
+      "evidence_ceiling": "Prospective LEAD scope and eligibility decision; matched output files are absent at the receipt path, no selector rule/target/model call/result/human labels were produced, and scientific L13/H5 acceptance and milestone credit remain open."
     }
   ],
   "already_fetchable_files": [
