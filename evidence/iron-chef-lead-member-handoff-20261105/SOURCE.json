@@ -129,6 +129,18 @@
         "chapter_6_destination_sha256": "49a913750c1833b29e4a2889329414f16be1956cfd75a6ce19fda6554432bbe2"
       },
       "evidence_ceiling": "HUMAN-adopted operating interpretation with bounded estimator details; no Protocol amendment, data, score, implementation acceptance, or milestone."
+    },
+    {
+      "path": "../lead-l43-judge-family-prompt-decision-20261106.md",
+      "sha256": "A2B12F6F092AF856ACADA976CD97F9184EFBC35E6E89151FDF73917F46A13390",
+      "authority_pins": {
+        "strategy_source_sha256": "B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE",
+        "strategy_mirror_sha256": "31D601B85789856BAA1BE4676F42C13D8793050D4563AD904B092099D1A7A6E1",
+        "protocol_v1_sha256": "b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12",
+        "c4_contract_sha256": "a823003838685d47ae851364faee25d8fe0c23cb6c31d4a96cdad3363dcd11de",
+        "c4_runner_sha256": "c28d4d8e17923024fcf6e7f9ddf7a471f69543dbd78170314a8b8255f5f9c6bf"
+      },
+      "evidence_ceiling": "Prospective LEAD selection and source-level compatibility review; no implementation result, model call, human labels, agreement/gate result, second family selection, C4 acceptance, or Protocol v1 amendment."
     }
   ],
   "already_fetchable_files": [
