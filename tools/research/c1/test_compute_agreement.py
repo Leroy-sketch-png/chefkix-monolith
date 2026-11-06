@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from compute_agreement import cluster_bootstrap, cohens_kappa, wilson
+from compute_agreement import cluster_bootstrap, cohens_kappa, linear_quantile, wilson
 
 
 class AgreementMathTests(unittest.TestCase):
@@ -21,6 +21,16 @@ class AgreementMathTests(unittest.TestCase):
         self.assertGreater(hi, 0.8)
         self.assertIsNone(wilson(0, 0))
 
+    def test_linear_quantile_uses_interpolation_without_changing_order_statistic(self):
+        values = [0.0, 10.0, 20.0, 30.0, 40.0]
+        self.assertEqual(linear_quantile(values, 0.0), 0.0)
+        self.assertEqual(linear_quantile(values, 0.5), 20.0)
+        self.assertEqual(linear_quantile(values, 1.0), 40.0)
+        with self.assertRaises(ValueError):
+            linear_quantile([], 0.5)
+        with self.assertRaises(ValueError):
+            linear_quantile(values, 1.1)
+
     def test_case_cluster_bootstrap_is_deterministic_and_resamples_cases(self):
         clusters = {f"case-{i}": [("A", "A"), ("C", "C"), ("N", "U")] for i in range(30)}
         first = cluster_bootstrap(clusters)
@@ -29,6 +39,8 @@ class AgreementMathTests(unittest.TestCase):
         self.assertEqual(first["requested_draws"], 2000)
         self.assertEqual(first["valid_draws"], 2000)
         self.assertIsNotNone(first["interval_95"])
+        self.assertIsNotNone(first["interval_95_linear_interpolation_sensitivity"])
+        self.assertEqual(len(first["interval_95_linear_interpolation_sensitivity"]), 2)
 
 
 if __name__ == "__main__":

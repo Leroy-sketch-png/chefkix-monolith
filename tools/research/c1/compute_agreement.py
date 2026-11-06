@@ -64,6 +64,17 @@ def wilson(successes: int, n: int, z: float = 1.959963984540054) -> list[float] 
     return [max(0.0, center - margin), min(1.0, center + margin)]
 
 
+def linear_quantile(sorted_values: list[float], probability: float) -> float:
+    """Type-7/NumPy-linear quantile from already sorted values, for sensitivity only."""
+    if not sorted_values or not 0.0 <= probability <= 1.0:
+        raise ValueError("quantile needs nonempty values and probability in [0,1]")
+    position = (len(sorted_values) - 1) * probability
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    fraction = position - lower
+    return sorted_values[lower] + fraction * (sorted_values[upper] - sorted_values[lower])
+
+
 def cluster_bootstrap(case_pairs: dict[str, list[tuple[str, str]]]) -> dict[str, Any]:
     cases = sorted(case_pairs)
     rng = random.Random(SEED)
@@ -81,7 +92,10 @@ def cluster_bootstrap(case_pairs: dict[str, list[tuple[str, str]]]) -> dict[str,
     lo = int(0.025 * len(values))
     hi = int(0.975 * len(values)) - 1
     return {"valid_draws": len(values), "requested_draws": BOOTSTRAPS,
-            "interval_95": [values[lo], values[hi]], "unavailable_reason": None}
+            "interval_95": [values[lo], values[hi]],
+            "interval_95_linear_interpolation_sensitivity": [linear_quantile(values, 0.025),
+                                                               linear_quantile(values, 0.975)],
+            "unavailable_reason": None}
 
 
 def common_paths(args: argparse.Namespace) -> dict[str, Path]:
@@ -136,7 +150,8 @@ def bind(args: argparse.Namespace) -> None:
         "ethics_evidence_basis": "HUMAN confirmation in chat; no institutional document inspected",
         "scope": "Private raw four-category agreement; no primary H1 estimate; no labels overwritten",
         "method": {"cohens_kappa": "unweighted nominal A/C/N/U", "cluster": "case_id; resample all candidate pairs within sampled cases",
-                   "bootstrap_draws": BOOTSTRAPS, "seed": SEED, "interval": "percentile 95%",
+                   "bootstrap_draws": BOOTSTRAPS, "seed": SEED,
+                   "interval": "primary empirical order-statistic percentile 95%; linear-interpolation quantile is sensitivity only",
                    "missing_draw_rule": "interval unavailable if fewer than 20 valid draws"},
         "paths": {k: str(v) for k, v in paths.items()},
         "sha256": observed,
