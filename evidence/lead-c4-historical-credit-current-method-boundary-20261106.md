@@ -16,7 +16,7 @@
 | Were historical G1/G2 receipts deleted or revoked? | No. Retain the ledger's 2/5 milestone credit as historically recorded by Continuation 368. |
 | Does that credit mean the selected L43 method is ready? | No. Current L43 explicitly identifies the incompatibility and gives M-I the existing-path correction. |
 | Is C4 accepted? | No. C4 remains 2/5 campaign milestones and is not a fully accepted contribution; paired human adjudications, Protocol gates and the other C4 acceptance conditions remain outstanding. |
-| Did this review alter the scientific method or authorize execution? | No. Protocol v1 remains SHA-256 `b2952599099c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`; no call, spend, test, label access, data transfer or job was performed or authorized here. |
+| Did this review alter the scientific method or authorize execution? | No. Protocol v1 remains SHA-256 `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`; this is the verified digest of the research-root source `D:/code/chefkix/research/protocols/IRON-CHEF-PROTOCOL-v1.md`. No call, spend, test, label access, data transfer or job was performed or authorized here. |
 
 ## Next acceptance boundary
 

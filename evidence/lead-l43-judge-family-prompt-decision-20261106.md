@@ -23,8 +23,35 @@ The existing C4 reference does **not** settle this choice. Its prompt contract i
 
 **M-I owns** updating the existing C4 contract/runner/manifest path to implement this single selected pool-level method (no parallel framework), verify actual returned model identity, preserve opaque-ID coverage and both-order outputs, compute the frozen gates from real adjudications, and retain failures/denominators. It may test implementation behavior using already-approved independent fixtures, but no source labels are to be fabricated. Before any test scoring, require the exact prompt/model/serialization freeze and exposure receipt. Human adjudication, agreement estimates, subgroup validity, and C4 acceptance require their actual authorized inputs and independent methods review. No API call or spend is authorized by this decision.
 
-## Scope not silently closed
+## Initial second-family state (historical)
 
-The operative strategy describes **two** independent judge families as a proposal. This decision selects only the first. No second distinct model family is named in the frozen current resource envelope without either overlapping a judged model family or introducing a new provider/model setting. Preserve the two-family ambition; do not report L43/C4 complete or silently reduce the research goal. A second family requires an explicit prospective selection against the same family-disjointness rule and the existing resource authority before use.
+The operative strategy describes **two** independent judge families as a proposal. The initial 2026-11-06 decision selected only the first and left the second open. The following prospective addendum resolves that design question narrowly; it does not claim full two-family coverage of every arm or close L43/C4.
 
 The decision establishes compatibility by specification only. It does not establish account availability, quota, actual model serving identity, prompt performance, human validity, clinical safety, study completion, or contribution credit.
+
+## Addendum — prospective second-family common-slate diagnostic
+
+**Decision ID:** `iron-chef-l43-second-judge-common-slate-v1`
+
+**Date / authority:** 2026-11-06; bounded Lead design within the existing Protocol v1 family and resource envelope.
+
+**State:** Prospective specification only. No prompt bytes beyond the selected §7.1 template are frozen, no job/call/spend is authorized here, and the current account/cost/capacity receipt remains a dispatch gate.
+
+### Decision
+
+Select OpenAI `gpt-4o-2024-08-06`, temperature `0`, as the second judge family for a separately reported **matched common-slate robustness diagnostic**. Keep the already selected Gemini `gemini-2.5-flash` as the sole primary judge of the complete L43 C4 candidate slate. Do not average judge outputs, replace the primary judge, use the secondary comparison to select/tune a prompt on test, or claim two-family coverage of the full slate.
+
+The common-slate diagnostic uses exactly the same preselected audit case IDs and candidate IDs for both judges. Its admissible candidate pool contains GISMo and lookup outputs, plus the retained-best Mistral adapter only if it passes the existing DR-04 eligibility checks. Exclude **all GPT-4o-generated candidates from both judges' diagnostic pools**; GPT-4o is the second judge's own family. This is not a self-family exemption: every candidate in the paired diagnostic is judged by both Gemini and GPT-4o, and each judge family differs from every generator represented in that diagnostic pool. Preserve the full frozen candidate-arm obligation separately: Gemini continues to judge GPT-4o-generated candidates in the full-slate primary analysis, while the GPT-4o family does not judge those candidates. The pool membership, cases, IDs, serialization and order must be byte-identical between the two diagnostic judges; the reverse-order pass reverses that same pool without exposing pass/order/position to the judge.
+
+After the exact §7.1-derived prompt bytes are prospectively frozen, submit one pool per judge in forward and reverse order using byte-identical prompt, opaque IDs, temperature and response schema. Compare each judge separately against the same paired human final-adjudicated labels, then report their difference as a secondary diagnostic. Apply Protocol v1 §3.3's judge-versus-adjudicated gates separately; failures and missing outputs remain in the fixed denominator. This diagnostic does not replace the primary Gemini results or meet a stronger interpretation of the strategy's proposed two-family/full-slate ambition.
+
+### Feasibility and boundaries
+
+- This uses only the already authorized OpenAI and Google model settings; it introduces no provider, model setting, candidate arm or protocol rule. Frozen Protocol v1 remains unchanged. The candidate slate is the one already named by L43/Protocol v1, not an expansion to every arm mentioned in broader strategy proposals.
+- For `n` cases in the paired audit subset, the common-slate diagnostic requires `2n` calls per judge (forward and reverse, one case/pool per call), in addition to Gemini's full-slate primary calls. At the strategy's 150-case audit planning scale, the diagnostic alone is 300 Google plus 300 OpenAI calls; actual input/output tokens and costs are unknown until the exact pools exist. Before dispatch, verify remaining quota, spend/reservation and worst-case cost under Protocol §6. If the exact frozen subset cannot fit, do not silently shrink/reselect it; stop before calls and record the bounded capacity result.
+- Protocol §3.1's assigned validation development/calibration and exposure rules still apply. Freeze both exact model identities, final prompt bytes, pool/ID serialization, parameters and order treatment before any test scoring. Protocol §3.3's audit-set human-agreement gates remain mandatory for each judge. No human labels, provider calls, account availability, quota, prompt performance or empirical agreement is established by this design decision.
+- The minimum execution input still missing is a rights/ethics-authorized paired human final-adjudication set over the exact common candidate units, plus the hash-bound eligible candidate-pool/input package and observed account/cost capacity. This is an execution prerequisite, not a reason to ask for another Lead method choice.
+
+### Strongest alternative and claim ceiling
+
+The strongest alternative is to keep Gemini as the only judge and avoid a second-family diagnostic. That is simpler and preserves full-slate coverage under one eligible family, but leaves the strategy's proposed independent-family robustness question untested. Conversely, judging the entire slate with GPT-4o would violate Protocol §3.3 on GPT-4o-generated candidates; comparing two judges on different pools would confound judge-family with candidate-pool composition. The common-slate design avoids those errors, at the cost of extra calls and a narrower secondary estimand. It supports only a paired diagnostic on the common non-self-family subset—not full-slate two-family robustness, human validity, C4 acceptance, safety, or a new empirical claim. If the intended C4 criterion requires two judges independently covering every arm, this within-envelope design is insufficient; the precise missing capability is a second authorized judge family distinct from all generator families, not more mock tests or a different interpretation of self-family rows.
