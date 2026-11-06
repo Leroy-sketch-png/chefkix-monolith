@@ -14,7 +14,7 @@ The rubric follows Protocol v1 section 2 and the existing C1 Chapter 4/6 handboo
 
 ## Current Collection State
 
-As recorded in shared default `ab2655f`, the frozen sample exists in the separate research checkout, but real candidate/reference inputs and safe populated reviewer packs are absent. Do not send these guides as if the review task itself were ready.
+Current state (2026-11-06): private populated R1/R2 reviewer files have been issued to HUMAN locally from `D:\ResearchData\ChefKix\C1-reviewer-packs-v1-20261106\delivery\`. Each presents the same frozen 150-case roster and 867 blinded candidate entries; R1 SHA-256 `83e0f42a3f7a6fa8ab8496f85403679654200dd86147ae23af1e64fcb485ac52`, R2 SHA-256 `1e0e3d5b6f63cbd5d518cd9fda158e9fe3d2ea7d4c80092305a731f5dde09002`. The private binding checks passed, but no ratings have been collected and no human-validity result exists. The populated files, case data, and sealed mapping remain outside Git; these hashes identify private delivery artifacts but are not a substitute for access to them.
 
 Existing M-B packaging acceptance: two standalone personal packs; correct frozen sample and roster; blinded case/candidate content; no sealed key or cross-reviewer leakage; automatic stable-identifier preservation; A/C/N/U and optional notes; progress/unanswered visibility; save/resume; complete export; exact per-reviewer candidate counts and pack manifests. Reuse the existing audit path. Do not create a new research framework, change sampling, generate replacement model outputs, or expose the combined 300-view file to both reviewers.
 
