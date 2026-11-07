@@ -1,7 +1,7 @@
 # Chapter 3 — Data, Identity, and Graph Provenance
 
-**Working draft v0.4 — 2026-11-07**
-**Evidence state:** verified clean knowledge graph artifact (`graph_eval_v4_clean`, manifest SHA-256 `ade85c3312b8...`, 6,633 nodes, 23,185 edges, 0 identity errors), full raw-split join reproduction (`manifest.json` SHA-256 `a5d1fafa4b...`, 49,044 train, 10,729 val, 10,747 test rows), Spring Boot / Next.js real runtime serving under fail-closed refusal contracts, a bounded aggregate-only comparison of T535 missing IDs against one pinned unfiltered Recipe1M artifact, and a separate source-level FooDB Food→Compound relation check. The latter does not establish a built graph artifact, application runtime, or product acceptance.
+**Working draft v0.5 — 2026-11-07**
+**Evidence state:** validated train-derived evaluation artifact (`graph_eval_v4_clean`, manifest SHA-256 `ade85c3312b8...`, 6,633 nodes, 23,185 edges, 0 identity errors), full raw-split join reproduction (`manifest.json` SHA-256 `a5d1fafa4b...`, 49,044 train, 10,729 val, 10,747 test rows), local Spring Boot / Next.js graph-evidence preview under fail-closed refusal contracts, a bounded aggregate-only comparison of T535 missing IDs against one pinned unfiltered Recipe1M artifact, and a separate source-level FooDB Food→Compound relation check. The `graph_eval_v4_clean` runtime/preview does not establish `graph_product_v4`, accepted-source-bundle integration, full C5 acceptance, or public/deployed product behavior. The FooDB relation remains source-level evidence only and does not establish a built or served FooDB component.
 **Use:** canonical methods account for data lineage, vocabulary contracts, and graph artifact provenance under Contribution C5 (Product Proof).
 
 ## 3.1 Data are not interchangeable evidence
@@ -50,13 +50,15 @@ A different, local monolith graph API observation after a source-built runtime r
 
 These are distinct evidence layers, not interchangeable proof: (1) source/seed interpretation, (2) bounded external source relations, (3) serialized bytes, (4) service/API response, (5) loaded runtime, and (6) the verified clean artifact. The FooDB relation above occupies layer 2 only; it does not connect itself to layers 3–5 or to `graph_eval_v4`.
 
-6. **Accepted Clean Knowledge Graph Artifact (`graph_eval_v4_clean`):** Under Lead Decision T75, the root cause of the historical 10 identity errors was diagnosed: vocabulary index lookups had previously bypassed GISMo's authoritative `vocab_ingrs.pkl` string-to-index mapping. By projecting all 49,044 substitution training pairs through this authoritative mapping, `build_graph_eval_v4.py` deterministically constructed `ai/out/graph_eval_v4_clean`:
+6. **Validated Clean Train-Derived Evaluation Artifact (`graph_eval_v4_clean`):** Under Lead Decision T75, the root cause of the historical 10 identity errors was diagnosed: vocabulary index lookups had previously bypassed GISMo's authoritative `vocab_ingrs.pkl` string-to-index mapping. By projecting all 49,044 substitution training pairs through this authoritative mapping, `build_graph_eval_v4.py` deterministically constructed `ai/out/graph_eval_v4_clean`:
    - Exact counts: **6,633 nodes, 23,185 directed edges, 49,044 train evidence rows**.
    - Zero identity errors: `row_errors.jsonl` is exactly 0 bytes (SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`).
    - Manifest SHA-256: `ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1`.
    - Dual-build verification confirmed 100.0% bit-identical hash parity across separate directories.
    - Real runtime serving: bound to Spring Boot monolith (`application.yml`), returning HTTP 200 `AVAILABLE` with `artifactIntegrity.status = "VERIFIED"` and `acceptanceState = "PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED"` on `/api/v1/graph/evidence` and `/api/v1/graph/evidence/snapshot` (46 tests green in `GraphEvidenceEndpointCleanArtifactTest.java`).
    - End-to-end frontend integration: Next.js Graph Explorer (`GraphExplorer.tsx`) consumes the live snapshot endpoint, displaying real recomputed manifest hash `ade85c3312b8...`, 6,633 nodes, and 23,185 edges in the persistent footer (28/28 Jest tests green).
+
+This artifact and its local evidence preview are strictly the train-derived `graph_eval_v4` lane. They are not the separate `graph_product_v4` destination and contain no FooDB-source relation. The runtime's `PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED` state describes that preview path; it is not the AI-service accepted-package contract and does not establish T-03/T-04/T52/C5 acceptance. The FooDB source relation described above remains a separate unbuilt component; no source-to-product-graph or source-to-runtime lineage is implied.
 
 ## 3.5 Rights and identity limits
 
