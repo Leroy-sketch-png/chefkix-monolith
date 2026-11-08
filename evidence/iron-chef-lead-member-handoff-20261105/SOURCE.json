@@ -83,6 +83,14 @@
       "evidence_ceiling":"Exploratory positive protein/source examples only; not complete species or ingredient coverage, clinical significance, an ingredient mapping, safety evidence, C3 acceptance, or a mission milestone. Underlying WHO/IUIS table bytes were not acquired; see README and artifact access note."
     }
   ],
+  "lead_authored_addenda": [
+    {
+      "destination_path": "l49-h4-measurement-instrument-v1-20261108.md",
+      "sha256": "a766625780f6da2c37ca4f2f841341dca2e5123db435ef10ab301ece664120ce",
+      "authority": "BACKLOG_LEAD.md L49 adopted design (2026-11-07); frozen Protocol v1",
+      "evidence_ceiling": "Authored participant-copy template and owner scoring instructions only; no cases, source validation, independent case-bound review, approval, deployment, participant data, results, or empirical acceptance."
+    }
+  ],
   "source_excerpts": [
     {
       "source_path":"ai/campaigns/iron-chef-outcome-push-20261021/MISSION.md",
@@ -178,5 +186,5 @@
       "sha256": "46eb9bbb13df224fecf4f5506c9e9f1b108dde5f18a8609cdd2bf91cee1a3299"
     }
   ],
-  "scope": "Authored/source-only files, exact aggregate claim records, a sanitized local T54 runtime receipt, and a nine-record public WHO/IUIS metadata seed; no raw/private research rows, per-case or recipe IDs, labels, pools, profiles, model weights, private output bundles, credentials, runtime binaries, or personal notes. The full WHO/IUIS downloadable table is not included."
+  "scope": "Authored/source-only files including the L49/H4 measurement wording, exact aggregate claim records, a sanitized local T54 runtime receipt, and a nine-record public WHO/IUIS metadata seed; no raw/private research rows, per-case or recipe IDs, labels, pools, profiles, model weights, private output bundles, credentials, runtime binaries, or personal notes. The full WHO/IUIS downloadable table is not included."
 }
