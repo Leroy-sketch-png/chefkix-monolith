@@ -23,7 +23,92 @@ The existing C4 reference does **not** settle this choice. Its prompt contract i
 
 **M-I owns** updating the existing C4 contract/runner/manifest path to implement this single selected pool-level method (no parallel framework), verify actual returned model identity, preserve opaque-ID coverage and both-order outputs, compute the frozen gates from real adjudications, and retain failures/denominators. It may test implementation behavior using already-approved independent fixtures, but no source labels are to be fabricated. Before any test scoring, require the exact prompt/model/serialization freeze and exposure receipt. Human adjudication, agreement estimates, subgroup validity, and C4 acceptance require their actual authorized inputs and independent methods review. No API call or spend is authorized by this decision.
 
-## Development candidate baseline assets
+## Operational Gate Decision — 2026-11-08
+
+**Authority and scope:** LEAD adopts these prospective calculation semantics for
+the selected pool judge before any judge outputs exist. Protocol v1's numeric
+gates, models, exposure rules and attempt limits are unchanged. This is an
+implementer-facing decision, not implementation, empirical acceptance, or the
+independent methods review required for inferential claims.
+
+### Units, Reference and Primary Pass
+
+- Freeze case IDs, candidate identities, arm memberships and descriptive cells
+  before scoring. A unit is one distinct candidate identity within one case, not
+  each occurrence in an arm's top-k. Preserve all arm memberships separately.
+- Human references are final, separately adjudicated A/C/N/U labels. Do not
+  substitute recorded gold, one cook, a majority algorithm or reverse-pass
+  predictions. An absent final reference is unavailable, not N or U.
+- The forward pass is the prespecified primary human-comparison pass. Report
+  the reverse pass separately; never choose the better pass, average labels or
+  select a pass after seeing agreement. This does not alter the paired common
+  slate or the requirement to retain both orders.
+- U is a valid nominal response category, not a parser failure and not negative
+  validity. Missing, malformed, duplicate-ID or foreign-ID output is a failure.
+  Reject an invalid outer pool response as a request failure; do not salvage a
+  convenient subset of its candidate results.
+
+### Agreement and Leniency
+
+For judge-versus-human agreement use unweighted nominal Cohen's kappa over the
+four A/C/N/U categories on valid, identity-matched primary-pass/reference pairs.
+This is distinct from any separately reported strict A-versus-C/N diagnostic;
+never silently drop U or collapse it into N. Report assigned, reference-present,
+judge-valid and paired counts, plus U counts for each rater. The paired statistic
+is conditional on observed pairs and does not hide failures from other gates.
+
+For n paired units, let p_o be exact-label agreement and let p_e be the sum of
+the products of the two marginal category proportions. Kappa is
+`(p_o - p_e) / (1 - p_e)`. With no pairs or a zero denominator it is unavailable,
+not zero or perfect agreement. Resample whole cases, retaining every paired
+candidate in a sampled case, for 2,000 draws using seed `20261021`; use the
+order-statistic percentile convention: sort the B valid draws and select
+zero-based indices `floor(0.025 * B)` and `floor(0.975 * B) - 1`.
+Record requested/valid/degenerate draws. Fewer than 20 valid draws means the
+interval and lower-bound gate are unavailable. Do not change conventions to
+cross a gate. The required point/lower-bound cutoffs remain 0.60/0.50.
+
+Within each frozen descriptive cell c, use exactly the same paired units for
+both A rates. Define `delta_c = mean(judge == A) - mean(human == A)` and apply
+the existing 10-percentage-point limit to `abs(delta_c)`. C is not counted as A.
+Report the signed delta and both counts as well as its absolute value. A cell
+with no paired references is unavailable, not a zero-delta pass. Evaluate every
+prespecified nonempty cell; never merge or omit a failing cell after scoring.
+Arm-specific summaries retain deduplicated candidate memberships and do not
+change the primary per-cell gate.
+
+### Order Stability and Invalid Output
+
+Let D be the fixed number of assigned case-candidate units for the two-order
+comparison. Let F be the number with two valid but different labels, and let M
+be the number lacking either valid label. Report `F / (D - M)` as observed
+conditional label instability when its denominator is positive, and report
+the full-assignment bounds `[F / D, (F + M) / D]`. A fully missing comparison is
+not stable. Claim the 10% instability gate passes only when the conservative
+upper bound is at most 0.10; an empty assignment is unavailable.
+
+The invalid-output gate uses the fixed planned initial pool requests, including
+both orders: denominator `2 * number_of_assigned_cases`. Count malformed or
+incomplete pools, transport failures and missing initial responses as failed
+requests. The 2% gate is their proportion of that fixed denominator. Retain
+first-attempt and terminal dispositions separately if an existing authorized
+retry occurs; retry success does not erase an initial failure. Also report all
+actual attempts and failures for resource accounting. This decision authorizes
+no retry, provider call or spend and does not replace an applicable attempt cap.
+
+### M-I Finish Condition
+
+Implement these calculations in the existing C4 path, with actual data supplied
+later. Emit each gate as PASS, FAIL or UNAVAILABLE with its numerator,
+denominator, frozen cell/pass identity and input hashes. Any FAIL rejects the
+judge for that scope; any UNAVAILABLE prevents a complete acceptance claim.
+Report missingness and conditional-statistic limitations even when all numeric
+gates pass. Preserve historical G1/G2 evidence; it does not implement this
+decision. Synthetic fixtures may verify arithmetic and refusal behavior only.
+No present human references, judge results, pipeline readiness or C4 credit are
+created by this handoff.
+
+## Development Candidate Baseline Assets
 
 The exact pool-level prompt text is available as shared, machine-usable UTF-8 text assets:
 
