@@ -34,9 +34,17 @@ and Strategy §§3, 6–8, and 17.
    - Binds and verifies: `graph_manifest`, `hard_filter`, `ranker`, `scorer`, `score_contract`, `label_contract`, `split_assignment`, `identity_index`, and `calibration_scores`.
    - Missing or mismatched roles fail closed with `no_guarantee` and null `tHat`.
 
+6. **Calibration Bundle Producer (`calibration_bundle_producer.py`):**
+   - Implements versioned `c3-calibration-bundle-producer-v2` manifest schema.
+   - Binds global recipe-group split and per-cell case projections with deterministic digests (`projection_digest` over sorted calibration cases).
+   - Validates all 4 typed outcome rows and rejects duplicate, missing, or malformed records.
+   - Enforces 9-role digest verification (missing or mismatched roles emit fail-closed status).
+   - Descriptive statistics (n, k, sample cutoff, empirical coverage) computed for research only; `product_t_hat` strictly remains `None` under unproven exchangeability.
+
 ## Verification
 
 Run the test suite:
 ```bash
-python -m pytest tools/research/t54/test_method_v2_calibration.py -v
+python -m pytest tools/research/t54/ -v
 ```
+All 53 unit tests pass green (13 in `test_method_v2_calibration.py`, 40 in `test_calibration_bundle_producer.py`).
