@@ -430,3 +430,4 @@ def compute_h4_report(
         assigned_overread_rate_upper=rate_upper,
         zero_event_binomial_upper95=binomial_upper95,
     )
+
