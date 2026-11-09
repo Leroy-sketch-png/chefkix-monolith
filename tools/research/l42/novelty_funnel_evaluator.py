@@ -664,3 +664,4 @@ def run_novelty_funnel_evaluation(
         claims_register_v20_sha256=CLAIMS_REGISTER_V20_SHA256,
         lineage_discrepancies=lineage_discrepancies,
     )
+
