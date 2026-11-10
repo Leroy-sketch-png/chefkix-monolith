@@ -304,8 +304,17 @@ def evaluate_integrated_audit(
     for c in case_manifest:
         case_id = c["case_id"]
         stratum = c["stratum"]
-        cluster_id = c["recipe_cluster_id"]
-        candidate_ids = c["candidate_identities"]  # top 5 primary GISMo candidates
+        cluster_id = c.get("recipe_cluster_id", c.get("recipe_id", case_id))
+
+        if "candidate_identities" in c:
+            candidate_ids = [str(x) for x in c["candidate_identities"]]
+        elif "candidates" in c:
+            candidate_ids = [
+                str(cand.get("identity_id", cand.get("candidate_id", cand)))
+                for cand in c["candidates"]
+            ]
+        else:
+            raise KeyError(f"Case {case_id} missing candidate identities or candidates")
 
         if len(candidate_ids) != 5:
             raise ValueError(f"Case {case_id} must have exactly 5 candidates")
@@ -382,8 +391,17 @@ def evaluate_full_audit(
     for c in case_manifest:
         case_id = c["case_id"]
         stratum = c["stratum"]
-        cluster_id = c["recipe_cluster_id"]
-        candidate_ids = c["candidate_identities"]
+        cluster_id = c.get("recipe_cluster_id", c.get("recipe_id", case_id))
+
+        if "candidate_identities" in c:
+            candidate_ids = [str(x) for x in c["candidate_identities"]]
+        elif "candidates" in c:
+            candidate_ids = [
+                str(cand.get("identity_id", cand.get("candidate_id", cand)))
+                for cand in c["candidates"]
+            ]
+        else:
+            raise KeyError(f"Case {case_id} missing candidate identities or candidates")
 
         labels = []
         for cand_id in candidate_ids:
@@ -429,7 +447,19 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     sealed_key = json.loads(opts.sealed_key.read_text(encoding="utf-8"))
     adj_return = json.loads(opts.adjudication_return.read_text(encoding="utf-8"))
-    manifest = json.loads(opts.case_manifest.read_text(encoding="utf-8"))
+    manifest_raw = opts.case_manifest.read_text(encoding="utf-8").strip()
+    if opts.case_manifest.suffix == ".jsonl" or ("\n" in manifest_raw and not manifest_raw.startswith("[")):
+        manifest = [json.loads(line) for line in manifest_raw.splitlines() if line.strip()]
+    elif manifest_raw.startswith("["):
+        manifest = json.loads(manifest_raw)
+    else:
+        parsed = json.loads(manifest_raw)
+        if "cases" in parsed:
+            manifest = parsed["cases"]
+        elif "selected_cases" in parsed:
+            manifest = parsed["selected_cases"]
+        else:
+            manifest = [parsed]
 
     if opts.agreed_map:
         raw_agreed = json.loads(opts.agreed_map.read_text(encoding="utf-8"))
