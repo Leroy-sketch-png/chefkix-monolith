@@ -39,5 +39,5 @@ This package implements and verifies the deterministic sampling frame validator 
 
 Run the test suite:
 ```bash
-python -m pytest tools/research/l40/test_vietnamese_pilot_sampling.py -v
+python -m unittest discover -s tools/research/l40 -p "test_*.py" -v
 ```
