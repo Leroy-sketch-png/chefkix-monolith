@@ -30,6 +30,6 @@ This package implements and verifies the mathematical counterbalance design and 
 ## Execution
 
 ```bash
-python -m pytest tools/research/l49/test_h4_counterbalance_schedule.py -v
+python -m unittest discover -s tools/research/l49 -p "test_*.py" -v
 ```
 
