@@ -31,4 +31,16 @@ Integrates the private L36 adjudicator return (`c1-adjudication-return.json`) wi
 - Operational failures retained in denominator as $V=0$.
 - Fixed denominator preserved verbatim; never complete-case analysis.
 - Generates canonical SHA-256 sealed integration receipt (`c1-l36-adjudication-integration-receipt-v1`).
+- `extract_agreed_map_from_returns()` parses raw reviewer returns (R1, R2) and `c1-private-key-v1` to cleanly isolate the 717 agreed pairs.
+- Full audit mode runs 2,000-draw recipe cluster bootstrap and evaluates H1 decision rule (`SUPPORT_H1`, `REFUTE_H1`, `INCONCLUSIVE`, `JOINT_CLUSTER_HOLD`).
+
+```powershell
+python tools/research/c1/c1_adjudication_integrator.py \
+  --sealed-key c1-l36-adjudication-key.json \
+  --adjudication-return c1-adjudication-return.json \
+  --case-manifest case_manifest.json \
+  --agreed-map agreed_map.json \
+  --output integration-receipt.json
+```
+
 

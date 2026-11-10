@@ -3,10 +3,11 @@
 Joins the private L36 adjudicator return back with the 717 agreed candidate
 judgments via the sealed opaque identity key, produces the unified 867-judgment
 matrix, classifies all 150 cases under iron-chef-l36-case-rule-v1, and computes
-the partial-identification point bounds on the unseen strata.
+the partial-identification point bounds and bootstrap intervals on the unseen strata.
 """
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import hashlib
 import json
@@ -24,34 +25,42 @@ if str(_l36_dir) not in sys.path:
 try:
     from audit_estimand_evaluator import (
         ALLOWED_LABELS,
+        BOOTSTRAP_DRAWS,
         AuditCase,
         CaseValue,
         CaseEvaluationResult,
+        L36AuditReport,
         PartialIdentificationBounds,
-        compute_partial_bounds,
-        evaluate_case_rule,
-        FROZEN_FRAME_SIZES,
-        FROZEN_SAMPLE_SIZES,
         PROTOCOL_SHA256,
+        SEED,
         SPECIFICATION_ID,
         TOTAL_SAMPLE,
         UNSEEN_SAMPLE,
+        compute_partial_bounds,
+        evaluate_audit_estimand,
+        evaluate_case_rule,
+        FROZEN_FRAME_SIZES,
+        FROZEN_SAMPLE_SIZES,
     )
 except ModuleNotFoundError:
     from tools.research.l36.audit_estimand_evaluator import (
         ALLOWED_LABELS,
+        BOOTSTRAP_DRAWS,
         AuditCase,
         CaseValue,
         CaseEvaluationResult,
+        L36AuditReport,
         PartialIdentificationBounds,
-        compute_partial_bounds,
-        evaluate_case_rule,
-        FROZEN_FRAME_SIZES,
-        FROZEN_SAMPLE_SIZES,
         PROTOCOL_SHA256,
+        SEED,
         SPECIFICATION_ID,
         TOTAL_SAMPLE,
         UNSEEN_SAMPLE,
+        compute_partial_bounds,
+        evaluate_audit_estimand,
+        evaluate_case_rule,
+        FROZEN_FRAME_SIZES,
+        FROZEN_SAMPLE_SIZES,
     )
 
 TOTAL_CANDIDATE_JUDGMENTS = 867
@@ -134,6 +143,77 @@ def evaluate_audit_case(case: AuditCase) -> CaseEvaluationResult:
         integrity_passed=ok,
         failure_reason=err,
     )
+
+
+def extract_agreed_map_from_returns(
+    key_dict: dict[str, Any],
+    r1_return_dict: dict[str, Any],
+    r2_return_dict: dict[str, Any],
+) -> dict[tuple[str, str], str]:
+    """Extracts agreed (case_id, identity_id) -> label mappings where R1 and R2 agree.
+    
+    Verifies that total pairs across key is 867, exactly 717 agree, and 150 disagree.
+    """
+    if key_dict.get("format") != "c1-private-key-v1":
+        raise ValueError(f"Invalid private key format: {key_dict.get('format')}")
+    if r1_return_dict.get("format") != "c1-reviewer-return-v1" or r1_return_dict.get("reviewer") != "R1":
+        raise ValueError("Invalid R1 return format or reviewer identifier")
+    if r2_return_dict.get("format") != "c1-reviewer-return-v1" or r2_return_dict.get("reviewer") != "R2":
+        raise ValueError("Invalid R2 return format or reviewer identifier")
+
+    key_entries = key_dict.get("entries", [])
+    entry_lookup: dict[tuple[str, str, str], tuple[str, str]] = {}
+    distinct_pairs: set[tuple[str, str]] = set()
+    for e in key_entries:
+        rev = e["reviewer"]
+        vid = e["view_id"]
+        bcand = e["blind_candidate"]
+        cid = e["case_id"]
+        iid = e["identity_id"]
+        entry_lookup[(rev, vid, bcand)] = (cid, iid)
+        distinct_pairs.add((cid, iid))
+
+    if len(distinct_pairs) != TOTAL_CANDIDATE_JUDGMENTS:
+        raise ValueError(f"Expected {TOTAL_CANDIDATE_JUDGMENTS} distinct candidate pairs, got {len(distinct_pairs)}")
+
+    r1_judgments = {
+        entry_lookup[("R1", j["view_id"], j["blind_candidate"])]: j["label"]
+        for j in r1_return_dict.get("judgments", [])
+        if ("R1", j["view_id"], j["blind_candidate"]) in entry_lookup
+    }
+    r2_judgments = {
+        entry_lookup[("R2", j["view_id"], j["blind_candidate"])]: j["label"]
+        for j in r2_return_dict.get("judgments", [])
+        if ("R2", j["view_id"], j["blind_candidate"]) in entry_lookup
+    }
+
+    if len(r1_judgments) != TOTAL_CANDIDATE_JUDGMENTS or len(r2_judgments) != TOTAL_CANDIDATE_JUDGMENTS:
+        raise ValueError(
+            f"Expected {TOTAL_CANDIDATE_JUDGMENTS} judgments from each reviewer, "
+            f"got R1={len(r1_judgments)}, R2={len(r2_judgments)}"
+        )
+
+    agreed_map: dict[tuple[str, str], str] = {}
+    disagreements = 0
+
+    for pair in distinct_pairs:
+        l1 = r1_judgments.get(pair)
+        l2 = r2_judgments.get(pair)
+        if l1 is None or l2 is None:
+            raise ValueError(f"Missing judgment for pair {pair}")
+        if l1 not in ALLOWED_LABELS or l2 not in ALLOWED_LABELS:
+            raise ValueError(f"Invalid label for pair {pair}: R1={l1}, R2={l2}")
+        if l1 == l2:
+            agreed_map[pair] = l1
+        else:
+            disagreements += 1
+
+    if len(agreed_map) != AGREED_COUNT:
+        raise ValueError(f"Expected {AGREED_COUNT} agreed items, got {len(agreed_map)} (disagreements={disagreements})")
+    if disagreements != DISAGREEMENT_COUNT:
+        raise ValueError(f"Expected {DISAGREEMENT_COUNT} disagreements, got {disagreements}")
+
+    return agreed_map
 
 
 def integrate_judgments(
@@ -286,3 +366,120 @@ def evaluate_integrated_audit(
         receipt_format="c1-l36-adjudication-integration-receipt-v1",
         is_denominator_preserved=True,
     )
+
+
+def evaluate_full_audit(
+    integrated_judgments: Mapping[tuple[str, str], IntegratedCandidateJudgment],
+    case_manifest: Sequence[dict[str, Any]],
+    rater_pairs: list[tuple[str, str]] | None = None,
+    n_bootstrap_draws: int = BOOTSTRAP_DRAWS,
+    seed: int = SEED,
+) -> tuple[C1AdjudicationIntegrationResult, L36AuditReport]:
+    """Computes both integration result and full L36 audit report with bootstrap intervals."""
+    integration_result = evaluate_integrated_audit(integrated_judgments, case_manifest)
+
+    audit_cases: list[AuditCase] = []
+    for c in case_manifest:
+        case_id = c["case_id"]
+        stratum = c["stratum"]
+        cluster_id = c["recipe_cluster_id"]
+        candidate_ids = c["candidate_identities"]
+
+        labels = []
+        for cand_id in candidate_ids:
+            rec = integrated_judgments.get((case_id, cand_id))
+            labels.append("U" if rec is None else rec.final_label)
+
+        audit_cases.append(AuditCase(
+            case_id=case_id,
+            stratum=stratum,
+            recipe_cluster_id=cluster_id,
+            candidate_labels=labels,
+            is_operational_failure=c.get("is_operational_failure", False),
+            is_reference_disputed=c.get("is_reference_disputed", False),
+        ))
+
+    audit_report = evaluate_audit_estimand(
+        cases=audit_cases,
+        rater_pairs=rater_pairs,
+        n_bootstrap_draws=n_bootstrap_draws,
+        seed=seed,
+    )
+
+    return integration_result, audit_report
+
+
+def parse_args(args: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sealed-key", type=Path, required=True, help="Path to sealed adjudication key JSON")
+    parser.add_argument("--adjudication-return", type=Path, required=True, help="Path to adjudication return JSON")
+    parser.add_argument("--case-manifest", type=Path, required=True, help="Path to 150-case manifest JSON")
+    parser.add_argument("--agreed-map", type=Path, default=None, help="Path to pre-extracted agreed map JSON")
+    parser.add_argument("--private-key", type=Path, default=None, help="Path to c1-private-key-v1 JSON")
+    parser.add_argument("--r1-return", type=Path, default=None, help="Path to R1 return JSON")
+    parser.add_argument("--r2-return", type=Path, default=None, help="Path to R2 return JSON")
+    parser.add_argument("--output", type=Path, default=None, help="Path to write integration receipt JSON")
+    parser.add_argument("--bootstrap-draws", type=int, default=BOOTSTRAP_DRAWS, help="Number of bootstrap draws")
+    parser.add_argument("--seed", type=int, default=SEED, help="Random seed for bootstrap")
+    return parser.parse_args(args)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    opts = parse_args(argv)
+
+    sealed_key = json.loads(opts.sealed_key.read_text(encoding="utf-8"))
+    adj_return = json.loads(opts.adjudication_return.read_text(encoding="utf-8"))
+    manifest = json.loads(opts.case_manifest.read_text(encoding="utf-8"))
+
+    if opts.agreed_map:
+        raw_agreed = json.loads(opts.agreed_map.read_text(encoding="utf-8"))
+        if isinstance(raw_agreed, dict) and "items" in raw_agreed:
+            agreed_map = {(item["case_id"], item["identity_id"]): item["final_label"] for item in raw_agreed["items"]}
+        elif isinstance(raw_agreed, list):
+            agreed_map = {(item["case_id"], item["identity_id"]): item["final_label"] for item in raw_agreed}
+        elif isinstance(raw_agreed, dict):
+            agreed_map = {}
+            for k, v in raw_agreed.items():
+                if isinstance(k, str) and "::" in k:
+                    parts = k.split("::", 1)
+                    agreed_map[(parts[0], parts[1])] = v
+                else:
+                    raise ValueError(f"Unrecognized agreed map key format: {k}")
+        else:
+            raise ValueError("Unsupported agreed_map format")
+    elif opts.private_key and opts.r1_return and opts.r2_return:
+        priv_key = json.loads(opts.private_key.read_text(encoding="utf-8"))
+        r1_ret = json.loads(opts.r1_return.read_text(encoding="utf-8"))
+        r2_ret = json.loads(opts.r2_return.read_text(encoding="utf-8"))
+        agreed_map = extract_agreed_map_from_returns(priv_key, r1_ret, r2_ret)
+    else:
+        raise ValueError("Either --agreed-map or (--private-key, --r1-return, --r2-return) must be provided")
+
+    integrated = integrate_judgments(sealed_key, adj_return, agreed_map)
+    result, report = evaluate_full_audit(
+        integrated_judgments=integrated,
+        case_manifest=manifest,
+        n_bootstrap_draws=opts.bootstrap_draws,
+        seed=opts.seed,
+    )
+
+    receipt = result.to_receipt_dict()
+    receipt["h1_decision"] = report.h1_decision.value
+    if report.bootstrap_interval and not report.bootstrap_interval.cluster_crosses_strata:
+        receipt["bootstrap_ci_95"] = {
+            "p_lower": list(report.bootstrap_interval.p_lower_ci_95),
+            "p_upper": list(report.bootstrap_interval.p_upper_ci_95),
+            "valid_draws": report.bootstrap_interval.valid_draws,
+        }
+
+    output_str = json.dumps(receipt, indent=2, sort_keys=True)
+    if opts.output:
+        opts.output.write_text(output_str + "\n", encoding="utf-8")
+    else:
+        print(output_str)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

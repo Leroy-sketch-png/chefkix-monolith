@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 import sys
@@ -19,11 +20,15 @@ from tools.research.c1.c1_adjudication_integrator import (
     TOTAL_CANDIDATE_JUDGMENTS,
     C1AdjudicationIntegrationResult,
     IntegratedCandidateJudgment,
+    evaluate_full_audit,
     evaluate_integrated_audit,
+    extract_agreed_map_from_returns,
     integrate_judgments,
+    main,
 )
 from tools.research.l36.audit_estimand_evaluator import (
     CaseValue,
+    DecisionStatus,
     PROTOCOL_SHA256,
     SPECIFICATION_ID,
     TOTAL_SAMPLE,
@@ -150,25 +155,50 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
             integrate_judgments(colliding_key, self.adjudication_return, self.agreed_map)
         self.assertIn("Collision", str(ctx.exception))
 
-    def test_evaluate_integrated_audit_full_flow(self):
-        # Build unified 867 judgments
-        # We need a case manifest of exactly 150 cases:
-        # 50 unseen_profiled, 50 unseen_unprofiled, 25 seen_profiled, 25 seen_unprofiled
-        case_manifest = []
-        custom_integrated = {}
-
-        # 50 unseen_profiled
+    def _build_synthetic_manifest(self) -> list[dict]:
+        manifest = []
         for i in range(50):
             cid = f"unseen_prof_{i:03d}"
-            cands = [f"{cid}_c{j}" for j in range(5)]
-            case_manifest.append({
+            manifest.append({
                 "case_id": cid,
                 "stratum": "unseen_profiled",
                 "recipe_cluster_id": f"cluster_p_{i // 5}",
-                "candidate_identities": cands,
+                "candidate_identities": [f"{cid}_c{j}" for j in range(5)],
             })
-            # First 10 cases have an 'A', next 10 have 'U' without 'A', rest have 'N'
-            for j, cand in enumerate(cands):
+        for i in range(50):
+            cid = f"unseen_unprof_{i:03d}"
+            manifest.append({
+                "case_id": cid,
+                "stratum": "unseen_unprofiled",
+                "recipe_cluster_id": f"cluster_u_{i // 5}",
+                "candidate_identities": [f"{cid}_c{j}" for j in range(5)],
+            })
+        for i in range(25):
+            cid = f"seen_prof_{i:03d}"
+            manifest.append({
+                "case_id": cid,
+                "stratum": "seen_profiled",
+                "recipe_cluster_id": f"cluster_sp_{i // 5}",
+                "candidate_identities": [f"{cid}_c{j}" for j in range(5)],
+            })
+        for i in range(25):
+            cid = f"seen_unprof_{i:03d}"
+            manifest.append({
+                "case_id": cid,
+                "stratum": "seen_unprofiled",
+                "recipe_cluster_id": f"cluster_su_{i // 5}",
+                "candidate_identities": [f"{cid}_c{j}" for j in range(5)],
+            })
+        return manifest
+
+    def test_evaluate_integrated_audit_full_flow(self):
+        case_manifest = self._build_synthetic_manifest()
+        custom_integrated = {}
+
+        # 50 unseen_profiled: 10 A, 10 U, 30 N
+        for i, c in enumerate(case_manifest[:50]):
+            cid = c["case_id"]
+            for j, cand in enumerate(c["candidate_identities"]):
                 if i < 10 and j == 0:
                     lbl = "A"
                 elif 10 <= i < 20 and j == 0:
@@ -176,24 +206,13 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
                 else:
                     lbl = "N"
                 custom_integrated[(cid, cand)] = IntegratedCandidateJudgment(
-                    case_id=cid,
-                    identity_id=cand,
-                    final_label=lbl,
-                    source_type="AGREED" if i % 2 == 0 else "ADJUDICATED",
+                    case_id=cid, identity_id=cand, final_label=lbl, source_type="AGREED"
                 )
 
-        # 50 unseen_unprofiled
-        for i in range(50):
-            cid = f"unseen_unprof_{i:03d}"
-            cands = [f"{cid}_c{j}" for j in range(5)]
-            case_manifest.append({
-                "case_id": cid,
-                "stratum": "unseen_unprofiled",
-                "recipe_cluster_id": f"cluster_u_{i // 5}",
-                "candidate_identities": cands,
-            })
-            # First 15 cases have an 'A', next 5 have 'U', rest 'N'
-            for j, cand in enumerate(cands):
+        # 50 unseen_unprofiled: 15 A, 5 U, 30 N
+        for i, c in enumerate(case_manifest[50:100]):
+            cid = c["case_id"]
+            for j, cand in enumerate(c["candidate_identities"]):
                 if i < 15 and j == 0:
                     lbl = "A"
                 elif 15 <= i < 20 and j == 0:
@@ -201,58 +220,22 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
                 else:
                     lbl = "N"
                 custom_integrated[(cid, cand)] = IntegratedCandidateJudgment(
-                    case_id=cid,
-                    identity_id=cand,
-                    final_label=lbl,
-                    source_type="AGREED" if i % 2 == 0 else "ADJUDICATED",
+                    case_id=cid, identity_id=cand, final_label=lbl, source_type="AGREED"
                 )
 
-        # 25 seen_profiled
-        for i in range(25):
-            cid = f"seen_prof_{i:03d}"
-            cands = [f"{cid}_c{j}" for j in range(5)]
-            case_manifest.append({
-                "case_id": cid,
-                "stratum": "seen_profiled",
-                "recipe_cluster_id": f"cluster_sp_{i // 5}",
-                "candidate_identities": cands,
-            })
-            for j, cand in enumerate(cands):
+        # 50 seen cases: all A on first candidate
+        for c in case_manifest[100:]:
+            cid = c["case_id"]
+            for j, cand in enumerate(c["candidate_identities"]):
                 lbl = "A" if j == 0 else "N"
                 custom_integrated[(cid, cand)] = IntegratedCandidateJudgment(
-                    case_id=cid,
-                    identity_id=cand,
-                    final_label=lbl,
-                    source_type="AGREED",
+                    case_id=cid, identity_id=cand, final_label=lbl, source_type="AGREED"
                 )
 
-        # 25 seen_unprofiled
-        for i in range(25):
-            cid = f"seen_unprof_{i:03d}"
-            cands = [f"{cid}_c{j}" for j in range(5)]
-            case_manifest.append({
-                "case_id": cid,
-                "stratum": "seen_unprofiled",
-                "recipe_cluster_id": f"cluster_su_{i // 5}",
-                "candidate_identities": cands,
-            })
-            for j, cand in enumerate(cands):
-                lbl = "A" if j == 0 else "N"
-                custom_integrated[(cid, cand)] = IntegratedCandidateJudgment(
-                    case_id=cid,
-                    identity_id=cand,
-                    final_label=lbl,
-                    source_type="AGREED",
-                )
-
-        # Add 117 padding judgments to reach 867 total (750 from 150*5 + 117 extra)
-        # to strictly test arbitrary candidate sets
+        # 117 padding judgments to reach 867 total
         for i in range(TOTAL_CANDIDATE_JUDGMENTS - len(custom_integrated)):
             custom_integrated[(f"extra_case_{i}", f"extra_cand_{i}")] = IntegratedCandidateJudgment(
-                case_id=f"extra_case_{i}",
-                identity_id=f"extra_cand_{i}",
-                final_label="N",
-                source_type="AGREED",
+                case_id=f"extra_case_{i}", identity_id=f"extra_cand_{i}", final_label="N", source_type="AGREED"
             )
 
         self.assertEqual(len(custom_integrated), 867)
@@ -265,16 +248,10 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
         self.assertEqual(result.total_candidate_judgments, 867)
         self.assertTrue(result.is_denominator_preserved)
 
-        # Unseen profiled: 10 success, 10 unknown, 30 failure
-        # Unseen unprofiled: 15 success, 5 unknown, 30 failure
-        # Seen profiled: 25 success
-        # Seen unprofiled: 25 success
-        # Total successes = 10 + 15 + 25 + 25 = 75
         self.assertEqual(result.v1_count_total, 75)
-        self.assertEqual(result.vu_count_total, 15)  # 10 + 5
-        self.assertEqual(result.v0_count_total, 60)  # 30 + 30
+        self.assertEqual(result.vu_count_total, 15)
+        self.assertEqual(result.v0_count_total, 60)
 
-        # Partial bounds
         self.assertLess(result.point_bounds.p_lower, result.point_bounds.p_upper)
         self.assertAlmostEqual(
             result.point_bounds.weighted_unknown_mass,
@@ -294,6 +271,95 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
         self.assertEqual(receipt["v1_count_total"], 75)
         self.assertIn("receipt_sha256", receipt)
         self.assertEqual(len(receipt["receipt_sha256"]), 64)
+
+    def test_extract_agreed_map_from_returns(self):
+        # Create synthetic private key with 867 distinct pairs (1734 entries for R1 and R2)
+        entries = []
+        r1_judgments = []
+        r2_judgments = []
+
+        for i in range(TOTAL_CANDIDATE_JUDGMENTS):
+            cid = f"case_{i // 5}"
+            iid = f"cand_{i}"
+            vid = f"view_{i // 5}"
+            bcand = f"blind_{i % 5}"
+
+            entries.append({"reviewer": "R1", "case_id": cid, "identity_id": iid, "view_id": vid, "blind_candidate": bcand})
+            entries.append({"reviewer": "R2", "case_id": cid, "identity_id": iid, "view_id": vid, "blind_candidate": bcand})
+
+            # 717 agree, 150 disagree
+            if i < AGREED_COUNT:
+                lbl1, lbl2 = "A", "A"
+            else:
+                lbl1, lbl2 = "A", "N"
+
+            r1_judgments.append({"view_id": vid, "blind_candidate": bcand, "label": lbl1})
+            r2_judgments.append({"view_id": vid, "blind_candidate": bcand, "label": lbl2})
+
+        priv_key = {"format": "c1-private-key-v1", "entries": entries}
+        r1_return = {"format": "c1-reviewer-return-v1", "reviewer": "R1", "judgments": r1_judgments}
+        r2_return = {"format": "c1-reviewer-return-v1", "reviewer": "R2", "judgments": r2_judgments}
+
+        agreed = extract_agreed_map_from_returns(priv_key, r1_return, r2_return)
+        self.assertEqual(len(agreed), AGREED_COUNT)
+        self.assertEqual(len(agreed), 717)
+
+    def test_evaluate_full_audit_with_bootstrap(self):
+        case_manifest = self._build_synthetic_manifest()
+        custom_integrated = {}
+        for c in case_manifest:
+            cid = c["case_id"]
+            for cand in c["candidate_identities"]:
+                custom_integrated[(cid, cand)] = IntegratedCandidateJudgment(
+                    case_id=cid, identity_id=cand, final_label="A", source_type="AGREED"
+                )
+        for i in range(TOTAL_CANDIDATE_JUDGMENTS - len(custom_integrated)):
+            custom_integrated[(f"pad_{i}", f"pad_{i}")] = IntegratedCandidateJudgment(
+                case_id=f"pad_{i}", identity_id=f"pad_{i}", final_label="A", source_type="AGREED"
+            )
+
+        res, report = evaluate_full_audit(
+            integrated_judgments=custom_integrated,
+            case_manifest=case_manifest,
+            n_bootstrap_draws=50,
+            seed=20261021,
+        )
+        self.assertEqual(res.total_cases_evaluated, 150)
+        self.assertEqual(report.h1_decision, DecisionStatus.SUPPORT_H1)
+        self.assertIsNotNone(report.bootstrap_interval)
+
+    def test_cli_execution(self):
+        case_manifest = self._build_synthetic_manifest()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            key_file = tmppath / "sealed_key.json"
+            ret_file = tmppath / "adj_return.json"
+            man_file = tmppath / "manifest.json"
+            agr_file = tmppath / "agreed_map.json"
+            out_file = tmppath / "receipt.json"
+
+            key_file.write_text(json.dumps(self.sealed_key), encoding="utf-8")
+            ret_file.write_text(json.dumps(self.adjudication_return), encoding="utf-8")
+            man_file.write_text(json.dumps(case_manifest), encoding="utf-8")
+
+            # write agreed_map as list of items
+            agr_items = [{"case_id": k[0], "identity_id": k[1], "final_label": v} for k, v in self.agreed_map.items()]
+            agr_file.write_text(json.dumps(agr_items), encoding="utf-8")
+
+            exit_code = main([
+                "--sealed-key", str(key_file),
+                "--adjudication-return", str(ret_file),
+                "--case-manifest", str(man_file),
+                "--agreed-map", str(agr_file),
+                "--output", str(out_file),
+                "--bootstrap-draws", "50",
+            ])
+            self.assertEqual(exit_code, 0)
+            self.assertTrue(out_file.exists())
+            receipt = json.loads(out_file.read_text(encoding="utf-8"))
+            self.assertEqual(receipt["format"], "c1-l36-adjudication-integration-receipt-v1")
+            self.assertEqual(receipt["total_cases_evaluated"], 150)
+            self.assertIn("receipt_sha256", receipt)
 
 
 if __name__ == "__main__":
