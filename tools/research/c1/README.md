@@ -21,3 +21,14 @@ python -m unittest discover -s tools/research/c1 -p test_render_reviewer.py -v
 ```
 
 The software tests are source-free. They do not establish human validity, actual 150-case pack readiness, identities, consent, model performance, or a research milestone.
+
+## C1 Adjudication Integrator Pipeline (`c1_adjudication_integrator.py`)
+
+Integrates the private L36 adjudicator return (`c1-adjudication-return.json`) with the 717 agreed candidate judgments via the sealed opaque identity key (`c1-l36-adjudication-key-v1`), constructs the unified 867-judgment matrix, classifies all 150 cases under `iron-chef-l36-case-rule-v1`, and computes partial-identification point bounds on the unseen strata ($N=3815, n=100$).
+
+- Unanswered adjudications default to `U` under the L36 rule.
+- Case-level rule: at least one `A` $\implies V=1$; all `C` or `N` $\implies V=0$; contains `U` without `A` $\implies V=\text{unknown}$.
+- Operational failures retained in denominator as $V=0$.
+- Fixed denominator preserved verbatim; never complete-case analysis.
+- Generates canonical SHA-256 sealed integration receipt (`c1-l36-adjudication-integration-receipt-v1`).
+
