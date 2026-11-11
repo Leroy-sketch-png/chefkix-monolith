@@ -4,6 +4,8 @@ import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeTechnique;
 import com.chefkix.culinary.features.knowledge.service.KnowledgeGraphService;
 import com.chefkix.culinary.features.knowledge.dto.KnowledgeGraphResponse;
+import com.chefkix.culinary.features.knowledge.dto.PhotoSubstitutionRequest;
+import com.chefkix.culinary.features.knowledge.dto.PhotoSubstitutionResponse;
 import com.chefkix.shared.dto.ApiResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import lombok.experimental.FieldDefaults;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,6 +69,14 @@ public class KnowledgeGraphController {
         var subs = knowledgeGraphService.getSubstitutions(name);
         return ApiResponse.<List<KnowledgeIngredient.Substitution>>builder()
                 .success(true).statusCode(200).data(subs).build();
+    }
+
+    @PostMapping("/substitutions/from-photo")
+    public ApiResponse<PhotoSubstitutionResponse> resolvePhotoSubstitutions(
+            @Valid @RequestBody PhotoSubstitutionRequest request) {
+        return ApiResponse.<PhotoSubstitutionResponse>builder()
+                .success(true).statusCode(200)
+                .data(knowledgeGraphService.resolvePhotoSubstitutions(request)).build();
     }
 
 
