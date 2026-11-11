@@ -3,6 +3,8 @@ package com.chefkix.culinary.features.knowledge.service;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeIngredient;
 import com.chefkix.culinary.features.knowledge.entity.KnowledgeTechnique;
 import com.chefkix.culinary.features.knowledge.dto.KnowledgeGraphResponse;
+import com.chefkix.culinary.features.knowledge.dto.PhotoSubstitutionRequest;
+import com.chefkix.culinary.features.knowledge.dto.PhotoSubstitutionResponse;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeIngredientRepository;
 import com.chefkix.culinary.features.knowledge.repository.KnowledgeTechniqueRepository;
 import com.chefkix.shared.exception.AppException;
@@ -57,6 +59,135 @@ public class KnowledgeGraphService {
                 .map(KnowledgeIngredient::getSubstitutions)
                 .orElse(Collections.emptyList());
     }
+
+    public PhotoSubstitutionResponse resolvePhotoSubstitutions(PhotoSubstitutionRequest request) {
+        String sourceText = request.ingredientToReplace().trim();
+        String dishName = request.dishName() == null ? "" : request.dishName().trim();
+        List<String> allergens = request.allergenConstraints() == null
+                ? List.of() : request.allergenConstraints();
+        List<String> dietaryConstraints = request.dietaryConstraints() == null
+                ? List.of() : request.dietaryConstraints();
+
+        IngredientResolution source = resolveIdentityExact(sourceText);
+        if (source.ambiguous()) {
+            return photoSubstitutionResult("ambiguous_source", dishName, sourceText, allergens,
+                    List.of(), 0, 0);
+        }
+
+        boolean sourceAppearsInDish = request.dishIngredients().stream().anyMatch(detectedName -> {
+            IngredientResolution detected = resolveIdentityExact(detectedName);
+            if (source.ingredient() != null && detected.ingredient() != null) {
+                return normalizeIdentity(source.ingredient().getCanonicalName())
+                        .equals(normalizeIdentity(detected.ingredient().getCanonicalName()));
+            }
+            return normalizeIdentity(sourceText).equals(normalizeIdentity(detectedName));
+        });
+        if (!sourceAppearsInDish) {
+            return photoSubstitutionResult("ingredient_not_in_dish", dishName, sourceText, allergens,
+                    List.of(), 0, 0);
+        }
+        if (source.ingredient() == null) {
+            return photoSubstitutionResult("source_not_in_graph", dishName, sourceText, allergens,
+                    List.of(), 0, 0);
+        }
+
+        List<KnowledgeIngredient.Substitution> edges = source.ingredient().getSubstitutions() == null
+                ? List.of() : source.ingredient().getSubstitutions();
+        if (edges.isEmpty()) {
+            return photoSubstitutionResult("no_graph_edges", dishName,
+                    source.ingredient().getCanonicalName(), allergens, List.of(), 0, 0);
+        }
+
+        if (allergens.isEmpty() && dietaryConstraints.isEmpty()) {
+            List<PhotoSubstitutionResponse.Candidate> candidates = edges.stream()
+                    .filter(edge -> edge.getAlternative() != null && !edge.getAlternative().isBlank())
+                    .map(edge -> {
+                        IngredientResolution target = resolveIdentityExact(edge.getAlternative());
+                        return new PhotoSubstitutionResponse.Candidate(
+                                edge.getAlternative(), edge.getContext(), edge.getRatio(),
+                                target.ingredient() != null);
+                    })
+                    .toList();
+            return photoSubstitutionResult("recommendations", dishName,
+                    source.ingredient().getCanonicalName(), allergens, candidates, 0, 0);
+        }
+
+        Set<String> requestedGroups = allergens.stream()
+                .map(KnowledgeGraphService::allergenGroup)
+                .filter(group -> !group.isBlank())
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        int blockedCount = 0;
+        int edgeCount = 0;
+        for (KnowledgeIngredient.Substitution edge : edges) {
+            if (edge.getAlternative() == null || edge.getAlternative().isBlank()) continue;
+            edgeCount++;
+            IngredientResolution target = resolveIdentityExact(edge.getAlternative());
+            if (target.ingredient() != null && hasMatchingAllergenFlag(target.ingredient(), requestedGroups)) {
+                blockedCount++;
+            }
+        }
+        // The current KG has no completeness marker for negative allergen or diet evidence.
+        // Unknown candidates are withheld; an absent flag is never treated as a safe negative.
+        int withheldCount = Math.max(0, edgeCount - blockedCount);
+        String status = withheldCount == 0 && blockedCount > 0
+                ? "no_candidates_after_filter" : "constraint_evidence_incomplete";
+        return photoSubstitutionResult(status, dishName, source.ingredient().getCanonicalName(),
+                allergens, List.of(), withheldCount, blockedCount);
+    }
+
+    private PhotoSubstitutionResponse photoSubstitutionResult(
+            String status,
+            String dishName,
+            String sourceIngredient,
+            List<String> allergens,
+            List<PhotoSubstitutionResponse.Candidate> candidates,
+            int withheldCount,
+            int blockedCount) {
+        return new PhotoSubstitutionResponse(status, dishName, sourceIngredient, allergens,
+                candidates, withheldCount, blockedCount, "ingredient_level");
+    }
+
+    private IngredientResolution resolveIdentityExact(String identity) {
+        if (identity == null || identity.isBlank()) return new IngredientResolution(null, false);
+        String normalized = normalizeIdentity(identity);
+        String pattern = "^" + Pattern.quote(identity.trim()) + "$";
+        Map<String, KnowledgeIngredient> matches = new LinkedHashMap<>();
+        for (KnowledgeIngredient ingredient : ingredientRepo.searchByNameOrAlias(pattern)) {
+            boolean exact = normalizeIdentity(ingredient.getCanonicalName()).equals(normalized)
+                    || normalizeIdentity(ingredient.getName()).equals(normalized)
+                    || (ingredient.getAliases() != null && ingredient.getAliases().stream()
+                    .anyMatch(alias -> normalizeIdentity(alias).equals(normalized)));
+            if (exact) matches.put(ingredient.getCanonicalName(), ingredient);
+        }
+        if (matches.size() > 1) return new IngredientResolution(null, true);
+        return new IngredientResolution(matches.values().stream().findFirst().orElse(null), false);
+    }
+
+    private static boolean hasMatchingAllergenFlag(KnowledgeIngredient ingredient, Set<String> requestedGroups) {
+        if (ingredient.getAllergenFlags() == null) return false;
+        return ingredient.getAllergenFlags().stream()
+                .map(KnowledgeGraphService::allergenGroup)
+                .anyMatch(requestedGroups::contains);
+    }
+
+    private static String allergenGroup(String raw) {
+        String value = normalizeIdentity(raw).replace('_', ' ');
+        return switch (value) {
+            case "peanut", "peanuts", "groundnut", "groundnuts" -> "peanuts";
+            case "tree nut", "tree nuts", "almond", "cashew", "walnut", "pecan", "pistachio",
+                    "hazelnut", "macadamia", "pine nut" -> "tree_nuts";
+            case "dairy", "milk", "lactose" -> "dairy";
+            case "egg", "eggs" -> "eggs";
+            case "gluten", "wheat" -> "wheat_gluten";
+            case "soy", "soya" -> "soy";
+            case "fish" -> "fish";
+            case "shellfish", "crustacean", "crustaceans", "mollusc", "molluscs" -> "shellfish";
+            case "sesame" -> "sesame";
+            default -> "";
+        };
+    }
+
+    private record IngredientResolution(KnowledgeIngredient ingredient, boolean ambiguous) {}
 
     public List<KnowledgeIngredient> getAllIngredients() {
         return ingredientRepo.findAll();
