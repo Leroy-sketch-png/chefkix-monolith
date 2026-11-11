@@ -28,7 +28,8 @@ import hashlib
 import json
 import math
 import random
-from typing import Any, Dict, List, Optional, Set, Tuple
+import re
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
 
 
 PROTOCOL_SHA256 = "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
@@ -111,6 +112,29 @@ class PartialIdentificationBounds:
     n_unknown_cases: int
     total_weighted_denominator: float
     stratum_sample_counts: Dict[str, int]
+
+
+@dataclasses.dataclass(frozen=True)
+class ConditionalPartialIdentificationBounds:
+    """Descriptive H=0 point bounds with provenance for the membership input.
+
+    This object intentionally contains no interval or H1 decision. The supplied
+    source/receipt hashes identify the caller-verified membership provenance;
+    this function validates their shape but cannot authenticate those receipts.
+    """
+
+    p_lower: Optional[float]
+    p_upper: Optional[float]
+    weighted_unknown_mass: Optional[float]
+    assigned_unseen_cases: int
+    h0_unseen_cases: int
+    weighted_h0_denominator: float
+    stratum_assigned_counts: Dict[str, int]
+    stratum_h0_counts: Dict[str, int]
+    membership_source_sha256: str
+    membership_receipt_sha256: str
+    membership_map_sha256: str
+    status: str
 
 
 @dataclasses.dataclass(frozen=True)
@@ -321,6 +345,109 @@ def compute_partial_bounds(cases: List[AuditCase]) -> Tuple[PartialIdentificatio
         stratum_sample_counts=stratum_counts,
     )
     return bounds, eval_results, p_ac
+
+
+def compute_conditional_partial_bounds(
+    cases: List[AuditCase],
+    h0_by_case: Mapping[str, bool],
+    *,
+    membership_source_sha256: str,
+    membership_receipt_sha256: str,
+) -> ConditionalPartialIdentificationBounds:
+    """Compute descriptive weighted partial bounds conditional on H=0.
+
+    ``h0_by_case`` must be the caller-verified gold-not-in-frozen-top-five map
+    for the complete unseen cohort. Hashes are recorded as provenance pins, but
+    their authenticity and relationship to the map must be verified by the
+    caller; this function does not load private inputs or claim interval
+    coverage. All unseen assigned cases remain in the cohort counts.
+    """
+    unseen_cases = [c for c in cases if c.stratum in {"unseen_profiled", "unseen_unprofiled"}]
+    case_ids = [c.case_id for c in unseen_cases]
+    if len(case_ids) != len(set(case_ids)):
+        raise ValueError("Unseen cohort contains duplicate case identities")
+
+    for digest_name, digest in (
+        ("membership_source_sha256", membership_source_sha256),
+        ("membership_receipt_sha256", membership_receipt_sha256),
+    ):
+        if not isinstance(digest, str) or re.fullmatch(r"[0-9a-fA-F]{64}", digest) is None:
+            raise ValueError(f"{digest_name} must be a 64-character SHA-256 hex digest")
+
+    expected_ids = set(case_ids)
+    supplied_ids = set(h0_by_case)
+    if expected_ids != supplied_ids:
+        raise ValueError(
+            "H=0 membership must cover exactly the unseen cohort "
+            f"(missing={len(expected_ids - supplied_ids)}, extra={len(supplied_ids - expected_ids)})"
+        )
+    if any(type(value) is not bool for value in h0_by_case.values()):
+        raise ValueError("H=0 membership values must be explicit booleans")
+
+    stratum_cases: Dict[str, List[AuditCase]] = {
+        name: [c for c in unseen_cases if c.stratum == name]
+        for name in ("unseen_profiled", "unseen_unprofiled")
+    }
+    assigned_counts = {name: len(rows) for name, rows in stratum_cases.items()}
+    if assigned_counts != {name: FROZEN_SAMPLE_SIZES[name] for name in stratum_cases}:
+        raise ValueError("Unseen case counts do not match the frozen stratified allocation")
+
+    h0_counts = {
+        name: sum(1 for case in rows if h0_by_case[case.case_id])
+        for name, rows in stratum_cases.items()
+    }
+    weighted_denominator = 0.0
+    weighted_lower_numerator = 0.0
+    weighted_upper_numerator = 0.0
+
+    for stratum_name, rows in stratum_cases.items():
+        frame_n = FROZEN_FRAME_SIZES[stratum_name]
+        sample_n = FROZEN_SAMPLE_SIZES[stratum_name]
+        weight = frame_n / sample_n
+        for case in rows:
+            if not h0_by_case[case.case_id]:
+                continue
+            value, integrity_passed, _ = evaluate_case_rule(
+                case.candidate_labels, case.is_operational_failure
+            )
+            if not integrity_passed:
+                raise ValueError("Malformed unseen case prevents conditional estimation")
+            lower = 1 if value == CaseValue.SUCCESS else 0
+            upper = 1 if value in {CaseValue.SUCCESS, CaseValue.UNKNOWN} else 0
+            weighted_denominator += weight
+            weighted_lower_numerator += weight * lower
+            weighted_upper_numerator += weight * upper
+
+    membership_payload = json.dumps(
+        sorted((case_id, h0_by_case[case_id]) for case_id in case_ids),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    membership_map_sha256 = hashlib.sha256(membership_payload).hexdigest()
+
+    if weighted_denominator == 0.0:
+        p_lower = p_upper = unknown_mass = None
+        status = "UNAVAILABLE_ZERO_H0_WEIGHT"
+    else:
+        p_lower = weighted_lower_numerator / weighted_denominator
+        p_upper = weighted_upper_numerator / weighted_denominator
+        unknown_mass = p_upper - p_lower
+        status = "AVAILABLE_DESCRIPTIVE_ONLY"
+
+    return ConditionalPartialIdentificationBounds(
+        p_lower=p_lower,
+        p_upper=p_upper,
+        weighted_unknown_mass=unknown_mass,
+        assigned_unseen_cases=len(unseen_cases),
+        h0_unseen_cases=sum(h0_counts.values()),
+        weighted_h0_denominator=weighted_denominator,
+        stratum_assigned_counts=assigned_counts,
+        stratum_h0_counts=h0_counts,
+        membership_source_sha256=membership_source_sha256.lower(),
+        membership_receipt_sha256=membership_receipt_sha256.lower(),
+        membership_map_sha256=membership_map_sha256,
+        status=status,
+    )
 
 
 def run_cluster_bootstrap(

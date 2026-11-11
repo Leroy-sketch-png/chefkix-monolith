@@ -1,6 +1,7 @@
 """Unit tests for C1 Adjudication Integrator and Estimand Pipeline."""
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -271,6 +272,44 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
         self.assertEqual(receipt["v1_count_total"], 75)
         self.assertIn("receipt_sha256", receipt)
         self.assertEqual(len(receipt["receipt_sha256"]), 64)
+
+        # Conditional H=0 estimand is explicit, source-pinned, and descriptive
+        # only; all 100 assigned unseen cases remain in the cohort accounting.
+        h0_by_case = {
+            c["case_id"]: index < 10
+            for stratum in ("unseen_profiled", "unseen_unprofiled")
+            for index, c in enumerate(row for row in case_manifest if row["stratum"] == stratum)
+        }
+        conditional_result = evaluate_integrated_audit(
+            custom_integrated,
+            case_manifest,
+            h0_by_case=h0_by_case,
+            membership_source_sha256="a" * 64,
+            membership_receipt_sha256="b" * 64,
+        )
+        conditional_receipt = conditional_result.to_receipt_dict()
+        self.assertEqual(conditional_receipt["format"], "c1-l36-adjudication-integration-receipt-v2")
+        receipt_digest = conditional_receipt.pop("receipt_sha256")
+        canonical = json.dumps(conditional_receipt, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        self.assertEqual(hashlib.sha256(canonical).hexdigest(), receipt_digest)
+        self.assertEqual(conditional_result.conditional_point_bounds.assigned_unseen_cases, 100)
+        self.assertEqual(conditional_result.conditional_point_bounds.h0_unseen_cases, 20)
+        self.assertAlmostEqual(conditional_result.conditional_point_bounds.weighted_h0_denominator, 763.0)
+        conditional_payload = conditional_receipt["conditional_h0_descriptive_bounds"]
+        self.assertEqual(conditional_payload["interpretation"], "DESCRIPTIVE_POINT_BOUNDS_ONLY_NO_INTERVAL_OR_H1_DECISION")
+        self.assertEqual(conditional_payload["membership_provenance_status"], "CALLER_VERIFICATION_REQUIRED")
+        self.assertEqual(conditional_payload["p_lower"], 1.0)
+        self.assertNotIn("h1_decision", conditional_payload)
+        self.assertNotIn("case_id", conditional_payload)
+
+        with self.assertRaisesRegex(ValueError, "exactly the unseen cohort"):
+            evaluate_integrated_audit(
+                custom_integrated,
+                case_manifest,
+                h0_by_case={},
+                membership_source_sha256="a" * 64,
+                membership_receipt_sha256="b" * 64,
+            )
 
     def test_extract_agreed_map_from_returns(self):
         # Create synthetic private key with 867 distinct pairs (1734 entries for R1 and R2)

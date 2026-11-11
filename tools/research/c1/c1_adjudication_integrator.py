@@ -29,6 +29,7 @@ try:
         AuditCase,
         CaseValue,
         CaseEvaluationResult,
+        ConditionalPartialIdentificationBounds,
         L36AuditReport,
         PartialIdentificationBounds,
         PROTOCOL_SHA256,
@@ -37,6 +38,7 @@ try:
         TOTAL_SAMPLE,
         UNSEEN_SAMPLE,
         compute_partial_bounds,
+        compute_conditional_partial_bounds,
         evaluate_audit_estimand,
         evaluate_case_rule,
         FROZEN_FRAME_SIZES,
@@ -49,6 +51,7 @@ except ModuleNotFoundError:
         AuditCase,
         CaseValue,
         CaseEvaluationResult,
+        ConditionalPartialIdentificationBounds,
         L36AuditReport,
         PartialIdentificationBounds,
         PROTOCOL_SHA256,
@@ -57,6 +60,7 @@ except ModuleNotFoundError:
         TOTAL_SAMPLE,
         UNSEEN_SAMPLE,
         compute_partial_bounds,
+        compute_conditional_partial_bounds,
         evaluate_audit_estimand,
         evaluate_case_rule,
         FROZEN_FRAME_SIZES,
@@ -93,6 +97,7 @@ class C1AdjudicationIntegrationResult:
     vu_count_total: int
     receipt_format: str
     is_denominator_preserved: bool
+    conditional_point_bounds: ConditionalPartialIdentificationBounds | None = None
 
     def to_receipt_dict(self) -> dict[str, Any]:
         payload = {
@@ -120,6 +125,29 @@ class C1AdjudicationIntegrationResult:
             },
             "p_ac_sensitivity": round(self.p_ac_sensitivity, 6),
         }
+        if self.conditional_point_bounds is not None:
+            conditional = self.conditional_point_bounds
+            payload["format"] = "c1-l36-adjudication-integration-receipt-v2"
+            payload["unconditional_unseen_descriptive_bounds"] = payload.pop("partial_identification_bounds")
+            payload["conditional_h0_descriptive_bounds"] = {
+                "status": conditional.status,
+                "p_lower": None if conditional.p_lower is None else round(conditional.p_lower, 6),
+                "p_upper": None if conditional.p_upper is None else round(conditional.p_upper, 6),
+                "weighted_unknown_mass": (
+                    None if conditional.weighted_unknown_mass is None
+                    else round(conditional.weighted_unknown_mass, 6)
+                ),
+                "assigned_unseen_cases": conditional.assigned_unseen_cases,
+                "h0_unseen_cases": conditional.h0_unseen_cases,
+                "weighted_h0_denominator": round(conditional.weighted_h0_denominator, 6),
+                "stratum_assigned_counts": dict(conditional.stratum_assigned_counts),
+                "stratum_h0_counts": dict(conditional.stratum_h0_counts),
+                "membership_source_sha256": conditional.membership_source_sha256,
+                "membership_receipt_sha256": conditional.membership_receipt_sha256,
+                "membership_map_sha256": conditional.membership_map_sha256,
+                "membership_provenance_status": "CALLER_VERIFICATION_REQUIRED",
+                "interpretation": "DESCRIPTIVE_POINT_BOUNDS_ONLY_NO_INTERVAL_OR_H1_DECISION",
+            }
         canonical_bytes = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         receipt_sha256 = hashlib.sha256(canonical_bytes).hexdigest()
         payload["receipt_sha256"] = receipt_sha256
@@ -288,8 +316,23 @@ def integrate_judgments(
 def evaluate_integrated_audit(
     integrated_judgments: Mapping[tuple[str, str], IntegratedCandidateJudgment],
     case_manifest: Sequence[dict[str, Any]],
+    *,
+    h0_by_case: Mapping[str, bool] | None = None,
+    membership_source_sha256: str | None = None,
+    membership_receipt_sha256: str | None = None,
 ) -> C1AdjudicationIntegrationResult:
-    """Evaluate all 150 cases and compute L36 point bounds."""
+    """Evaluate all cases; optionally add source-pinned descriptive H=0 bounds.
+
+    H=0 input is deliberately separate from adjudication labels. When supplied,
+    callers must pre-verify its source receipt and provide exact cohort coverage.
+    The v2 receipt labels both the historical unconditional summary and the
+    conditional point bounds as descriptive; it adds no interval or H1 decision.
+    """
+    conditional_inputs = (h0_by_case, membership_source_sha256, membership_receipt_sha256)
+    if any(value is not None for value in conditional_inputs) and not all(
+        value is not None for value in conditional_inputs
+    ):
+        raise ValueError("H=0 map requires both membership source and receipt SHA-256 pins")
     if len(case_manifest) != TOTAL_SAMPLE:
         raise ValueError(f"Expected {TOTAL_SAMPLE} cases in manifest, got {len(case_manifest)}")
 
@@ -355,6 +398,14 @@ def evaluate_integrated_audit(
 
     # Compute point bounds on unseen stratum via frozen evaluator
     point_bounds, _, p_ac = compute_partial_bounds(audit_cases)
+    conditional_bounds = None
+    if h0_by_case is not None:
+        conditional_bounds = compute_conditional_partial_bounds(
+            audit_cases,
+            h0_by_case,
+            membership_source_sha256=membership_source_sha256 or "",
+            membership_receipt_sha256=membership_receipt_sha256 or "",
+        )
 
     agreed_count = sum(1 for j in integrated_judgments.values() if j.source_type == "AGREED")
     adj_count = sum(1 for j in integrated_judgments.values() if j.source_type == "ADJUDICATED")
@@ -372,8 +423,13 @@ def evaluate_integrated_audit(
         v1_count_total=v1_cnt,
         v0_count_total=v0_cnt,
         vu_count_total=vu_cnt,
-        receipt_format="c1-l36-adjudication-integration-receipt-v1",
+        receipt_format=(
+            "c1-l36-adjudication-integration-receipt-v2"
+            if conditional_bounds is not None
+            else "c1-l36-adjudication-integration-receipt-v1"
+        ),
         is_denominator_preserved=True,
+        conditional_point_bounds=conditional_bounds,
     )
 
 
