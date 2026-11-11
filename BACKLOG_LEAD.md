@@ -147,6 +147,7 @@ Re-estimate unfinished portions of the table using actual receipts: LEAD decisio
 - Canonical scientific criteria remain in academic_vision_and_strategy.md and research/protocols/IRON-CHEF-PROTOCOL-v1.md in the operating checkout. Its actual digest is `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`.
 - JARVIS task/worker state lives in its campaign, not a new version paragraph in this backlog. Publish permitted handoff artifacts so remote collaborators can obtain them.
 - Detailed pre-consolidation chronology, source screens, schedules and historic estimates are preserved in monolith commit `6884b5975c39df0c0d43a149f2c19bc4ff3f7281`. Retrieve with `git show 6884b5975c39df0c0d43a149f2c19bc4ff3f7281:BACKLOG_LEAD.md`. It is provenance, not a current dispatch queue.
+- **L36 method disposition (2026-11-11):** adopt Beaumont–Émond (2022) Eq. 20 case-level SRSWOR replicate weights only as an exploratory secondary sensitivity; exact within-/cross-stratum inclusion probabilities, factor equations, independent source-free review, Taylor cross-check, and marginal-interval/no-H1 ceiling are recorded in [`evidence/lead-l36-adjudicated-strict-a5-operational-v1-20261106.md`](evidence/lead-l36-adjudicated-strict-a5-operational-v1-20261106.md#supplemental-method-decision--case-srswor-rwyb-sensitivity-2026-11-11). Frozen Protocol v1 is unchanged; the recipe-cluster primary interval/H1 decision remains held. No outcomes, intervals, protocol status, C1 acceptance, or milestone credit resulted.
 
 ## Maintenance
 

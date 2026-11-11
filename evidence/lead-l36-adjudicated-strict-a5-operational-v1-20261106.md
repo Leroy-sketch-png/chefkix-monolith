@@ -99,3 +99,57 @@ Reviewed the conditional-estimator change at monolith commit `f6abef86b5b2d235bd
 **Material execution gap:** the optional inputs stop at `evaluate_integrated_audit`. `evaluate_full_audit` invokes that function without forwarding an H map or provenance, and `main`/`parse_args` expose no membership-map or receipt inputs. The normal CLI therefore continues to produce the legacy unconditional receipt; it cannot emit the corrected conditional endpoint. Tracked-artifact and existing handoff text inspection found no source-backed H=0 map, verified source/receipt binding, or corrected real-data receipt. This means “not evidenced in the shared repository,” not proof that a private artifact does not exist. No raw gold, label, return, or case-level data was opened in this review.
 
 **Exact M-I completion handoff:** use the frozen case manifest and recorded-gold/top-five identity linkage to supply one `H=0` boolean for each of the exact 100 unseen case IDs; verify the source artifact and its receipt against their actual bytes and binding before invoking the conditional path. Either connect those verified inputs through `evaluate_full_audit` and the CLI or document an equivalent reproducible invocation. The saved corrected receipt must bind the case-manifest, H-source/receipt, and membership-map digests; state the 100 assigned cases and each 50-case stratum allocation; report stratum H=0 counts, weighted H=0 denominator, lower/upper descriptive endpoints and unknown mass; retain the all-100 assigned-flow/missingness accounting; and carry the no-interval/no-H1 ceiling. Independent review of that receipt and provenance is still required. No value is computed or inferred here; `JOINT_CLUSTER_HOLD`, H1 status, C1 acceptance, and milestone credit remain unchanged.
+
+## Supplemental method decision — case-SRSWOR RWYB sensitivity (2026-11-11)
+
+**Decision:** adopt Beaumont–Émond Equation 20 as a separately labeled, design-based *secondary sensitivity* for the already-frozen case sample. Do not substitute it for Protocol v1's frozen case-cluster bootstrap, call it the primary interval, or use it to support/refute primary H1. Protocol v1 remains byte-identical at SHA-256 `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`. This choice is made after adjudicated outcomes exist; any resulting interval is exploratory and cannot be represented as prospective confirmatory evidence. `JOINT_CLUSTER_HOLD` therefore remains on the primary H1 decision.
+
+### Frozen design and inclusion probabilities
+
+Sampled units are cases selected by independent fixed-size SRS without replacement within each unseen stratum; recipe IDs are post-sampling dependence descriptors, not the selection unit. For stratum `h` with frame size `N_h` and sample size `n_h=50`:
+
+```text
+π_hi = n_h/N_h
+π_hij = n_h(n_h−1) / (N_h(N_h−1)) for distinct sampled cases i,j in stratum h
+π_ij = π_hi π_gj for cases in independently sampled strata h ≠ g
+```
+
+For unseen-profiled (`N=176`): `π_i=25/88`; `π_ij=49/616`. For unseen-unprofiled (`N=3639`): `π_i=50/3639`; `π_ij=2450/(3639·3638)`. Across strata, `π_ij=(25/88)(50/3639)=625/160116`. Distinct-case inclusion indicators have negative covariance within a stratum and zero covariance across strata. The normalized design variance factors `Δ_ij=(π_ij−π_iπ_j)/π_ij` are `Δ_ii=1−f_h` and `Δ_ij=−(1−f_h)/(n_h−1)` for distinct within-stratum cases; cross-stratum `Δ_ij=0`.
+
+A single common random multiplier per recipe gives cases sharing that recipe a common resampling perturbation and positive covariance (and can couple strata when a recipe appears in both). That does not match the case-SRSWOR covariance above. This rejects that *common recipe-multiplier construction as design-matched for this finite-frame design*; it does not prove every possible cluster or superpopulation construction is invalid for another estimand.
+
+### Selected secondary replicate construction
+
+For each stratum `h`, let `f_h=n_h/N_h`, `m_h=n_h−1=49`, and independently draw `K_h=(K_hi)` from `Multinomial(m_h; 1/n_h,…,1/n_h)`. For each sampled case `i` in `h`, use the Beaumont–Émond SRSWOR factor:
+
+```text
+a_hi = 1 − sqrt(1−f_h) + sqrt(1−f_h) · n_h/(n_h−1) · K_hi
+replicate weight = W_h · a_hi, where W_h=N_h/n_h
+```
+
+The multinomial moments give `E(a_hi)=1`, `Var(a_hi)=1−f_h`, and `Cov(a_hi,a_hj)=−(1−f_h)/(n_h−1)` for distinct cases in a stratum; independently generated strata have zero cross-covariance. These are the normalized SRSWOR design-variance `Δ` factors above, not the raw covariance of inclusion indicators. Since `Σ_i K_hi=n_h−1`, `Σ_i a_hi=n_h`, preserving each replicate's stratum total weight `N_h`. Here `0<f_h<1`, so every factor has positive baseline `1−sqrt(1−f_h)>0`. This reproduces the usual stratified SRSWOR plug-in variance for linear totals, including the finite-population correction. It does not make a nonlinear ratio interval exact.
+
+For each `q∈{L,U}`, retain the existing conditional endpoint, with `A_i=I(H_i=0)` and `q_i` the strict-A lower or unknown-inclusive upper indicator:
+
+```text
+θ_q = Σ_h W_h Σ_i A_i q_i / Σ_h W_h Σ_i A_i
+θ*_q,b = Σ_h W_h Σ_i a*_hi,b A_i q_i / Σ_h W_h Σ_i a*_hi,b A_i
+```
+
+Keep all 100 assigned unseen cases in flow/missingness reporting and report each stratum's H=0 count and the weighted H=0 denominator. If the observed eligible denominator is zero, the endpoint and uncertainty are unavailable; do not redraw, impute, or omit assigned cases. With at least one observed H=0 case, positive factors keep every replicate denominator positive.
+
+If later executed under a separate authorized, reviewed task, use 2,000 replicates and seed `20261021`, both fixed before that execution; pin the exact `svrep`/RNG runtime version and check generated factors against Equation 20 before outcome evaluation. For each endpoint, the replicate variance approximation is `B⁻¹ Σ_b (θ*_q,b−θ_q)²`, with `B=2000` and `θ_q` the full-sample weighted ratio. Report the 2.5th and 97.5th empirical replicate quantiles with **linear interpolation**, separately for lower/upper endpoints as **marginal exploratory bootstrap interval summaries**. They are not a simultaneous 95% region, not validated finite-sample coverage for this ratio, and not an H1 decision rule. Preserve undefined-input/run state and Monte Carlo limitations; do not tune the method to observed labels/results.
+
+### Independent review and analytical cross-check
+
+An independent source-free methods reviewer checked the inclusion probabilities, Equation 20 moments, factor positivity/calibration, linear-total variance match, ratio-denominator condition, and primary/secondary boundary. Result: accept only as this secondary design-based sensitivity; finite-sample nonlinear-ratio bias/skew, sparse eligible denominators and coverage remain unvalidated. The official [`svrep` RWYB documentation](https://bschneidr.github.io/svrep/reference/make_rwyb_bootstrap_weights.html) maps SRSWOR to Equation 20 and says factors are generated independently by stratum; the primary method source is Beaumont & Émond (2022), [§3.3 Eq. 20](https://www.mdpi.com/2571-905X/5/2/19#sec3dot3), with the nonlinear-estimator qualification in [§8](https://www.mdpi.com/2571-905X/5/2/19#sec8). These references establish method provenance, not an empirical result or coverage validation for ChefKix.
+
+The requested Taylor expression is retained only as an analytical cross-check, not as an adopted estimator or another interval route. For endpoint `q`, let `x_i=A_i`, `y_qi=A_i q_i`, `D=Σ_h W_hΣ_i x_i`, `θhat_q=Σ_h W_hΣ_i y_qi/D`, and `e_qi=y_qi−θhat_q x_i`. The plug-in design-linearization variance reference is:
+
+```text
+Vhat_Taylor(θhat_q) = [Σ_h N_h²(1−n_h/N_h) s²_(e_q,h)/n_h] / D²
+```
+
+where `s²` uses denominator `n_h−1`. A later comparison with RWYB replicate variance is diagnostic only; no data values were read and no comparison was computed here. A discrepancy should trigger input/method review, not outcome-tuned adjustment.
+
+No source rows, case IDs, labels, outcomes, maps, estimates, intervals, data transfer, code, tests, protocol change, C1 acceptance, or milestone credit were produced by this decision. Real H-map/source binding and corrected conditional point-receipt gates remain separate and uncleared.
