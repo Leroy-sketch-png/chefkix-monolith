@@ -57,10 +57,12 @@
       "source_file_commit":"901f77b82927fe3596525c23e072a3d6d9a64117",
       "source_sha256":"7da53af33901328cf9974378eebba85bc2d966338d062b33d80a58ed515aa8e2",
       "destination_path":"defense/iron-chef-final-defense-rehearsal-pack.md",
-      "destination_sha256":"7da53af33901328cf9974378eebba85bc2d966338d062b33d80a58ed515aa8e2",
-      "redactions":"None. A single localhost URL was reviewed as a loopback example, not a private remote URL or credential.",
-      "known_internal_reference_mismatch":"Original header points to claims-register v15 SHA-256 9fec822338b0dc0e2cca91ca55cda75f2f4f63a2b849f56e21313b18de6b8c4a; current separately copied register is v20. Original dossier is not altered.",
-      "evidence_ceiling":"Authored 28-question answer/rehearsal draft only; no observed rehearsal or accepted defense. Referenced local evidence is not included."
+      "destination_sha256":"55db7599b92fbd148bc25bd4edfcb8bb23ec6ad1a8eb0976d33727ebff823eac",
+      "current_source_sha256":"55db7599b92fbd148bc25bd4edfcb8bb23ec6ad1a8eb0976d33727ebff823eac",
+      "redactions":"No private recipes, labels, rationales, photos, prediction rows, model bytes or credentials included. Supplied engineering report/images remain local; only authored interpretation and opaque identity hashes are shared.",
+      "known_internal_reference_mismatch":"Resolved by the 2026-11-13 authored revision: current header identifies v20 and separate later receipts. The original v15 header remains recoverable in prior Git history, not current speaking authority.",
+      "transformation_note":"Lead-owned L46 revision replaces unsupported completion, power, novelty, H1, safety, runtime and reproduction claims; adds actual-audit opening, source-bound Q01-Q28, explicit 5-minute/12-minute distinction, and bounded review of the HUMAN-supplied 20-November showcase report. source_file_commit/source_sha256 above pin the preserved original baseline. Current root worktree source at HEAD 6119362ef36889d4099c9d055cd10d4ada7067a5 is uncommitted and byte-identical to this destination under current_source_sha256; no unrelated research history is published.",
+      "evidence_ceiling":"Authored and source-reviewed 28-question speaking/rehearsal candidate only; structural validator PASS is not semantic validation, actual rehearsal, runtime acceptance or professor approval. Referenced private/local evidence and images are not included."
     },
     {
       "source_path":"ai/evidence/claims-register/instantiated-r01-r45-v1/claims-register-r01-r45-v20.csv",
