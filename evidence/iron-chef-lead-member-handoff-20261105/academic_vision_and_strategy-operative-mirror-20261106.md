@@ -1,6 +1,6 @@
-# Shared operative mirror notice
+# Pinned strategy snapshot notice
 
-**Relationship:** This file is a curated, point-in-time collaboration mirror of selected active sections from the canonical `academic_vision_and_strategy.md` in the research workspace. It is not a second strategy and does not replace that source. Reconcile future changes against the source identified by the hash below.
+**Relationship:** This file is a curated, point-in-time snapshot of selected sections from the canonical `academic_vision_and_strategy.md` in the research workspace, pinned to the source hash below. It is historical and is not the current operative strategy or a second authority; reconcile current decisions against the local canonical source and later dated evidence.
 **Canonical source SHA-256:** B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE.
 **Included source text:** §0; §1 heading plus §§1.2–1.3; §§2–25. Text within those selected sections is copied verbatim from the pinned source bytes.
 **Omissions:** append-only dated activity log; §1.1 remote training-status narrative; Appendices A–E and X–Y, including reference code, user-resource detail, migration log, execution history, and superseded v3 strategy. These omissions prevent stale status from appearing current and exclude unnecessary internal/account-linked operational detail. The source itself remains available to authorized workspace readers.

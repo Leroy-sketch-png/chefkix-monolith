@@ -16,3 +16,14 @@ The policy page labels its implementation “Work in progress.” It says the po
 ## L47 effect
 
 This refresh replaces stale date assumptions with the currently published boundary and preserves L47 as OPEN. It does not satisfy the paper draft, contributor, authorship, rights, eligibility, or submission gates. No contribution score or C1–C5 acceptance changes.
+
+## Official-source recheck — 2026-11-13
+
+The two official ARR pages above were reopened on 2026-11-13. The dates table still lists ACL 2027 only as “January, 2027” and leaves its final ARR submission and commitment dates blank. October 12 is the listed final ARR submission date for both NAACL 2027 and COLING 2027; that date has passed. Their December 23 commitment date applies to papers already submitted to ARR and does not offer a new-submission route. EACL 2027's August 3 final submission and October 11 commitment dates have also passed. The October 2026 ARR cycle's October 12 submission deadline has passed.
+
+The sustainable-reviewing policy page still says “Work in progress.” Its current text describes service-contributor requirements, per-cycle caps, and OpenReview/ORCID profile requirements, but this page does not establish any project author's account readiness or guarantee eligibility. The January 4, 2027 date retained in the strategy is therefore an internal planning target only—not an official ACL/ARR deadline. Do not select a venue, claim readiness, submit, or assign service based on that target. Recheck the calendar and applicable policy once an exact ACL cycle is published and before any action.
+
+- ARR Dates and Venues, reopened 2026-11-13: <https://aclrollingreview.org/dates>.
+- ARR Sustainable Reviewing Policy, reopened 2026-11-13; page still marked “Work in progress”: <https://aclrollingreview.org/sustainable-reviewing-2026>.
+
+This is a scheduling-evidence refresh only. L47 remains OPEN; no paper, authorship, rights, account-readiness, service-contributor, or submission gate is satisfied. No venue decision, score, or C1–C5 acceptance changes.
