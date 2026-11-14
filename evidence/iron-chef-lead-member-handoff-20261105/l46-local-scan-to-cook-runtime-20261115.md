@@ -21,3 +21,9 @@ The observed UI state is consistent with the source flow: `startCooking` stores 
 ## Result
 
 The previously blocked signed-in scan-to-cook runtime boundary is now demonstrated narrowly: one entered ingredient → bounded local overlap card list → one result detail → active session/player → timer start and removal. Remaining L46 acceptance includes the accepted study-graph/manifest route, served-hash proof, actual timed presenter/listener rehearsal and its existing rubric. No score, milestone, protocol or scientific claim changed.
+
+## Mobile-width recheck (2026-11-15; browser emulation only)
+
+- At a Chromium responsive viewport of **390 × 844 CSS pixels**, the manual ingredient field, Add ingredient button, resulting ingredient chip, chip-removal control, search action and fixed bottom navigation all fit and were operable. Adding then removing the one test ingredient returned the form to its empty state. This is browser emulation, not a physical-device, performance or accessibility certification.
+- Activating “Search recipes with these ingredients” navigated to the separate general search page. That page displayed 52 total search results (9 recipe results); this is **not** evidence that the ingredient-matching endpoint succeeded. The separate `/api/photo-intelligence/ingredient-recipes` request returned **HTTP 503** during this mobile pass. Do not substitute general search results for the matcher or count this pass as a successful ingredient-recommendation run.
+- This recheck created no account, uploaded no photo, changed no saved recipe, and completed no cooking step. It did not modify frontend code. The existing unfinished cooking session was left untouched.
