@@ -27,3 +27,12 @@ The sustainable-reviewing policy page still says “Work in progress.” Its cur
 - ARR Sustainable Reviewing Policy, reopened 2026-11-13; page still marked “Work in progress”: <https://aclrollingreview.org/sustainable-reviewing-2026>.
 
 This is a scheduling-evidence refresh only. L47 remains OPEN; no paper, authorship, rights, account-readiness, service-contributor, or submission gate is satisfied. No venue decision, score, or C1–C5 acceptance changes.
+
+## Official-source recheck — 2026-11-15
+
+Reopened the official ARR dates page and sustainable-reviewing policy page. The schedule is unchanged from the November 13 check: October 2026 submission was October 12; reviews are due November 16, author response is November 24–30, meta-reviews release December 17, and the cycle ends December 20. NAACL/COLING 2027 final ARR submissions were October 12; their December 23 commitment date is not a new-submission route. ACL 2027 still shows only “January, 2027,” with no exact final-submission or commitment date. The policy page still labels its implementation “Work in progress,” while stating approval and applicability from October 2026; it does not establish this project's account readiness or submission status.
+
+- ARR Dates and Venues, reopened 2026-11-15: <https://aclrollingreview.org/dates>.
+- ARR Sustainable Reviewing Policy, reopened 2026-11-15: <https://aclrollingreview.org/sustainable-reviewing-2026>.
+
+This is an official-calendar recheck only. No OpenReview account, email, submission record, contributor identity, or private profile was accessed. L47 remains OPEN; no venue, submission, author/service readiness, score, or C1–C5 acceptance is inferred. If the owner supplies a forum/receipt for an October submission, reconcile that event's actual outstanding obligations; otherwise take no October-cycle action and keep ACL 2027 provisional pending exact dates and HUMAN cycle direction.
