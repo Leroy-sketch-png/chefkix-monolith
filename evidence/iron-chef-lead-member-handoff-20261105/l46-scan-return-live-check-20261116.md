@@ -20,8 +20,9 @@ This is narrow live UI evidence for selection persistence, re-query after route 
 
 ## Discoverability follow-up — 2026-11-16
 
-- FE commit `773ffd4765d416b4097d99d0d6b492be8c90eac5` adds the existing public Kitchen Scanner to desktop and mobile “More” navigation, makes it the first mobile Cooking item, and exposes a guest-only More menu containing only this public tool. It is published directly to FE `origin/main`; post-push fetch verified 0/0 divergence.
+- FE commit `773ffd4765d416b4097d99d0d6b492be8c90eac5` adds the existing public Kitchen Scanner to desktop and mobile “More” navigation, makes it the first mobile Cooking item, and exposes a guest-only More menu containing only this public tool. Follow-up FE commit `eab048b6fbed93513889890dc91fd60b3d32f75e` lets the desktop sidebar label wrap to two lines rather than truncate to “Kitchen Sc…”. Both are published directly to FE `origin/main`; the latest post-push fetch verified 0/0 divergence.
 - Live desktop check in Brave: from Dashboard, opened More → Kitchen Scanner; the app navigated to `/scan` and marked Kitchen Scanner active in the expanded sidebar.
+- After the label-wrap correction, a fresh desktop capture showed the full “Kitchen Scanner” label in the narrow sidebar.
 - Live mobile-emulation check at 390×844: opened More; the Cooking section appeared first and Kitchen Scanner was fully visible in the first drawer view. Selecting it closed the drawer and navigated to `/scan`. This is laptop browser emulation, not physical-device evidence.
 - Focused navigation tests: 3 suites / 10 tests pass. `npm run lint`, `npm run typecheck`, focused ESLint, Prettier checks, and `git diff --check` pass. Screenshots were inspected live but not retained; no account change, camera, upload, ingredient entry, provider/model call, or external request occurred in this navigation check.
 
