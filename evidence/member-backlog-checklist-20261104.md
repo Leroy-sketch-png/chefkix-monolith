@@ -110,6 +110,7 @@ These statuses describe the narrow evidence scope actually inspected. `READY_FOR
 ### M-B
 
 - **Status:** `BLOCKED`; **owner:** Member.
+- **L40 source-free tooling check (2026-11-15):** `tools/research/l40/vietnamese_pilot_sampling.py` and `vietnamese_pilot_evaluator.py` provide deterministic frame/allocation and cohort-evaluation helpers. `python -m unittest discover -s tools/research/l40 -p "test_*.py" -v` passed 23/23 tests at code-equivalent monolith revision `e2726a12b81250bcf72b39668536288270f25b3b`. This verifies source-free tooling only; no eligible frame, per-case source/rights evidence, exact identity bridge, or sealed randomized reviewer pack was built. It does not unblock M-B or establish L40 acceptance.
 - **Source commit / hash:** Existing source-join report `5d7b8789…`; GISMo runtime `e08b82b7…`.
 - **Member evidence:** Verified ID/split join retained; positional and FooDB inventories recorded.
 - **Remaining condition:** Historical positional index → recipe ID mapping or authoritative preprocessed split caches plus pipeline settings, and the exact 971-profile input/hash. The vocabulary pin itself is now confirmed by [`member-mb-gismo-vocabulary-source-20261104.md`](member-mb-gismo-vocabulary-source-20261104.md).
