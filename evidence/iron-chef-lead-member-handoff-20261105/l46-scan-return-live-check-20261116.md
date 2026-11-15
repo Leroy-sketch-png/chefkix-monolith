@@ -18,6 +18,13 @@ No photo, camera capture, upload, cooking action, timer, XP, rating, follow, sho
 
 This is narrow live UI evidence for selection persistence, re-query after route return, individual removal, and Clear behavior. It does not establish physical-device or assistive-technology behavior, human usability, product value, rehearsal, end-to-end p95, T56 acceptance, contribution acceptance, or milestone credit. The absent scanner entry in the one inspected “More” menu is an actionable navigation-discoverability observation, not a complete navigation audit.
 
+## Discoverability follow-up — 2026-11-16
+
+- FE commit `773ffd4765d416b4097d99d0d6b492be8c90eac5` adds the existing public Kitchen Scanner to desktop and mobile “More” navigation, makes it the first mobile Cooking item, and exposes a guest-only More menu containing only this public tool. It is published directly to FE `origin/main`; post-push fetch verified 0/0 divergence.
+- Live desktop check in Brave: from Dashboard, opened More → Kitchen Scanner; the app navigated to `/scan` and marked Kitchen Scanner active in the expanded sidebar.
+- Live mobile-emulation check at 390×844: opened More; the Cooking section appeared first and Kitchen Scanner was fully visible in the first drawer view. Selecting it closed the drawer and navigated to `/scan`. This is laptop browser emulation, not physical-device evidence.
+- Focused navigation tests: 3 suites / 10 tests pass. `npm run lint`, `npm run typecheck`, focused ESLint, Prettier checks, and `git diff --check` pass. Screenshots were inspected live but not retained; no account change, camera, upload, ingredient entry, provider/model call, or external request occurred in this navigation check.
+
 ## Next
 
-Keep this route-discoverability issue separate from the continuity correction. If addressed, inspect the canonical navigation/feature ownership and route entry criteria first; do not treat direct URL access as adequate user discovery.
+The route is now reachable through the existing navigation without URL typing. Keep L46/T56 acceptance open: this narrow route check is not evidence of human findability, physical-device/accessibility behavior, product value, rehearsal, end-to-end p95, or milestone credit. Continue from the remaining canonical T56 prerequisites and acceptance gaps.
