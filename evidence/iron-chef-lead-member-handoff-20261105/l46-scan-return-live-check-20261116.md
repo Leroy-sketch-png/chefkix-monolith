@@ -71,3 +71,20 @@ No T56/demo, contribution, or milestone acceptance follows. The screenshots do n
 - Source-free safeguard verification at FE commit `8a5d23900cbcf117677cf4988459f91c3586506c`: the existing `cookingSessionRestoration`, `cookingUiContinuity`, and `cooking-player-keyboard` suites pass (3 suites / 41 tests). They cover preview preservation/restoration and keyboard ownership for controls/dialogs in unit tests only; they do not demonstrate a live preview or authorize replacing the missing recipe.
 - Local-only screenshot `ai/out/showcase/l46_cooking_preview_ownership_gate_1440x900_20261116.jpg`: 156,680 bytes, SHA-256 `11c9ad169a27c23ae824aebc8533740cb607cbb024a58b43318b44507a5719e8`. It is ignored under `ai/out/`; do not stage or publish it.
 - Next safe runtime prerequisite: a future existing recipe detail owned by Test User. Do not create a recipe, switch accounts, or use `Start Cooking` to reach preview. Other existing demo work remains eligible. This is not T56, human-usability, demo, contribution, or milestone acceptance.
+
+## Food Feed → linked recipe → Back continuity — 2026-11-16
+
+- In the same signed-in local Brave session, opened the existing Feed and followed the first visible post's actual embedded recipe link to its detail, then used browser Back. The recipe detail rendered; Back returned to Feed and restored the nested main-content position near that linked post. At 390×844 emulation the post link was at y≈445 before navigation and y≈436 after return; the raw scroll offset varied with Feed content/layout. The same route opened and returned at 1440×900. These are laptop-browser observations, not physical-device or human-usability results.
+- The concrete defect was AppShell's nested scroll container resetting when the Feed page was replaced. FE commit [`d023ad6`](https://github.com/Leroy-sketch-png/chefkix-fe/commit/d023ad657724fc3bc05b02bc2ca95d5388086ec8) records scroll at Feed recipe-link activation and restores it after Feed content is ready; unrelated routes clear a stale pending position. FE `origin/main` was fetched before direct push and fetched afterward at 0/0 divergence.
+- Verification on that FE commit: `src/lib/__tests__/app-scroll-authority.test.ts` 5/5, `npm run lint`, `npm run typecheck`, and scoped Prettier all pass. No other FE paths changed in this slice.
+- Local-only ignored screenshots under `D:/code/chefkix/ai/out/showcase/`:
+
+| Capture | Viewport | Bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| `l46-food-feed-desktop-20261116.jpg` | 1440×900 | 84357 | `bed53c978d20e8b80ce62a091eb54cac1c14a113f6a2f49cc937a8eff18629e6` |
+| `l46-food-feed-desktop-post-20261116.jpg` | 1920×941 | 181845 | `663eb457a057d195d588925818b63d6f5c6df290cada80806ba3cf45ce62480b` |
+| `l46-linked-recipe-detail-desktop-20261116.jpg` | 1920×941 | 215785 | `4d15cdf40a718c6752909fdc1eefadbdd16205875a7fe172bd64316bf8d69920` |
+| `l46-food-feed-mobile-20261116.jpg` | 390×844 | 54410 | `86c171271d1d3ef71ed0d4e48150b6069eba7b8859ec11f8b2502cc4596e63d7` |
+| `l46-linked-recipe-detail-mobile-20261116.jpg` | 390×844 | 55502 | `417b0a10844d50e82d8cd83a554034da0f809b4a118e55583857246e009fe56f` |
+
+No like, comment, share, save, follow, cooking, timer, XP, profile, account, provider/model, or source-data action occurred. The Feed→recipe route is demonstrably available and Back context is repaired in the current local build; this does not establish that a first-time human will discover the recipe link. No T56/demo, accessibility, human-usability, contribution, or milestone acceptance follows.
