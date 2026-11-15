@@ -24,3 +24,11 @@ The served checkout is identified by its clean Git commit above; the local brows
 ## Next
 
 Keep the visible-duration discrepancy available for a focused content-data correction. T56 still requires its accepted T51–T55 inputs, integrated workflow, measured end-to-end performance, actual presenter/listener rehearsal and rubric, and an actual-flow backup video.
+
+## Supplemental mobile observation — 2026-11-16
+
+The HUMAN-started local frontend was viewed in browser responsive emulation set to 390×844 on the laptop; this is not physical-device evidence. On `/scan`, manually entering `garlic` yielded 7 first-page exact-name-overlap recipe cards and 0 withheld after the matcher endpoint returned HTTP 503 and the existing bounded recipe-list fallback ran. The UI disclosed the bounded method (up to 100 account recipes; trim/case-fold exact-name overlap; no aliases or semantic model; non-exhaustive; not HGAT). No request/response bodies or account identifiers were retained.
+
+The first rendered result card clipped its title/count badge at this width. FE correction `PhotoRecipeMatchCard.tsx` stacks title and badge on narrow screens, restores a horizontal layout at `sm+`, and wraps long text. A focused regression test plus lint, typecheck, Prettier and diff checks passed; the matching FE commit is recorded in the shared Lead entry. The card and Garlic Fried Rice detail rendered after the correction. Browser Back returned to the scan hash but cleared the manually entered garlic/results. This is a recovery caveat only; persistence was not added. The owner-only cooking preview was unavailable on this non-owned recipe and was not tested.
+
+No screenshot was retained. No cooking session, timer, XP, rating, follow, shopping-list mutation, upload, camera, provider/model call or research-source access occurred. The Computer Use helper then refused further browser control because it could not determine the current URL with sufficient confidence; no alternate UI-control path was attempted. Evidence ceiling remains one local emulated walkthrough plus code/test evidence, not a physical-device/accessibility/usability check, rehearsal, p95, T56/C5 acceptance or milestone credit.
