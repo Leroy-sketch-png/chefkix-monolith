@@ -46,11 +46,18 @@ The route is now reachable through the existing navigation without URL typing. K
 | `l46_scan_flow_dashboard_1440x900_20261116.jpg` | 1440×900 | 116031 | `407a1d735d8ccdafa6616655a0f30dea80c7ef7b7366268a1a92b49dfeb440f8` |
 | `l46_scan_flow_more_menu_1440x900_20261116.jpg` | 1440×900 | 117657 | `2275c90742fa3ed7dc35db3a9badf95e4db481f9a91ac3a510e531628a34f3d5` |
 | `l46_scan_flow_scanner_empty_1440x900_20261116.jpg` | 1440×900 | 129816 | `8dca64b900f433540e72ebd199b10aad767fa6f024cb18911e16060a00bd37f7` |
-| `l46_scan_flow_garlic_matches_1440x900_20261116.jpg` | 1440×900 | 119904 | `03729773e1fff823ee0c3974286efeee7d9863ece673ebe3435608fb5f8ac9fe` |
+| `l46_scan_flow_garlic_matches_1440x900_20261116.jpg` | 1440×900 | 139130 | `f6928197851698220640cff1e884c7d18756fdf12f2ac28c15c1b38efb2ba3b3` |
 | `l46_scan_flow_carnitas_detail_1440x900_20261116.jpg` | 1440×900 | 108094 | `e6226255e2937f75f39e0f631cc40ef9b6d28bc058a57f435bb9074bda51eae2` |
 | `l46_scan_flow_dashboard_390x844_20261116.jpg` | 390×844 | 40266 | `1a23bbc2bb10b3d357f63a065e8ed5171787c07814d83ebf832d1c826e69a750` |
 | `l46_scan_flow_more_menu_390x844_20261116.jpg` | 390×844 | 26987 | `a4b8381fa6abd565e13f91d1fd16f9fafc2427b13935dff3ca33e8093067e793` |
-| `l46_scan_flow_garlic_matches_390x844_20261116.jpg` | 390×844 | 55542 | `36faa676d084ee6f97f10abf60d90c5ea07761ca122937936528c7d3bd24a6fe` |
+| `l46_scan_flow_garlic_matches_390x844_20261116.jpg` | 390×844 | 52220 | `8a8d7f18395a850d936994c04495e29f325e939647d52efb6e17f9434db3cd84` |
 | `l46_scan_flow_carnitas_detail_390x844_20261116.jpg` | 390×844 | 41485 | `9818b1897209dd758af7bb9852d58bb854fff7524b7c361cd650af9f5d0703be` |
 
 No T56/demo, contribution, or milestone acceptance follows. The screenshots do not prove human findability, usability, accessibility, rehearsal, or end-to-end workflow latency.
+
+## Desktop results-context correction — 2026-11-16
+
+- The 1440×900 results screenshot showed a large blank neighboring column: the fixed-height “Make the scan count” guidance had scrolled out of view while the long left match list continued. This was a concrete context-loss layout issue, not a matching/identity defect.
+- FE commit `8a5d23900cbcf117677cf4988459f91c3586506c` adds a desktop-only sticky/self-start treatment to the existing guidance aside. On the same live `/scan` state, the aside computed as `position: sticky` with top 120px at the anchored results scroll, keeping the three instructions and safety disclaimer visible beside the matches. It does not change scoring, matching, state, navigation, or protocol.
+- At 390×844 after the correction, the aside remained static and document width stayed 390px; the current mobile result screenshot was recaptured. Temporary garlic was cleared and default Brave viewport restored.
+- Verification on the FE integration checkout: `npm run lint`, `npm run typecheck`, and `npx jest src/components/scan/__tests__/ScanIngredientWorkspace.test.tsx --runInBand` (3/3) passed; Prettier and scoped diff check pass. FE `origin/main` was fetched before direct push and fetched afterward at 0/0 divergence. This is a narrow layout/runtime correction, not usability, physical-device, accessibility, T56/demo, or milestone acceptance.
