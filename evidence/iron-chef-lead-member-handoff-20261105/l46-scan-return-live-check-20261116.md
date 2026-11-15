@@ -88,3 +88,11 @@ No T56/demo, contribution, or milestone acceptance follows. The screenshots do n
 | `l46-linked-recipe-detail-mobile-20261116.jpg` | 390×844 | 55502 | `417b0a10844d50e82d8cd83a554034da0f809b4a118e55583857246e009fe56f` |
 
 No like, comment, share, save, follow, cooking, timer, XP, profile, account, provider/model, or source-data action occurred. The Feed→recipe route is demonstrably available and Back context is repaired in the current local build; this does not establish that a first-time human will discover the recipe link. No T56/demo, accessibility, human-usability, contribution, or milestone acceptance follows.
+
+## Delayed-load reliability correction — 2026-11-16
+
+- Review found the first restoration implementation expired after 120 animation frames, even if Feed data was still loading. FE follow-up removes that arbitrary deadline and frame polling: the saved position remains pending until the Feed explicitly reports ready; wheel/touch/pointer/keyboard intent cancels the restore, and unrelated navigation clears it.
+- Regression coverage now checks 200 readiness checks while Feed is unready, then readiness-based restore, user-scroll cancellation, and unrelated-route cleanup. Focused scroll-authority suite: 7/7; `npm run lint`, `npm run typecheck`, Prettier and scoped `git diff --check` pass.
+- FE correction commit [`061ebd4`](https://github.com/Leroy-sketch-png/chefkix-fe/commit/061ebd43a8dcd4b11f9543455e65e5805a742a2a) was pushed directly to `origin/main` after fetching the unchanged baseline; a post-push fetch verified `HEAD == origin/main` and 0/0 divergence.
+- After the correction, local Brave browser checks returned from a linked Feed recipe to the same lower Feed card at desktop and 400×910 responsive emulation. This remains laptop-browser evidence, not physical-device or human-usability evidence. The narrow preview also showed the desktop navigation/sidebar consuming substantial width beside the Feed; record that as a separate responsive-shell concern, not part of this return-continuity change.
+- No product-state mutation, engagement, cooking, timer, XP, account switch, provider/model call, or research-data access occurred. This correction adds no T56/demo, contribution, or milestone acceptance.
