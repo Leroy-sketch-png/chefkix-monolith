@@ -4,6 +4,15 @@
 *.class
 *.jar
 *.log
+.env
+.env.*
+*.env
+*.env.*
+*.keys
+*.pem
+*.key
+*.p12
+*.jks
 _*.txt
 .git/
 .gitignore
