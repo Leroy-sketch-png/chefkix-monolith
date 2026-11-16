@@ -79,6 +79,13 @@ No T56/demo, contribution, or milestone acceptance follows. The screenshots do n
 - Viewport evidence is limited: the connected window could not be reduced below 502 px; the wider capture was 1920 px. Therefore exact 390×844 and 1440×900 layouts were **not** rechecked. Local-only screenshots are ignored and not included in this handoff; no user/account identifiers, recipe titles, rows or IDs are recorded here.
 - No account/cooking state change, camera/upload, provider/model call, or source-data access. T56/C5/demo, usability/accessibility, rehearsal, p95, contribution and milestone acceptance remain unchanged/open.
 
+## Substitution-dialog stale-response correction — 2026-11-16
+
+- Deferred component tests reproduced that an old success or failure could overwrite the loader for a newly reopened substitution dialog; changing the research source ingredient while a request was pending could display the old ingredient's response. The adjacent in-cooking substitution dialog independently reproduced the same close/reopen race.
+- FE commit [`77fbd8d`](https://github.com/Leroy-sketch-png/chefkix-fe/commit/77fbd8d6fb11c2e060a7badcb872e0be20f1892b) adds request-generation checks/context invalidation to both components. It prevents stale UI state writes after close/reopen, unmount, or relevant ingredient/recipe/session/user/allergen/research-caller context changes; it does **not** cancel network/provider work already sent.
+- Four focused test suites / 51 tests pass, including existing allergen-surface checks; repo lint, typecheck, scoped formatting and diff checks pass. FE `origin/main` was fetched before/after direct push and is 0/0.
+- No live dialog/provider request was sent. Tests establish this component lifecycle behavior only—not suggestion correctness, safety, model quality, human understanding, or T56/C5/demo acceptance. No screenshot or private data is included. No contribution/milestone status changes.
+
 ## Food Feed → linked recipe → Back continuity — 2026-11-16
 
 - In the same signed-in local Brave session, opened the existing Feed and followed the first visible post's actual embedded recipe link to its detail, then used browser Back. The recipe detail rendered; Back returned to Feed and restored the nested main-content position near that linked post. At 390×844 emulation the post link was at y≈445 before navigation and y≈436 after return; the raw scroll offset varied with Feed content/layout. The same route opened and returned at 1440×900. These are laptop-browser observations, not physical-device or human-usability results.
