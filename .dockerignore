@@ -4,6 +4,8 @@
 *.class
 *.jar
 *.log
+*.log.*
+*.tmp
 .env
 .env.*
 *.env
@@ -18,3 +20,14 @@ _*.txt
 .gitignore
 README.md
 lombok.config
+
+# Handoff/research and generated output are not application build inputs.
+.github/
+.pytest_cache/
+docs/
+evidence/
+output/
+tmp/
+tools/
+**/*.log*
+**/*.tmp
