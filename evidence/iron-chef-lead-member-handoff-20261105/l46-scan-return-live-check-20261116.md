@@ -292,4 +292,4 @@ HUMAN clarified that they are a university student with an education email and d
 
 ### 2026-11-18 evidence reconciliation
 
-- This documentation-only reconciliation is intended for direct publication to `origin/master` after fetch and a clean 0/0 preflight. The source fix is AI `327ff1b` and its auth regression is AI `6f20a99`; current AI `origin/main` is `6f20a99` at verified 0/0. The monolith checkout's independent local `master` at `7acfb57` remains preserved and unpublished.
+- The documentation-only reconciliation was pushed directly to `origin/master` after fetch; fresh verification showed equal HEAD and 0/0 divergence. The source fix is AI `327ff1b` and its auth regression is AI `6f20a99`; current AI `origin/main` is `6f20a99` at verified 0/0. The monolith checkout's independent local `master` at `7acfb57` remains preserved and unpublished.
