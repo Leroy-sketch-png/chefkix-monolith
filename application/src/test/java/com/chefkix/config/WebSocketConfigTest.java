@@ -22,7 +22,7 @@ class WebSocketConfigTest {
     void usesConfiguredCorsOriginsForStompHandshake() {
         StompEndpointRegistry registry = mock(StompEndpointRegistry.class);
         StompWebSocketEndpointRegistration endpoint = mock(StompWebSocketEndpointRegistration.class);
-        when(registry.addEndpoint("/ws")).thenReturn(endpoint);
+        when(registry.addEndpoint("/ws", "/api/v1/ws")).thenReturn(endpoint);
         when(endpoint.setAllowedOriginPatterns("http://localhost:3000", "http://localhost:3001"))
                 .thenReturn(endpoint);
         WebSocketConfig config = new WebSocketConfig(
@@ -38,7 +38,7 @@ class WebSocketConfigTest {
 
         config.registerStompEndpoints(registry);
 
-        verify(registry).addEndpoint("/ws");
+        verify(registry).addEndpoint("/ws", "/api/v1/ws");
         verify(endpoint).setAllowedOriginPatterns("http://localhost:3000", "http://localhost:3001");
     }
 }
