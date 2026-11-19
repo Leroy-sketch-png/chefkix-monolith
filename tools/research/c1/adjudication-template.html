@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Private substitution adjudication</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#17332b;background:#f2f6f3}*{box-sizing:border-box}body{margin:0}header{background:#fff;border-bottom:1px solid #ccd9d1;padding:18px max(16px,calc((100vw - 1050px)/2))}.wrap{max-width:1050px;margin:auto;padding:22px 16px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.muted{color:#536b60;font-size:14px}.progress{height:8px;background:#d8e3dc;border-radius:8px;overflow:hidden;margin-top:12px}.progress div{height:100%;background:#17624d;width:0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button,select{font:inherit;color:inherit;background:#fff;border:1px solid #9eb4a8;border-radius:5px;padding:9px 12px;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.primary{background:#17624d;color:white;border-color:#17624d}.card{background:#fff;border:1px solid #d0ddd5;border-radius:8px;padding:20px;margin-top:18px}.eyebrow{text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:#536b60}.target{margin:14px 0;padding:12px 14px;background:#e8f1eb;border-left:4px solid #17624d}.labels{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.raw-label{border:1px solid #70877b;border-radius:18px;padding:5px 12px;font-weight:700}.ingredients{padding-left:22px}.choice-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;border:0;padding:0;margin:18px 0}.choice{display:block;position:relative}.choice input{position:absolute;opacity:0}.choice span{display:flex;min-height:70px;align-items:center;justify-content:center;text-align:center;border:1px solid #9eb4a8;border-radius:6px;background:#fff;padding:10px;font-weight:700}.choice input:checked+span{background:#17624d;color:#fff;border-color:#17624d}.choice input:focus-visible+span,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #c26a2b;outline-offset:2px}textarea{display:block;width:100%;min-height:100px;border:1px solid #9eb4a8;border-radius:5px;padding:10px;font:inherit}#notice{padding:10px 12px;background:#fff3d8;border-left:4px solid #b46a00;margin-top:12px}#notice[hidden]{display:none}.actions{margin-top:16px}.footer{font-size:13px;color:#536b60;margin-top:18px}@media(max-width:650px){.choice-group{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:15px}header{padding:14px 16px}}
+</style>
+</head>
+<body>
+<header><div class="row"><div><h1 style="margin:0;font-size:22px">Substitution adjudication</h1><div class="muted">Private offline form · one disagreement at a time</div></div><div class="toolbar"><button id="restore">Restore saved return</button><input id="file" type="file" accept="application/json,.json" hidden><button id="download" class="primary">Save / export progress</button></div></div><div class="row" style="margin-top:10px"><span id="progressText" class="muted" aria-live="polite"></span><span id="saveText" class="muted"></span></div><div class="progress"><div id="bar"></div></div><div id="notice" hidden></div></header>
+<main class="wrap"><details class="card"><summary>Label guide</summary><p><b>A:</b> works as-is; ordinary quantity adjustment is fine.</p><p><b>C:</b> works only with a meaningful quantity, technique, or companion-ingredient change.</p><p><b>N:</b> does not work for the dish or ingredient role, is too vague, or is the original ingredient again.</p><p><b>U:</b> cannot be resolved from the available context or knowledge. Unknown is not negative; do not guess.</p></details><div class="row"><span id="position" class="muted"></span><div class="toolbar"><label for="jump" class="muted">Go to item</label><select id="jump"></select><button id="unanswered">Next unanswered</button></div></div><section id="content" class="card" aria-live="polite"></section><div class="row actions"><button id="previous">← Previous</button><button id="next" class="primary">Next →</button></div><p class="footer">Choose the final A/C/N/U judgment using the provided context. Use U when unresolved; do not infer missing facts. Rationale is optional after choosing a label. This is a culinary judgment, not an allergy or safety approval. Save/export before closing. This file works offline and makes no network requests.</p></main>
+<script id="packet" type="application/json">__PACK_JSON__</script>
+<script>
+'use strict';
+const PACK=JSON.parse(document.getElementById('packet').textContent),PACK_SHA='__PACK_SHA256__',LABELS=['A','C','N','U'];
+const allowed=new Set(PACK.items.map(x=>x.item_id)),key='c1-adjudication-'+PACK_SHA;
+const $=id=>document.getElementById(id),node=(tag,text,cls)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(cls)x.className=cls;return x};
+let state={index:0,decisions:{}},storageUsable=true;
+function notify(msg){$('notice').textContent=msg;$('notice').hidden=!msg}
+function validDecisionMap(d){if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Invalid decisions');const out={};for(const [id,v]of Object.entries(d)){if(!allowed.has(id)||!v||typeof v!=='object'||Array.isArray(v)||!LABELS.includes(v.label)||typeof(v.rationale??'')!=='string'||(v.rationale??'').length>10000)throw Error('Invalid or foreign decision');out[id]={label:v.label,rationale:v.rationale??''}}return out}
+function validState(x){if(!x||!Number.isInteger(x.index)||x.index<0||x.index>=PACK.items.length)throw Error('Invalid saved position');return{index:x.index,decisions:validDecisionMap(x.decisions)}}
+try{const saved=localStorage.getItem(key);if(saved)state=validState(JSON.parse(saved))}catch(e){storageUsable=false;$('saveText').textContent='Use export to save; browser storage unavailable'}
+function persist(){try{if(!storageUsable)throw Error('storage unavailable');localStorage.setItem(key,JSON.stringify(state));$('saveText').textContent='Saved in this browser'}catch(e){storageUsable=false;$('saveText').textContent='Export now to save progress';notify('Browser storage is unavailable. Export your progress before closing; you can restore that file later.')}}
+function exported(){return{format:'c1-l36-adjudication-return-v1',specification_id:PACK.specification_id,packet_sha256:PACK_SHA,exported_at:new Date().toISOString(),expected_items:PACK.items.length,complete:Object.keys(state.decisions).length===PACK.items.length,decisions:PACK.items.filter(x=>state.decisions[x.item_id]).map(x=>({item_id:x.item_id,final_label:state.decisions[x.item_id].label,rationale:state.decisions[x.item_id].rationale})),resume:{index:state.index}}}
+function download(){const data=exported(),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json'})),a=node('a');a.href=url;a.download='c1-adjudication-return.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);$('saveText').textContent=data.complete?'Complete return exported':'Progress return exported'}
+function draw(){
+  const x=PACK.items[state.index],c=$('content');c.replaceChildren();
+  c.append(node('div','Disagreement '+(state.index+1)+' of '+PACK.items.length,'eyebrow'),node('h2',x.recipe_title));
+  c.append(node('div','Ingredient to replace: '+x.target,'target'));
+  const list=node('ul');for(const ing of x.ingredients)list.append(node('li',ing));
+  c.append(node('h3','Recipe ingredients'),list,node('h3','Candidate identity'));
+  for(const name of x.candidate_names)c.append(node('p',name));
+  c.append(node('h3','Original labels (unordered)'));
+  const labels=node('div',undefined,'labels');for(const label of x.unordered_raw_labels)labels.append(node('span',label,'raw-label'));
+  c.append(labels,node('h3','Your final judgment'));
+  const field=node('fieldset',undefined,'choice-group');field.append(node('legend','Choose one final label'));
+  for(const label of LABELS){
+    const lab=node('label',undefined,'choice'),radio=node('input');radio.type='radio';radio.name='final-label';radio.value=label;
+    radio.checked=state.decisions[x.item_id]?.label===label;
+    const desc={A:'Works as-is',C:'Meaningful change needed',N:'Does not work',U:'Unresolved / cannot judge'}[label];
+    lab.append(radio,node('span',label+' — '+desc));
+    radio.addEventListener('change',()=>{state.decisions[x.item_id]={label,rationale:state.decisions[x.item_id]?.rationale??''};persist();draw()});field.append(lab);
+  }
+  c.append(field);
+  const rationaleLabel=node('label','Optional rationale');rationaleLabel.htmlFor='rationale';
+  const area=node('textarea');area.id='rationale';area.maxLength=10000;area.disabled=!state.decisions[x.item_id];
+  area.setAttribute('aria-describedby','rationaleHelp');area.value=state.decisions[x.item_id]?.rationale??'';
+  area.addEventListener('input',()=>{if(state.decisions[x.item_id]){state.decisions[x.item_id].rationale=area.value;persist()}});
+  const rationaleHelp=node('p','Choose a final label before adding an optional rationale.','muted');rationaleHelp.id='rationaleHelp';
+  c.append(rationaleLabel,area,rationaleHelp);
+  const n=Object.keys(state.decisions).length;$('progressText').textContent=n+' of '+PACK.items.length+' decisions recorded';
+  $('bar').style.width=(100*n/PACK.items.length)+'%';$('position').textContent='Item '+(state.index+1)+' / '+PACK.items.length+' · '+(state.decisions[x.item_id]?'decision saved':'unanswered');
+  $('previous').disabled=state.index===0;$('next').disabled=state.index===PACK.items.length-1;$('jump').value=String(state.index);
+  $('jump').options[state.index].textContent='Item '+(state.index+1)+(state.decisions[x.item_id]?' — saved':' — unanswered');
+}
+function go(i){state.index=Math.max(0,Math.min(PACK.items.length-1,i));persist();draw();window.scrollTo(0,0)}
+PACK.items.forEach((_,i)=>{const o=node('option','Item '+(i+1));o.value=String(i);$('jump').append(o)});
+$('previous').onclick=()=>go(state.index-1);$('next').onclick=()=>go(state.index+1);$('jump').onchange=()=>go(Number($('jump').value));
+$('unanswered').onclick=()=>{for(let n=1;n<=PACK.items.length;n++){const i=(state.index+n)%PACK.items.length;if(!state.decisions[PACK.items[i].item_id]){go(i);return}}notify('All items have a saved decision.')};
+$('download').onclick=download;
+function parseReturn(x){
+  const fields='complete,decisions,expected_items,exported_at,format,packet_sha256,resume,specification_id';
+  if(!x||typeof x!=='object'||Object.keys(x).sort().join(',')!==fields||x.format!=='c1-l36-adjudication-return-v1'||x.specification_id!==PACK.specification_id||x.packet_sha256!==PACK_SHA||x.expected_items!==PACK.items.length||typeof x.exported_at!=='string'||!Array.isArray(x.decisions))throw Error('This file does not match this frozen packet');
+  const decisions={};
+  for(const row of x.decisions){
+    if(!row||typeof row!=='object'||Object.keys(row).sort().join(',')!=='final_label,item_id,rationale'||Object.prototype.hasOwnProperty.call(decisions,row.item_id)||!allowed.has(row.item_id)||!LABELS.includes(row.final_label)||typeof row.rationale!=='string'||row.rationale.length>10000)throw Error('Invalid, duplicate, or foreign decision');
+    decisions[row.item_id]={label:row.final_label,rationale:row.rationale};
+  }
+  if(x.complete!==(Object.keys(decisions).length===PACK.items.length))throw Error('Completion flag does not match returned decisions');
+  const index=Number.isInteger(x.resume?.index)?Math.min(Math.max(0,x.resume.index),PACK.items.length-1):0;
+  return{index,decisions};
+}
+$('restore').onclick=()=>$('file').click();$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>1000000)throw Error('Return file is unexpectedly large');const value=JSON.parse(await f.text()),restored=parseReturn(value);if(Object.keys(state.decisions).length&&!confirm('Replace answers saved in this browser with the selected return file?'))return;state=restored;persist();notify('Progress restored.');draw()}catch(err){notify(err.message||'Could not restore return')}finally{e.target.value=''}};
+draw();
+</script>
+</body></html>

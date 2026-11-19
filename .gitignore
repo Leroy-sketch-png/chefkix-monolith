@@ -46,5 +46,7 @@ cp.txt
 /tmp/**/*.png
 /tmp/**/*.ttf
 /tmp/**/__pycache__/
+__pycache__/
+*.py[cod]
 .git-worktrees/
 *.bak*

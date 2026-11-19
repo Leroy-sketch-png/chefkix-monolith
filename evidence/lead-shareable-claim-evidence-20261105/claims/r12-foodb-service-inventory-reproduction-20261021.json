@@ -1,0 +1,52 @@
+{
+  "claim": "R12",
+  "claim_scope": "pinned presence-only FooDB service inventory counts",
+  "command": [
+    "ai/tools/reproduce_foodb_service_inventory.py",
+    "--profile",
+    "D:/code/chefkix/chefkix-ai-service/models/foodb_compounds.json",
+    "--provenance",
+    "D:/code/chefkix/chefkix-ai-service/models/foodb_compounds.provenance.json",
+    "--service-root",
+    "D:/code/chefkix/chefkix-ai-service",
+    "--receipt",
+    "ai/evidence/claims-register/r12-foodb-service-inventory-reproduction-20261021.json",
+    "--report",
+    "ai/evidence/claims-register/r12-foodb-service-inventory-reproduction-20261021.md"
+  ],
+  "inputs": {
+    "driver_sha256": "77bde878ec1f8636ff3760ea5ab269b02dd08c5a7121838d4bc54bded803d029",
+    "profile_sha256": "8490cd6adadc5bad0e59f5f4edd8d05020b941b987ca47e38ac0cc80d85a04ac",
+    "provenance_sha256": "5117b791bd825b5c7c87f4f816342ff4bc65100b74502a8652157a989ed9d208",
+    "service_sha256": "e2bcad3cd81e196490aaa6bcc4f014721e9cb9e69734351520fabedef7463e3a"
+  },
+  "inventory": {
+    "direct_json_counts": {
+      "indexed_food_compound_links": 125992,
+      "indexed_food_name_count": 971,
+      "resolved_named_compound_count": 206
+    },
+    "loaded_runtime_profile_count": 971,
+    "sidecar_declared_counts": {
+      "indexed_food_compound_links": 125992,
+      "indexed_food_name_count": 971,
+      "resolved_named_compound_count": 206
+    }
+  },
+  "limitations": [
+    "R12 remains UNVERIFIED pending separate independent review and one-row evidence application.",
+    "Counts establish bounded inventory/presence facts only; they do not establish ingredient similarity, usefulness, food-form or functional equivalence, flavor, nutrition, safety, human outcomes, model quality, or C1-C5 acceptance.",
+    "The local ignored profile artifact is not copied or redistributed. Use is limited to local attributed noncommercial preparation under the sidecar's declared CC BY-NC 4.0 terms; this is not legal advice or rights clearance."
+  ],
+  "provenance": {
+    "authority": "FooDB 1.0 official JSON download",
+    "license": "CC BY-NC 4.0; commercial use requires permission from FooDB authors",
+    "semantics": "Presence-only profiles over named Compound-authority rows within the 255 globally most documented Content source IDs; no concentration, flavor, functional-equivalence, or safety claim"
+  },
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11"
+  },
+  "schema": "chefkix.r12_foodb_service_inventory.v1",
+  "state": "PASS_NARROW_INVENTORY_ONLY"
+}

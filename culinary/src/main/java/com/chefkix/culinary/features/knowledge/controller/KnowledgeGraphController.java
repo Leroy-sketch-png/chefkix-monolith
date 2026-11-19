@@ -29,7 +29,6 @@ import java.util.List;
 public class KnowledgeGraphController {
 
     KnowledgeGraphService knowledgeGraphService;
-
     @GetMapping("/graph")
     public ApiResponse<KnowledgeGraphResponse> getGraph(
             @RequestParam(required = false) @Size(max = 120) String root,
@@ -39,7 +38,6 @@ public class KnowledgeGraphController {
         return ApiResponse.<KnowledgeGraphResponse>builder()
                 .success(true).statusCode(200).data(knowledgeGraphService.getGraph(root, q, depth, limit)).build();
     }
-
 
     @GetMapping("/ingredients")
     public ApiResponse<List<KnowledgeIngredient>> searchIngredients(

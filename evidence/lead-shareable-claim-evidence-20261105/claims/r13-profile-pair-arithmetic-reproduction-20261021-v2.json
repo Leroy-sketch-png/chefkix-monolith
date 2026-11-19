@@ -1,0 +1,50 @@
+{
+  "claim": "R13",
+  "claim_scope": "profile-pair shared-name set and Jaccard arithmetic only",
+  "command": [
+    "ai/tools/reproduce_foodb_profile_pair_arithmetic.py",
+    "--profile",
+    "D:\\code\\chefkix\\chefkix-ai-service\\models\\foodb_compounds.json",
+    "--provenance",
+    "D:\\code\\chefkix\\chefkix-ai-service\\models\\foodb_compounds.provenance.json",
+    "--service-root",
+    "D:\\code\\chefkix\\chefkix-ai-service",
+    "--receipt",
+    "ai/evidence/claims-register/r13-profile-pair-arithmetic-reproduction-20261021-v2.json",
+    "--report",
+    "ai/evidence/claims-register/r13-profile-pair-arithmetic-reproduction-20261021-v2.md"
+  ],
+  "inputs": {
+    "driver_sha256": "bbf10b9f0f5aa3dfdf559fa61555973c90550c633673df56c337c5269bfa9006",
+    "profile_sha256": "8490cd6adadc5bad0e59f5f4edd8d05020b941b987ca47e38ac0cc80d85a04ac",
+    "provenance_sha256": "5117b791bd825b5c7c87f4f816342ff4bc65100b74502a8652157a989ed9d208",
+    "service_sha256": "e2bcad3cd81e196490aaa6bcc4f014721e9cb9e69734351520fabedef7463e3a"
+  },
+  "limitations": [
+    "R13 remains UNVERIFIED pending separate review and register application.",
+    "This does not establish usefulness, food-form or functional equivalence, flavor, nutrition, safety, quality, or C1-C5 acceptance.",
+    "The profile artifact is locally excluded and is not redistributed; use is local and noncommercial under the stated CC BY-NC 4.0 terms."
+  ],
+  "pair_accounting": {
+    "diagonal_self_pairs": 971,
+    "distinct_cross_profile_pairs": 470935,
+    "first_mismatch_pairs": [],
+    "inclusive_pairs_with_diagonal": 471906,
+    "nonzero_shared_name_pairs": 469087,
+    "profile_count": 971,
+    "result": "PASS_NARROW_ARITHMETIC_ONLY",
+    "runtime_oracle_mismatches": 0,
+    "zero_shared_name_pairs": 2819
+  },
+  "provenance": {
+    "authority": "FooDB 1.0 official JSON download",
+    "license": "CC BY-NC 4.0; commercial use requires permission from FooDB authors",
+    "semantics": "Presence-only profiles over named Compound-authority rows within the 255 globally most documented Content source IDs; no concentration, flavor, functional-equivalence, or safety claim"
+  },
+  "runtime": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11"
+  },
+  "schema": "chefkix.r13_profile_pair_arithmetic.v1",
+  "state": "PASS_NARROW_ARITHMETIC_ONLY"
+}

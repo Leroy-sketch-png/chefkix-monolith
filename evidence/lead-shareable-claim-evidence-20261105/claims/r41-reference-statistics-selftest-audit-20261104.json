@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "produced_at_utc": "2026-11-04T04:23:42.071755+00:00",
+  "tool": "ai/tools/audit_ssot_appendix_a1.py",
+  "ssot_path": "academic_vision_and_strategy.md",
+  "ssot_sha256": "51ce14610a0c2ed1259846d077c2d3d2eb83b4a92ea3e2304ef71ba2e129e1ef",
+  "listing": {
+    "line_count": 320,
+    "source_sha256": "1f5189a4a1704cd9e4ab35ccc9ab153eb95b7d540736ab13ebd46a553f348131",
+    "selftest_harness_present": true,
+    "selftest_sentinel_present": true,
+    "function_count": 15,
+    "start_line": 851,
+    "end_line": 1170
+  },
+  "register_path": "ai\\evidence\\claims-register\\instantiated-r01-r45-v1\\claims-register-r01-r45-v19.csv",
+  "register_header": [
+    "ID",
+    "Claim",
+    "Artifact_path",
+    "SHA256",
+    "Evidence_status",
+    "Outcome",
+    "Source_provenance",
+    "Last_checked",
+    "Notes",
+    "L_item_mapping",
+    "Citation",
+    "Reproduction_path",
+    "Reproduction_sha256",
+    "Reproduced_value"
+  ],
+  "defects": [
+    {
+      "code": "EVALUATOR_INF_LE_INF_COVERED",
+      "name": "evaluate_cells counts an infinite score against an infinite threshold as a hit",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 159,
+          "text": "t = thresholds.get(cell, {}).get(\"threshold\", math.inf)"
+        },
+        {
+          "line": 161,
+          "text": "if s <= t:"
+        }
+      ],
+      "consequence": "A case whose first acceptable rank never appears (score=inf) is reported as covered when the cell threshold is inf, inflating empirical coverage to 1.0.",
+      "falsifier": "Fix by excluding non-finite scores/thresholds (e.g. require math.isfinite(t) and math.isfinite(s)) and re-run; this check then reports NOT_FOUND."
+    },
+    {
+      "code": "ABSENT_CALIBRATION_AS_INFINITY",
+      "name": "evaluate_cells silently substitutes math.inf for cells missing from calibration",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 159,
+          "text": "t = thresholds.get(cell, {}).get(\"threshold\", math.inf)"
+        }
+      ],
+      "consequence": "A cell that was never calibrated is scored with an infinite threshold, so every test case counts as covered instead of the cell being flagged uncalibrated/no_guarantee.",
+      "falsifier": "Fix by rejecting unknown cells (e.g. skip or raise) and re-run; this check then reports NOT_FOUND."
+    },
+    {
+      "code": "SAMPLER_SILENT_SHORTFALL",
+      "name": "stratified_sample can return fewer than n_total without raising",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 183,
+          "text": "alloc = {s: max(min_per_stratum, round(n_total * len(v) / total)) for s, v in strata.items()}"
+        },
+        {
+          "line": 180,
+          "text": "if k * min_per_stratum > n_total:"
+        },
+        {
+          "line": 192,
+          "text": "m = min(alloc[s], len(v))"
+        }
+      ],
+      "consequence": "The only guard is k*min_per_stratum > n_total. Allocation uses max(min_per_stratum, ...), then m = min(alloc, len(stratum)) truncates silently, so a small stratum makes the returned sample shorter than requested.",
+      "falsifier": "Fix by raising when sum(m) != n_total, or by redistributing the shortfall, and re-run; `m = alloc[s]` (no silent truncation) makes this check report NOT_FOUND.",
+      "has_post_length_check": false
+    },
+    {
+      "code": "DUPLICATE_CANDIDATE_RANK_OVERWRITE",
+      "name": "blinded_pool keeps only the last rank of a repeated candidate",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 207,
+          "text": "key[cand.strip().lower()][arm] = rank"
+        },
+        {
+          "line": 206,
+          "text": "for rank, cand in enumerate(lst, start=1):"
+        }
+      ],
+      "consequence": "Assigning key[...][arm] = rank inside the enumerate loop means a candidate listed twice in one arm overwrites its earlier rank; the first/best rank is lost from the private key.",
+      "falsifier": "Fix with setdefault (preserve first) or explicit duplicate rejection and re-run; this check then reports NOT_FOUND."
+    },
+    {
+      "code": "SYNTHETIC_RANK_UNBOUNDED_BY_M",
+      "name": "_synthetic_scores has no M bound and can emit ranks beyond any pool size",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 229,
+          "text": "def _synthetic_scores(rng, n, p_none, geo_p):"
+        },
+        {
+          "line": 237,
+          "text": "while rng.random() > geo_p:"
+        }
+      ],
+      "consequence": "The generator draws geometric ranks with no upper bound, so the synthetic self-test exercises ranks that a bounded-M candidate pool cannot produce.",
+      "falsifier": "Fix by adding an M bound/truncation and re-run; a signature carrying an M parameter makes this check report NOT_FOUND."
+    },
+    {
+      "code": "SCOREBOARD_FIELD_NAME_DIVERGENCE",
+      "name": "scoreboard reads `Status` while the canonical register column is `Evidence_status`",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 222,
+          "text": "out[r[\"Status\"].strip().upper()] += 1"
+        },
+        {
+          "line": 222,
+          "text": "out[r[\"Status\"].strip().upper()] += 1"
+        }
+      ],
+      "consequence": "Applied to a real register row the scoreboard raises KeyError; applied to a converted row it silently scores a different field, so its count is not a register count.",
+      "falsifier": "Fix by reading Evidence_status (or accepting both) and re-run; this check reports NOT_FOUND when the register header itself uses Status.",
+      "register_header_has_Evidence_status": true,
+      "register_header_has_Status": false,
+      "reads": "out[r[\"Status\"].strip().upper()] += 1"
+    },
+    {
+      "code": "NORMALIZATION_COLLISION_COLLAPSE",
+      "name": "blinded_pool collapses distinct surface forms to one normalized candidate",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 210,
+          "text": "cands = sorted(key)"
+        },
+        {
+          "line": 207,
+          "text": "key[cand.strip().lower()][arm] = rank"
+        }
+      ],
+      "consequence": "`cand.strip().lower()` merges candidates that differ only by case/whitespace, so the rater pool silently loses alternatives and the private key retains one rank set.",
+      "falsifier": "Fix by keeping an explicit surface-form -> normalized map and re-run; this check reports NOT_FOUND if normalization is removed."
+    },
+    {
+      "code": "DEGENERATE_KAPPA_NAN_VACUOUS_BOOTSTRAP",
+      "name": "degenerate agreement yields NaN kappa and an empty bootstrap without an explicit status",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 82,
+          "text": "return float(\"nan\")"
+        },
+        {
+          "line": 103,
+          "text": "if not math.isnan(v):"
+        },
+        {
+          "line": 107,
+          "text": "return cohen_kappa(a, b), float(\"nan\"), float(\"nan\"), len(vals)"
+        }
+      ],
+      "consequence": "When pe == 1.0 cohen_kappa returns NaN; the bootstrap filters those resamples and falls back to (NaN, NaN, NaN, 0), which a downstream consumer can mistake for a measurement.",
+      "falsifier": "Fix by returning an explicit `undefined` status and re-run; this check reports NOT_FOUND if NaN is surfaced as a status instead of a float."
+    },
+    {
+      "code": "CONFORMAL_ALPHA_UNVALIDATED",
+      "name": "conformal_threshold accepts alpha outside (0, 1) without validation",
+      "status": "CONFIRMED_IN_SOURCE",
+      "evidence": [
+        {
+          "line": 126,
+          "text": "k = math.ceil((n + 1) * (1 - alpha))"
+        }
+      ],
+      "consequence": "alpha <= 0 yields k > n (infinite threshold); alpha >= 1 yields k <= 0 and a QoI-1 order statistic, i.e. a silent 100% coverage claim instead of an invalid-parameter error.",
+      "falsifier": "Fix by validating 0 < alpha < 1 and re-run; this check reports NOT_FOUND.",
+      "alpha_guard_present": false
+    }
+  ],
+  "summary": {
+    "confirmed": 9,
+    "not_found": 0,
+    "codes": [
+      "EVALUATOR_INF_LE_INF_COVERED",
+      "ABSENT_CALIBRATION_AS_INFINITY",
+      "SAMPLER_SILENT_SHORTFALL",
+      "DUPLICATE_CANDIDATE_RANK_OVERWRITE",
+      "SYNTHETIC_RANK_UNBOUNDED_BY_M",
+      "SCOREBOARD_FIELD_NAME_DIVERGENCE",
+      "NORMALIZATION_COLLISION_COLLAPSE",
+      "DEGENERATE_KAPPA_NAN_VACUOUS_BOOTSTRAP",
+      "CONFORMAL_ALPHA_UNVALIDATED"
+    ]
+  },
+  "state": "DEFECTS_CONFIRMED",
+  "selftest_execution": {
+    "executed": true,
+    "passed": true,
+    "returncode": 0,
+    "sentinel_present": true,
+    "stdout_tail": [
+      "  \"mean_coverage_per_cell_threshold\": {",
+      "    \"seen\": 0.827,",
+      "    \"unseen\": 0.797",
+      "  },",
+      "  \"last_rep_thresholds\": {",
+      "    \"seen\": 3,",
+      "    \"unseen\": 27",
+      "  },",
+      "  \"zero_event_upper_bound_n208\": 0.0143,",
+      "  \"n_for_1pct\": 299",
+      "}",
+      "ALL SELF-TESTS PASSED"
+    ],
+    "stderr_tail": []
+  },
+  "claim_boundary": "This is a line-anchored audit of the committed Appendix A.1 listing. It confirms that the named defects are present in the document text. It does not execute the listing as an acceptance gate, does not install or repair it, does not verify the source author's original file hash, and does not establish any protocol property."
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "record_id": "r11-smolvlm-withdrawal-reproduction-20261103",
+  "claim_id": "R11",
+  "claim_text": "SmolVLM LoRA artifact withdrawn",
+  "audit_directory": "ai/evidence/historical-audits/smolvlm",
+  "dataset_examples_count": 4,
+  "referenced_images": [
+    "img_001.jpg",
+    "img_002.jpg"
+  ],
+  "images_present_in_artifact": false,
+  "formatter_strips_image_tags": true,
+  "pixel_tensors_passed": false,
+  "global_steps_recorded": 1,
+  "log_history_entries": 0,
+  "training_log_bytes": 0,
+  "status": "PASS",
+  "reproduced_value": "Historical SmolVLM artifact audited: 4 mock text examples, 2 absent images ('img_001.jpg', 'img_002.jpg'), <image> tags stripped by formatter without pixel loaders, 1 training step executed, 0 logged steps, 0-byte empty log. Withdrawn from VLM claims."
+}

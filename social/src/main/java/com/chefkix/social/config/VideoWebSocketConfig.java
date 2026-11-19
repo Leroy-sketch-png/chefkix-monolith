@@ -40,7 +40,7 @@ public class VideoWebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(signalingHandler, "/ws/video-signaling")
+        registry.addHandler(signalingHandler, "/ws/video-signaling", "/api/v1/ws/video-signaling")
                 .addInterceptors(videoAuthHandshakeInterceptor())
                 .setAllowedOriginPatterns(allowedOriginPatterns.split(","));
     }

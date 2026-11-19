@@ -1,0 +1,42 @@
+{
+  "version": "c1-human-review-handouts-v1",
+  "language": "en",
+  "documents": [
+    {
+      "filename": "reviewer-quick-guide.pdf",
+      "eyebrow": "COOKING REVIEW / QUICK GUIDE",
+      "title": "Would this replacement work?",
+      "subtitle": "Judge each suggestion in its recipe. You are not choosing a winner.",
+      "sections": [
+        {"heading": "1. Read the recipe once", "text": "Read the title, ingredients, the ingredient being replaced, and any supplied cooking context. Keep the intended dish in mind. No cooking or tasting is required."},
+        {"heading": "2. Give every suggestion one answer", "labels": [
+          ["A", "Works as-is", "The dish stays recognizably the same. Ordinary quantity adjustment is fine; no meaningful change to the recipe is needed."],
+          ["C", "Works with a change", "It needs a meaningful change to quantity, cooking technique, or a companion ingredient. The intended dish is still preserved."],
+          ["N", "Does not work here", "It breaks the ingredient's role or the dish's identity, makes no sense, is too vague to use, or is just the original ingredient again."],
+          ["U", "I cannot judge", "You do not know the ingredient, lack needed cooking context, or cannot make a defensible judgment. This is a valid answer, not a failure."]
+        ]},
+        {"heading": "A quick way to decide", "text": "Could I use it without a meaningful recipe change? A. Only after a meaningful change? C. I can explain why it would not work? N. I do not have enough knowledge or information? U. Do not choose N merely because you personally dislike an ingredient."},
+        {"heading": "3. Keep your judgments your own", "text": "Work separately from the other reviewer. Do not compare answers or use an AI assistant to decide labels. More than one suggestion can work; all can fail. Judge every suggestion, not only your favourite. A culinary A is not an allergy or food-safety approval."},
+        {"heading": "4. Keep it easy and honest", "text": "Read the context once, then work through that recipe's suggestions. If useful, add a short note for C, U, or unclear wording. Take breaks. If the recipe is unreadable or essential context is missing, flag it to the coordinator; do not invent the missing information or replace the case."},
+        {"heading": "5. Finish your own file", "text": "Use only your assigned review pack. Keep completed answers saved. Return the completed pack/export through the coordinator's agreed private channel, including unfinished or flagged cases. Do not rename or rewrite case/candidate identifiers, delete difficult items, or turn unanswered items into N. Disagreements are reviewed later; do not force agreement now."}
+      ],
+      "footer": "C1 reviewer handbook v1 | English | 6 November 2026 | Read alongside your assigned personal review pack."
+    },
+    {
+      "filename": "organizer-handoff-checklist.pdf",
+      "eyebrow": "COORDINATOR / DO NOT INCLUDE THE SEALED KEY",
+      "title": "A simple morning review session",
+      "subtitle": "Prepare once. Let both cooks work independently. Collect their original answers.",
+      "sections": [
+        {"heading": "Before you book the session", "text": "The frozen 150-case sample exists, but the real populated reviewer packs are not ready yet. Do not collect ratings from random recipes, synthetic examples, or an empty demo. We must provide two separate personal packs, their exact candidate counts, and an agreed return route first."},
+        {"heading": "Give each person only three things", "bullets": ["Their own R1 or R2 review pack with the actual recipe context and blinded suggestions.", "The one-page English reviewer quick guide.", "A private return route and your contact for missing-context or access problems."]},
+        {"heading": "What the standalone pack must do", "text": "Open without developer tools or workspace access. Show one recipe at a time, clear A/C/N/U choices, optional notes, progress and unanswered items. Preserve identifiers automatically; save and resume without losing answers. Export one complete original response file. No model names, ranks, gold/reference markers, strata, other reviewer's answers, or sealed mapping key."},
+        {"heading": "Budget a morning from observed pace", "text": "Both people review the same 150 sampled cases, not 75 each. The first version uses up to five suggestions plus a recorded reference, deduplicated and shuffled: at most 900 judgments per reviewer. Exact counts are not yet known. Let each person complete the first five real cases independently, then estimate the remaining time from their own pace. Keep those answers; do not change the rubric or cherry-pick cases after seeing them."},
+        {"heading": "A realistic timing check", "text": "At 1 minute per case, 150 cases take about 2.5 hours; at 2 minutes, about 5 hours, before breaks. These are arithmetic scenarios, not measured estimates. If a morning is too short, resume later with the same frozen pack rather than rushing, dropping cases, or dividing the sample between reviewers."},
+        {"heading": "Collect and retain", "bullets": ["R1's untouched original export and any accompanying notes.", "R2's untouched original export and any accompanying notes.", "The exact pack versions, dates, unfinished/withdrawn items, and a short pseudonymous description of relevant cooking experience.", "Separate disagreement adjudication afterwards, under the agreed procedure. Never overwrite either original review."]},
+        {"heading": "Keep private records private", "text": "Keep identities and consent records internally as agreed. Use R1/R2 in returned review artifacts; do not send us confidential permission emails or consent forms. Use the agreed private route, not public Git or a public survey link. These ratings concern culinary substitutions, not clinical or allergy safety."}
+      ],
+      "footer": "C1 coordinator checklist v1 | English | 6 November 2026 | Collection is not ready until the populated personal packs pass handoff checks."
+    }
+  ]
+}

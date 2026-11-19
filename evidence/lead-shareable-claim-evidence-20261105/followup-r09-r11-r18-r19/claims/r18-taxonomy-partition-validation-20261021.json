@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "state": "PASS",
+  "taxonomy_sha256": "6fb38bfb0d4669257fc8c66ba7fdf0cf2f8665f7d80af25c3fc6ac5e4bad153f",
+  "report_sha256": "a5745b992f3ac9c9aa21708fb4d0322dc2ecf0fe585919d2f1c8e4f34bfe5c1a",
+  "queue_file_sha256": "6eac9619b1879af59a67ff88f2541976c4c8a80c4b060ad7a06d0ee8b440e790",
+  "distinct_tags_reconstructed": 3377,
+  "total_occurrences_reconstructed": 767780,
+  "semantic_mutations": {
+    "source": true,
+    "taxonomy": true,
+    "tag_coverage": true,
+    "occurrence_coverage": true,
+    "queue_hash": true,
+    "review_count": true,
+    "exact_identity": true,
+    "none_identity": true
+  },
+  "semantic_mutations_rejected": "8/8",
+  "claim_boundary": "Exact official identities and the official none sentinel are separated from same-language alias candidates, ambiguous aliases, malformed tags, and unrecognized values. Alias candidates are not accepted mappings. This is not independent adjudication, verified negatives, clinical validity, or a production safety taxonomy. Missing tags never mean safe."
+}

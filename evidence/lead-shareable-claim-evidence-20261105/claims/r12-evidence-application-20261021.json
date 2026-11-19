@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "ID": "R12",
+  "Evidence_status": "VERIFIED",
+  "Outcome": "REPRODUCTION",
+  "Artifact_path": "ai/evidence/claims-register/r12-foodb-service-inventory-reproduction-20261021.json",
+  "SHA256": "14a3bf7f66a74e303f09d61d3329b0d308b077aa1916de33e5017bf74b6dbd2d",
+  "Source_provenance": "HASH_PINNED_LOCAL_FOODB_1_0_PRESENCE_PROFILE_AND_RUNTIME; independent T22 review PASS NARROWLY; sidecar license declaration is E1 only, not independently verified rights clearance.",
+  "Last_checked": "2026-10-21",
+  "Notes": "Verified narrowly for inventory arithmetic and loaded runtime profile count on the exact local profile/sidecar/runtime pins. Observed 971 normalized food keys, 206 distinct lowercased compound-name strings (not unique authoritative FooDB compound IDs), and 125,992 profile rows/food-compound links; the runtime exposes only the 971-profile count. E2 for reproducible local arithmetic/runtime load; E1 for sidecar-stated provenance/license. This does not establish upstream completeness or correctness, ingredient similarity, food-form or functional equivalence, usefulness, flavor, nutrition, safety, human outcomes, model quality, or C1-C5 acceptance. Local attributed noncommercial preparation only under the sidecar's declared CC BY-NC 4.0 terms; not legal advice, rights clearance, or redistribution authorization.",
+  "L_item_mapping": "M-A bounded source/artifact/coverage/runtime-truth scope; L37 only for fixed-file metrics/strata; L48 row provenance (LEAD v221/v241).",
+  "Citation": "ai/evidence/claims-register/r12-foodb-service-inventory-reproduction-20261021.md; ai/campaigns/iron-chef-outcome-push-20261021/tasks/T22-r12-independent-review.md (SHA-256 86d38f0bd856bbc6c04da2f3daab437db4d1c2bf221b6cfd81d6c6fe73d93f68).",
+  "Reproduction_path": "ai/tools/reproduce_foodb_service_inventory.py",
+  "Reproduction_sha256": "77bde878ec1f8636ff3760ea5ab269b02dd08c5a7121838d4bc54bded803d029",
+  "Reproduced_value": "971 normalized food keys; 206 distinct lowercased compound-name strings; 125,992 profile rows/links; loaded runtime profile count 971; direct counts match sidecar; independently recomputed by T22."
+}

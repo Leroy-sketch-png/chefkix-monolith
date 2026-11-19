@@ -1,0 +1,69 @@
+{
+  "builder": {
+    "git_commit": "601419a0765d593ebb96a53b37831831a8e4f379",
+    "script_sha256": "bbfd80c6fe06b6336061cf85ff3bbc3ef54c0d7abfac3d1127cda00b63a1b511"
+  },
+  "counts": {
+    "ambiguous_source_slot_rows": 948,
+    "edges": 23185,
+    "evidence_records": 49044,
+    "exact_source_slot_rows": 48096,
+    "identity_error_rows": 0,
+    "input_rows": 49044,
+    "isolated_nodes": 2214,
+    "missing_source_slot_rows": 0,
+    "nodes": 6632
+  },
+  "identity_mapping": "exact raw endpoint -> pinned GISMo word2idx -> first idx2word canonical label -> pinned FlavorGraph node catalog ID; no positional recipe-index mapping",
+  "outputs_sha256": {
+    "edge_evidence.jsonl": "07d4db1d34877447d51af0761158eef4229389c49f18277c8f5473cf005ef60c",
+    "edges.jsonl": "7a434ef79d39e0be54e0f234c24180cb13757e68780a12b189eb1a1ef8a6f1e1",
+    "nodes.jsonl": "89b8ba22ab73ccad1c4de4d55706ff6efdf45f071ec5929934be7b73b0f74e75",
+    "row_errors.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "schema_id": "chefkix.graph_eval_v4",
+  "schema_version": 4,
+  "source": {
+    "source_manifest_sha256": "e08b82b7ff138d2523e077406b1a66e6c238557aead8faa83c04a1421fc3fd97",
+    "split": "train",
+    "train_csv_sha256": "a0b050b28ae2ede67d40badc97d69b26fc2c1e777b74000f899aa790d658bcfa"
+  },
+  "source_artifacts": {
+    "flavorgraph_source_commit": "8d3472d0823f4542b2ce47f83e28046c41d2f06",
+    "gismo_node_catalog": {
+      "bytes": 343416,
+      "path": "graph/nodes_191120.csv",
+      "sha256": "ea59d1858ae3a41de14aeabda32e6274693ea7897eb6ae1a3b7262bac5526d5a"
+    },
+    "gismo_runtime_manifest_sha256": "e08b82b7ff138d2523e077406b1a66e6c238557aead8faa83c04a1421fc3fd97",
+    "gismo_runtime_source_commit": "f5d2394c7ade897987ce584d2a75d8bbbbae058e",
+    "gismo_vocabulary": {
+      "bytes": 318134,
+      "path": "vocab_ingrs.pkl",
+      "sha256": "ad8c62dee7d1314be6e173c3f3bbde473c2c79352bd6e3ccf656a6ac9a488ed4"
+    },
+    "recipe1msubs_train_pickle": {
+      "bytes": 3914545,
+      "name": "train_comments_subs.pkl",
+      "sha256": "b4d58e6c6c6747671e531812393397acf75c02d2a9ce00c2edcc7794bf567c81"
+    },
+    "train_csv_projection": {
+      "rows": 49044,
+      "schema": "source_row_key,source_id,target_id,context_sha256",
+      "sha256": "a0b050b28ae2ede67d40badc97d69b26fc2c1e777b74000f899aa790d658bcfa"
+    }
+  },
+  "state": "ACCEPTED",
+  "transformations": [
+    {
+      "id": "chefkix.graph_eval_v4.recipe1msubs_train.v1",
+      "sha256": "bbfd80c6fe06b6336061cf85ff3bbc3ef54c0d7abfac3d1127cda00b63a1b511"
+    }
+  ],
+  "vocabulary_coverage": {
+    "canonical_label_count": 6634,
+    "mapped_node_count": 6632,
+    "unmapped_canonical_label_count": 2,
+    "unmapped_canonical_labels_sha256": "20be016b8b882132004ca93ff7dfb2adb4042280555e91388a5c0ae5e8c9ad32"
+  }
+}
