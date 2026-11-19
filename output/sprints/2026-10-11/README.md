@@ -1,5 +1,7 @@
 # Vo Trung Tin — Sprint 2 documentation
 
+Current status: [Sprint 2 document reconciliation](STATUS_2026-10-24.md). These files are preserved October 2026 drafts, not current IRON CHEF v4 completion evidence.
+
 Reviewed 11 October 2026. The English edition is the preferred set for review: the Software Requirements Specification, Use Cases, and Data Flow Specification are each supplied as Word and PDF files. All document text and tables use Times New Roman. Tables use two columns, wider cells, and generous padding for easier reading. The separate English PNG diagrams can be inserted into a report. The ZIP also includes real browser captures from 6 October 2026 in `evidence/`.
 
 Progress sources: `BACKLOG_MEMBER.md` on `codex/member-sprint12-deliverables` (6 October checkpoint), `BACKLOG_LEAD.md` v109 at `origin/master` commit `8bb8167` (9 October), the supplied Sprint 2 report for assignment scope, and reviewed frontend and monolith routes and contracts.
