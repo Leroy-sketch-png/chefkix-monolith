@@ -26,6 +26,7 @@ from tools.research.c1.c1_adjudication_integrator import (
     extract_agreed_map_from_returns,
     integrate_judgments,
     main,
+    verify_l36_input_hashes_and_receipts,
 )
 from tools.research.l36.audit_estimand_evaluator import (
     CaseValue,
@@ -309,6 +310,92 @@ class TestC1AdjudicationIntegrator(unittest.TestCase):
                 h0_by_case={},
                 membership_source_sha256="a" * 64,
                 membership_receipt_sha256="b" * 64,
+            )
+
+        # The accepted H map has exactly the 100 unseen IDs, not all 150 rows.
+        all_case_h0 = {c["case_id"]: c["stratum"].startswith("unseen_") for c in case_manifest}
+        self.assertEqual(len(all_case_h0), 150)
+        with self.assertRaisesRegex(ValueError, "exactly the unseen cohort"):
+            evaluate_integrated_audit(
+                custom_integrated,
+                case_manifest,
+                h0_by_case=all_case_h0,
+                membership_source_sha256="a" * 64,
+                membership_receipt_sha256="b" * 64,
+            )
+
+        wrong_type_h0 = {case_id: True for case_id in h0_by_case}
+        wrong_type_h0[next(iter(wrong_type_h0))] = 1
+        with self.assertRaisesRegex(ValueError, "explicit booleans"):
+            evaluate_integrated_audit(
+                custom_integrated,
+                case_manifest,
+                h0_by_case=wrong_type_h0,
+                membership_source_sha256="a" * 64,
+                membership_receipt_sha256="b" * 64,
+            )
+
+    def test_l36_preflight_keeps_file_and_canonical_digest_domains_separate(self):
+        file_hashes = {"sample_jsonl": "a" * 64, "candidate_jsonl": "b" * 64}
+        canonical_sample = "c" * 64
+        self.assertNotEqual(file_hashes["sample_jsonl"], canonical_sample)
+        verify_l36_input_hashes_and_receipts(
+            file_hashes,
+            dict(file_hashes),
+            canonical_sample_sha256=canonical_sample,
+            receipt_canonical_sample_sha256={
+                "sample_manifest": canonical_sample,
+                "preaccess_receipt": canonical_sample,
+                "finalization_receipt": canonical_sample,
+                "private_join_receipt": canonical_sample,
+            },
+        )
+
+        with self.assertRaisesRegex(ValueError, "input file digest mismatch"):
+            verify_l36_input_hashes_and_receipts(
+                file_hashes,
+                {**file_hashes, "candidate_jsonl": "d" * 64},
+                canonical_sample_sha256=canonical_sample,
+                receipt_canonical_sample_sha256={
+                    "sample_manifest": canonical_sample,
+                    "preaccess_receipt": canonical_sample,
+                    "finalization_receipt": canonical_sample,
+                    "private_join_receipt": canonical_sample,
+                },
+            )
+
+        with self.assertRaisesRegex(ValueError, "input file inventory"):
+            verify_l36_input_hashes_and_receipts(
+                file_hashes,
+                {"sample_jsonl": file_hashes["sample_jsonl"]},
+                canonical_sample_sha256=canonical_sample,
+                receipt_canonical_sample_sha256={
+                    "sample_manifest": canonical_sample,
+                    "preaccess_receipt": canonical_sample,
+                    "finalization_receipt": canonical_sample,
+                    "private_join_receipt": canonical_sample,
+                },
+            )
+
+        with self.assertRaisesRegex(ValueError, "canonical sample receipt mismatch"):
+            verify_l36_input_hashes_and_receipts(
+                file_hashes,
+                dict(file_hashes),
+                canonical_sample_sha256=canonical_sample,
+                receipt_canonical_sample_sha256={
+                    "sample_manifest": canonical_sample,
+                    "preaccess_receipt": "e" * 64,
+                    "finalization_receipt": canonical_sample,
+                    "private_join_receipt": canonical_sample,
+                },
+            )
+
+        with self.assertRaisesRegex(ValueError, "receipt inventory"):
+            verify_l36_input_hashes_and_receipts(
+                file_hashes,
+                dict(file_hashes),
+                canonical_sample_sha256=canonical_sample,
+                receipt_canonical_sample_sha256={"preaccess_receipt": canonical_sample},
             )
 
     def test_extract_agreed_map_from_returns(self):

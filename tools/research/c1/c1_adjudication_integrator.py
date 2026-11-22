@@ -11,6 +11,7 @@ import argparse
 import dataclasses
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -70,6 +71,47 @@ except ModuleNotFoundError:
 TOTAL_CANDIDATE_JUDGMENTS = 867
 DISAGREEMENT_COUNT = 150
 AGREED_COUNT = 717
+
+
+def verify_l36_input_hashes_and_receipts(
+    expected_file_sha256: Mapping[str, str],
+    observed_file_sha256: Mapping[str, str],
+    *,
+    canonical_sample_sha256: str,
+    receipt_canonical_sample_sha256: Mapping[str, str],
+) -> None:
+    """Verify file-byte pins separately from canonical sample receipt values.
+
+    Existing artifacts use ``sample_sha256`` for two different domains: the
+    candidate manifest carries the sample JSONL byte hash, while Freeze-A
+    manifests and receipts carry the canonical selected-case digest. Callers
+    must keep file hashes and receipt values in separate maps.
+    """
+    def require_digest(value: str, label: str) -> str:
+        if not isinstance(value, str) or re.fullmatch(r"[0-9a-fA-F]{64}", value) is None:
+            raise ValueError(f"{label} must be a 64-character SHA-256 digest")
+        return value.lower()
+
+    if not expected_file_sha256 or set(expected_file_sha256) != set(observed_file_sha256):
+        raise ValueError("input file inventory does not match the pinned inventory")
+    for name, expected in expected_file_sha256.items():
+        expected_digest = require_digest(expected, f"expected file digest for {name}")
+        observed_digest = require_digest(observed_file_sha256[name], f"observed file digest for {name}")
+        if observed_digest != expected_digest:
+            raise ValueError(f"input file digest mismatch for {name}")
+
+    canonical_digest = require_digest(canonical_sample_sha256, "canonical sample digest")
+    required_receipts = {
+        "sample_manifest",
+        "preaccess_receipt",
+        "finalization_receipt",
+        "private_join_receipt",
+    }
+    if set(receipt_canonical_sample_sha256) != required_receipts:
+        raise ValueError("canonical sample receipt inventory does not match the required set")
+    for name, receipt_value in receipt_canonical_sample_sha256.items():
+        if require_digest(receipt_value, f"canonical sample receipt digest for {name}") != canonical_digest:
+            raise ValueError(f"canonical sample receipt mismatch for {name}")
 
 
 @dataclasses.dataclass(frozen=True)
