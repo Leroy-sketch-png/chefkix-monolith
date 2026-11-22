@@ -1,5 +1,7 @@
 # IRON CHEF: LEAD BACKLOG
 
+**T56 staging source uptake (2026-11-23):** the current direct-Tailscale guest Explore page and `/api/v1/recipes` both returned HTTP 200; 12 results rendered at 390×844 with no horizontal overflow. This confirms current public route/API behavior only. Hashed Next assets did not bind the served page to an FE commit. Strict read-only GPD inspection reached Tailscale's additional-authentication check, so deployed source identity remains UNKNOWN; no bypass, pull, build, restart, deployment, or config change occurred. See [staging source-uptake receipt](evidence/iron-chef-lead-member-handoff-20261105/l46-scan-return-live-check-20261116.md#t56-staging-source-uptake-check--2026-11-23).
+
 ## Current Contract
 
 LEAD owns research questions, protocol and method choices, scientific interpretation, major technical investigations, thesis argument and final acceptance. MEMBER executes the implementation, experiment operations, QA/demo and reproducibility portions assigned in the work table. An L-ID identifies parent accountability; it does not assign all labor to LEAD.
