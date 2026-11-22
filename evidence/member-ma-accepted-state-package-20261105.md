@@ -1,5 +1,53 @@
 # M-A accepted-state package receipt — 2026-11-05
 
+## LEAD intended-consumer decision - 2026-11-22
+
+**DECIDED:** the separate M-A accepted-state package targets the existing
+AI-service `src/services/artifact_backed_graph_provider.py` class
+`ArtifactBackedGraphCandidatePoolProvider`, for an unranked, train-supported
+candidate-pool evidence path. It is not the input to the monolith provisional
+Graph Candidate Preview, the legacy Knowledge API, or T395's distinct
+`graph_eval_v4_clean` Explorer artifact. Do not replace the latter's manifest pin
+`ade85c33...` with this package's pin, rename either bundle to imply equivalence,
+or alter provider state predicates. This decision supplies the requested consumer
+choice; it does not declare a deployed caller or waive consumer acceptance.
+
+The exact fetchable package is `evidence/member-ma-accepted-state-package-20261105/`
+in this repository. On 2026-11-22 LEAD rehashed all five files without opening
+case-level graph values. The manifest equals
+`5e3e5a905de6f60a26ceb7abc2d5c9db100fbd4379bc5d2908ad8c2f14574b5e`;
+all four output hashes equal the corrected table in
+[`member-ma-accepted-state-hash-correction-20261114.md`](member-ma-accepted-state-hash-correction-20261114.md)
+and the manifest's exact four-name inventory. This confirms byte identity, not
+independent scientific acceptance of the manifest's `ACCEPTED` assertion. The
+older statement below that no package was uploaded is historical; the five-file
+delivery is now fetchable under the package-specific HUMAN authority recorded in
+the correction receipt. No further raw source or unrelated package transfer is
+authorized by this decision.
+
+**M-C/M-E can proceed within their existing consumer scope:** bind this exact
+bundle path and full manifest hash to the existing accepted-artifact provider,
+keep its evidence response distinct from a ranked or safety-qualified substitute,
+and return the existing consumer integration for independent Lead acceptance.
+The provider currently has no application caller in the inspected AI-service
+source; supplying that integration is implementation, not another unanswered
+consumer-selection question. Preserve default-off/refusal behavior until the
+required artifact/rights/endpoint checks pass. Report source revision, configured
+path/pin, observed hash and actual consumer response separately; do not claim
+T03/T04 from hashes, state strings or synthetic tests. Missing calibration,
+allergen, nutrient or identity-bridge evidence remains unavailable, never safe or
+zero by default. Preserve the graph's unresolved source-slot counts and train-only
+scope; this is not the full chemical/product graph.
+
+The strongest alternative is to leave this package unused and use only the
+separately pinned Explorer bundle. That does not satisfy the distinct accepted
+candidate-provider lane and must not silently erase it. A failed provenance,
+integrity, identity or applicable-rights check reverses eligibility for this use;
+retain refusal and the original bytes rather than weaken the gate. Any deployment
+change still belongs to its existing operational owner and authority. R38
+equivalence, T01/T02 extension to a new manifest, served-path proof, calibrated
+usefulness, safety, C5 and milestone credit remain unaccepted by this decision.
+
 ## Delivery state
 
 `READY_FOR_LEAD` — Member reverified the held graph bundle against the existing M-A receipt and issued a separate accepted-state package. The Lead's T01/T02 decision remains narrow to the original candidate manifest; the new manifest digest is presented for review before any product-route use.

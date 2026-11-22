@@ -8,6 +8,17 @@ Read the applicable canonical strategy and frozen Protocol v1 before outcome-bea
 
 ## Shared Delivery
 
+**M-A consumer selection supplied (2026-11-22):** the separate accepted-state
+package targets AI-service `ArtifactBackedGraphCandidatePoolProvider` for unranked
+train-supported candidate evidence, not T395's distinct Explorer bundle or the
+provisional preview. Exact package/pin, independently rechecked file hashes and
+M-C/M-E's next integration/acceptance operation are in the
+[dated consumer decision](evidence/member-ma-accepted-state-package-20261105.md#lead-intended-consumer-decision---2026-11-22).
+Missing application wiring belongs to that existing Member lane; it is not a
+remaining Lead consumer-choice hold. Artifact/state/provenance, rights and
+runtime acceptance still apply independently. No deployment, source transfer,
+scientific acceptance or score change follows.
+
 **Member-request response (2026-11-22):** the existing C4 pool-prompt bytes are now
 finally selected/frozen, not merely development baselines. Use the dated decision
 and exact hashes in [L43](evidence/lead-l43-judge-family-prompt-decision-20261106.md#current-final-prompt-disposition---2026-11-22).
