@@ -10,7 +10,7 @@ Source baseline: FE a1ede886. Follow-through: FE 56bba82.
 | 360 CSS px | Tabs and sort shared a row. The hidden optional widget sent a request. | The compact row stays in place, and the hidden optional widget sends no request. |
 | 1536 CSS px | The visible desktop rail mounted Tonight's Pick. | The visible desktop rail still mounts Tonight's Pick and requests data. |
 
-Measurements came from an isolated local Chromium browser with synthetic recipe responses. During a separate loopback check, the primary recipes GET returned a connection refusal. That observation describes the original attempt before the local stack was recovered. A separate synthetic 503-to-200 check verified that pressing Retry issues a fresh GET and clears the error. The historical primary-error cause, desktop optional timeout cause, actual 200% browser UI and physical-device acceptance remain open.
+Measurements came from an isolated local Chromium browser with synthetic recipe responses. During a separate loopback check, the primary recipes GET returned a connection refusal. That observation describes the original attempt before the local stack was recovered. A separate synthetic 503-to-200 check verified that pressing Retry issues a fresh GET and clears the error. The historical primary-error cause, desktop optional timeout cause, and physical-device acceptance remain open. See the later local tab-zoom check below.
 
 ## T56 recovered local recipe runtime
 
@@ -25,6 +25,19 @@ The monolith was built from 0757ebc and the frontend ran 56bba82. A fresh guest 
 | Desktop Explore at 1536×860 | Browse returned HTTP 200 with 12 records. The visible rail issued two Tonight’s Pick GETs in this development run, both HTTP 200. |
 
 This establishes recovery and guest behavior for the current local stack. The earlier Lead session’s primary error and optional timeout still have no established cause. Target deployment, physical-device and presenter/listener evidence remain open. No credentials, recipe rows, user IDs or screenshots are included.
+
+## T56 actual 200% Chromium tab zoom
+
+The local guest run used frontend `6d8513cd6b98b95fe21960e4b7d819763e3ddaf5` and the unchanged local monolith build from `0757ebc`. An isolated Chromium 149 profile applied and read back browser-level tab zoom through [Chromium’s tabs API](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-setZoom). The browser kept the same 502 px outer width, and its reported viewport and device pixel ratio changed as follows.
+
+| Tab zoom | CSS viewport | Device pixel ratio |
+| --- | --- | --- |
+| 100% | 480 × 822 | 1 |
+| 200% | 240 × 411 | 2 |
+
+At 200%, both Explore tab labels, the brand, and the mobile navigation controls fit without horizontal page overflow. Sort appeared on its own row. The More control was reachable and opened and closed its drawer.
+
+The running loopback backend returned HTTP 200 for Browse (12 recipes), search (10 results), and recipe detail. Browser Back retained 200% zoom and restored the same search query and first result. The hidden Tonight’s Pick widget made zero requests. The run used actual tab zoom in local headless Chromium with an unsigned browser profile. Manual Brave verification, physical-device QA, and the target deployment remain separate.
 
 ## T04 accepted graph refusal
 
