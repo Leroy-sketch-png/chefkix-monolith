@@ -309,6 +309,76 @@ class AllocationTargetTests(unittest.TestCase):
         self.assertLess(alloc.allocated_count, 60)
         self.assertTrue(any("Regional shortfall in north" in r for r in alloc.shortfall_reasons))
 
+    def test_duplicate_cluster_cannot_fill_regional_quota(self):
+        records = [
+            make_dummy_record(
+                case_id=f"case-{region}-{index}", cohort_id="culinary",
+                region=region, dish_family="rice",
+                cluster_id=f"{region}-{min(index, 18) if region == 'north' else index}",
+            )
+            for region in REGIONS
+            for index in range(20)
+        ]
+
+        result = allocate_cohort(records, "culinary", self.seed)
+
+        self.assertEqual(result.status, "SHORTFALL")
+        self.assertEqual(result.regional_counts["north"], 19)
+        self.assertEqual(result.allocated_cases, [])
+
+    def test_failed_culinary_cohort_leaves_shared_cluster_for_constraint(self):
+        constraint = [
+            make_dummy_record(
+                case_id=f"con-{region}-{index}", cohort_id="constraint",
+                region=region, dish_family="rice", cluster_id=f"{region}-{index}",
+            )
+            for region, count in zip(REGIONS, (14, 13, 13))
+            for index in range(count)
+        ]
+        culinary = make_dummy_record(
+            case_id="cul", cohort_id="culinary", region="north",
+            dish_family="rice", cluster_id="north-0",
+        )
+
+        result = run_vietnamese_pilot_sampling([culinary, *constraint], "0" * 64)
+
+        self.assertEqual(result.culinary.status, "SHORTFALL")
+        self.assertEqual(result.culinary.allocated_cases, [])
+        self.assertEqual(result.constraint.status, "SUCCESS")
+        self.assertEqual(result.constraint.allocated_count, 40)
+
+    def test_equal_cells_use_next_case_rank(self):
+        records = [
+            make_dummy_record(
+                case_id=case_id, cohort_id="culinary", region=region,
+                dish_family=family, cluster_id=case_id,
+            )
+            for case_id, region, family in (
+                ("a", "north", "noodle_soup"),
+                ("b", "south", "rice"),
+            )
+        ]
+        seed = next(
+            seed for seed in range(20)
+            if compute_case_rank(seed, "b") < compute_case_rank(seed, "a")
+        )
+        records.extend(
+            make_dummy_record(
+                case_id=f"fill-{region}-{index}", cohort_id="culinary",
+                region=region, dish_family="other", cluster_id=f"fill-{region}-{index}",
+            )
+            for region in REGIONS
+            for index in range(20)
+        )
+
+        result = allocate_cohort(records, "culinary", seed)
+
+        self.assertTrue(result.is_success)
+        self.assertLess(
+            [case.case_id for case in result.allocated_cases].index("b"),
+            [case.case_id for case in result.allocated_cases].index("a"),
+        )
+
     def test_named_family_shortfall_reported(self):
         # Provide plenty of noodle_soup and rice, but 0 sweet_soup
         records = []

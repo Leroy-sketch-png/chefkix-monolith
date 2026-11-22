@@ -234,11 +234,18 @@ def allocate_cohort(
     family_allocated: Dict[str, int] = {f: 0 for f in ALL_DISH_FAMILIES}
 
     allocated_list: List[EligibleCaseRecord] = []
+    selected_clusters: Set[str] = set()
     available_indices: Dict[Tuple[str, str], int] = {key: 0 for key in cell_cases}
 
     shortfall_reasons: List[str] = []
 
     while len(allocated_list) < target_total:
+        for cell, cases in cell_cases.items():
+            index = available_indices[cell]
+            while index < len(cases) and cases[index].recipe_cluster_id in selected_clusters:
+                index += 1
+            available_indices[cell] = index
+
         # Find candidate cells that:
         # 1. Have remaining cases
         # 2. Belong to a region that has not yet reached its regional target
@@ -262,24 +269,12 @@ def allocate_cohort(
         min_alloc = min(len(allocated_in_cell[c]) for c in candidate_cells)
         tied_cells = [c for c in candidate_cells if len(allocated_in_cell[c]) == min_alloc]
 
-        # Tie-breaking hierarchy:
-        # 1. Prioritize named families currently under the family floor
-        def tie_break_key(cell: Tuple[str, str]):
-            region, family = cell
-            is_under_floor = 0 if (family in NAMED_DISH_FAMILIES and family_allocated[family] < family_floor) else 1
-            region_order = REGIONS.index(region) if region in REGIONS else 99
-            family_order = (
-                NAMED_DISH_FAMILIES.index(family)
-                if family in NAMED_DISH_FAMILIES
-                else len(NAMED_DISH_FAMILIES) + FALLBACK_DISH_FAMILIES.index(family)
-            )
-            # Peek next case rank in that cell
-            next_idx = available_indices[cell]
-            next_case = cell_cases[cell][next_idx]
-            rank_val, case_id = compute_case_rank(seed, next_case.case_id)
-            return (is_under_floor, region_order, family_order, rank_val, case_id)
-
-        chosen_cell = min(tied_cells, key=tie_break_key)
+        chosen_cell = min(
+            tied_cells,
+            key=lambda cell: compute_case_rank(
+                seed, cell_cases[cell][available_indices[cell]].case_id
+            ),
+        )
 
         # Allocate top case from chosen cell
         idx = available_indices[chosen_cell]
@@ -288,6 +283,7 @@ def allocate_cohort(
 
         allocated_in_cell[chosen_cell].append(case_to_add)
         allocated_list.append(case_to_add)
+        selected_clusters.add(case_to_add.recipe_cluster_id)
         regional_allocated[chosen_cell[0]] += 1
         family_allocated[chosen_cell[1]] += 1
 
@@ -326,7 +322,7 @@ def allocate_cohort(
         family_counts=family_allocated,
         family_floors=family_floors,
         family_shortfalls=family_shortfalls,
-        allocated_cases=allocated_list,
+        allocated_cases=allocated_list if is_success else [],
         shortfall_reasons=shortfall_reasons,
     )
 
@@ -353,28 +349,13 @@ def run_vietnamese_pilot_sampling(
     Validates eligible records, ensures cluster deduplication across cohorts,
     derives the seed, and performs round-robin allocation for both cohorts.
     """
-    # Step 1: Validate all records
+    # Validate the eligible frame before sampling.
     for r in eligible_records:
         r.validate()
 
-    # Step 2: Check cross-cohort recipe cluster uniqueness
-    seen_clusters: Dict[str, str] = {}
-    cluster_dup_errors: List[str] = []
-    for r in eligible_records:
-        if r.recipe_cluster_id in seen_clusters:
-            # Note: Multiple records for the same cluster in the input frame
-            # are allowed in the candidate pool, BUT only one can be selected across cohorts.
-            pass
-        else:
-            seen_clusters[r.recipe_cluster_id] = r.case_id
-
-    # Step 3: Derive seed
     seed = derive_sampling_seed(frame_manifest_sha256)
 
-    # Step 4: Run allocation
-    # To guarantee strict cross-cohort cluster uniqueness (at most one case per cluster
-    # across both cohorts), when a cluster is allocated in culinary, it is unavailable in constraint.
-    # Per protocol, culinary cohort is allocated first, then constraint cohort.
+    # Only a completed culinary allocation reserves clusters for that cohort.
     culinary_alloc = allocate_cohort(eligible_records, "culinary", seed)
 
     # Filter remaining eligible records for constraint cohort by removing allocated clusters
