@@ -16,6 +16,21 @@ Baseline: monolith master 1c1cb90. This is a Member draft for Lead review. It us
 
 Sources: [Chapter 6](iron-chef-lead-member-handoff-20261105/chapters/06-human-validity-audit.md), [conditional result and provenance](l36-conditional-h0-descriptive-point-20261122.md), and [Lead status](../BACKLOG_LEAD.md#current-evidence-and-recovery). No participant rows or private receipts are required to reuse this table.
 
+## Chapter 6 figure and table for Lead review
+
+- [Figure: strict-A validity among recorded-reference misses](member-l36-thesis-exhibit-20261122/l36-h0-outcomes.svg)
+- [Table: H=0 case outcomes and descriptive bounds](member-l36-thesis-exhibit-20261122/l36-h0-outcomes.csv)
+
+**Proposed caption.** The two unseen strata assigned 100 cases. The recorded reference appeared in the primary GISMo top five for three cases, leaving 97 observed H=0 cases. Panel A gives the final strict-A outcomes by stratum. Panel B shows the weighted descriptive partial-identification bounds of 71.1494% to 75.2160%. The lower endpoint counts observed strict-A successes, and the upper endpoint additionally treats the unknown cases as potentially strict-A. The weighted eligible denominator is 3,665.92. The design-matched uncertainty interval, independent C1-G4 verification, and primary H1 decision remain open.
+
+Build from the repository root with Python and Matplotlib 3.10.8.
+
+```powershell
+py -3 tools/research/l45/build_l36_exhibit.py ./out/l36-thesis-exhibit
+```
+
+The generator reads only the shared [L36 aggregate receipt](l36-conditional-h0-descriptive-point-20261122.md) and verifies its SHA-256 after converting line endings to LF. It checks stratum membership and weighted arithmetic before writing the SVG and CSV. The SVG includes a text description. A clean Git snapshot reproduced both files byte for byte. The CSV SHA-256 is `ab033c47ccdef406f6d76336241814680f213fe6827fce2fc26681ad5044f250` and the SVG SHA-256 is `ea48d255b8fec72a4f788fb4884400930e5920289f4603562596cffdd05d7bb8`.
+
 ## Suggested manuscript edits
 
 | Location | Proposed correction |
