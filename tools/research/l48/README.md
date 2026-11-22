@@ -26,6 +26,16 @@ Implements the Lead L48 claims adjudication, evidence ceiling, and status transi
 - **Defense Dossier SHA-256:** `7da53af33901328cf9974378eebba85bc2d966338d062b33d80a58ed515aa8e2`
 - **Protocol v1 SHA-256:** `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`
 
+## Published evidence crosswalk
+
+Run from the monolith checkout:
+
+~~~bash
+python tools/research/l48/match_shared_claim_artifacts.py
+~~~
+
+The script checks the exact v20 register pin and matches its artifact and tool pins against Git blobs in the two curated Lead handoffs. It separately reports a hash match after LF/CRLF conversion. Both reports establish artifact availability. The wording snapshot establishes provenance only. Original recorded statuses and outcomes are preserved. See the [45-row output](../../../evidence/member-mg-shared-artifact-crosswalk-20261122.csv).
+
 ## Testing
 
 From `chefkix-monolith`:

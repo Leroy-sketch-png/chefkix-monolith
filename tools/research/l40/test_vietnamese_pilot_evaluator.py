@@ -66,6 +66,13 @@ class TestVietnamesePilotEvaluator(unittest.TestCase):
         self.assertEqual(outcome2, CaseOutcome.V_UNKNOWN)
         self.assertFalse(ac_succ2)
 
+    def test_incomplete_no_a_is_unknown_and_gold_is_outside_top_five(self):
+        for labels in ([], ["C", "N", "N", "N"]):
+            with self.subTest(labels=labels):
+                self.assertEqual(classify_case_outcome(labels)[0], CaseOutcome.V_UNKNOWN)
+        with self.assertRaisesRegex(ValueError, "gold"):
+            classify_case_outcome(["N"] * 5 + ["A"])
+
     def test_classify_case_outcome_invalid_label(self):
         with self.assertRaises(ValueError):
             classify_case_outcome(["A", "C", "INVALID", "N", "U"])
@@ -79,7 +86,7 @@ class TestVietnamesePilotEvaluator(unittest.TestCase):
         self.assertLess(w.upper, 1.0)
 
     def test_evaluate_culinary_cohort_bounds(self):
-        # 60 culinary cases: 20 V=1, 30 V=0, 10 V=unknown, 35 A+C
+        # 60 culinary cases: 20 V=1, 30 V=0, 10 V=unknown, 50 A+C
         cases = []
         for i in range(20):
             cases.append(EvaluatedCaseSlate(f"c_{i}", "culinary", ("A", "N", "N", "N", "N"), CaseOutcome.V_ONE_SUCCESS, True))
@@ -104,8 +111,8 @@ class TestVietnamesePilotEvaluator(unittest.TestCase):
         # Suppose 5 cases have 0 surviving candidates (abstentions)
         counts = [0] * 5 + [3] * 35
         filtered_cases = [None] * 5 + [
-            EvaluatedCaseSlate(f"fc_{i}", "constraint", ("A", "C", "N"), CaseOutcome.V_ONE_SUCCESS, True)
-            for i in range(35)
+            EvaluatedCaseSlate(f"rc_{i}", "constraint", ("A", "C", "N"), CaseOutcome.V_ONE_SUCCESS, True)
+            for i in range(5, 40)
         ]
 
         res = evaluate_filter_transitions(
@@ -120,6 +127,26 @@ class TestVietnamesePilotEvaluator(unittest.TestCase):
         self.assertEqual(res.filtered_v1_count, 35)
         self.assertEqual(res.abstentions_count, 5)
         self.assertTrue(res.is_abstention_never_labeled_safe)
+        self.assertEqual(res.case_transitions, {
+            "V_ONE_SUCCESS->ABSTENTION_EMPTY_POOL": 5,
+            "V_ONE_SUCCESS->V_ONE_SUCCESS": 35,
+        })
+
+    def test_filtered_slate_must_match_case_and_survivors(self):
+        raw = EvaluatedCaseSlate("r", "constraint", ("N",) * 5, CaseOutcome.V_ZERO_FAILURE, False)
+        wrong_case = EvaluatedCaseSlate("s", "constraint", ("N",), CaseOutcome.V_UNKNOWN, False)
+        new_label = EvaluatedCaseSlate("r", "constraint", ("A",), CaseOutcome.V_ONE_SUCCESS, True)
+        for count, filtered in ((1, wrong_case), (1, new_label), (1, None)):
+            with self.subTest(count=count, filtered=filtered), self.assertRaises(ValueError):
+                evaluate_filter_transitions([raw], [count], [filtered], 0, 0)
+
+    def test_cohort_rejects_duplicate_rows_and_unjustified_failure(self):
+        raw = EvaluatedCaseSlate("r", "culinary", ("N",) * 5, CaseOutcome.V_ZERO_FAILURE, False)
+        with self.assertRaisesRegex(ValueError, "unique case IDs"):
+            evaluate_cohort("culinary", [raw, raw], 2)
+        incomplete = EvaluatedCaseSlate("i", "culinary", ("N",), CaseOutcome.V_ZERO_FAILURE, False)
+        with self.assertRaisesRegex(ValueError, "outcome disagrees"):
+            evaluate_cohort("culinary", [incomplete], 1)
 
     def test_agreement_classification_tiers(self):
         # Tier 1: bootstrap lower >= 0.60 -> RELIABLE
@@ -134,9 +161,14 @@ class TestVietnamesePilotEvaluator(unittest.TestCase):
         )
         # Tier 3: nominal < 0.50 -> INSUFFICIENT
         self.assertEqual(
-            classify_agreement(nominal_kappa=0.42, bootstrap_lower_95=0.35),
+            classify_agreement(nominal_kappa=0.42, bootstrap_lower_95=0.65),
             AgreementTier.INSUFFICIENT_AGREEMENT,
         )
+
+    def test_unavailable_interval_cannot_establish_reliability(self):
+        self.assertEqual(classify_agreement(0.70, None), AgreementTier.EXPLORATORY_AGREEMENT)
+        with self.assertRaises(ValueError):
+            classify_agreement(float("nan"), None)
 
 
 if __name__ == "__main__":

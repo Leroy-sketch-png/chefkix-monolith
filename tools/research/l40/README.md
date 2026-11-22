@@ -36,6 +36,12 @@ This package implements and verifies the deterministic sampling frame validator 
    - If a cohort cannot meet its total or regional target, it returns aggregate shortfall counts and no selected case rows.
    - Unmet named family floors are recorded as shortfalls without inventing synthetic cases.
 
+## Reviewer payloads and evaluation
+
+Use the existing sampler to freeze eligible cases first. Once the authorized, exact-identity candidate slates are available, pass the frozen sampling result, one completed cohort ID, and a private secret to the review serializer. The serializer reads the frame pin from the sampling result. It returns independent R1/R2 payloads and a separate restricted join key. An explicitly empty slate retains its selected case, and a missing case or failed cohort prevents payload construction. Keep the model rank, gold marker, source evidence, role assignments, and identity mapping in the owner-private records. The serializer does not write to disk or issue a reviewer pack. The L36 HTML renderer has a different fixed cohort and view schema.
+
+The evaluator scores only the model top five, retains incomplete no-A slates as unknown, and verifies that paired filtered rows keep the same frozen case and can only contain labels already present in the raw slate. Candidate-level identity still comes from the frozen slate/filter manifest. Agreement is reliable only after the nominal gate passes and a valid interval supplies a lower bound of at least 0.60.
+
 ## Usage and Verification
 
 Run the test suite:

@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import dataclasses
 import math
+from collections import Counter
 from enum import Enum
-from typing import Mapping, Sequence
+from typing import Sequence
 
 CULINARY_COHORT_N = 60
 CONSTRAINT_COHORT_N = 40
@@ -84,6 +85,7 @@ class C3FilterComparisonSummary:
     violations_removed_count: int
     unknowns_withheld_count: int
     is_abstention_never_labeled_safe: bool
+    case_transitions: dict[str, int]
 
 
 def compute_wilson_interval(successes: int, total: int, z: float = 1.96) -> WilsonInterval:
@@ -103,10 +105,12 @@ def classify_case_outcome(labels: Sequence[str]) -> tuple[CaseOutcome, bool]:
     """Classify 5-candidate slate into strict-A@5 outcome and A+C sensitivity.
 
     - V=1: At least one A.
-    - V=0: No A, all C or N.
-    - V=unknown: No A, contains at least one U.
+    - V=0: No A and exactly five C or N labels.
+    - V=unknown: No A and at least one U or an incomplete slate.
     - A+C success: At least one A or C.
     """
+    if len(labels) > SLATE_SIZE:
+        raise ValueError("Score only the model top five; keep any recorded gold separate")
     for l in labels:
         if l not in VALID_LABELS:
             raise ValueError(f"Invalid candidate label: {l}")
@@ -117,7 +121,7 @@ def classify_case_outcome(labels: Sequence[str]) -> tuple[CaseOutcome, bool]:
 
     if has_a:
         outcome = CaseOutcome.V_ONE_SUCCESS
-    elif has_u:
+    elif has_u or len(labels) < SLATE_SIZE:
         outcome = CaseOutcome.V_UNKNOWN
     else:
         outcome = CaseOutcome.V_ZERO_FAILURE
@@ -126,14 +130,26 @@ def classify_case_outcome(labels: Sequence[str]) -> tuple[CaseOutcome, bool]:
     return outcome, ac_success
 
 
+def validate_case_outcome(case: EvaluatedCaseSlate) -> None:
+    if (case.case_outcome, case.is_ac_success) != classify_case_outcome(case.candidate_labels):
+        raise ValueError("Reported case outcome disagrees with its labels")
+
+
 def evaluate_cohort(
     cohort_name: str,
     cases: Sequence[EvaluatedCaseSlate],
     fixed_n: int,
 ) -> PilotCohortSummary:
     """Evaluate full cohort of cases with partial identification bounds."""
-    if len(cases) != fixed_n:
+    if fixed_n <= 0 or len(cases) != fixed_n:
         raise ValueError(f"Cohort {cohort_name} expects {fixed_n} cases, got {len(cases)}")
+
+    if len({c.case_id for c in cases}) != fixed_n or any(
+        not c.case_id or c.cohort != cohort_name for c in cases
+    ):
+        raise ValueError("Expected unique case IDs in the requested cohort")
+    for case in cases:
+        validate_case_outcome(case)
 
     v1_cnt = sum(1 for c in cases if c.case_outcome == CaseOutcome.V_ONE_SUCCESS)
     v0_cnt = sum(1 for c in cases if c.case_outcome == CaseOutcome.V_ZERO_FAILURE)
@@ -171,6 +187,29 @@ def evaluate_filter_transitions(
     if len(filtered_candidate_counts) != total or len(filtered_cases) != total:
         raise ValueError("Mismatched case counts for filter evaluation")
 
+    if len({c.case_id for c in raw_cases}) != total or any(
+        not c.case_id or c.cohort != "constraint" for c in raw_cases
+    ):
+        raise ValueError("Expected unique constraint cohort case IDs")
+
+    transitions: Counter[str] = Counter()
+    for raw, count, filtered in zip(raw_cases, filtered_candidate_counts, filtered_cases):
+        validate_case_outcome(raw)
+        if count == 0 and filtered is None:
+            destination = FilterTransitionState.ABSTENTION_EMPTY_POOL.value
+        elif (
+            filtered is not None
+            and filtered.case_id == raw.case_id
+            and filtered.cohort == raw.cohort
+            and 0 < count == len(filtered.candidate_labels) <= len(raw.candidate_labels)
+            and not (Counter(filtered.candidate_labels) - Counter(raw.candidate_labels))
+        ):
+            validate_case_outcome(filtered)
+            destination = filtered.case_outcome.value
+        else:
+            raise ValueError("Filtered slate does not match its raw case or survivor count")
+        transitions[f"{raw.case_outcome.value}->{destination}"] += 1
+
     raw_v1 = sum(1 for c in raw_cases if c.case_outcome == CaseOutcome.V_ONE_SUCCESS)
     filt_v1 = sum(1 for c in filtered_cases if c is not None and c.case_outcome == CaseOutcome.V_ONE_SUCCESS)
     abstentions = sum(1 for count in filtered_candidate_counts if count == 0)
@@ -182,15 +221,19 @@ def evaluate_filter_transitions(
         abstentions_count=abstentions,
         violations_removed_count=violations_removed,
         unknowns_withheld_count=unknowns_withheld,
-        is_abstention_never_labeled_safe=True,  # Invariant: empty pool is never "safe"
+        is_abstention_never_labeled_safe=True,
+        case_transitions=dict(sorted(transitions.items())),
     )
 
 
-def classify_agreement(nominal_kappa: float, bootstrap_lower_95: float) -> AgreementTier:
-    """Classify inter-rater agreement tier under Protocol v1."""
-    if bootstrap_lower_95 >= 0.60:
-        return AgreementTier.RELIABLE_AGREEMENT
-    elif nominal_kappa >= 0.50:
-        return AgreementTier.EXPLORATORY_AGREEMENT
-    else:
+def classify_agreement(nominal_kappa: float, bootstrap_lower_95: float | None) -> AgreementTier:
+    """Classify agreement; pass None when no valid interval is available."""
+    if not -1 <= nominal_kappa <= 1 or (
+        bootstrap_lower_95 is not None and not -1 <= bootstrap_lower_95 <= 1
+    ):
+        raise ValueError("Kappa estimates must be finite and in [-1, 1]")
+    if nominal_kappa < 0.50:
         return AgreementTier.INSUFFICIENT_AGREEMENT
+    if bootstrap_lower_95 is not None and bootstrap_lower_95 >= 0.60:
+        return AgreementTier.RELIABLE_AGREEMENT
+    return AgreementTier.EXPLORATORY_AGREEMENT

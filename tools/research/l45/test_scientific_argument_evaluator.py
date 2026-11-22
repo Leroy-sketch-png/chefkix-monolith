@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 from scientific_argument_evaluator import (
-    PINNED_CHAPTER_HASHES,
+    load_chapter_pins,
     REQUIRED_CH12_NEGATIVE_THREADS,
     audit_chapter_12_text,
     audit_chapter_13_text,
@@ -32,10 +32,10 @@ CHAPTERS_DIR = REPO_ROOT / "evidence" / "iron-chef-lead-member-handoff-20261105"
 class ChapterHashTests(unittest.TestCase):
 
     def test_pinned_chapter_count_is_14(self):
-        self.assertEqual(len(PINNED_CHAPTER_HASHES), 14)
+        self.assertEqual(len(load_chapter_pins(CHAPTERS_DIR)), 14)
 
     def test_all_14_chapters_exist(self):
-        for filename in PINNED_CHAPTER_HASHES:
+        for filename in load_chapter_pins(CHAPTERS_DIR):
             ch_path = CHAPTERS_DIR / filename
             self.assertTrue(ch_path.exists(), f"Missing chapter: {filename}")
 

@@ -24,38 +24,37 @@ Invariants:
    - Protocol v1 freezes core rules (PR01-03/05/09/10).
    - PR13 ethics/consent remains a distinct human-subject gate.
    - L36 operational mapping does not substitute for human ratings/adjudications.
-   - Campaign progress at 19/25 milestones (76.0%), with accepted floor at 3/5 (C2, C3, C5).
+   - Historical 19/25 (76.0%) wording as recorded in the shared Chapter 13 snapshot.
    - Clean graph C5 vertical integration: 6,633 nodes, 23,185 edges, 0 identity errors,
      manifest prefix `ade85c3312b8`.
 """
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List
 
 
-# Pinned destination SHA-256 hashes from SOURCE.json
-PINNED_CHAPTER_HASHES: Dict[str, str] = {
-    "01-introduction.md": "90c605453512736e7a3d6a06c5f8dbf0a5433404f90282412991eba423a5b9ba",
-    "02-related-work.md": "246c5d4a42ec8ce102d909644587e0abf700a868d6927cec62b876f6a42fb474",
-    "03-data-and-graph-provenance.md": "232ac9671449245c92e4b164a6dd456fdb89e3a976ea5d61301fac88d3d3157e",
-    "04-instrument-and-identity-contract.md": "4785e10339dd9f1c4a2376469e8f85663d713ed8518fc8a4d1b07bb2a4ab6858",
-    "05-senath-clean-room-inference.md": "ea556bfc0ff788b92750c47df20c9529500b826a1051296bb05f3d72a59c498c",
-    "06-human-validity-audit.md": "49a913750c1833b29e4a2889329414f16be1956cfd75a6ce19fda6554432bbe2",
-    "07-guardrail-design-and-assumptions.md": "2996ac12deba31bd54ec2979c263ef40a30ece284723327b6b51865bb1594295",
-    "08-allergen-methods.md": "a3b99f7cc8f3b12593ed45ffab70bf29b5a61eb817631fd2c45aeea9358a9138",
-    "09-vietnamese-pilot-design-and-limits.md": "19a5b975b3d3851a56b8c1ae87741918ae0592ff6d0146c20fca562d3383de6d",
-    "10-compound-presence-and-explanation.md": "778e063f6df2cd75be18e500565807e85287fbbe9629c52b4ba0062ad1bb132a",
-    "11-system-and-demonstration.md": "89a5f8e40f4fca1801755e2d4a298019d1ec687f6bca35fb59f068ae9d76233d",
-    "12-bounded-negatives.md": "480ae58863ccaa649944f71b0139e392136469133a0f8a9cc3074460b995a4cf",
-    "13-discussion-and-threats.md": "0f06509da9831d6c596fced771c3111d9c87ff96b594ffbb07225ed135d7e6ac",
-    "14-conclusion-and-future-work.md": "df6c4b2f2cb8230f508ceee994fd8fff3b17963f1bab2e1603dc88d39e4685a4",
-}
+def load_chapter_pins(chapters_dir: Path) -> dict[str, str]:
+    """Read the authored destination pins from the shared handoff manifest."""
+    manifest = json.loads((chapters_dir.parent / "SOURCE.json").read_text(encoding="utf-8"))
+    pins = {}
+    for entry in manifest["direct_authored_copies"]:
+        relative = entry["destination_path"]
+        match = re.fullmatch(r"chapters/((0[1-9]|1[0-4])-[a-z0-9-]+\.md)", relative)
+        digest = entry["destination_sha256"]
+        if not match or match[2] in pins or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+            raise ValueError("Invalid or duplicate chapter pin in SOURCE.json")
+        pins[match[2]] = (match[1], digest.lower())
+    if len(pins) != 14:
+        raise ValueError("SOURCE.json must pin chapters 01 through 14")
+    return dict(pins[number] for number in sorted(pins))
+
 
 # The 7 required negative / withdrawn / boundary threads in Chapter 12
 REQUIRED_CH12_NEGATIVE_THREADS = (
@@ -113,9 +112,9 @@ def compute_file_sha256(path: Path) -> str:
 
 
 def verify_chapter_hashes(chapters_dir: Path) -> List[ChapterHashCheck]:
-    """Verifies all 14 chapters against PINNED_CHAPTER_HASHES."""
+    """Compare each chapter with the current handoff manifest."""
     checks = []
-    for filename, expected_hash in PINNED_CHAPTER_HASHES.items():
+    for filename, expected_hash in load_chapter_pins(chapters_dir).items():
         ch_path = chapters_dir / filename
         if not ch_path.exists():
             checks.append(ChapterHashCheck(filename, expected_hash, "FILE_NOT_FOUND", False))
@@ -220,9 +219,9 @@ def audit_scientific_argument(chapters_dir: Path) -> L45ScientificArgumentAuditR
         if not ch13_audit.pr13_ethics_gate_preserved:
             discrepancies.append("Chapter 13 does not preserve PR13 ethics gate")
         if not ch13_audit.campaign_progress_reconciled:
-            discrepancies.append("Chapter 13 does not reconcile campaign progress to 19/25 (76.0%)")
+            discrepancies.append("Chapter 13 is missing the historical 19/25 (76.0%) snapshot wording")
         if not ch13_audit.c5_clean_graph_metrics_verified:
-            discrepancies.append("Chapter 13 does not verify C5 clean graph counts (6,633 nodes, 23,185 edges)")
+            discrepancies.append("Chapter 13 is missing the recorded C5 clean graph counts (6,633 nodes, 23,185 edges)")
     else:
         discrepancies.append("13-discussion-and-threats.md not found")
         ch13_audit = Chapter13DiscussionAudit(False, False, False, False, False)
@@ -236,3 +235,12 @@ def audit_scientific_argument(chapters_dir: Path) -> L45ScientificArgumentAuditR
         overall_status=status,
         discrepancies=discrepancies,
     )
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Check the shared chapter hashes and snapshot wording.")
+    parser.add_argument("chapters_dir", type=Path)
+    args = parser.parse_args()
+    result = audit_scientific_argument(args.chapters_dir)
+    print(json.dumps(dataclasses.asdict(result), indent=2))
+    raise SystemExit(result.overall_status != "PASS")

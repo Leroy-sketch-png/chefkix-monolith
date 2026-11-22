@@ -31,10 +31,18 @@ and conclusion boundaries specified in Lead Backlog L45, Academic Vision & Strat
    - Frozen core protocol rules acknowledged (PR01-03/05/09/10).
    - PR13 ethics/consent preserved as an uncompromised human-subject gate.
    - L36 operational mapping acknowledged without replacing human evidence.
-   - Campaign progress strictly reconciled to 19/25 milestones (76.0%).
+   - Checks the historical 19/25 (76.0%) wording in the pinned Chapter 13 snapshot. Current campaign accounting comes from the later C1-G3 acceptance.
    - C5 vertical integration proof verified: 6,633 nodes, 23,185 directed edges, 0 identity errors, manifest prefix `ade85c3312b8`.
 
 ## Verification
+
+From the repository root, check the current public handoff:
+
+~~~bash
+python tools/research/l45/scientific_argument_evaluator.py evidence/iron-chef-lead-member-handoff-20261105/chapters
+~~~
+
+The output verifies authored destination bytes and selected text boundaries. Scientific approval, current cross-chapter reconciliation, and accepted-result reproduction remain separate.
 
 Run the test suite:
 ```bash
