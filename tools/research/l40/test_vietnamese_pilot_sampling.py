@@ -309,6 +309,13 @@ class AllocationTargetTests(unittest.TestCase):
         self.assertLess(alloc.allocated_count, 60)
         self.assertTrue(any("Regional shortfall in north" in r for r in alloc.shortfall_reasons))
 
+    def test_duplicate_case_id_across_cohorts_is_rejected_before_sampling(self):
+        culinary = make_dummy_record("same-id", "culinary", "north", "rice", "c1")
+        constraint = make_dummy_record("same-id", "constraint", "south", "rice", "c2")
+
+        with self.assertRaisesRegex(ValueError, "Duplicate case_id"):
+            run_vietnamese_pilot_sampling([culinary, constraint], "0" * 64)
+
     def test_duplicate_cluster_cannot_fill_regional_quota(self):
         records = [
             make_dummy_record(

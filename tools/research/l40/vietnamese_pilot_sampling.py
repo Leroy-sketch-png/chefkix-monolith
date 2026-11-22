@@ -349,9 +349,13 @@ def run_vietnamese_pilot_sampling(
     Validates eligible records, ensures cluster deduplication across cohorts,
     derives the seed, and performs round-robin allocation for both cohorts.
     """
-    # Validate the eligible frame before sampling.
-    for r in eligible_records:
-        r.validate()
+    # A study case ID must identify exactly one frame record across both cohorts.
+    seen_case_ids: Set[str] = set()
+    for record in eligible_records:
+        record.validate()
+        if record.case_id in seen_case_ids:
+            raise ValueError("Duplicate case_id in the eligible frame")
+        seen_case_ids.add(record.case_id)
 
     seed = derive_sampling_seed(frame_manifest_sha256)
 

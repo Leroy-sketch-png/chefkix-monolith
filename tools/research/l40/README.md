@@ -19,20 +19,21 @@ This package implements and verifies the deterministic sampling frame validator 
    - The sampling seed is computed as the big-endian uint64 from the first 8 bytes of:
      $$\text{SHA256}(b"\text{iron-chef-l40-sampling-v1}\backslash 0" + \text{bytes.fromhex}(\text{frame\_manifest\_sha256}))$$
 3. **Cross-Cohort Recipe Cluster Deduplication:**
-   - At most one case per source-recipe cluster across both cohorts. When a cluster is allocated in the culinary cohort, all cases from that cluster are excluded from the constraint cohort.
+   - Each stable study case ID must be unique across the whole eligible frame.
+   - At most one case per source-recipe cluster can be selected across both cohorts. Only clusters selected by a completed culinary allocation are excluded from the constraint cohort.
 4. **Dish Family Quotas and Floors:**
    - 7 primary named families: `noodle_soup`, `rice`, `grilled_braised`, `roll`, `dipping_sauce`, `sweet_soup`, `sandwich`.
    - Named family floor: $\ge 5$ cases per named family in culinary, $\ge 3$ in constraint (where eligible records exist).
    - Fallback families (`other`, `unknown`) are retained for analysis but **never** fill named-family floors.
 5. **Least-Filled Cell Round-Robin Allocation:**
    - Allocates cases across region $\times$ family cells by selecting the least-filled cell with available cases whose region has not yet reached its quota.
-   - Tied cells prioritize named families below their floor, followed by canonical region order (`north` $\to$ `central` $\to$ `south`) and canonical family order.
+   - Tied cells use the seed-derived rank and stable case ID of their next eligible case.
    - Within each cell, candidates are ordered by seed-derived case rank ($\text{SHA256}(\text{seed} + \text{case\_id})$) with stable `case_id` tie-breaking.
 6. **Linguistic and UTF-8 Integrity:**
    - Diacritics are strictly preserved in UTF-8 NFC format. Lossy transliteration, stripping, or fuzzy matching is rejected.
    - Each case requires a paired checked English gloss as a secondary audit field.
 7. **Fail-Closed Shortfall Reporting:**
-   - If a cohort cannot meet its total or regional target, it stops and emits an explicit shortfall receipt.
+   - If a cohort cannot meet its total or regional target, it returns aggregate shortfall counts and no selected case rows.
    - Unmet named family floors are recorded as shortfalls without inventing synthetic cases.
 
 ## Usage and Verification
