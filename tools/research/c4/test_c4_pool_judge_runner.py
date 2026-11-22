@@ -250,7 +250,7 @@ class OperationalGateTests(unittest.TestCase):
         )
 
     def test_arithmetic_passes_but_source_free_development_state_cannot_be_accepted(self):
-        report = self.evaluate()
+        report = self.evaluate(prompt_freeze_state="DEVELOPMENT_CANDIDATE")
         self.assertEqual(report.assigned_cases, 20)
         self.assertEqual(report.assigned_candidate_units, 40)
         self.assertEqual(report.reference_present_candidate_units, 40)
@@ -278,6 +278,33 @@ class OperationalGateTests(unittest.TestCase):
             report.human_reference_gate,
             report.prompt_freeze_gate,
         ]))
+
+    def test_frozen_prompt_binds_both_planned_orders(self):
+        report = self.evaluate()
+        self.assertEqual(report.prompt_freeze_gate.status, "PASS")
+        self.assertEqual(report.input_hashes["system_prompt_sha256"], SYSTEM_PROMPT_SHA256)
+        self.assertEqual(report.input_hashes["user_template_sha256"], USER_TEMPLATE_SHA256)
+        self.assertIn("prompt_assets_canonical_sha256", report.input_hashes)
+        self.assertNotEqual(
+            report.input_hashes["forward_planned_requests_canonical_sha256"],
+            report.input_hashes["reverse_planned_requests_canonical_sha256"],
+        )
+        self.assertEqual(report.overall_status, "INCOMPLETE_GATES_UNAVAILABLE")
+
+    def test_reverse_summary_retains_missing_and_bad_terminal_pools(self):
+        self.reverse.pop()
+        case = self.cases[-2]
+        self.reverse[-1] = make_response(case, "REVERSE", {}, raw_text="{}")
+        report = self.evaluate()
+        summary = report.reverse_pass_summary
+        self.assertTrue(summary["diagnostic_only"])
+        self.assertEqual(summary["pass_identity"], "REVERSE")
+        self.assertEqual(summary["assigned_candidate_units"], 40)
+        self.assertEqual(summary["terminal_case_dispositions"], {"valid": 18, "missing": 1, "invalid": 1})
+        self.assertEqual(summary["terminal_unit_dispositions"], {"valid": 36, "missing": 2, "invalid": 2})
+        self.assertEqual(summary["valid_label_counts"], {"A": 18, "C": 0, "N": 18, "U": 0})
+        self.assertEqual(report.agreement_kappa_gate.observed_value, 1.0)
+        self.assertIn("Reverse pass (diagnostic only)", render_c4_report_markdown(report))
 
     def test_source_pins_are_derived_from_and_compared_to_raw_manifest_bytes(self):
         manifests = {

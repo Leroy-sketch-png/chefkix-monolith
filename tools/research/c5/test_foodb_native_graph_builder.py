@@ -52,6 +52,19 @@ class ProjectedJsonTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project_object('{"id":1,"unused":{"a":,}}', {"id"})
 
+    def test_non_json_constants_are_rejected_in_selected_and_skipped_values(self):
+        for token in ("NaN", "Infinity", "-Infinity"):
+            for allowed in ({"export"}, {"id"}):
+                with self.subTest(token=token, allowed=allowed), self.assertRaises(ValueError):
+                    project_object('{"id":1,"export":' + token + "}", allowed)
+
+    def test_duplicate_profile_keys_are_rejected_after_json_decoding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profile.json"
+            path.write_text(r'{"same":[],"s\u0061me":[]}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "duplicate top-level profile key"):
+                extract_profile_scope(path, None, None, None)
+
     def test_trailing_data_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "trailing"):
             project_object('{"id":1}x', {"id"})

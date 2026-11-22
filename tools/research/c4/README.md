@@ -7,12 +7,12 @@ This package implements and verifies the pool-level, candidate-order-blind C4 ju
 
 ## Implemented Invariants
 
-1. **Pinned Prompt Assets:**
+1. **Frozen Prompt Assets:** Lead froze these exact bytes as c4-judge-pool-prompt-s7.1-v1 on 2026-11-22. The report binds the templates and each planned order's rendered user bytes and candidate identities separately from saved response logs.
    - System Prompt SHA-256: `96e24ae1f629d9c5f4a58457ae0c148253be2571ca55eb8d4560b1f1281f5db7`
    - User Template SHA-256: `713997acc2715d327fda254d3a34a4904999f5806c43b3e990e8dfb98782539b`
 2. **Opaque-ID Candidate Blinding:**
    - Slates are submitted as unordered opaque IDs without revealing arm, rank, source, gold, model family, or presentation position.
-   - Forward pass is the primary comparison pass; reverse pass inverts candidate list order for stability checking.
+   - Forward pass is primary. The reverse-pass diagnostic reports assigned cases and unique units, terminal valid/missing/invalid coverage, and A/C/N/U counts. It adds no gate.
 3. **Operational Gates Evaluated:**
    - **Gate 1 (Agreement Kappa):** Unweighted nominal 4-label (A/C/N/U) Cohen's $\kappa \ge 0.60$ against human adjudications.
    - **Gate 2 (Kappa Bootstrap CI):** 2,000 whole-case cluster bootstrap draws (seed `20261021`) with order-statistic percentile lower bound $\ge 0.50$.

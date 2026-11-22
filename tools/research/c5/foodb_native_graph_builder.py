@@ -134,8 +134,12 @@ def _skip_value(text: str, start: int) -> int:
     return value(start)
 
 
+def _reject_non_json_constant(_token: str) -> None:
+    raise ValueError("invalid non-JSON constant")
+
+
 def project_object(text: str, allowed: set[str]) -> dict[str, Any]:
-    decoder = json.JSONDecoder()
+    decoder = json.JSONDecoder(parse_constant=_reject_non_json_constant)
     i = 0
     while i < len(text) and text[i] in " \t\r\n":
         i += 1
@@ -188,7 +192,7 @@ def extract_profile_scope(
     expected_compound_ids: int | None = EXPECTED["profile_compound_ids"],
     expected_pairs: int | None = EXPECTED["unique_pairs"],
 ) -> tuple[set[int], set[tuple[int, str]], int]:
-    """Read compound IDs and source-native food public IDs, never profile names."""
+    """Read compound/public IDs; use profile names only to detect duplicate keys."""
     text = profile_path.read_text(encoding="utf-8")
     decoder = json.JSONDecoder()
     i = 0
@@ -203,19 +207,22 @@ def extract_profile_scope(
     i = ws(i + 1)
     ids: set[int] = set()
     pairs: set[tuple[int, str]] = set()
-    profile_names = 0
+    seen_profile_keys: set[str] = set()
     if i < len(text) and text[i] == "}":
         raise ValueError("profile artifact is empty")
     while True:
         i = ws(i)
         after_key = _skip_string(text, i)
+        key = decoder.decode(text[i:after_key])
+        if key in seen_profile_keys:
+            raise ValueError("duplicate top-level profile key")
+        seen_profile_keys.add(key)
         i = ws(after_key)
         if i >= len(text) or text[i] != ":":
             raise ValueError("invalid profile object")
         i = ws(i + 1)
         if i >= len(text) or text[i] != "[":
             raise ValueError("profile value must be a list")
-        profile_names += 1
         i = ws(i + 1)
         if i < len(text) and text[i] != "]":
             while True:
@@ -246,6 +253,7 @@ def extract_profile_scope(
         i += 1
     if i != len(text):
         raise ValueError("trailing profile JSON")
+    profile_names = len(seen_profile_keys)
     if (expected_profile_names is not None and profile_names != expected_profile_names) or (
         expected_compound_ids is not None and len(ids) != expected_compound_ids
     ):

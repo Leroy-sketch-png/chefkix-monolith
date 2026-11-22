@@ -26,6 +26,7 @@ from typing import Any, Final, Literal, Mapping, Optional, Sequence
 
 # Protocol & Specification Identifiers
 SPECIFICATION_ID: Final[str] = "iron-chef-l43-c4-pool-judge-v1"
+PROMPT_VERSION: Final[str] = "c4-judge-pool-prompt-s7.1-v1"
 PROTOCOL_SHA256: Final[str] = "b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12"
 PRIMARY_JUDGE_MODEL: Final[str] = "gemini-2.5-flash"
 DIAGNOSTIC_JUDGE_MODEL: Final[str] = "gpt-4o-2024-08-06"
@@ -189,6 +190,7 @@ class C4PoolJudgeEvaluationReport:
     judge_u_count: int
     human_u_count: int
     arm_summaries: dict[str, dict[str, int]]
+    reverse_pass_summary: dict[str, object]
     input_hashes: dict[str, str]
     source_input_hash_status: Literal["PINNED", "MISSING_OR_UNVERIFIED"]
     human_reference_state: Literal["FINAL_ADJUDICATED", "SYNTHETIC_FIXTURE", "MISSING"]
@@ -336,7 +338,10 @@ def format_user_prompt(
     assets = verify_prompt_assets()
     if not assets["system_prompt_file_verified"] or not assets["user_template_file_verified"]:
         raise ValueError("pinned_prompt_assets_unavailable_or_mismatched")
-    normalized_case = normalize_case_candidates(case)
+    return _format_normalized_user_prompt(normalize_case_candidates(case), reverse_order)
+
+
+def _format_normalized_user_prompt(normalized_case: PoolJudgeCase, reverse_order: bool) -> str:
     candidates = list(normalized_case.candidates)
     if reverse_order:
         candidates.reverse()
@@ -771,7 +776,7 @@ def evaluate_c4_operational_gates(
     source_manifest_bytes: Optional[Mapping[str, bytes]] = None,
     expected_source_file_hashes: Optional[Mapping[str, str]] = None,
     human_reference_state: Literal["FINAL_ADJUDICATED", "SYNTHETIC_FIXTURE", "MISSING"] = "SYNTHETIC_FIXTURE",
-    prompt_freeze_state: Literal["FROZEN", "DEVELOPMENT_CANDIDATE"] = "DEVELOPMENT_CANDIDATE",
+    prompt_freeze_state: Literal["FROZEN", "DEVELOPMENT_CANDIDATE"] = "FROZEN",
     generator_family_by_arm: Optional[Mapping[str, str]] = None,
     bootstrap_draws: int = BOOTSTRAP_DRAWS,
     bootstrap_seed: int = BOOTSTRAP_SEED,
@@ -889,6 +894,26 @@ def evaluate_c4_operational_gates(
         }
     )
     prompt_assets = verify_prompt_assets()
+    if prompt_assets["system_prompt_file_verified"] and prompt_assets["user_template_file_verified"]:
+        input_hashes["prompt_assets_canonical_sha256"] = canonical_hash(
+            {"version": PROMPT_VERSION, "system": SYSTEM_PROMPT_SHA256, "user_template": USER_TEMPLATE_SHA256}
+        )
+        for pass_name, reverse_order in (("forward", False), ("reverse", True)):
+            ordered_requests = [
+                {
+                    "case_id": case.case_id,
+                    "candidate_ids": [
+                        candidate.opaque_id for candidate in (
+                            reversed(case.candidates) if reverse_order else case.candidates
+                        )
+                    ],
+                    "user_prompt_sha256": hashlib.sha256(
+                        _format_normalized_user_prompt(case, reverse_order).encode("utf-8")
+                    ).hexdigest(),
+                }
+                for case in normalized_cases
+            ]
+            input_hashes[f"{pass_name}_planned_requests_canonical_sha256"] = canonical_hash(ordered_requests)
     source_status: Literal["PINNED", "MISSING_OR_UNVERIFIED"] = (
         "PINNED" if source_hashes_valid else "MISSING_OR_UNVERIFIED"
     )
@@ -1171,9 +1196,19 @@ def evaluate_c4_operational_gates(
     D = total_assigned_units
     F = 0
     M = 0
+    reverse_labels = dict.fromkeys(PERMITTED_LABELS, 0)
+    reverse_cases = dict.fromkeys(("valid", "missing", "invalid"), 0)
+    reverse_units = dict(reverse_cases)
     for case in normalized_cases:
         f_response = _request_usable(forward[case.case_id], expected_model)
-        r_response = _request_usable(reverse[case.case_id], expected_model)
+        reverse_request = reverse[case.case_id]
+        r_response = _request_usable(reverse_request, expected_model)
+        disposition = "valid" if r_response else "invalid" if reverse_request.attempts else "missing"
+        reverse_cases[disposition] += 1
+        reverse_units[disposition] += len(case.candidates)
+        if r_response:
+            for judgment in r_response.judgments.values():
+                reverse_labels[judgment.label] += 1
         for candidate in case.candidates:
             forward_j = f_response.judgments.get(candidate.opaque_id) if f_response else None
             reverse_j = r_response.judgments.get(candidate.opaque_id) if r_response else None
@@ -1181,6 +1216,15 @@ def evaluate_c4_operational_gates(
                 M += 1
             elif forward_j.label != reverse_j.label:
                 F += 1
+    reverse_pass_summary = {
+        "pass_identity": "REVERSE",
+        "diagnostic_only": True,
+        "assigned_cases": n_assigned_cases,
+        "assigned_candidate_units": D,
+        "terminal_case_dispositions": reverse_cases,
+        "terminal_unit_dispositions": reverse_units,
+        "valid_label_counts": reverse_labels,
+    }
     if D == 0:
         instability_gate = GateResult(
             gate_name="Order Instability Gate", status="UNAVAILABLE", observed_value=None,
@@ -1396,6 +1440,7 @@ def evaluate_c4_operational_gates(
         judge_u_count=judge_u_count,
         human_u_count=human_u_count,
         arm_summaries=arm_summaries,
+        reverse_pass_summary=reverse_pass_summary,
         input_hashes=input_hashes,
         source_input_hash_status=source_status,
         human_reference_state=human_reference_state,
@@ -1598,6 +1643,17 @@ def render_c4_report_markdown(report: C4PoolJudgeEvaluationReport) -> str:
                 f"| {arm} | {summary['assigned_candidate_units']} | {summary['paired_units']} | "
                 f"{judge_counts} | {human_counts} |"
             )
+    reverse = report.reverse_pass_summary
+    lines.extend([
+        "", "## Reverse pass (diagnostic only)", "",
+        "| Assigned cases | Assigned units | Valid / missing / invalid cases | "
+        "Valid / missing / invalid units | A / C / N / U |",
+        "|---:|---:|---|---|---|",
+        f"| {reverse['assigned_cases']} | {reverse['assigned_candidate_units']} | "
+        + " / ".join(str(value) for value in reverse["terminal_case_dispositions"].values())
+        + " | " + " / ".join(str(value) for value in reverse["terminal_unit_dispositions"].values())
+        + " | " + " / ".join(str(value) for value in reverse["valid_label_counts"].values()) + " |",
+    ])
     lines.extend(["", "## Input hashes", "", "| Input | SHA-256 |", "|---|---|"])
     for name, digest in sorted(report.input_hashes.items()):
         lines.append(f"| `{name}` | `{digest}` |")
