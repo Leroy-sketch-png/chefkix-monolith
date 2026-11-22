@@ -31,6 +31,14 @@ py -3 tools/research/l45/build_l36_exhibit.py ./out/l36-thesis-exhibit
 
 The generator reads only the shared [L36 aggregate receipt](l36-conditional-h0-descriptive-point-20261122.md) and verifies its SHA-256 after converting line endings to LF. It checks stratum membership and weighted arithmetic before writing the SVG and CSV. The SVG includes a text description. A clean Git snapshot reproduced both files byte for byte. The CSV SHA-256 is `ab033c47ccdef406f6d76336241814680f213fe6827fce2fc26681ad5044f250` and the SVG SHA-256 is `ea48d255b8fec72a4f788fb4884400930e5920289f4603562596cffdd05d7bb8`.
 
+## Offline manuscript review copy
+
+The [L45 builder](../tools/research/l45/README.md#offline-manuscript-review-copy) assembled all 14 authored chapters from monolith `fb24de9513f1b358b612e221fd33a84a9c823b4b`. All 14 input hashes matched the Lead manifest. The build preserves the chapter prose and dated progress statements. It adds navigation, working links to exact shared copies, and the L36 aggregate figure as a separate review appendix.
+
+The browser checks found 154 rendered equations, 10 tables, and 47 in-document chapter links. Chromium displayed the review copy at 1360 and 390 CSS px with no horizontal page overflow, broken in-document anchors, or external requests. The reference appendix lists 54 unavailable citation occurrences covering 48 distinct chapter and destination pairs. The citation labels and original destinations remain available for review.
+
+Two runs from the pinned Git revision emitted the same 434,875-byte HTML file. Its SHA-256 is `a0a524864b6d973d4ff44dec517f6904d83449416a599ae3c3f187b10258e974`. This is a Member review build. Lead manuscript reconciliation, review of unavailable citations, and publication decisions remain open.
+
 ## Suggested manuscript edits
 
 | Location | Proposed correction |

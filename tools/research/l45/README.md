@@ -48,3 +48,18 @@ Run the test suite:
 ```bash
 python -m pytest tools/research/l45/ -v
 ```
+
+## Offline manuscript review copy
+
+The HTML builder assembles all 14 Lead-authored chapters from a specific Git revision. It verifies each chapter against the shared handoff manifest, renders equations and tables, includes the Chapter 6 aggregate figure as a separate appendix, and lists citations whose shared destinations remain unavailable. It keeps the dated chapter text and annotations as published. The review copy runs offline.
+
+Use Node.js 24 with Marked 17.0.5 and KaTeX 0.19.1. From the repository root:
+
+```powershell
+$reviewDeps = Join-Path $env:TEMP 'chefkix-manuscript-review'
+npm install --prefix $reviewDeps --no-save --ignore-scripts marked@17.0.5 katex@0.19.1
+$env:NODE_PATH = Join-Path $reviewDeps 'node_modules'
+node tools/research/l45/build_manuscript.cjs ./out/iron-chef-manuscript-review.html fb24de9513f1b358b612e221fd33a84a9c823b4b
+```
+
+The final argument selects the source revision. The builder uses `HEAD` when the argument is omitted. The console prints the output SHA-256 and counts of chapters, equations, tables, and references. See the [Member review receipt](../../../evidence/member-mh-thesis-evidence-update-20261122.md#offline-manuscript-review-copy) for the verified build.
