@@ -8,6 +8,19 @@ Read the applicable canonical strategy and frozen Protocol v1 before outcome-bea
 
 ## Shared Delivery
 
+**Member-request response (2026-11-22):** the existing C4 pool-prompt bytes are now
+finally selected/frozen, not merely development baselines. Use the dated decision
+and exact hashes in [L43](evidence/lead-l43-judge-family-prompt-decision-20261106.md#current-final-prompt-disposition---2026-11-22).
+M-I can bind those assets in the existing manifest and complete the separately
+requested reverse-pass reporting delta. Private matched references/pools, exposure,
+transfer/cost/attempt gates and independent acceptance remain separate; this
+decision authorizes no calls or data transfer. No C1/C4 or milestone credit changes.
+The FooDB candidate builder/test handoff is already on shared default at
+`1e1f8d00d4314c464a69b19e2402295f079d776f`, paths
+`tools/research/c5/foodb_native_graph_builder.py` and
+`tools/research/c5/test_foodb_native_graph_builder.py`; it is not the missing
+historical producer or private ID-bearing input, and publication is not acceptance.
+
 The lead/member collaboration handoff is available at `evidence/iron-chef-lead-member-handoff-20261105/`. Its index pins source/tooling, all 14 authored chapter copies, the exact defense dossier, the exact aggregate R01–R45 register, a pinned R38 reconciliation note, the current-summary excerpt, a nine-record WHO/IUIS positive allergen-protein seed, the sanitized T54 local production-app HTTP receipt, and the current curated operative strategy mirror. The mirror is a fetchable point-in-time copy of active strategy §§0–25 (excluding §1.1 and appendices/history), pinned to the local canonical file's exact SHA-256 `B5AD66201EEED44E201B471EB895AAAFF0F6F3C2C774A1D1CDF978D6DEACDDCE`; it is not a competing authority or byte-exact publication. The seed is public-source metadata with record-level citations, not a complete ingredient map, clinical-significance result, safety classifier, or new C3 acceptance/milestone. The T54 receipt records synthetic/mock-only local ASGI evidence; the new Lead-owned method-v2 producer contract specifies the assignment/score/provenance interface, while its implementation and real role artifacts remain open. Neither handoff establishes calibration, guarantee, route activation, or acceptance. Private source rows, IDs, labels, pools, profiles, model-weight files, output bundles, credentials, and personal notes remain excluded. Frozen Protocol v1 remains pinned to SHA-256 `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12` (verified from the research-root copy `D:/code/chefkix/research/protocols/IRON-CHEF-PROTOCOL-v1.md`).
 
 1. At task start, fetch the actual repository's default branch, inspect incoming changes and reconcile both backlogs before choosing work. Record the remote/default commit used in the task checkpoint.

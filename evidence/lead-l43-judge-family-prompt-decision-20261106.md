@@ -1,5 +1,57 @@
 # L43 C4 judge family and prompt decision
 
+## Current final-prompt disposition - 2026-11-22
+
+**DECIDED by LEAD:** freeze the existing, unchanged pool-prompt assets as final
+version `c4-judge-pool-prompt-s7.1-v1`. This closes the outstanding Lead prompt
+selection/final-byte decision, not C4 execution or acceptance. Earlier references
+below to development baselines or a future final freeze are historical for these
+exact bytes. No development or calibration output was used to select a revision
+in this decision; no new prompt text or model setting is introduced.
+
+| Frozen asset | SHA-256 of file bytes (UTF-8, LF) |
+| --- | --- |
+| `lead-l43-c4-prompt-s7.1-v1-system.txt` | `96e24ae1f629d9c5f4a58457ae0c148253be2571ca55eb8d4560b1f1281f5db7` |
+| `lead-l43-c4-prompt-s7.1-v1-user-template.txt` | `713997acc2715d327fda254d3a34a4904999f5806c43b3e990e8dfb98782539b` |
+
+Both assets are in this directory and were originally published at
+`49d6acc46780255bb45914767942bc948ec81cfd`. Their present bytes match the existing
+recorded hashes. Preserve the JSON-literal placeholder serialization and exact
+ID-keyed response contract specified below; pin rendered request bytes and case
+pool/order identities separately in the existing execution manifest. Use the
+same frozen templates for both orders and the matched common-slate diagnostic.
+Keep Gemini as full-slate primary and GPT-4o as the separately scoped common-slate
+diagnostic, with the previously selected models, temperature and family exclusions.
+
+The strongest alternative is further development on a properly assigned validation
+portion. That remains possible only as a separately versioned, exposure-recorded
+candidate; it is not a reason to leave this unchanged baseline indefinitely
+unselected. The selected rubric explicitly separates A/C/N/U, unknowns and culinary
+function from safety, and the existing pool contract preserves opaque identity and
+both-order coverage. Those specification properties justify freezing a reproducible
+candidate, not predicting that it will pass human-comparison gates. Actual gate
+failure or an identified rubric/serialization conflict would reverse eligibility
+for the affected use; do not tune on test outcomes or overwrite this version.
+
+**M-I's next eligible operation:** bind these asset hashes in the existing
+runner/manifest path and complete the already-requested `reverse_pass_summary`
+delta. For calibration, obtain the exact private, identity-matched adjudicated
+reference and eligible pool with provenance, assigned partition and exposure
+record. The received GISMo-primary C1 audit is not automatically a complete C4
+cross-arm/common-slate reference. Keep unmatched units unavailable; do not invent
+labels, expand the reviewed slate or publish private reference rows. Current
+account/cost/attempt and transfer gates remain separate, including Protocol v1's
+candidate-pool transfer restriction; freezing templates does not resolve or bypass
+that restriction. No provider call or spend is authorized here.
+
+This is a dated selection, not evidence that a future use is unexposed. Verify
+prior exposure and the actual execution manifest before any scoring; do not claim
+retrospective prospectivity. The 2026-11-15 implementation review remains DEFER
+for its exact reverse-pass field. H1 uncertainty, C1-G4 independent acceptance,
+C4 agreement/performance, safety and contribution credit are unchanged. Protocol
+v1 remains byte-frozen at
+`b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12`.
+
 **Decision ID:** `iron-chef-l43-gemini-pool-prompt-v1`
 **Date / authority:** 2026-11-06; bounded LEAD method decision under the HUMAN's existing mission authority.
 **State:** Family and prospective prompt selected for the first C4 judge; implementation and human-calibration acceptance remain open. No Protocol v1 amendment, model call, spend, output, C4 milestone, or empirical claim.
