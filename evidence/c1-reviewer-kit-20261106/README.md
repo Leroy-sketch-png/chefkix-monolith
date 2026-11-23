@@ -45,3 +45,40 @@ Existing M-B packaging acceptance: two standalone personal packs; correct frozen
 User-facing timing is conditional arithmetic only. Observed pace on the first five real cases can inform scheduling, not alter the frozen rubric, sample, candidate policy, or completed labels. Adjudication is separate from original independent judgments. No third-person qualification requirement is invented here.
 
 Only safe authored handouts are published. Actual source rows, private identities, consent files, sealed mappings and human judgments do not belong in this public repository.
+
+## Current C1-G4 independent-output review handoff — 2026-11-23
+
+The original guide and organizer checklist document the two-rater collection; they are not a current G4 review report. The fixed 25-cell ledger credits C1-G3 narrowly and leaves C1-G4 OPEN. This handoff lets an independent reviewer begin a **read-only integrity and interpretation review** of the already-produced, source-bound output. It does not reopen collection, change Protocol v1, accept G4, or resolve the separate H1 uncertainty-method hold.
+
+### Frozen review anchors and safe artifact pins
+
+| Role | SHA-256 | Boundary |
+|---|---|---|
+| Frozen Protocol v1 | `b295259909c72a5c3473a117b4711af829b84949a60004ce21c963721b6d5c12` | Immutable method authority. |
+| Sample manifest | `8d5d375629968f519d334aaed8c29bc806c2504f7df8b9abe10a2fba1b568c8d` | Frozen cohort binding. |
+| Sample JSONL file bytes | `e195126b5e0abf87e125d22b3c75b799ffe970a75e07b302ecece3c44455e60d` | File-byte SHA; distinct from the canonical sample digest recorded by receipts. |
+| Sample canonical digest (receipt field) | `c352c0fa1d6f891ca3dfb0d20df92e68383aa921ac8072ba5fed8308ac7c5dd3` | Canonical selected-case digest, not the JSONL file-byte SHA. |
+| Candidate manifest | `b6375014e420e02960193a50ad85595d84f0d92e4b031fa60e502dabf311e207` | Selection/source manifest. |
+| Candidate-source file | `6c72dc4a89b0a4587db37757cbca7a9204d133b581eca56d659589b3a525620c` | Pinned input bytes; not an output-quality claim. |
+| Bound-return intake receipt | `fa69f77447dbd07a64fed4324eb167b5223ab99c4b4027109668341a179d873d` | Records two role-separated complete returns bound to their issued packs. |
+| R1 / R2 original returns | `50888330644beffe34430d4d9c161fd255c656788e657a6d36c8eaf1e8463dd8` / `2ea1a8749e20db07814e502384825c133bf14b8e3c894f9d6302eb13ab44d861` | Exact private return-file pins; no row contents are published here. |
+| Raw-agreement result receipt | `653abfaa5e63cdcd02e3c82e53b15c588b0689b8f549b490ba9d8fef296259cb` | Existing fixed-cohort aggregate receipt. |
+| Chef/adjudication return | `5d7e323831b5314813f0635f3e4f1d9b91afac3724802f0a4b9f49dff0a8e4f8` | Separate adjudication output. |
+| Adjudication integration receipt | `00eb1db336e76e315cb3b0d279635723cfd86709390ae32069b6fdc5e917edb6` | Binds integrated fixed-cohort output; does not release H1. |
+| v5 retained caller / source-free tests | `9405ece272b70d438a5ee470f7211fdc1b7dd9afe784b460b2e8a4580aaecaf1` / `562e68608da43d1c607520bab47ba83f7069cd81341b929c86605e63179b23dc` | Exact calculation path and synthetic regression suite. |
+| v5 pre-access / metadata preflight | `11c84ed8b2149206b7cfd7fa9b300d0cc61df79bc9d544521e74e3fc87daf57c` / `e014158f785083b35c83689bb48cc26cd401514536d1d6ac150cbd655d1d7c26` | Bind 22 input-file and five dependency-code roles; preflight did not parse outcome rows or call a scorer. |
+| H=0 membership / point result files | `af0b31eb83e24a16f1b0441c5c8f73d1867ffe29b58540f4ea7ae62f7dbe8feb` / `9683bd13bde23f82480899622ceaac62ca08ee419c3af01c5d3325a1bd043a82` | Private output-file SHA-256 values. |
+| Point-receipt content digest | `85f7aa1f3fd2ae4573f01595110e0920d196cd31131b9ca1ba047b61c18ba676` | Canonical payload digest, not the point-file SHA. |
+| Safe aggregate interpretation | [`L36 conditional H=0 result`](../l36-conditional-h0-descriptive-point-20261122.md) | Published aggregate, denominator, limits, and digest-domain distinctions. |
+
+The complete local role-to-file map, including protected inputs and reviewer-specific locators, remains in the existing owner-private package and is not copied into Git. A protected companion note identifies those exact paths and hashes. Do not infer private locations from this shared handoff.
+
+### Independent reviewer task and required return
+
+Using the exact frozen pins above and the protected read-only role map, return a concise `PASS`, `REVISE`, or `BLOCKED` report. Check: (1) file-byte pins versus canonical receipt digests are kept distinct; (2) protocol, sample, candidate selection, issued reviewer-role packs, original returns, adjudication, and final descriptive output form the recorded provenance chain; (3) fixed denominators and assigned-case flow are preserved; (4) the retained v5 caller and preflight agree with the output's declared scope; and (5) the interpretation does not turn descriptive bounds into an interval, H1 decision, safety claim, overall accuracy, or usefulness claim. Cite exact mismatches by role and pin, without embedding case-level material. Do not rewrite source files, replace frozen artifacts, or create another outcome calculation.
+
+### Evidence ceiling and still-unverified human facts
+
+The role-specific pack files, return-binding/intake receipts, and read-only pack checks support **artifact-level** R1/R2 separation and return-to-pack binding. They do not independently establish which person operated each role, that person's qualifications, that reviewers worked without communication, or a witnessed blinded-execution procedure. No person-to-role or qualification record was located in the existing private package inventory; do not invent a credential requirement or infer expertise from a completed return. The private handoff marks person-level details `NOT DOCUMENTED` so a reviewer can start the source/output review without turning UNKNOWN into failure or silently closing that separate evidence gap. No names, contact details, consent documents, raw labels, case IDs, sealed mapping, or private rows are included in this shared handoff.
+
+This review is independent verification of existing evidence, not a new rater round, adjudication, bootstrap/interval, H1 analysis, or milestone award. C1-G4 remains OPEN until its actual acceptance evidence is reviewed; H1 remains `JOINT_CLUSTER_HOLD` under unchanged Protocol v1.
