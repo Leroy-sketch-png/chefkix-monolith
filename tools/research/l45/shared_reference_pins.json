@@ -1,0 +1,50 @@
+[
+  {
+    "source_path": "ai/evidence/claims-register/r05-split-counts-reproduction-20261021.json",
+    "shared_path": "evidence/lead-r05-split-counts-20261105/claims/r05-split-counts-reproduction-20261021.json",
+    "sha256": "e85a635a762095201eb106237098b159249b0ef7ee16160ad4b3b8034a77875e",
+    "proof": "Claims register v20 R05 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/evidence/claims-register/instantiated-r01-r45-v1/r09-global-flavor-test-reproduction-20261102.json",
+    "shared_path": "evidence/lead-shareable-claim-evidence-20261105/followup-r09-r11-r18-r19/claims/r09-global-flavor-test-reproduction-20261102.json",
+    "sha256": "b2c80426fb51713f4ccdcda9bec9fbac98c4df8649d89f97d938b6019fe45005",
+    "proof": "Claims register v20 R09 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/evidence/claims-register/instantiated-r01-r45-v1/r11-smolvlm-withdrawal-reproduction-20261103.json",
+    "shared_path": "evidence/lead-shareable-claim-evidence-20261105/followup-r09-r11-r18-r19/claims/r11-smolvlm-withdrawal-reproduction-20261103.json",
+    "sha256": "7e8c164e0fda2d4c7c1f24a17ea94a89fc7027dfbfbfee4d152192644fe7dea1",
+    "proof": "Claims register v20 R11 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/evidence/claims-register/instantiated-r01-r45-v1/r19-benchmark-protocol-reproduction-20261102.json",
+    "shared_path": "evidence/lead-shareable-claim-evidence-20261105/followup-r09-r11-r18-r19/claims/r19-benchmark-protocol-reproduction-20261102.json",
+    "sha256": "4c4c97f37a3a7265d93d6c7f5e55ad12e974acb0918b1dd5529434cc6a47efe2",
+    "proof": "Claims register v20 R19 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/evidence/claims-register/instantiated-r01-r45-v1/r41-reference-statistics-selftest-audit-20261104.json",
+    "shared_path": "evidence/lead-shareable-claim-evidence-20261105/claims/r41-reference-statistics-selftest-audit-20261104.json",
+    "sha256": "a6f6a14a5f7427b9c25c72e1406563e9d01f0e68de833459a028fb438cbb367d",
+    "proof": "Claims register v20 R41 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/campaigns/iron-chef-outcome-push-20261021/tasks/T132-independent-r42-partial-status-review-report.md",
+    "shared_path": "evidence/lead-shareable-claim-evidence-20261105/reviews/T132-independent-r42-partial-status-review-report.md",
+    "sha256": "96c9b0889fe66852f2d7a381c0cfede574efa684dd669202fce2018c4ea65425",
+    "proof": "Claims register v20 R42 and the member exact-byte crosswalk"
+  },
+  {
+    "source_path": "ai/evidence/lead-ma-current-source-build-check-20261021.json",
+    "shared_path": "evidence/lead-ma-current-source-build-check-20261021.json",
+    "sha256": "c4d0312c63e69492686735df1c53b52ebe795087a5de5e5bc81cdf0c988c79d8",
+    "proof": "Lead M-A graph representation evidence boundary"
+  },
+  {
+    "source_path": "ai/evidence/lead-ma-live-graph-after-rebuild-20261021.json",
+    "shared_path": "evidence/lead-ma-live-graph-after-rebuild-20261021.json",
+    "sha256": "590d8daed0a0b35c969ec1a0234793805cec68a1a4c3e035348c46e5fb4d9e90",
+    "proof": "Lead M-A graph representation evidence boundary"
+  }
+]

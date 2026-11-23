@@ -6,6 +6,7 @@ const { mkdirSync, writeFileSync } = require('node:fs')
 const { dirname, resolve, posix } = require('node:path')
 const { Marked } = require('marked')
 const katex = require('katex')
+const citations = require('./shared_reference_pins.json')
 
 const root = resolve(__dirname, '../../..')
 const handoff = 'evidence/iron-chef-lead-member-handoff-20261105'
@@ -50,7 +51,13 @@ for (const group of ['included_files', 'direct_authored_copies', 'authored_evide
     }
   }
 }
-const counts = { equations: 0, tables: 0, chapterLinks: 0, sharedSourceLinks: 0, externalLinks: 0, unavailableLinks: 0 }
+const exactReferences = new Map()
+for (const citation of citations) {
+  if (tracked.has(citation.shared_path) && digest(pinned(citation.shared_path)) === citation.sha256) {
+    exactReferences.set(citation.source_path, citation.shared_path)
+  }
+}
+const counts = { equations: 0, tables: 0, chapterLinks: 0, sharedSourceLinks: 0, verifiedCopyLinks: 0, externalLinks: 0, unavailableLinks: 0 }
 const unavailable = new Map()
 
 const math = {
@@ -121,6 +128,12 @@ function renderChapter(chapter) {
                   throw new Error('Shared reference does not match the manifest: ' + sharedPath)
                 }
                 target = sharedPath
+              } else {
+                const verifiedPath = exactReferences.get(sourcePath)
+                if (verifiedPath) {
+                  counts.verifiedCopyLinks += 1
+                  target = verifiedPath
+                }
               }
             }
             const sharedChapter = chapterByPath.get(target)

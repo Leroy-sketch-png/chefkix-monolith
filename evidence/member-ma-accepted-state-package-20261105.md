@@ -54,6 +54,8 @@ usefulness, safety, C5 and milestone credit remain unaccepted by this decision.
 
 ## Verification and package
 
+- On 2026-11-23, Member verified the original registered bundle's `manifest.json` directly. Its SHA-256 matches the recorded pin `460de87d4eb6834142f99c31866ef16b15b4e3ebe5ce2afe1bea228f601ee060`. The existing owner-local locator below is available for the read-only lineage handoff. This check covers the manifest file.
+- Member also verified the published manifest against pin `5e3e5a905de6f60a26ceb7abc2d5c9db100fbd4379bc5d2908ad8c2f14574b5e` and compared the parsed values of all 11 top-level fields. Ten fields, including `outputs_sha256`, match. Only `state` changes from `PROVISIONAL_PRIVATE_CANDIDATE_NOT_ACCEPTED` to `ACCEPTED`. Lead retains the decision on extending T01/T02 acceptance.
 - Original local bundle: `C:\Users\LENOVO\ResearchData\member-ma-graph-eval-v4-clean-build-20261104-run3`.
 - Original manifest SHA-256: `460de87d4eb6834142f99c31866ef16b15b4e3ebe5ce2afe1bea228f601ee060` — matches the two-build/T01 receipt.
 - New local package: `C:\Users\LENOVO\ResearchData\member-ma-graph-eval-v4-accepted-state-20261105`.

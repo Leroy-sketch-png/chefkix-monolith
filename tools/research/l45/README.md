@@ -59,7 +59,7 @@ Use Node.js 24 with Marked 17.0.5 and KaTeX 0.19.1. From the repository root:
 $reviewDeps = Join-Path $env:TEMP 'chefkix-manuscript-review'
 npm install --prefix $reviewDeps --no-save --ignore-scripts marked@17.0.5 katex@0.19.1
 $env:NODE_PATH = Join-Path $reviewDeps 'node_modules'
-node tools/research/l45/build_manuscript.cjs ./out/iron-chef-manuscript-review.html fb24de9513f1b358b612e221fd33a84a9c823b4b
+node tools/research/l45/build_manuscript.cjs ./out/iron-chef-manuscript-review.html b52e5b646ce174604aa57ee95a005bd61c91904c
 ```
 
-The final argument selects the source revision. The builder uses `HEAD` when the argument is omitted. The console prints the output SHA-256 and counts of chapters, equations, tables, and references. See the [Member review receipt](../../../evidence/member-mh-thesis-evidence-update-20261122.md#offline-manuscript-review-copy) for the verified build.
+The final argument selects the source revision. The builder uses `HEAD` when the argument is omitted. For citations moved into the shared repository, [the reference pins](shared_reference_pins.json) record the original path, verified copy, source SHA-256, and provenance. The builder links a copy only when the selected Git revision contains those exact bytes. The console prints the output SHA-256 and counts of chapters, equations, tables, and references. See the [Member review receipt](../../../evidence/member-mh-thesis-evidence-update-20261122.md#offline-manuscript-review-copy) for the verified build.

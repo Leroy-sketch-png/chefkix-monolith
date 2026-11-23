@@ -12,3 +12,9 @@
 - Expected and observed manifest SHA-256: 5e3e5a905de6f60a26ceb7abc2d5c9db100fbd4379bc5d2908ad8c2f14574b5e. The existing provider verifies the output hashes and the accepted-state predicate before constructing the local index.
 - Existing protected POST /api/v1/suggest_substitutions returned HTTP 200, ready graph provenance with the observed hash and train split, abstention, empty exposed candidate list, and null calibration tHat. An unrecognized source was not evaluated. Invalid service credentials returned 401. No actual IDs, candidate rows, credentials or raw payloads are included in this receipt.
 - The check used no external provider or model calls, graph generation, downstream browser, or deployment. It is local consumer integration evidence. T03/T04, T52/C5, ranking, safety and milestone acceptance retain their existing gates.
+
+## T54 parent manifest follow-up (2026-11-23)
+
+AI-service commit `cc4405a` implements the parent manifest binding correction. Bundle schema v4 inventories the exact validation-frame and identity-source manifest files. The writer derives and checks both raw digests before writing. The loader recomputes both digests from the file bytes and checks them against the independent expected pins. A missing or mismatched parent returns no guarantee with null `tHat` and no receipt. Legacy v3 bundles require a rebuild with both parents.
+
+The focused bundle and receipt suites passed 33 tests. The fixtures cover both parents, including a tampered parent whose inventory entry and outer manifest were resealed. Lead delta review and authorized real calibration inputs remain open. The route remains default-off.

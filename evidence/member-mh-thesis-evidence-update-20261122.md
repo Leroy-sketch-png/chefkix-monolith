@@ -8,11 +8,11 @@ Baseline: monolith master 1c1cb90. This is a Member draft for Lead review. It us
 | --- | --- | --- |
 | Fixed frame audit sample | 150 cases, 867 paired candidate judgments | Frozen GISMo-primary audit, recorded gold shown blind where present |
 | Exact four-category agreement | 717/867 (82.7%) | Candidate judgment agreement in the issued packs |
-| Nominal Cohen’s κ | 0.746567, case-cluster percentile interval 0.700901–0.786907 | Already reported by Chapter 6. C1-G4 independence remains open |
+| Nominal Cohen’s κ | 0.746567, case-cluster percentile interval 0.700901–0.786907 | Already reported by Chapter 6. Lead accepted C1-G4 narrowly on 2026-11-23; no broader C1 or H1 conclusion follows |
 | Integrated case outcomes | 117 strict-A successes, 28 definite failures, 5 unknown | Full 150-case adjudicated cohort |
 | Unseen H=0 membership | 49/50 profiled and 48/50 unprofiled, 97 total | Assigned unseen cohort retained at 100; three observed top-five hits |
 | Weighted H=0 denominator and conditional bounds | 3,665.92; 0.711494–0.752160 | Descriptive partial-identification bounds from the existing authorized computation |
-| Mission accounting | 20/25 milestones (80%); C1 3/5; C4 2/5 | Narrow C1-G3 acceptance. C1-G4 and primary H1 remain open |
+| Mission accounting | 21/25 milestones (84%); C1 4/5; C4 2/5 | Lead accepted C1-G4 narrowly on 2026-11-23; primary H1 remains open. The Chapter 6 review note in BACKLOG_LEAD still says G4 is open; reconcile that wording before amending Lead-owned thesis text |
 
 Sources: [Chapter 6](iron-chef-lead-member-handoff-20261105/chapters/06-human-validity-audit.md), [conditional result and provenance](l36-conditional-h0-descriptive-point-20261122.md), and [Lead status](../BACKLOG_LEAD.md#current-evidence-and-recovery). No participant rows or private receipts are required to reuse this table.
 
@@ -21,7 +21,7 @@ Sources: [Chapter 6](iron-chef-lead-member-handoff-20261105/chapters/06-human-va
 - [Figure: strict-A validity among recorded-reference misses](member-l36-thesis-exhibit-20261122/l36-h0-outcomes.svg)
 - [Table: H=0 case outcomes and descriptive bounds](member-l36-thesis-exhibit-20261122/l36-h0-outcomes.csv)
 
-**Proposed caption.** The two unseen strata assigned 100 cases. The recorded reference appeared in the primary GISMo top five for three cases, leaving 97 observed H=0 cases. Panel A gives the final strict-A outcomes by stratum. Panel B shows the weighted descriptive partial-identification bounds of 71.1494% to 75.2160%. The lower endpoint counts observed strict-A successes, and the upper endpoint additionally treats the unknown cases as potentially strict-A. The weighted eligible denominator is 3,665.92. The design-matched uncertainty interval, independent C1-G4 verification, and primary H1 decision remain open.
+**Proposed caption.** The two unseen strata assigned 100 cases. The recorded reference appeared in the primary GISMo top five for three cases, leaving 97 observed H=0 cases. Panel A gives the final strict-A outcomes by stratum. Panel B shows the weighted descriptive partial-identification bounds of 71.1494% to 75.2160%. The lower endpoint counts observed strict-A successes, and the upper endpoint additionally treats the unknown cases as potentially strict-A. The weighted eligible denominator is 3,665.92. Lead accepted C1-G4 narrowly on 2026-11-23. The design-matched uncertainty interval and primary H1 decision remain open.
 
 Build from the repository root with Python and Matplotlib 3.10.8.
 
@@ -39,19 +39,33 @@ The browser checks found 154 rendered equations, 10 tables, and 47 in-document c
 
 Two runs from the pinned Git revision emitted the same 434,875-byte HTML file. Its SHA-256 is `a0a524864b6d973d4ff44dec517f6904d83449416a599ae3c3f187b10258e974`. This is a Member review build. Lead manuscript reconciliation, review of unavailable citations, and publication decisions remain open.
 
+### Exact citation follow-up
+
+The review build from monolith `79f967f6b5c2ee57574d9bef49081a47b1451503` restores eight links using [the reference pins](../tools/research/l45/shared_reference_pins.json). Six came from the v20 claims register and exact-byte Member crosswalk (R05, R09, R11, R19, R41, R42). Two came from the [Lead M-A representation receipt](lead-ma-graph-representation-boundary-20261021.json): the current-source build check and the rebuilt local runtime. These links recover published evidence at its recorded scope.
+
+The two similarly named M-A receipts for the initial loaded-artifact route and earlier local runtime snapshot remain unresolved. Their published Git bytes differ from the original pins, and the default branch history contained no match at those paths. The appendix now lists 46 unresolved citation occurrences across 40 chapter and destination pairs. Chromium checked both review widths. A changed-pin check left the affected citation unlinked.
+
+Two builds from the same source revision produced identical 435,134-byte HTML. SHA-256 `40edc672d5aafffa6c10c88cce57dbb23497df3f7de30e6eb4ac6a4359334b57`.
+
+### Lead chapter refresh (2026-11-23)
+
+The offline manuscript was rebuilt from Lead revision `b52e5b646ce174604aa57ee95a005bd61c91904c`, including the refreshed Chapters 13 and 14. The builder verified all 14 chapter hashes against the handoff manifest. The review copy has 154 rendered equations, 10 tables, 49 chapter links, eight restored exact citation links, and 44 unresolved citation occurrences across 38 chapter and destination pairs.
+
+Two builds produced identical 441,650-byte HTML with SHA-256 `a12dcf593e10202621a9731c06a83982f51b674d5a9dbf723584be2ce2129da8`. The local output is `output/reports/iron-chef-manuscript-review-b52e5b6.html`. The earlier Chromium layout checks apply to the earlier build. Q20 revalidation and third-person reproduction remain open.
+
 ## Suggested manuscript edits
 
 | Location | Proposed correction |
 | --- | --- |
-| Chapter 13 evidence-state header and §13.2 | Replace the current-status 19/25 and 2/5 C1 figures with 20/25 and 3/5. Replace the unexecuted-audit sentence with the completed frozen audit, integrated adjudication, and scoped C1-G3 disposition in Chapter 6. Keep the 200-case diagnostic separate. |
-| Chapter 13 change conditions and §13.2 evidence map | Record that the adopted operational addendum resolved case-level V/U handling and the conditional descriptive bounds are available. Keep G4 independent verification and the held primary joint-cluster interval/decision as the remaining H1 gates. |
-| Chapter 14 evidence-state header and current accounting | Use 20/25 and C1 3/5 for current accounting; date 19/25 as historical. Preserve the distinction between campaign milestones, individual claim status, and current acceptance for the study deployment. |
+| Chapter 13 evidence-state header and §13.2 | Replace the stale current-status 19/25 and C1 2/5 figures with 21/25 and C1 4/5, reflecting the 2026-11-23 narrow parent acceptance. Replace the unexecuted-audit sentence with the completed frozen audit, integrated adjudication, and scoped C1-G3 disposition in Chapter 6. Keep the 200-case diagnostic separate. |
+| Chapter 13 change conditions and §13.2 evidence map | Record that the adopted operational addendum resolved case-level V/U handling and the conditional descriptive bounds are available. Record the narrow C1-G4 acceptance per the 2026-11-23 parent decision; keep the held primary joint-cluster interval/decision open for H1. Do not broaden C1 or H1 claims. |
+| Chapter 14 evidence-state header and current accounting | Use 21/25 and C1 4/5 for current accounting; date 19/25 and 20/25 as historical. Preserve the distinction between campaign milestones, individual claim status, and current acceptance for the study deployment. |
 | Chapter 14 C2 transport wording | Label the canonical-first projection as historical packaging. The current shared Leader disposition names T83's nested alias-group representation as controlling for the frozen run. Preserve the 10,747-case denominator and distinguish prepared payloads from provider results. |
 | Chapters 13/14 product wording and L46 defense | Cite the older graph result at its recorded scope. Describe the present staging integration gate separately: mount the pinned bundle, verify authenticated serving metadata and Explorer hash, then observe the timed rehearsal. Keep T395 open until those observations are made. |
 
 Suggested §13.2 replacement for review:
 
-> The frozen audit received both independent reviewer returns and the complete adjudication return. The integrated output preserved 150 cases and 867 candidate judgments, and Lead accepted C1-G3 for the collected and adjudicated cohort. Under the adopted strict-A and explicit-unknown rule, the weighted conditional H=0 descriptive bounds were 0.711494–0.752160. Their width reflects unknown case outcomes. Independent verification for G4 and the design-matched uncertainty analysis for the primary H1 decision remain open.
+> The frozen audit received both independent reviewer returns and the complete adjudication return. The integrated output preserved 150 cases and 867 candidate judgments, and Lead accepted C1-G3 for the collected and adjudicated cohort. Under the adopted strict-A and explicit-unknown rule, the weighted conditional H=0 descriptive bounds were 0.711494–0.752160. Their width reflects unknown case outcomes. Lead accepted C1-G4 narrowly on 2026-11-23. The design-matched uncertainty analysis and primary H1 decision remain open.
 
 ## Review and clean checkout
 
