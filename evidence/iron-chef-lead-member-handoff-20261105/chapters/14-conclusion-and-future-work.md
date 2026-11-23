@@ -2,21 +2,23 @@
 
 **Working draft v0.7 — 2026-11-02**
 
-**Evidence state:** bounded synthesis of the active strategy, empirical benchmark recomputations, descriptive calibration matrices, fail-closed refusal contracts, and current internal chapter drafts. Reflects the verification of 19 out of 25 fixed milestones (76.0% campaign progress, 76/100 points) across the Iron Chef Campaign, with three fully accepted contributions (C2, C3, C5) and two partially earned contributions (C1 at 2/5, C4 at 2/5). All 14 thesis chapters are now synchronized to v0.2+ status under Protocol v1.
+**Evidence state (current through 2026-11-23):** bounded synthesis of the adopted strategy and evidence. The fixed campaign measure is 21/25 (84%); C1 is 4/5, C2/C3/C5 are 5/5, and C4 is 2/5, with three fully accepted contributions. C1-G3/G4 are narrowly accepted for the fixed human-audit cohort; the primary H1 interval/decision remains held. The detailed 2026-11-02 contribution inventory and ledger below are preserved as dated history, not current accounting. Current staging uptake, broader human validity, safety, and representative usefulness remain distinct evidence boundaries.
 
 **Use:** canonical conclusion and future work chapter. It provides an evidence-bound synthesis of the academic campaign across Contributions C1–C5, documenting both earned empirical milestones and open boundaries.
+
+**Current evidence update (2026-11-23):** the fixed C1 audit contains 150 cases and 867 candidate judgments (717 R1/R2 agreements and 150 separately adjudicated disagreements). G3/G4 were accepted narrowly; the C1 result does not establish individual-label truth or population validity. Under the adopted L36 operating rule, 97 of 100 assigned unseen cases were H=0; the weighted denominator was 3,665.92 and the strict-A to strict-A-plus-unknown descriptive bounds were 71.1494%–75.2160%. These are not a confidence interval or H1 decision; `JOINT_CLUSTER_HOLD` remains. The C2 200-case validation benchmark is distinct from the 10,747-case headline batch: the earlier canonical-first envelope packaging is historical and superseded by HUMAN-selected T83 nested alias groups (`list[list[str]]`, one group per ingredient slot). Its reported 10,499 ready cases, 248 preparation errors, and 53 groups describe preparation, not provider results; no headline-batch provider output is established. The older C5/R38 graph result remains bounded to its recorded artifact/runtime. Current T395 staging acceptance separately requires the pinned bundle's read-only mount and configured path, authenticated serving-integrity metadata, matching Explorer hash, and a subsequent timed rehearsal; that uptake is not yet established. See the [current Lead decisions](../../../BACKLOG_LEAD.md) and existing [T395 handoff](../l46-scan-return-live-check-20261116.md#l46t395-graph-evidence-consumer-handoff--2026-11-20).
 
 ---
 
 ## 14.1 Answer to the Research Question So Far
 
-The governing question asks when substitution systems fail, whether a single recorded answer can misrepresent validity, and whether uncertainty can be exposed without overstating evidence. The present work does **not yet resolve** those questions at the human or deployment boundary. It establishes why their answers must be separated: retrieving a recorded target, producing a plausible string, satisfying a frozen scoring rule, receiving a human validity judgment, respecting a measured allergen protocol, and helping a cook are distinct outcomes.
+The governing question asks when substitution systems fail, whether a single recorded answer can misrepresent validity, and whether uncertainty can be exposed without overstating evidence. The fixed C1 human audit now provides bounded evidence at its sampled cohort boundary, but the thesis does **not yet resolve** those questions across populations, all candidate arms, or current product deployment. It establishes why the outcomes must be separated: retrieving a recorded target, producing a plausible string, satisfying a frozen scoring rule, receiving a human validity judgment, respecting a measured allergen protocol, and helping a cook are distinct outcomes.
 
 The strongest current answer is therefore methodological, empirical, and bounded. Results are interpretable only together with their task, population, split, identity mapping, candidate contract, missing-output treatment, source lineage, decision rule, and evidence grade. Changes to any of these can change what a metric means. This is a research-design conclusion backed by concrete verification loops across the entire pipeline (Chapters [3](03-data-and-graph-provenance.md), [4](04-instrument-and-identity-contract.md), [5](05-senath-clean-room-inference.md), [7](07-guardrail-design-and-assumptions.md), [11](11-system-and-demonstration.md), [12](12-bounded-negatives.md); canonical strategy §§2–5, 12, 15–16).
 
 ---
 
-## 14.2 What the Current Evidence Does Support
+## 14.2 Contribution evidence inventory — historical baseline (2026-11-02)
 
 Across the five core academic contributions (C1–C5), substantial empirical, algorithmic, and architectural progress has been verified under fail-closed contracts:
 
@@ -27,7 +29,7 @@ Across the five core academic contributions (C1–C5), substantial empirical, al
    - **No unsupported winner:** The arms trade places across $k$. Generation achieves higher exact-reference Hit@1 (3.0% vs 1.5%) and Hit@5 (11.5% vs 7.5%), while reranking achieves higher Hit@10 across the full cohort (14.5% vs 14.0%) and specifically in the unseen cohort (9.5% vs 5.3%).
    - Generation produces 898 unmapped strings under GISMo's identity vocabulary, reflecting unconstrained LLM generation; these are preserved honestly as diagnostic non-matches. Execution latencies are recorded (median 30.860s generation / 54.914s reranking).
    - The 200 cases serve strictly as a validation diagnostic; the test split remains unexposed (`test_split_used: false`).
-   - **Executable Batch Transport Path (C2-G2 EARNED):** Following Lead Decision T84 (canonical-first projection `list[str]` preserving full alias groups locally in `metadata.raw_aliases`) and Task T510 schedule requirements, the complete 10,747 headline test package was partitioned into 53 deterministic groups (52 batches of 200 plus 1 batch of 99). All 10,499 READY cases were serialized into OpenAI Batch envelope lines (`POST /v1/responses`) with opaque correlation tokens (`c2_[A-Za-z0-9_-]{43}`), while preserving all 248 preparation errors honestly in the denominator. Dual-build verification confirmed 100.0% bit-identical reproduction across all artifacts with zero case identity leakage. All 188 automated C2 tests pass.
+   - **Headline batch preparation, not provider results:** the earlier 10,747-case package used a canonical-first projection (`list[str]`) and was divided into 53 groups (52×200 plus 1×99), with 10,499 prepared cases and 248 preparation errors. That representation is superseded for the frozen run by HUMAN-selected T83: preserve each alias group as one ingredient slot (`list[list[str]]`). The earlier envelopes are historical preparation evidence, not a conforming T83 dispatch package; no provider results from the 10,747-case headline batch are established. The separate 200-case validation benchmark is a completed validation diagnostic, not headline-batch output. C2's fixed campaign milestone status remains as recorded in the current summary and table below.
    - **Contribution C2 is officially 100% EARNED (5 / 5 milestones, 20 / 20 points)**, becoming the **second fully accepted contribution of the Iron Chef Campaign (2 / 5 fully accepted)**.
 
 2. **Rank-Conformal Descriptive Calibration (Contribution C3 / Chapter 7 — 100% EARNED, 5/5):**
@@ -44,7 +46,7 @@ Across the five core academic contributions (C1–C5), substantial empirical, al
    - Spring Boot monolith backend serves HTTP 200 `AVAILABLE` on `/api/v1/graph/evidence` and `/api/v1/graph/evidence/snapshot` (`GraphEvidenceEndpointCleanArtifactTest.java`, 46 tests green, Maven reactor BUILD SUCCESS).
    - Automated live headless Google Chrome execution via Playwright against active Next.js runtime captured 4 high-resolution screenshots: full force-directed canvas with live footer displaying `Artifact: ade85c3312b8... (6633 nodes, 23185 edges)`, Butter inspector (allergen `milk`, FooDB compounds `butyric acid`, `lactones`), safety boundary proof on Coconut Oil, and mobile responsive reflow (390px).
    - All 12 canonical acceptance criteria (T-01 through T-12) pass under fail-closed verification; full test suites pass across frontend (258 suites / 1109 tests green), monolith (46 tests green), and AI service (3 tests green).
-   - **Contribution C5 is officially 100% EARNED (5 / 5 milestones, 20 / 20 points)**, becoming the **first fully accepted contribution of the Iron Chef Campaign (1 / 5 fully accepted)**.
+   - **Contribution C5 was recorded as 100% EARNED (5 / 5 milestones) at its earlier acceptance boundary.** This historical R38/T52 evidence does not by itself establish that the current staging backend consumes the pinned bundle; the separate open T395 integration gate is summarized below.
 
 4. **Validity Instrument Contract (Contribution C1 / Chapter 4 — 2/5 EARNED):**
    - **Real Sampling Frame and Frozen Inputs (C1-G1 EARNED):** Reconstructed the canonical 10,747-case Freeze-A sampling frame from pinned Recipe1M test data, authoritative GISMo vocabulary mapping, and FooDB compound profile presence (`c1_freeze_a_real_frame.jsonl`, SHA-256 `e5d06522...`). Zero target or gold substitute leakage verified.
@@ -67,11 +69,12 @@ Across the five core academic contributions (C1–C5), substantial empirical, al
 
 | Evidence Boundary | Current Verified Conclusion | Not Established / Open Boundary |
 |:---|:---|:---|
-| **C1: Validity instrument** | Real 10,747-case Freeze-A sampling frame, verified frame weights, deterministic 150-case sample, and blinded adjudication pipeline verified (**C1-G1, C1-G2 EARNED — 2/5, 8 pts**). | Human audit rater execution, label collection, agreement intervals, and target delivery remain strictly gated on institutional ethics/consent clearance (C1-G3, C1-G4, C1-G5 OPEN). |
-| **C2: Matched measurement** | 200-case validation diagnostic recomputed MATCH; 10,747 Option 2 batch candidate partitioned into 53 groups with zero leakage; dual-build proof verified. Documented in Chapter 5 v0.4 (**C2-G1..C2-G5 FULLY EARNED — 5/5, 20 pts**). | **FULLY ACCEPTED (2/5 contributions complete)**. Remote dispatch requires authorized budget. |
+| **C1: Validity instrument** | Fixed 150-case/867-judgment human audit integrated; C1-G1..G4 are narrowly earned (**4/5**). The nominal agreement and conditional H=0 descriptive result are reported at their fixed-cohort scope. | C1-G5 remains open; the primary H1 interval/decision remains `JOINT_CLUSTER_HOLD`. The descriptive bounds are not an interval, label truth, or population-validity result. |
+| **C2: Matched measurement** | The 200-case validation diagnostic was independently recomputed. C2 remains recorded **5/5** under the fixed campaign map. HUMAN-selected T83 requires nested alias groups (`list[list[str]]`), one group per ingredient slot. | The old 10,747-case canonical-first envelopes are superseded preparation, not provider results. No headline-batch response is established; current payload/dispatch remains subject to the existing frozen contract and resource gates. |
 | **C3: Conformal guardrails** | 30-cell descriptive calibration evaluated with dual-implementation parity; hard-allergen taxonomy inputs and 10-role declaration verified under fail-closed contracts. Documented in Chapter 7 v0.3 (**C3-G1..C3-G5 FULLY EARNED — 5/5, 20 pts**). | **FULLY ACCEPTED (3/5 contributions complete)**. Formal statistical coverage guarantees disabled. |
 | **C4: Human evidence** | Pinned judge contract under Protocol SHA-256, executable runner with order reversal, bootstrap kappa, and dual-build proof verified (**C4-G1, C4-G2 EARNED — 2/5, 8 pts**). | Real human rater evaluation, recruitment, and agreement gates strictly gated on institutional ethics clearance (C4-G3, C4-G4, C4-G5 OPEN). |
-| **C5: Product proof** | Clean artifact (6,633 nodes, 23,185 edges, 0 identity errors, manifest `ade85c33...`), HTTP 200 serving, live browser runtime walkthrough, 4 visual captures, and full T-01..T-12 acceptance verified. Documented in Chapter 11 v0.3 (**C5-G1..C5-G5 FULLY EARNED — 5/5, 20 pts**). | **FULLY ACCEPTED (1/5 contributions complete)**. Clinical allergy safety and population causal retention remain external boundaries. |
+| **C5: Product proof** | Earlier R38/C5 acceptance remains recorded at its pinned artifact and runtime scope (**C5-G1..G5, 5/5**); see the bounded R38 receipt. | Current T395 staging uptake is separate and open: mount `graph_eval_v4_clean` read-only at a Linux container path, configure that path and expected manifest `ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1` without relaxing feature/auth/preview gates, then verify authenticated snapshot integrity metadata and the same Explorer manifest hash; observe the timed rehearsal separately. Clinical allergy safety and population causal retention also remain unestablished. |
+| **Current campaign ledger** | **21/25 milestones (84%); C1 4/5, C2 5/5, C3 5/5, C4 2/5, C5 5/5; three contributions fully accepted.** | C1-G5, C4-G3..G5 and current T395 staging uptake remain open at their separate boundaries; H1 remains `JOINT_CLUSTER_HOLD`. |
 
 ---
 
@@ -79,11 +82,11 @@ Across the five core academic contributions (C1–C5), substantial empirical, al
 
 The central empirical and practical questions remain bounded by explicit gates:
 
-1. **Human Validity:** Whether a meaningful share of single-reference misses are acceptable culinary alternatives, and how that rate changes across pair novelty, evidence coverage, and recipe context. A human audit cannot be replaced by LLM judge agreement or automated metrics.
+1. **Human Validity and H1:** The fixed C1 audit supplies a narrow adjudicated estimate for its sampled GISMo-primary cohort; it does not establish validity for other arms, populations, contexts, or a prospective untouched set. The primary H1 decision remains held until a design-matched uncertainty method is independently accepted. LLM-judge agreement and automated metrics do not replace this boundary.
 2. **Confirmatory Generalization:** Performance on the held-out test split has not been evaluated; doing so requires resolving redistribution rights, freezing the confirmatory analysis protocol, and verifying authorized compute resources.
 3. **Statistical Coverage Guarantees:** While descriptive calibration identifies informative set cutoffs on seen pairs ($\hat{t}=7$ at 70% coverage), case-level exchangeability is unproven. Formal coverage guarantees cannot be asserted without exchangeability or valid covariate-shift corrections.
 4. **Allergen Safety:** Existing safety routes withhold unknown candidates and disclaim medical safety, but certified allergen-group profile evidence and graph-integrated allergen tracking require authoritative external datasets with stable ingredient keys.
-5. **Product Reality:** Research artifacts and refusal panels prove architectural fail-closed integrity, but they do not prove user comprehension, trust, or cooking usefulness. Product relevance requires live, representative human walkthroughs.
+5. **Product Reality:** The older graph result does not prove current T395 staging uptake. That requires the pinned read-only consumer mount, authenticated integrity metadata, matching Explorer hash, and separate timed rehearsal. Research artifacts and refusal panels do not prove user comprehension, trust, or cooking usefulness; product relevance requires live, representative human walkthroughs.
 
 ---
 
@@ -91,13 +94,13 @@ The central empirical and practical questions remain bounded by explicit gates:
 
 1. **Prerequisites and Institutional Clearance:** Obtain written institutional ethics clearance and consent frameworks for human rater studies and participant trials (canonical §§14–16, PR13).
 2. **Authorized API Batch Collection (C2-G2):** When API key and budget preflight gates are formally dispatched, execute the 10,747-case offline Batch collection route within authorized USD caps.
-3. **Human Validity Audit (C1/C4):** Execute the approved blinded two-cook audit plus adjudication on the target sample, retaining disagreements and abstentions to establish rater agreement and judge validity ceilings.
+3. **Human Validity Audit / H1 (C1/C4):** The fixed 150-case C1 audit and its narrow G3/G4 acceptances are complete; do not describe them as pending or repeat that collection. The primary H1 interval remains held pending an independently accepted design-matched method. Additional human ratings, if needed for candidates outside the existing exact overlap, require their own already-governed design and authority; they are not supplied by the C1 audit.
 4. **Cross-Cultural Pilot Execution (Chapter 9):** Execute the bilingual Vietnamese pilot protocol following ethics clearance, preserving regional stratification and hidden-allergen monitoring.
 5. **Thesis Defense and Publication Release:** Compile reproducible research bundles, verified receipts, and final manuscripts from reviewed artifact repositories.
 
 ---
 
-## 14.6 Milestone Progress Ledger Synthesis
+## 14.6 Historical milestone ledger snapshot (as of 2026-11-02)
 
 As of 2026-11-02, following continuous SSoT verification against `academic_vision_and_strategy.md` and `research/protocols/IRON-CHEF-PROTOCOL-v1.md`, the campaign has verified **19 of 25 fixed milestones (76 points, 76.0%)** across the canonical acceptance map. Fully accepted contributions stand at **3/5 (C2, C3, C5)**:
 
