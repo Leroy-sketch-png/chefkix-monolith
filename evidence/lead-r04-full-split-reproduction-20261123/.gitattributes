@@ -1,0 +1,3 @@
+/README.md -text
+/r04-aggregate-summary.md -text
+/tools/*.py -text
