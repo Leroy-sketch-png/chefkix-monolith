@@ -1,7 +1,7 @@
 # L40 Vietnamese source candidate admission — 2026-11-24
 
-**Decision owner:** LEAD  
-**Scope:** source-candidate intake only; no case selection, source transfer, human review, model execution, or change to the frozen L40 design.  
+**Decision owner:** LEAD
+**Scope:** source-candidate intake only; no case selection, source transfer, human review, model execution, or change to the frozen L40 design.
 **Frozen authority:** [`L40 Vietnamese pilot design freeze v1`](lead-l40-vietnamese-pilot-design-freeze-20261106.md), especially source eligibility, frame/region evidence, language and contributor roles, and the fixed 60/40 allocation.
 
 ## Decision
