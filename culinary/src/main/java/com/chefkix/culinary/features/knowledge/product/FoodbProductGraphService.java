@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -52,6 +53,7 @@ public class FoodbProductGraphService {
     private final String requiredManifestSha256;
     private final AtomicReference<LoadedGraph> loaded = new AtomicReference<>();
 
+    @Autowired
     public FoodbProductGraphService(FoodbProductGraphProperties properties) {
         this(properties, EXPECTED_MANIFEST_SHA256);
     }

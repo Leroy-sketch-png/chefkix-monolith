@@ -1,6 +1,9 @@
 package com.chefkix.culinary.features.knowledge.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Assumptions;
@@ -27,6 +30,13 @@ class FoodbProductGraphServiceTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void serviceIsConstructibleBySpringWithItsRuntimeProperties() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(ServiceContext.class)
+                .run(context -> assertTrue(context.getStartupFailure() == null));
+    }
 
     @Test
     void servesTypedSourcePresenceAndArchiveLabelsOnlyAfterAllPinsMatch() throws Exception {
@@ -169,4 +179,8 @@ class FoodbProductGraphServiceTest {
     }
 
     private record Fixture(Path bundle, Path archive, String manifestSha256) {}
+
+    @Configuration(proxyBeanMethods = false)
+    @Import({FoodbProductGraphConfiguration.class, FoodbProductGraphService.class})
+    static class ServiceContext {}
 }
