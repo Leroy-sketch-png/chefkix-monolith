@@ -1,0 +1,7 @@
+# M-B target identity snapshot availability — 2026-11-24
+
+The Lead-selected destination identity remains the exact stored `legacyKnowledge.KnowledgeIngredient.canonicalName` within a hash-pinned `kg_ingredients` snapshot. No exact target snapshot was found in the fetched repository artifacts.
+
+The existing [Lead runtime observation](lead-ma-local-runtime-snapshot-20261021.json) records an aggregate count of 92 canonical ingredient names and a response-body hash, but explicitly says the raw response bodies were not retained and the sequential endpoint reads were not transactionally consistent. It therefore cannot supply the identity rows for a deterministic target snapshot. The checked-in monolith and infrastructure seed definitions are source code, not proof of current runtime collection contents. The isolated October 23 catch-up database was seeded from repository code and is not an authoritative runtime snapshot.
+
+At this check, no local Java application or MongoDB process/listener was available to take a fresh read-only snapshot. Do not use the 25-entry seed or the aggregate-only 92-name observation as the target snapshot. Until exact collection rows and source/release metadata can be captured and hash-pinned, Member cannot safely create the approved identity-only snapshot or map FooDB Food IDs to canonical names. Preserve case-fold/trim collisions as unresolved after a valid snapshot is available.
