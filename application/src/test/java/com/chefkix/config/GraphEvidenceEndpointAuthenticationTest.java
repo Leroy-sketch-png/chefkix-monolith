@@ -54,6 +54,11 @@ class GraphEvidenceEndpointAuthenticationTest {
             // their own paths and that the GET-only guest rule does not permit mutations.
             mvc.perform(get("/api/v1/knowledge/probe").contextPath("/api/v1"))
                     .andExpect(status().isNoContent());
+            mvc.perform(get("/api/v1/knowledge/product/probe").contextPath("/api/v1"))
+                    .andExpect(status().isUnauthorized());
+            mvc.perform(get("/api/v1/knowledge/product/probe").contextPath("/api/v1")
+                            .header("Authorization", "Bearer synthetic-token"))
+                    .andExpect(status().isNoContent());
             mvc.perform(get("/api/v1/knowledge-graph/probe").contextPath("/api/v1"))
                     .andExpect(status().isNoContent());
             mvc.perform(post("/api/v1/knowledge-graph/probe").contextPath("/api/v1"))
@@ -87,6 +92,11 @@ class GraphEvidenceEndpointAuthenticationTest {
     static class ProbeEndpoints {
         @GetMapping("/knowledge/probe")
         ResponseEntity<Void> publicKnowledgeControl() {
+            return ResponseEntity.noContent().build();
+        }
+
+        @GetMapping("/knowledge/product/probe")
+        ResponseEntity<Void> protectedProductKnowledgeControl() {
             return ResponseEntity.noContent().build();
         }
 

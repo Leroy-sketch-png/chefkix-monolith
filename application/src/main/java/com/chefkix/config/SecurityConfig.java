@@ -136,6 +136,7 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/knowledge/product/**").authenticated()
                         .requestMatchers(getPublicEndpoints()).permitAll()
                         .requestMatchers(HttpMethod.GET, GUEST_GET_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
